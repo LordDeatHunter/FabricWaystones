@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "wraith.waystones.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "PlayerManagerMixin"
+  ],
+  "client": [
+    "ItemRendererAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "waystones",
+  "version": "${version}",
+
+  "name": "Waystones",
+  "description": "A better way of transport!",
+  "authors": [
+    "LordDeatHunter"
+  ],
+  "contact": {
+    "homepage": "",
+    "sources": ""
+  },
+
+  "license": "CC0-1.0",
+  "icon": "assets/waystones/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "wraith.waystones.Waystones"
+    ],
+    "client": [
+      "wraith.waystones.WaystonesClient"
+    ]
+  },
+  "mixins": [
+    "waystones.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "fabric": "*",
+    "minecraft": "1.16.x"
+  },
+  "suggests": {
+    "flamingo": "*"
+  }
+}
