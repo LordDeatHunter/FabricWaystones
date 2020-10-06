@@ -26,10 +26,14 @@ public class WaystoneDatabase {
     PersistentState state;
 
     public ServerWorld getWorld(String world) {
+        if (SERVER == null) {
+            return null;
+        }
         for (ServerWorld worlds : SERVER.getWorlds()) {
             String id = worlds.getRegistryKey().getValue().getNamespace() + ":" + worlds.getRegistryKey().getValue().getPath();
-            if (id.equals(world))
+            if (id.equals(world)) {
                 return worlds;
+            }
         }
         return null;
     }
@@ -92,7 +96,9 @@ public class WaystoneDatabase {
         int i = 0;
         for (Waystone waystone : WAYSTONES.values()) {
             if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null) {
-                if (id == i) return waystone;
+                if (id == i) {
+                    return waystone;
+                }
                 ++i;
             }
         }
@@ -111,14 +117,16 @@ public class WaystoneDatabase {
     }
 
     public Waystone getWaystone(String id) {
-        if (WAYSTONES.containsKey(id))
+        if (WAYSTONES.containsKey(id)) {
             return WAYSTONES.get(id);
+        }
         return null;
     }
     public Waystone getWaystone(BlockPos pos, String world) {
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.pos.equals(pos) && world.equals(waystone.world))
+            if (waystone.pos.equals(pos) && world.equals(waystone.world)) {
                 return waystone;
+            }
         }
         return null;
     }
@@ -129,8 +137,9 @@ public class WaystoneDatabase {
 
     public boolean containsWaystone(WaystoneBlockEntity block) {
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.pos == block.getPos())
+            if (waystone.pos == block.getPos()) {
                 return true;
+            }
         }
         return false;
     }
@@ -163,8 +172,9 @@ public class WaystoneDatabase {
     public int getPlayerDiscoveredCount(PlayerEntity player) {
         int count = 0;
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null)
+            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null) {
                 ++count;
+            }
         }
         return count;
     }
@@ -192,8 +202,9 @@ public class WaystoneDatabase {
         ArrayList<String> discovered = new ArrayList<>();
         String name = player.getName().asString();
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(name) || SERVER == null)
+            if (waystone.discoveredBy.contains(name) || SERVER == null) {
                 discovered.add(waystone.name);
+            }
         }
         return discovered;
     }
@@ -202,8 +213,9 @@ public class WaystoneDatabase {
         ArrayList<Waystone> discovered = new ArrayList<>();
         String name = player.getName().asString();
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(name) || SERVER == null)
+            if (waystone.discoveredBy.contains(name) || SERVER == null) {
                 discovered.add(waystone);
+            }
         }
         return discovered;
     }
@@ -213,8 +225,9 @@ public class WaystoneDatabase {
     }
 
     public BlockPos getBlockPosition(String id) {
-        if (WAYSTONES.containsKey(id))
+        if (WAYSTONES.containsKey(id)) {
             return WAYSTONES.get(id).pos;
+        }
         return BlockPos.ORIGIN;
     }
 
@@ -223,7 +236,9 @@ public class WaystoneDatabase {
         for (Waystone waystone : WAYSTONES.values()) {
             for (String players : waystone.discoveredBy) {
                 if (player.getName().asString().equals(players)) {
-                    if (i == id) return waystone;
+                    if (i == id) {
+                        return waystone;
+                    }
                     ++i;
                 }
             }
@@ -232,7 +247,9 @@ public class WaystoneDatabase {
     }
 
     public void loadOrSaveWaystones(boolean save) {
-        if (SERVER == null) return;
+        if (SERVER == null) {
+            return;
+        }
         ServerWorld world = SERVER.getWorld(ServerWorld.OVERWORLD);
 
         if (save) {
@@ -243,15 +260,16 @@ public class WaystoneDatabase {
             try {
                 CompoundTag compoundTag = world.getPersistentStateManager().readTag(IDENTIFIER, SharedConstants.getGameVersion().getWorldVersion());
                 state.fromTag(compoundTag.getCompound("data"));
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ignored) {
             }
         }
         world.getPersistentStateManager().save();
     }
 
     public void sendToAllPlayers() {
-        if (SERVER == null || !SERVER.isDedicated()) return;
+        if (SERVER == null || !SERVER.isDedicated()) {
+            return;
+        }
         for (ServerPlayerEntity player : SERVER.getPlayerManager().getPlayerList()) {
             sendToPlayer(player);
         }

@@ -1,5 +1,10 @@
 package wraith.waystones;
 
+import net.minecraft.structure.pool.StructurePool;
+import net.minecraft.structure.pool.StructurePoolElement;
+import net.minecraft.structure.processor.StructureProcessorLists;
+import net.minecraft.util.Identifier;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
@@ -48,4 +53,13 @@ public class Utils {
         return sb.toString();
     }
 
+
+    public static StructurePool tryAddElementToPool(Identifier targetPool, StructurePool pool, String elementId, StructurePool.Projection projection, int weight) {
+        if(targetPool.equals(pool.getId())) {
+            ModifiableStructurePool modPool = new ModifiableStructurePool(pool);
+            modPool.addStructurePoolElement(StructurePoolElement.method_30426(elementId, StructureProcessorLists.EMPTY).apply(projection), weight);
+            return modPool.getStructurePool();
+        }
+        return pool;
+    }
 }

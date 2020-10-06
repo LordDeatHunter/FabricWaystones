@@ -24,6 +24,7 @@ public class Waystones implements ModInitializer {
         registerPacketHandlers();
     }
 
+
     private void registerPacketHandlers() {
         ServerSidePacketRegistry.INSTANCE.register(new Identifier(MOD_ID, "rename_waystone"), (packetContext, attachedData) -> {
             CompoundTag tag = attachedData.readCompoundTag();
@@ -41,7 +42,9 @@ public class Waystones implements ModInitializer {
 
     public static void teleportPlayer(PlayerEntity player, CompoundTag tag) {
         String world = tag.getString("WorldName");
-        if (WAYSTONE_DATABASE.getWorld(world) == null) return;
+        if (WAYSTONE_DATABASE.getWorld(world) == null) {
+            return;
+        }
         int[] coords = tag.getIntArray("Coordinates");
         ((ServerPlayerEntity)player).teleport(WAYSTONE_DATABASE.getWorld(world), coords[0], coords[1], coords[2], player.yaw, player.pitch);
     }

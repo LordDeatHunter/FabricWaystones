@@ -23,6 +23,9 @@ public class WaystonesClient implements ClientModInitializer {
 
     private void registerPacketHandlers() {
         ClientSidePacketRegistry.INSTANCE.register(new Identifier(Waystones.MOD_ID, "waystone_packet"), (packetContext, attachedData) -> {
+            if (packetContext.getPlayer() == null || packetContext.getPlayer().getServer() == null) {
+                return;
+            }
             Waystones.WAYSTONE_DATABASE = new WaystoneDatabase(packetContext.getPlayer().getServer());
             ListTag list = attachedData.readCompoundTag().getList("Waystones", 10);
             for (int i = 0; i < list.size(); ++i) {

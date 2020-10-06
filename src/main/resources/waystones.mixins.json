@@ -4,7 +4,9 @@
   "package": "wraith.waystones.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "PlayerManagerMixin"
+    "PlayerManagerMixin",
+    "StructurePoolsMixin",
+    "StructurePoolAccess"
   ],
   "client": [
     "ItemRendererAccessor"
