@@ -44,7 +44,9 @@ public class WaystoneDatabase {
 
     public WaystoneDatabase(MinecraftServer server) {
         SERVER = server;
-        if (SERVER == null) return;
+        if (SERVER == null) {
+            return;
+        }
         state = server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(() -> new PersistentState(IDENTIFIER) {
             @Override
             public void fromTag(CompoundTag tag) {
@@ -58,8 +60,9 @@ public class WaystoneDatabase {
                     }
                     String name = compound.getString("Name");
                     String world = compound.getString("World");
+                    String facing = compound.getString("Facing");
                     int[] coords = compound.getIntArray("Coordinates");
-                    Waystone waystone = new Waystone(name, new BlockPos(coords[0], coords[1], coords[2]), world, players);
+                    Waystone waystone = new Waystone(name, new BlockPos(coords[0], coords[1], coords[2]), world, facing, players);
                     WAYSTONES.put(name, waystone);
                 }
             }
@@ -82,6 +85,7 @@ public class WaystoneDatabase {
                     compound.putIntArray("Coordinates", coords);
                     compound.putString("Name", WAYSTONES.get(name).name);
                     compound.putString("World", WAYSTONES.get(name).world);
+                    compound.putString("Facing", WAYSTONES.get(name).facing);
                     compound.put("DiscoveredBy", players);
                     list.add(i, compound);
                     ++i;
@@ -285,6 +289,7 @@ public class WaystoneDatabase {
             CompoundTag tag = new CompoundTag();
             tag.putString("Name", waystone.name);
             tag.putString("World", waystone.world);
+            tag.putString("Facing", waystone.facing);
             tag.putIntArray("Coordinates", new int[]{waystone.pos.getX(), waystone.pos.getY(), waystone.pos.getZ()});
             list.add(i, tag);
             ++i;

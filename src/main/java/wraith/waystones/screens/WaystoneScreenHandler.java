@@ -17,8 +17,8 @@ import wraith.waystones.registries.CustomScreenHandlerRegistry;
 
 public class WaystoneScreenHandler extends ScreenHandler {
 
-    private String world;
-    private BlockPos pos;
+    private final String world;
+    private final BlockPos pos;
 
     public WaystoneScreenHandler(int syncId, BlockPos pos, String world) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId);
@@ -53,12 +53,15 @@ public class WaystoneScreenHandler extends ScreenHandler {
             PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
             CompoundTag tag = new CompoundTag();
             tag.putString("WorldName", waystone.world);
+            tag.putString("Facing", waystone.facing);
             tag.putIntArray("Coordinates", new int[]{waystone.pos.getX(), waystone.pos.getY(), waystone.pos.getZ()});
             data.writeCompoundTag(tag);
             if (player instanceof ServerPlayerEntity) {
                 Waystones.teleportPlayer(player, tag);
             }
-            else ClientSidePacketRegistry.INSTANCE.sendToServer(new Identifier(Waystones.MOD_ID, "teleport_player"), data);
+            else {
+                ClientSidePacketRegistry.INSTANCE.sendToServer(new Identifier(Waystones.MOD_ID, "teleport_player"), data);
+            }
             return true;
         } return false;
     }

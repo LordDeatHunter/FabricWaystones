@@ -42,11 +42,37 @@ public class Waystones implements ModInitializer {
 
     public static void teleportPlayer(PlayerEntity player, CompoundTag tag) {
         String world = tag.getString("WorldName");
+        String facing = tag.getString("Facing");
         if (WAYSTONE_DATABASE.getWorld(world) == null) {
             return;
         }
+        float x = 0;
+        float z = 0;
+        float yaw = player.yaw;
+        switch (facing) {
+            case "north":
+                x = 0.5f;
+                z = -0.5f;
+                yaw = 0;
+                break;
+            case "south":
+                x = 0.5f;
+                z = 1.5f;
+                yaw = 180;
+                break;
+            case "east":
+                x = 1.5f;
+                z = 0.5f;
+                yaw = 90;
+                break;
+            case "west":
+                x = -0.5f;
+                z = 0.5f;
+                yaw = 270;
+                break;
+        }
         int[] coords = tag.getIntArray("Coordinates");
-        ((ServerPlayerEntity)player).teleport(WAYSTONE_DATABASE.getWorld(world), coords[0], coords[1], coords[2], player.yaw, player.pitch);
+        ((ServerPlayerEntity)player).teleport(WAYSTONE_DATABASE.getWorld(world), coords[0] + x, coords[1], coords[2] + z, yaw, 0);
     }
 
     public void registerEvents() {

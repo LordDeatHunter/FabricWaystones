@@ -8,6 +8,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
@@ -83,9 +84,11 @@ public class WaystoneBlock extends BlockWithEntity {
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext context) {
-        if (state.get(HALF) == DoubleBlockHalf.LOWER)
+        if (state.get(HALF) == DoubleBlockHalf.LOWER) {
             return VOXEL_SHAPE_BOTTOM;
-        else return VOXEL_SHAPE_TOP;
+        } else {
+            return VOXEL_SHAPE_TOP;
+        }
     }
 
     @Override
@@ -133,8 +136,9 @@ public class WaystoneBlock extends BlockWithEntity {
                 id = Utils.generateWaystoneName("");
             }
 
-            if (!Waystones.WAYSTONE_DATABASE.containsWaystone(id))
+            if (!Waystones.WAYSTONE_DATABASE.containsWaystone(id)) {
                 Waystones.WAYSTONE_DATABASE.addWaystone(id, blockEntity);
+            }
 
             if (!Waystones.WAYSTONE_DATABASE.playerHasDiscovered(player, id)) {
                 player.sendMessage(new LiteralText(id + " has been discovered!").formatted(Formatting.AQUA), false);
@@ -143,6 +147,7 @@ public class WaystoneBlock extends BlockWithEntity {
             NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
 
             if (screenHandlerFactory != null) {
+                Waystones.WAYSTONE_DATABASE.sendToPlayer((ServerPlayerEntity) player);
                 player.openHandledScreen(screenHandlerFactory);
             }
         }
@@ -152,9 +157,11 @@ public class WaystoneBlock extends BlockWithEntity {
 
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER)
+        if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
             Waystones.WAYSTONE_DATABASE.removeWaystone((WaystoneBlockEntity)world.getBlockEntity(pos.down()));
-        else Waystones.WAYSTONE_DATABASE.removeWaystone((WaystoneBlockEntity)world.getBlockEntity(pos));
+        } else {
+            Waystones.WAYSTONE_DATABASE.removeWaystone((WaystoneBlockEntity)world.getBlockEntity(pos));
+        }
     }
 
 }
