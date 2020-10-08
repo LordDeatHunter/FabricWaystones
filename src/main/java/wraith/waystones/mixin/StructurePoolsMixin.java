@@ -1,3 +1,11 @@
+/*
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+||         Only works with vanilla villages.         ||
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
 package wraith.waystones.mixin;
 
 import net.minecraft.structure.pool.StructurePool;
@@ -27,3 +35,4 @@ class StructurePoolsMixin {
         cir.cancel();
     }
 }
+ */

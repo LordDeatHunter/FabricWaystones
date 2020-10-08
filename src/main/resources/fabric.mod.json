@@ -14,7 +14,7 @@
   },
 
   "license": "MIT License",
-  "icon": "assets/waystones/icon.png",
+  "icon": "assets/waystones/WaystoneIcon.png",
 
   "environment": "*",
   "entrypoints": {
@@ -28,6 +28,8 @@
   "mixins": [
     "waystones.mixins.json"
   ],
+
+  "accessWidener" : "waystones.accesswidener",
 
   "depends": {
     "fabricloader": ">=0.7.4",

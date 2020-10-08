@@ -15,4 +15,8 @@ public interface StructurePoolAccess {
 
     @Accessor(value = "elementCounts")
     List<Pair<StructurePoolElement, Integer>> getElementCounts();
+
+    @Accessor(value = "elementCounts")
+    void setElementCounts(List<Pair<StructurePoolElement, Integer>> list);
+
 }

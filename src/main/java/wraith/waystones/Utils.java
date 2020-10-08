@@ -62,4 +62,14 @@ public class Utils {
         }
         return pool;
     }
+
+    public static StructurePool tryAddElementToPool(Identifier targetPool, StructurePool pool, String elementId, StructurePool.Projection projection) {
+        if(targetPool.equals(pool.getId())) {
+            ModifiableStructurePool modPool = new ModifiableStructurePool(pool);
+            modPool.addStructurePoolElement(StructurePoolElement.method_30426(elementId, StructureProcessorLists.EMPTY).apply(projection));
+            return modPool.getStructurePool();
+        }
+        return pool;
+    }
+
 }

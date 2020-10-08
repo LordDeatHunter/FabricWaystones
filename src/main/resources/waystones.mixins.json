@@ -4,11 +4,12 @@
   "package": "wraith.waystones.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "StructurePoolAccess",
-    "StructurePoolsMixin"
+    "DynamicRegistryManagerImplMixin",
+    "DynamicRegistryManagerMixin",
+    "SimpleRegistryAccessor",
+    "StructurePoolAccess"
   ],
   "client": [
-    "ItemRendererAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
