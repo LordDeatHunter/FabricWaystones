@@ -1,21 +1,30 @@
 package wraith.waystones;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import wraith.waystones.registries.*;
+
+import java.util.HashSet;
 
 public class Waystones implements ModInitializer {
 
     public static final String MOD_ID = "waystones";
     public static WaystoneDatabase WAYSTONE_DATABASE;
+    public static boolean GLOBAL_DISCOVER = false;
 
     @Override
     public void onInitialize() {
+        GLOBAL_DISCOVER = Config.loadConfig();
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
         ItemRegistry.registerItems();
@@ -80,6 +89,22 @@ public class Waystones implements ModInitializer {
             WAYSTONE_DATABASE = new WaystoneDatabase(server);
             WAYSTONE_DATABASE.loadOrSaveWaystones(false);
         });
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+                    dispatcher.register(CommandManager.literal("waystones")
+                            .then(CommandManager.literal("reload"))
+                            .requires(source -> source.hasPermissionLevel(1))
+                            .executes(context -> {
+                                GLOBAL_DISCOVER = Config.loadConfig();
+                                ServerPlayerEntity player = context.getSource().getPlayer();
+                                if (player != null) {
+                                    player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully been reloaded!"), false);
+                                }
+
+                                return 1;
+                            })
+                    );
+                }
+        );
     }
 
 }

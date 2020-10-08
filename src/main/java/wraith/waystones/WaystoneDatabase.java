@@ -99,7 +99,7 @@ public class WaystoneDatabase {
     public Waystone getWaystoneFromClick(PlayerEntity player, int id) {
         int i = 0;
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null) {
+            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || Waystones.GLOBAL_DISCOVER) {
                 if (id == i) {
                     return waystone;
                 }
@@ -176,7 +176,7 @@ public class WaystoneDatabase {
     public int getPlayerDiscoveredCount(PlayerEntity player) {
         int count = 0;
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null) {
+            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || Waystones.GLOBAL_DISCOVER) {
                 ++count;
             }
         }
@@ -191,8 +191,9 @@ public class WaystoneDatabase {
 
     public void forgetWaystone(PlayerEntity player, String id) {
         String name = player.getName().asString();
-        if (WAYSTONES.containsKey(id) && WAYSTONES.get(id).discoveredBy.contains(name))
+        if (WAYSTONES.containsKey(id) && WAYSTONES.get(id).discoveredBy.contains(name)) {
             WAYSTONES.get(id).discoveredBy.remove(name);
+        }
         loadOrSaveWaystones(true);
     }
 
@@ -206,7 +207,7 @@ public class WaystoneDatabase {
         ArrayList<String> discovered = new ArrayList<>();
         String name = player.getName().asString();
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(name) || SERVER == null) {
+            if (waystone.discoveredBy.contains(name) || SERVER == null || Waystones.GLOBAL_DISCOVER) {
                 discovered.add(waystone.name);
             }
         }
@@ -217,7 +218,7 @@ public class WaystoneDatabase {
         ArrayList<Waystone> discovered = new ArrayList<>();
         String name = player.getName().asString();
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(name) || SERVER == null) {
+            if (waystone.discoveredBy.contains(name) || SERVER == null || Waystones.GLOBAL_DISCOVER) {
                 discovered.add(waystone);
             }
         }

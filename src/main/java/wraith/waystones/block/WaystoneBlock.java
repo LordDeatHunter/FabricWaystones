@@ -3,6 +3,7 @@ package wraith.waystones.block;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.block.enums.StairShape;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
@@ -17,9 +18,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
+import net.minecraft.util.*;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -70,6 +69,16 @@ public class WaystoneBlock extends BlockWithEntity {
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
         stateManager.add(HALF, FACING);
+    }
+
+    @Override
+    public BlockState rotate(BlockState state, BlockRotation rotation) {
+        return state.with(FACING, rotation.rotate(state.get(FACING)));
+    }
+
+    @Override
+    public BlockState mirror(BlockState state, BlockMirror mirror) {
+        return state.rotate(mirror.getRotation(state.get(FACING)));
     }
 
     @Override
@@ -141,7 +150,9 @@ public class WaystoneBlock extends BlockWithEntity {
             }
 
             if (!Waystones.WAYSTONE_DATABASE.playerHasDiscovered(player, id)) {
-                player.sendMessage(new LiteralText(id + " has been discovered!").formatted(Formatting.AQUA), false);
+                if (!Waystones.GLOBAL_DISCOVER) {
+                    player.sendMessage(new LiteralText(id + " has been discovered!").formatted(Formatting.AQUA), false);
+                }
                 Waystones.WAYSTONE_DATABASE.discoverWaystone(player, id);
             }
             NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
