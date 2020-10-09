@@ -6,7 +6,9 @@
   "mixins": [
     "DynamicRegistryManagerImplMixin",
     "DynamicRegistryManagerMixin",
+    "NoiseChunkGeneratorMixin",
     "SimpleRegistryAccessor",
+    "SinglePoolElementAccessor",
     "StructurePoolAccess"
   ],
   "client": [

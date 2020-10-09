@@ -18,9 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import wraith.waystones.Utils;
 
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 
 @Mixin(DynamicRegistryManager.class)
 public abstract class DynamicRegistryManagerMixin {
