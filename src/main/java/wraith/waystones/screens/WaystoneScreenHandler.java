@@ -11,6 +11,7 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import wraith.waystones.Utils;
 import wraith.waystones.Waystone;
 import wraith.waystones.Waystones;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
@@ -49,7 +50,7 @@ public class WaystoneScreenHandler extends ScreenHandler {
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystoneFromClick(player, id);
-        if (waystone != null) {
+        if (waystone != null && Utils.canTeleport(player)) {
             PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
             CompoundTag tag = new CompoundTag();
             tag.putString("WorldName", waystone.world);

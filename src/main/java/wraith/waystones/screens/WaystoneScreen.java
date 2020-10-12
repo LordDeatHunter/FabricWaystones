@@ -6,10 +6,13 @@ import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
@@ -20,6 +23,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.registry.Registry;
 import wraith.waystones.Utils;
 import wraith.waystones.Waystone;
 import wraith.waystones.Waystones;
@@ -40,7 +44,7 @@ public class WaystoneScreen extends HandledScreen<ScreenHandler> {
         super(handler, inventory, title);
         this.backgroundWidth = 175;
         this.backgroundHeight = 185;
-        this.playerInventoryTitleY = this.backgroundHeight - 96;
+        this.playerInventoryTitleY = this.backgroundHeight - 92;
     }
 
     @Override
@@ -62,14 +66,13 @@ public class WaystoneScreen extends HandledScreen<ScreenHandler> {
         this.nameInputField = new TextFieldWidget(this.textRenderer, this.x + 31, this.y + 23, 93, 9, new TranslatableText("waystone.rename"));
         this.nameInputField.setMaxLength(16);
         this.nameInputField.setHasBorder(false);
-        this.nameInputField.setVisible(false);
         this.nameInputField.setEditableColor(0xffffff);
         this.nameInputField.setVisible(true);
-        this.nameInputField.setFocusUnlocked(false);
+        this.nameInputField.setFocusUnlocked(true);
         this.nameInputField.setSelected(true);
         this.nameInputField.setText(((WaystoneScreenHandler)handler).getName());
         this.children.add(this.nameInputField);
-        this.playerInventoryTitleY = this.backgroundHeight - 96;
+        this.playerInventoryTitleY = this.backgroundHeight - 92;
     }
 
     @Override
@@ -123,10 +126,13 @@ public class WaystoneScreen extends HandledScreen<ScreenHandler> {
     private void rename() {
         String fieldName = this.nameInputField.getText();
         Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystone(((WaystoneScreenHandler)handler).getPos(), ((WaystoneScreenHandler)handler).getWorld());
-        if (waystone == null)return;
+        if (waystone == null) {
+            return;
+        }
         String oldName = waystone.name;
-        if (fieldName == null)
+        if (fieldName == null) {
             fieldName = "";
+        }
 
         String newName = Utils.generateWaystoneName(fieldName);
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
@@ -161,7 +167,19 @@ public class WaystoneScreen extends HandledScreen<ScreenHandler> {
         int n = this.scrollOffset + 3;
         this.renderWaystoneBackground(matrices, mouseX, mouseY, l, m, n);
         this.renderWaystoneNames(matrices, l, m, n);
+        this.renderCostItem(matrices,i + 3, j + 53);
         this.nameInputField.render(matrices, mouseX, mouseY, delta);
+    }
+
+    private void renderCostItem(MatrixStack matrices, int x, int y) {
+        if ("item".equals(Waystones.TELEPORT_COST)) {
+            this.itemRenderer.renderGuiItemIcon(new ItemStack(Registry.ITEM.get(Waystones.COST_ITEM)), x, y);
+            this.textRenderer.draw(matrices, Waystones.COST_AMOUNT + "", x + 4, y + 16, 0x161616);
+        }
+        else if ("xp".equals(Waystones.TELEPORT_COST)) {
+            this.itemRenderer.renderGuiItemIcon(new ItemStack(Items.EXPERIENCE_BOTTLE), x, y);
+            this.textRenderer.draw(matrices, Waystones.COST_AMOUNT + "", x + 4, y + 16, 0x161616);
+        }
     }
 
     private void renderWaystoneBackground(MatrixStack matrixStack, int mouseX, int mouseY, int k, int l, int m) {
@@ -170,9 +188,11 @@ public class WaystoneScreen extends HandledScreen<ScreenHandler> {
             int r = l + o * 18 + 2;
             int s = this.backgroundHeight;
             if (mouseX >= k && mouseY >= r && mouseX < k + 101 && mouseY < r + 18) {
-                if (mouseClicked)
+                if (mouseClicked) {
                     s += 18;
-                else s += 36;
+                } else {
+                    s += 36;
+                }
             }
             this.drawTexture(matrixStack, k, r - 1, 0, s, 101, 18);
         }

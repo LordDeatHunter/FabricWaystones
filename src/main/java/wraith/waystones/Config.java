@@ -1,31 +1,27 @@
 package wraith.waystones;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
-import net.minecraft.util.registry.Registry;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Scanner;
 
 public class Config {
 
-    public static boolean loadConfig() {
+    public static JsonObject loadConfig() {
         String defaultConfig =
                         "{\n" +
-                        "  \"global_discover\": false\n" +
+                        "  \"global_discover\": false,\n" +
+                        "  \"cost_type\": \"xp\",\n" +
+                        "  \"cost_item\": \"minecraft:ender_pearl\",\n" +
+                        "  \"cost_amount\": 1\n" +
                         "}";
         String path = "config/waystones/config.json";
         Config.createFile(path, defaultConfig, false);
-        return getJsonObject(readFile(new File(path))).get("global_discover").getAsBoolean();
+        return getJsonObject(readFile(new File(path)));
     }
 
     public static void createFile(String path, String contents, boolean overwrite) {

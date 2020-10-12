@@ -1,5 +1,6 @@
 package wraith.waystones;
 
+import com.google.gson.JsonObject;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
@@ -21,16 +22,36 @@ public class Waystones implements ModInitializer {
     public static final String MOD_ID = "waystones";
     public static WaystoneDatabase WAYSTONE_DATABASE;
     public static boolean GLOBAL_DISCOVER = false;
+    public static String TELEPORT_COST = "none";
+    public static int COST_AMOUNT = 0;
+    public static Identifier COST_ITEM = new Identifier("empty");
 
     @Override
     public void onInitialize() {
-        GLOBAL_DISCOVER = Config.loadConfig();
+        loadConfig();
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
         ItemRegistry.registerItems();
         CustomScreenHandlerRegistry.registerScreenHandlers();
         registerEvents();
         registerPacketHandlers();
+    }
+
+    private void loadConfig() {
+        JsonObject json = Config.loadConfig();
+        GLOBAL_DISCOVER = json.get("global_discover").getAsBoolean();
+        if (json.has("cost_type") && json.has("cost_amount")) {
+            TELEPORT_COST = json.get("cost_type").getAsString();
+            COST_AMOUNT = Math.abs(json.get("cost_amount").getAsInt());
+            if ("item".equals(TELEPORT_COST)) {
+                String[] item = json.get("cost_item").getAsString().split(":");
+                if (item.length == 2) {
+                    COST_ITEM = new Identifier(item[0], item[1]);
+                } else {
+                    COST_ITEM = new Identifier(item[0]);
+                }
+            }
+        }
     }
 
 
@@ -89,21 +110,18 @@ public class Waystones implements ModInitializer {
             WAYSTONE_DATABASE = new WaystoneDatabase(server);
             WAYSTONE_DATABASE.loadOrSaveWaystones(false);
         });
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
-                    dispatcher.register(CommandManager.literal("waystones")
-                            .then(CommandManager.literal("reload"))
-                            .requires(source -> source.hasPermissionLevel(1))
-                            .executes(context -> {
-                                GLOBAL_DISCOVER = Config.loadConfig();
-                                ServerPlayerEntity player = context.getSource().getPlayer();
-                                if (player != null) {
-                                    player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully been reloaded!"), false);
-                                }
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(CommandManager.literal("waystonesreload")
+                .requires(source -> source.hasPermissionLevel(1))
+                .executes(context -> {
+                    loadConfig();
+                    ServerPlayerEntity player = context.getSource().getPlayer();
+                    if (player != null) {
+                        player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully been reloaded!"), false);
+                    }
 
-                                return 1;
-                            })
-                    );
-                }
+                    return 1;
+                })
+        )
         );
     }
 
