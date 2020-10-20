@@ -17,12 +17,43 @@ public class Config {
                         "  \"global_discover\": false,\n" +
                         "  \"cost_type\": \"xp\",\n" +
                         "  \"cost_item\": \"minecraft:ender_pearl\",\n" +
-                        "  \"cost_amount\": 1\n" +
+                        "  \"cost_amount\": 1,\n" +
+                        "  \"village_generation\": true\n" +
                         "}";
         String path = "config/waystones/config.json";
         Config.createFile(path, defaultConfig, false);
         return getJsonObject(readFile(new File(path)));
     }
+
+    public static JsonObject loadRecipe() {
+        String defaultRecipe =
+                "{\n" +
+                        "  \"type\": \"minecraft:crafting_shaped\",\n" +
+                        "  \"pattern\": [\n" +
+                        "    \"BBB\",\n" +
+                        "    \"BEB\",\n" +
+                        "    \"BBB\"\n" +
+                        "  ],\n" +
+                        "  \"key\": {\n" +
+                        "    \"B\": {\n" +
+                        "      \"item\": \"minecraft:stone_bricks\"\n" +
+                        "    },\n" +
+                        "    \"E\": {\n" +
+                        "      \"item\": \"minecraft:ender_pearl\"\n" +
+                        "    }\n" +
+                        "  },\n" +
+                        "  \"result\": {\n" +
+                        "    \"item\": \"waystones:waystone\",\n" +
+                        "    \"count\": 1\n" +
+                        "  }\n" +
+                        "}\n" +
+                        "\n";
+        String path = "config/waystones/recipe.json";
+        Config.createFile(path, defaultRecipe, false);
+
+        return getJsonObject(readFile(new File(path)));
+    }
+
 
     public static void createFile(String path, String contents, boolean overwrite) {
         File file = new File(path);

@@ -13,6 +13,7 @@ import net.minecraft.world.gen.feature.StructureFeature;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import wraith.waystones.Waystones;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,7 +22,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NoiseChunkGeneratorMixin {
 
     @ModifyVariable(method = "populateNoise", at = @At("HEAD"))
-    public StructureAccessor populateNoise(StructureAccessor _, WorldAccess worldAccess, StructureAccessor accessor, Chunk chunk) {
+    public StructureAccessor populateNoise(StructureAccessor sa, WorldAccess worldAccess, StructureAccessor accessor, Chunk chunk) {
+        if (!Waystones.GENERATE_VILLAGE_WAYSTONES) {
+            return accessor;
+        }
         ChunkPos chunkPos = chunk.getPos();
         for(int i = 0; i < StructureFeature.JIGSAW_STRUCTURES.size(); ++i) {
             StructureFeature<?> structureFeature = StructureFeature.JIGSAW_STRUCTURES.get(i);

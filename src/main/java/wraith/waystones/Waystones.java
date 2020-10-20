@@ -1,30 +1,32 @@
 package wraith.waystones;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
-import wraith.waystones.registries.*;
-
-import java.util.HashSet;
+import wraith.waystones.registries.BlockEntityRegistry;
+import wraith.waystones.registries.BlockRegistry;
+import wraith.waystones.registries.CustomScreenHandlerRegistry;
+import wraith.waystones.registries.ItemRegistry;
 
 public class Waystones implements ModInitializer {
 
     public static final String MOD_ID = "waystones";
+    public static JsonObject WAYSTONE_RECIPE = null;
     public static WaystoneDatabase WAYSTONE_DATABASE;
     public static boolean GLOBAL_DISCOVER = false;
     public static String TELEPORT_COST = "none";
     public static int COST_AMOUNT = 0;
     public static Identifier COST_ITEM = new Identifier("empty");
+    public static boolean GENERATE_VILLAGE_WAYSTONES = true;
 
     @Override
     public void onInitialize() {
@@ -38,11 +40,14 @@ public class Waystones implements ModInitializer {
     }
 
     private void loadConfig() {
+        WAYSTONE_RECIPE = Config.loadRecipe();
+
         JsonObject json = Config.loadConfig();
         GLOBAL_DISCOVER = json.get("global_discover").getAsBoolean();
         if (json.has("cost_type") && json.has("cost_amount")) {
             TELEPORT_COST = json.get("cost_type").getAsString();
             COST_AMOUNT = Math.abs(json.get("cost_amount").getAsInt());
+            GENERATE_VILLAGE_WAYSTONES = json.get("village_generation").getAsBoolean();
             if ("item".equals(TELEPORT_COST)) {
                 String[] item = json.get("cost_item").getAsString().split(":");
                 if (item.length == 2) {
