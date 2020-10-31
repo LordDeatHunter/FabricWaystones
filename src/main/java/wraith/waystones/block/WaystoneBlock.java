@@ -4,6 +4,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.block.enums.StairShape;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
@@ -19,6 +20,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.*;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -131,35 +133,45 @@ public class WaystoneBlock extends BlockWithEntity {
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient) {
+
             BlockPos openPos = pos;
             if (state.get(HALF) == DoubleBlockHalf.UPPER) {
                 openPos = pos.down();
             }
             WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
-            String worldName = world.getRegistryKey().getValue().getNamespace() + ":" + world.getRegistryKey().getValue().getPath();
-            Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystone(openPos, worldName);
-            String id;
-            if (waystone != null) {
-                id = waystone.name;
-            } else {
-                id = Utils.generateWaystoneName("");
-            }
 
-            if (!Waystones.WAYSTONE_DATABASE.containsWaystone(id)) {
-                Waystones.WAYSTONE_DATABASE.addWaystone(id, blockEntity);
-            }
-
-            if (!Waystones.WAYSTONE_DATABASE.playerHasDiscovered(player, id)) {
-                if (!Waystones.GLOBAL_DISCOVER) {
-                    player.sendMessage(new LiteralText(id + " has been discovered!").formatted(Formatting.AQUA), false);
+            if (player.isSneaking() && player.hasPermissionLevel(2)) {
+                for (ItemStack item : blockEntity.inventory) {
+                    world.spawnEntity(new ItemEntity(world, openPos.getX(), openPos.getY() + 1, openPos.getZ(), item));
                 }
-                Waystones.WAYSTONE_DATABASE.discoverWaystone(player, id);
+                blockEntity.inventory.clear();
             }
-            NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
+            else {
+                String worldName = world.getRegistryKey().getValue().getNamespace() + ":" + world.getRegistryKey().getValue().getPath();
+                Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystone(openPos, worldName);
+                String id;
+                if (waystone != null) {
+                    id = waystone.name;
+                } else {
+                    id = Utils.generateWaystoneName("");
+                }
 
-            if (screenHandlerFactory != null) {
-                Waystones.WAYSTONE_DATABASE.sendToPlayer((ServerPlayerEntity) player);
-                player.openHandledScreen(screenHandlerFactory);
+                if (!Waystones.WAYSTONE_DATABASE.containsWaystone(id)) {
+                    Waystones.WAYSTONE_DATABASE.addWaystone(id, blockEntity);
+                }
+
+                if (!Waystones.WAYSTONE_DATABASE.playerHasDiscovered(player, id)) {
+                    if (!Waystones.GLOBAL_DISCOVER) {
+                        player.sendMessage(new LiteralText(id + " has been discovered!").formatted(Formatting.AQUA), false);
+                    }
+                    Waystones.WAYSTONE_DATABASE.discoverWaystone(player, id);
+                }
+                NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
+
+                if (screenHandlerFactory != null) {
+                    Waystones.WAYSTONE_DATABASE.sendToPlayer((ServerPlayerEntity) player);
+                    player.openHandledScreen(screenHandlerFactory);
+                }
             }
         }
         world.getBlockEntity(pos).markDirty();

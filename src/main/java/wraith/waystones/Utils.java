@@ -8,7 +8,9 @@ import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorLists;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.registry.Registry;
+import wraith.waystones.block.WaystoneBlockEntity;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -23,9 +25,9 @@ public class Utils {
 
     public static String generateWaystoneName(String id) {
         String out;
-        if (!"".equals(id) && !Waystones.WAYSTONE_DATABASE.containsWaystone(id))
+        if (!"".equals(id) && !Waystones.WAYSTONE_DATABASE.containsWaystone(id)) {
             out = id;
-        else {
+        } else {
             do {
                 out = generateUniqueId();
             } while(Waystones.WAYSTONE_DATABASE.containsWaystone(out));
@@ -77,19 +79,28 @@ public class Utils {
         return pool;
     }
 
-    public static boolean canTeleport(PlayerEntity player) {
+    public static boolean canTeleport(PlayerEntity player, WaystoneBlockEntity waystone) {
         String cost = Waystones.TELEPORT_COST;
         if ("none".equals(cost)) {
             return true;
         } else if ("xp".equals(cost)) {
             if (player.experienceLevel >= Waystones.COST_AMOUNT) {
                 player.experienceLevel -= Waystones.COST_AMOUNT;
+                return true;
             } else {
                 return false;
             }
         } else if ("item".equals(cost)) {
             if (containsItem(player.inventory, Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT)) {
                 removeItem(player.inventory, Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT);
+                if (waystone != null) {
+                    ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.inventory);
+                    oldInventory.add(new ItemStack(Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT));
+                    waystone.inventory = DefaultedList.ofSize(oldInventory.size(), ItemStack.EMPTY);
+                    for (int i = 0; i < oldInventory.size(); i++) {
+                        waystone.inventory.set(i, oldInventory.get(i));
+                    }
+                }
                 return true;
             }
             else {

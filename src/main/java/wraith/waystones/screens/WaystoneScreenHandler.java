@@ -14,17 +14,20 @@ import net.minecraft.util.math.BlockPos;
 import wraith.waystones.Utils;
 import wraith.waystones.Waystone;
 import wraith.waystones.Waystones;
+import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 
 public class WaystoneScreenHandler extends ScreenHandler {
 
     private final String world;
     private final BlockPos pos;
+    private final WaystoneBlockEntity waystoneEntity;
 
-    public WaystoneScreenHandler(int syncId, BlockPos pos, String world) {
+    public WaystoneScreenHandler(int syncId, BlockPos pos, String world, WaystoneBlockEntity waystoneEntity) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId);
         this.pos = pos;
         this.world = world;
+        this.waystoneEntity = waystoneEntity;
     }
 
     public WaystoneScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
@@ -45,12 +48,13 @@ public class WaystoneScreenHandler extends ScreenHandler {
         int[] coords = tag.getIntArray("Coordinates");
         this.pos = new BlockPos(coords[0], coords[1], coords[2]);
         this.world = tag.getString("WorldName");
+        this.waystoneEntity = null;
     }
 
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystoneFromClick(player, id);
-        if (waystone != null && Utils.canTeleport(player)) {
+        if (waystone != null && Utils.canTeleport(player, this.waystoneEntity)) {
             PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
             CompoundTag tag = new CompoundTag();
             tag.putString("WorldName", waystone.world);

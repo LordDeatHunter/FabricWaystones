@@ -8,12 +8,15 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import wraith.waystones.Waystones;
 import wraith.waystones.registries.BlockEntityRegistry;
@@ -24,10 +27,11 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
     public WaystoneBlockEntity() {
         super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY);
     }
+    public DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
 
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new WaystoneScreenHandler(syncId, pos, this.world.toString());
+        return new WaystoneScreenHandler(syncId, pos, this.world.toString(), this);
     }
 
     @Override
@@ -38,11 +42,15 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public void fromTag(BlockState state, CompoundTag tag) {
         super.fromTag(state, tag);
+        this.inventory = DefaultedList.ofSize(tag.getInt("InventorySize"), ItemStack.EMPTY);
+        Inventories.fromTag(tag, inventory);
     }
 
     @Override
     public CompoundTag toTag(CompoundTag tag) {
         super.toTag(tag);
+        tag.putInt("InventorySize", this.inventory.size());
+        Inventories.toTag(tag, this.inventory);
         return tag;
     }
 
@@ -51,8 +59,11 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
         if (this.world != null) {
             BlockState blockState = this.getCachedState();
             BlockPos pos2;
-            if (blockState.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) pos2 = this.pos.down();
-            else pos2 = this.pos;
+            if (blockState.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
+                pos2 = this.pos.down();
+            } else {
+                pos2 = this.pos;
+            }
             world.markDirty(pos2, world.getBlockEntity(pos2));
             world.markDirty(pos2.up(), world.getBlockEntity(pos2.up()));
             if (!world.getBlockState(pos2).isAir()) {
