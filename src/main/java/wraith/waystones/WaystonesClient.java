@@ -4,7 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -26,9 +26,12 @@ public class WaystonesClient implements ClientModInitializer {
     private void registerPacketHandlers() {
         ClientSidePacketRegistry.INSTANCE.register(new Identifier(Waystones.MOD_ID, "waystone_packet"), (packetContext, attachedData) -> {
             PlayerEntity player = packetContext.getPlayer();
-            if(!((ClientPlayNetworkHandler)packetContext).getConnection().isLocal()) {
+
+            // A note for the future: Please just treat the integrated server as remote. This is a bit of a hack.
+            if(!(MinecraftClient.getInstance().getNetworkHandler().getConnection().isLocal()) {
                 Waystones.WAYSTONE_DATABASE = new WaystoneDatabase(player == null ? null : player.getServer());
             }
+
             ListTag list = attachedData.readCompoundTag().getList("Waystones", 10);
             for (int i = 0; i < list.size(); ++i) {
                 CompoundTag tag = list.getCompound(i);
