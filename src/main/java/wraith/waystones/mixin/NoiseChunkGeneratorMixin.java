@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import wraith.waystones.Waystones;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Mixin(NoiseChunkGenerator.class)
@@ -42,6 +43,7 @@ public class NoiseChunkGeneratorMixin {
                         toRemove.add(j);
                     }
                 }
+                toRemove.sort(Collections.reverseOrder());
                 for(int remove : toRemove) {
                     structures.getChildren().remove(remove);
                 }

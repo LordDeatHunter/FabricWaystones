@@ -28,7 +28,7 @@ public class WaystonesClient implements ClientModInitializer {
             PlayerEntity player = packetContext.getPlayer();
 
             // A note for the future: Please just treat the integrated server as remote. This is a bit of a hack.
-            if(!(MinecraftClient.getInstance().getNetworkHandler().getConnection().isLocal()) {
+            if(!(MinecraftClient.getInstance().getNetworkHandler().getConnection().isLocal())) {
                 Waystones.WAYSTONE_DATABASE = new WaystoneDatabase(player == null ? null : player.getServer());
             }
 
