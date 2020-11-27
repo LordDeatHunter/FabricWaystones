@@ -154,6 +154,8 @@ public class WaystoneDatabase {
 
     public void removeWaystone(String id) {
         if (WAYSTONES.containsKey(id)) {
+            Waystone waystone = WAYSTONES.get(id);
+            waystone.discoveredBy.clear();
             WAYSTONES.remove(id);
         }
         loadOrSaveWaystones(true);
@@ -169,8 +171,11 @@ public class WaystoneDatabase {
             }
         }
         if (!"".equals(removal)) {
+            Waystone waystone = WAYSTONES.get(removal);
+            waystone.discoveredBy.clear();
             WAYSTONES.remove(removal);
         }
+        loadOrSaveWaystones(true);
     }
 
     public int getPlayerDiscoveredCount(PlayerEntity player) {
