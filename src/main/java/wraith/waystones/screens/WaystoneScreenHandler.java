@@ -53,22 +53,13 @@ public class WaystoneScreenHandler extends ScreenHandler {
 
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
-        Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystoneFromClick(player, id);
-        if (waystone != null && Utils.canTeleport(player, this.waystoneEntity)) {
-            PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-            CompoundTag tag = new CompoundTag();
-            tag.putString("WorldName", waystone.world);
-            tag.putString("Facing", waystone.facing);
-            tag.putIntArray("Coordinates", new int[]{waystone.pos.getX(), waystone.pos.getY(), waystone.pos.getZ()});
-            data.writeCompoundTag(tag);
-            if (player instanceof ServerPlayerEntity) {
-                Waystones.teleportPlayer(player, tag);
+            Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystoneFromClick(player, id);
+            if (waystone != null && Utils.canTeleport(player)) {
+                Waystones.teleportPlayer(player, waystone.world, waystone.facing, waystone.pos);
+                Utils.consumePayment(player, this.waystoneEntity);
+                return true;
             }
-            else {
-                ClientSidePacketRegistry.INSTANCE.sendToServer(new Identifier(Waystones.MOD_ID, "teleport_player"), data);
-            }
-            return true;
-        } return false;
+            return false;
     }
 
     @Override

@@ -79,35 +79,41 @@ public class Utils {
         return pool;
     }
 
-    public static boolean canTeleport(PlayerEntity player, WaystoneBlockEntity waystone) {
+    public static boolean canTeleport(PlayerEntity player) {
         String cost = Waystones.TELEPORT_COST;
-        if ("none".equals(cost)) {
-            return true;
-        } else if ("xp".equals(cost)) {
-            if (player.experienceLevel >= Waystones.COST_AMOUNT) {
-                player.experienceLevel -= Waystones.COST_AMOUNT;
+        switch (cost){
+            case "none":
                 return true;
-            } else {
-                return false;
-            }
-        } else if ("item".equals(cost)) {
-            if (containsItem(player.inventory, Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT)) {
-                removeItem(player.inventory, Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT);
-                if (waystone != null) {
-                    ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.inventory);
-                    oldInventory.add(new ItemStack(Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT));
-                    waystone.inventory = DefaultedList.ofSize(oldInventory.size(), ItemStack.EMPTY);
-                    for (int i = 0; i < oldInventory.size(); i++) {
-                        waystone.inventory.set(i, oldInventory.get(i));
-                    }
-                }
-                return true;
-            }
-            else {
-                return false;
-            }
+            case "xp":
+                return player.experienceLevel >= Waystones.COST_AMOUNT;
+            case "item":
+                return containsItem(player.inventory, Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT);
         }
         return true;
+    }
+
+    public static void consumePayment(PlayerEntity player, WaystoneBlockEntity waystone){
+        if(!player.world.isClient()) {
+            String cost = Waystones.TELEPORT_COST;
+            switch (cost) {
+                case "none":
+                    break;
+                case "xp":
+                    player.addExperienceLevels(-Waystones.COST_AMOUNT);
+                    break;
+                case "item":
+                    removeItem(player.inventory, Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT);
+                    if (waystone != null) {
+                        ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.inventory);
+                        oldInventory.add(new ItemStack(Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT));
+                        waystone.inventory = DefaultedList.ofSize(oldInventory.size(), ItemStack.EMPTY);
+                        for (int i = 0; i < oldInventory.size(); i++) {
+                            waystone.inventory.set(i, oldInventory.get(i));
+                        }
+                    }
+                    break;
+            }
+        }
     }
 
     private static boolean containsItem(PlayerInventory inventory, Item item, int maxAmount) {

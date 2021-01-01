@@ -12,6 +12,8 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.BlockRegistry;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
@@ -69,15 +71,10 @@ public class Waystones implements ModInitializer {
                 WAYSTONE_DATABASE.renameWaystone(oldName, newName);
             }
         });
-        ServerSidePacketRegistry.INSTANCE.register(new Identifier(MOD_ID, "teleport_player"), (packetContext, attachedData) -> {
-            CompoundTag tag = attachedData.readCompoundTag();
-            teleportPlayer(packetContext.getPlayer(), tag);
-        });
     }
 
-    public static void teleportPlayer(PlayerEntity player, CompoundTag tag) {
-        String world = tag.getString("WorldName");
-        String facing = tag.getString("Facing");
+    public static void teleportPlayer(PlayerEntity player, String world, String facing, BlockPos pos) {
+        if(!player.world.isClient()) {
         if (WAYSTONE_DATABASE.getWorld(world) == null) {
             return;
         }
@@ -106,8 +103,11 @@ public class Waystones implements ModInitializer {
                 yaw = 270;
                 break;
         }
-        int[] coords = tag.getIntArray("Coordinates");
-        ((ServerPlayerEntity)player).teleport(WAYSTONE_DATABASE.getWorld(world), coords[0] + x, coords[1], coords[2] + z, yaw, 0);
+            ServerPlayerEntity serverPlayer = ((ServerPlayerEntity) player);
+            serverPlayer.teleport(WAYSTONE_DATABASE.getWorld(world), pos.getX() + x, pos.getY(), pos.getZ() + z, yaw, 0);
+            serverPlayer.onTeleportationDone();
+            serverPlayer.addExperience(0);
+        }
     }
 
     public void registerEvents() {
