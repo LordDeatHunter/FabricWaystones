@@ -1,77 +1,71 @@
 package wraith.waystones;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import io.netty.buffer.Unpooled;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
+import org.apache.logging.log4j.LogManager;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.BlockRegistry;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 import wraith.waystones.registries.ItemRegistry;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class Waystones implements ModInitializer {
 
     public static final String MOD_ID = "waystones";
-    public static JsonObject WAYSTONE_RECIPE = null;
     public static WaystoneDatabase WAYSTONE_DATABASE;
-    public static boolean GLOBAL_DISCOVER = false;
-    public static String TELEPORT_COST = "none";
-    public static int COST_AMOUNT = 0;
-    public static Identifier COST_ITEM = new Identifier("empty");
-    public static boolean GENERATE_VILLAGE_WAYSTONES = true;
 
     @Override
     public void onInitialize() {
-        loadConfig();
+        LogManager.getLogger().info("[Fabric-Waystones] is loading.");
+        Config.getInstance().loadConfig();
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
+        ItemRegistry.addItems();
         ItemRegistry.registerItems();
         CustomScreenHandlerRegistry.registerScreenHandlers();
         registerEvents();
         registerPacketHandlers();
+        LogManager.getLogger().info("[Fabric-Waystones] has successfully been loaded.");
     }
-
-    private void loadConfig() {
-        WAYSTONE_RECIPE = Config.loadRecipe();
-
-        JsonObject json = Config.loadConfig();
-        GLOBAL_DISCOVER = json.get("global_discover").getAsBoolean();
-        if (json.has("cost_type") && json.has("cost_amount")) {
-            TELEPORT_COST = json.get("cost_type").getAsString();
-            COST_AMOUNT = Math.abs(json.get("cost_amount").getAsInt());
-            GENERATE_VILLAGE_WAYSTONES = json.get("village_generation").getAsBoolean();
-            if ("item".equals(TELEPORT_COST)) {
-                String[] item = json.get("cost_item").getAsString().split(":");
-                if (item.length == 2) {
-                    COST_ITEM = new Identifier(item[0], item[1]);
-                } else {
-                    COST_ITEM = new Identifier(item[0]);
-                }
-            }
-        }
-    }
-
 
     private void registerPacketHandlers() {
-        ServerSidePacketRegistry.INSTANCE.register(new Identifier(MOD_ID, "rename_waystone"), (packetContext, attachedData) -> {
-            CompoundTag tag = attachedData.readCompoundTag();
+        ServerPlayNetworking.registerGlobalReceiver(new Identifier(MOD_ID, "rename_waystone"), (server, player, networkHandler, data, sender) -> {
+            CompoundTag tag = data.readCompoundTag();
             String oldName = tag.getString("old_name");
             String newName = tag.getString("new_name");
             if (WAYSTONE_DATABASE.containsWaystone(oldName)) {
                 WAYSTONE_DATABASE.renameWaystone(oldName, newName);
             }
         });
-        ServerSidePacketRegistry.INSTANCE.register(new Identifier(MOD_ID, "teleport_player"), (packetContext, attachedData) -> {
-            CompoundTag tag = attachedData.readCompoundTag();
-            teleportPlayer(packetContext.getPlayer(), tag);
+        ServerPlayNetworking.registerGlobalReceiver(new Identifier(MOD_ID, "get_waystones"), (server, player, networkHandler, data, sender) -> {
+            WAYSTONE_DATABASE.sendToPlayer(player);
+        });
+        ServerPlayNetworking.registerGlobalReceiver(new Identifier(MOD_ID, "forget_waystone"), (server, player, networkHandler, data, sender) -> {
+            String id = data.readString();
+            if (Config.getInstance().canGlobalDiscover()) {
+                for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+                    WAYSTONE_DATABASE.forgetWaystone(p, id);
+                }
+            } else {
+                WAYSTONE_DATABASE.forgetWaystone(player, id);
+            }
+        });
+        ServerPlayNetworking.registerGlobalReceiver(new Identifier(MOD_ID, "teleport_player"), (server, player, networkHandler, data, sender) -> {
+            CompoundTag tag = data.readCompoundTag();
+            teleportPlayer(player, tag);
         });
     }
 
@@ -107,7 +101,25 @@ public class Waystones implements ModInitializer {
                 break;
         }
         int[] coords = tag.getIntArray("Coordinates");
-        ((ServerPlayerEntity)player).teleport(WAYSTONE_DATABASE.getWorld(world), coords[0] + x, coords[1], coords[2] + z, yaw, 0);
+        
+        final float fX = x;
+        final float fZ = z;
+        final float fYaw = yaw;
+        final ServerPlayerEntity serverPlayer = (ServerPlayerEntity)player;
+        final List<StatusEffectInstance> effects = serverPlayer.getStatusEffects().stream().map(StatusEffectInstance::new).collect(Collectors.toList());
+
+        Runnable r = () -> {
+            serverPlayer.teleport(WAYSTONE_DATABASE.getWorld(world), coords[0] + fX, coords[1], coords[2] + fZ, fYaw, 0);
+            serverPlayer.onTeleportationDone();
+            serverPlayer.addExperience(0);
+            serverPlayer.clearStatusEffects();
+            for(StatusEffectInstance effect : effects)
+            {
+                serverPlayer.applyStatusEffect(effect);
+            }
+        };
+
+        serverPlayer.getServer().execute(r);
     }
 
     public void registerEvents() {
@@ -118,12 +130,16 @@ public class Waystones implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(CommandManager.literal("waystonesreload")
                 .requires(source -> source.hasPermissionLevel(1))
                 .executes(context -> {
-                    loadConfig();
+                    Config.getInstance().loadConfig();
+                    for (ServerPlayerEntity player : context.getSource().getMinecraftServer().getPlayerManager().getPlayerList()) {
+                        PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+                        data.writeCompoundTag(Config.getInstance().toCompoundTag());
+                        ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);
+                    }
                     ServerPlayerEntity player = context.getSource().getPlayer();
                     if (player != null) {
                         player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully been reloaded!"), false);
                     }
-
                     return 1;
                 })
         )

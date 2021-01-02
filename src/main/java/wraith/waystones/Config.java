@@ -1,7 +1,13 @@
 package wraith.waystones;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Identifier;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,51 +17,143 @@ import java.util.Scanner;
 
 public class Config {
 
-    public static JsonObject loadConfig() {
-        String defaultConfig =
-                        "{\n" +
-                        "  \"global_discover\": false,\n" +
-                        "  \"cost_type\": \"xp\",\n" +
-                        "  \"cost_item\": \"minecraft:ender_pearl\",\n" +
-                        "  \"cost_amount\": 1,\n" +
-                        "  \"village_generation\": true\n" +
-                        "}";
-        String path = "config/waystones/config.json";
-        Config.createFile(path, defaultConfig, false);
-        return getJsonObject(readFile(new File(path)));
+    protected class configdata
+    {
+
     }
 
-    public static JsonObject loadRecipe() {
-        String defaultRecipe =
-                "{\n" +
-                        "  \"type\": \"minecraft:crafting_shaped\",\n" +
-                        "  \"pattern\": [\n" +
-                        "    \"BBB\",\n" +
-                        "    \"BEB\",\n" +
-                        "    \"BBB\"\n" +
-                        "  ],\n" +
-                        "  \"key\": {\n" +
-                        "    \"B\": {\n" +
-                        "      \"item\": \"minecraft:stone_bricks\"\n" +
-                        "    },\n" +
-                        "    \"E\": {\n" +
-                        "      \"item\": \"minecraft:ender_pearl\"\n" +
-                        "    }\n" +
-                        "  },\n" +
-                        "  \"result\": {\n" +
-                        "    \"item\": \"waystones:waystone\",\n" +
-                        "    \"count\": 1\n" +
-                        "  }\n" +
-                        "}\n" +
-                        "\n";
-        String path = "config/waystones/recipe.json";
-        Config.createFile(path, defaultRecipe, false);
+    /*
+     * Singleton :/
+     */
+    private static Config instance = null;
 
-        return getJsonObject(readFile(new File(path)));
+    public static Config getInstance()
+    {
+        if(instance == null)
+        {
+            instance = new Config();
+        }
+        return instance;
+    }
+
+    /*
+     * Getters and Setters for Config
+     */
+    public boolean generateInVillages() {
+        return villageGen;
+    }
+
+    public Identifier teleportCostItem() {
+        return costItem;
+    }
+
+    public String teleportType()
+    {
+        return teleportType;
+    }
+
+    public int teleportCost() {
+        return costTotal;
+    }
+
+    public boolean canGlobalDiscover() {
+        return globalDiscover;
+    }
+
+    public JsonObject getRecipe() {
+        return recipe;
+    }
+
+    private JsonObject recipe;
+    private boolean globalDiscover;
+    private String teleportType;
+    private int costTotal;
+    private Identifier costItem;
+    private boolean villageGen;
+
+    private static final String CONFIG_FILE = "config/waystones/config.json";
+    private static final String RECIPE_FILE = "config/waystones/recipe.json";
+
+    private Config()
+    {
+        recipe = null;
+        globalDiscover = false;
+        teleportType = "none";
+        costTotal = 0;
+        costItem = new Identifier("empty");
+        villageGen = true;
+        createDefaults();
+    }
+
+    private void createDefaults()
+    {
+        //Config File
+        JsonObject defaultConf  = new JsonObject();
+        defaultConf.addProperty("global_discover", false);
+        defaultConf.addProperty("cost_type", "xp");
+        defaultConf.addProperty("cost_item", "minecraft:ender_pearl");
+        defaultConf.addProperty("cost_amount", 1);
+        defaultConf.addProperty("village_generation", true);
+        //Recipe File
+        JsonObject defaultRec = new JsonObject();
+        defaultRec.addProperty("type", "minecraft:crafting_shaped");
+        JsonArray array = new JsonArray();
+        array.add("BBB"); array.add("BEB"); array.add("BBB");
+        defaultRec.add("pattern", array);
+        JsonObject key = new JsonObject();
+        JsonObject b = new JsonObject();
+        JsonObject e = new JsonObject();
+        b.addProperty("item", "minecraft:stone_bricks");
+        e.addProperty("item", "minecraft:ender_pearl");
+        key.add("B", b);
+        key.add("E", e);
+        defaultRec.add("key", key);
+        JsonObject result = new JsonObject();
+        result.addProperty("item", "waystones:waystone");
+        result.addProperty("count", 1);
+        defaultRec.add("result", result);
+        //Create Them
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        createFile(CONFIG_FILE, gson.toJson(defaultConf), false);
+        createFile(RECIPE_FILE, gson.toJson(defaultRec), false);
+    }
+
+    public void loadConfig() {
+        loadConfig(getJsonObject(readFile(new File(CONFIG_FILE))), getJsonObject(readFile(new File(RECIPE_FILE))));
+    }
+
+    public void loadConfig(JsonObject config, JsonObject recipe)
+    {
+        this.recipe = recipe;
+        try{
+            this.globalDiscover = config.get("global_discover").getAsBoolean();
+            if (config.has("cost_type") && config.has("cost_amount")) {
+                teleportType = config.get("cost_type").getAsString();
+                costTotal = Math.abs(config.get("cost_amount").getAsInt());
+                villageGen = config.get("village_generation").getAsBoolean();
+                if("item".equals(teleportType))
+                {
+                    String[] item = config.get("cost_item").getAsString().split(":");
+                    if (item.length == 2) {
+                        costItem = new Identifier(item[0], item[1]);
+                    } else {
+                        costItem = new Identifier(item[0]);
+                    }
+                }   
+            }
+        }
+        catch(ClassCastException ex)
+        {
+            System.out.println("Error with config...");
+        }
+        catch(IllegalStateException ex)
+        {
+            System.out.println("Error with recipe...");
+        }
     }
 
 
-    public static void createFile(String path, String contents, boolean overwrite) {
+    private void createFile(String path, String contents, boolean overwrite) {
         File file = new File(path);
         if (file.exists() && !overwrite) {
             return;
@@ -72,19 +170,28 @@ public class Config {
         if (contents == null || "".equals(contents)) {
             return;
         }
-        try {
-            FileWriter writer = new FileWriter(file);
+        try(FileWriter writer = new FileWriter(file)) {
             writer.write(contents);
-            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public CompoundTag toCompoundTag()
+    {
+        CompoundTag tag = new CompoundTag();
+        //todo: make json object
+        //JsonObject config = new JsonObject();
+        String contents = Config.readFile(new File(CONFIG_FILE));
+        tag.putString("config", contents);
+        contents = recipe.toString();
+        tag.putString("recipe", contents);
+        return tag;
+    }
+
     public static String readFile(File file) {
         String output = "";
-        try {
-            Scanner scanner = new Scanner(file);
+        try(Scanner scanner = new Scanner(file)) {
             scanner.useDelimiter("\\Z");
             output = scanner.next();
         } catch (FileNotFoundException e) {

@@ -1,7 +1,7 @@
 package wraith.waystones;
 
 import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
@@ -13,15 +13,18 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
+import org.apache.logging.log4j.LogManager;
 import wraith.waystones.block.WaystoneBlockEntity;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class WaystoneDatabase {
 
     private static MinecraftServer SERVER = null;
-    public HashMap<String, Waystone> WAYSTONES = new HashMap<>();
+    public Map<String, Waystone> WAYSTONES = new ConcurrentHashMap<>();
     public static final String IDENTIFIER = Waystones.MOD_ID + "_waystones";
     PersistentState state;
 
@@ -70,22 +73,22 @@ public class WaystoneDatabase {
             public CompoundTag toTag(CompoundTag tag) {
                 ListTag list = new ListTag();
                 int i = 0;
-                for(String name : WAYSTONES.keySet()) {
+                for(Waystone waystone : WAYSTONES.values()) {
                     CompoundTag compound = new CompoundTag();
-                    BlockPos pos = WAYSTONES.get(name).pos;
+                    BlockPos pos = waystone.pos;
                     int[] coords = {pos.getX(), pos.getY(), pos.getZ()};
                     ListTag players = new ListTag();
                     int j = 0;
-                    for (String player : WAYSTONES.get(name).discoveredBy) {
+                    for (String player : waystone.discoveredBy) {
                         CompoundTag playerName = new CompoundTag();
                         playerName.putString("PlayerName", player);
                         players.add(j, playerName);
                         ++j;
                     }
                     compound.putIntArray("Coordinates", coords);
-                    compound.putString("Name", WAYSTONES.get(name).name);
-                    compound.putString("World", WAYSTONES.get(name).world);
-                    compound.putString("Facing", WAYSTONES.get(name).facing);
+                    compound.putString("Name", waystone.name);
+                    compound.putString("World", waystone.world);
+                    compound.putString("Facing",waystone.facing);
                     compound.put("DiscoveredBy", players);
                     list.add(i, compound);
                     ++i;
@@ -98,8 +101,11 @@ public class WaystoneDatabase {
 
     public Waystone getWaystoneFromClick(PlayerEntity player, int id) {
         int i = 0;
-        for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || Waystones.GLOBAL_DISCOVER) {
+        List<String> sortedWaystones = new ArrayList<>(WAYSTONES.keySet());
+        Collections.sort(sortedWaystones);
+        for (String waystoneName : sortedWaystones) {
+            Waystone waystone = WAYSTONES.get(waystoneName);
+            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || Config.getInstance().canGlobalDiscover()) {
                 if (id == i) {
                     return waystone;
                 }
@@ -108,7 +114,6 @@ public class WaystoneDatabase {
         }
         return null;
     }
-
 
     public void addWaystone(String id, WaystoneBlockEntity block) {
         WAYSTONES.put(id, new Waystone(id, block));
@@ -164,9 +169,9 @@ public class WaystoneDatabase {
     public void removeWaystone(WaystoneBlockEntity block) {
         String removal = "";
         String worldName = block.getWorld().getRegistryKey().getValue().getNamespace() + ":" + block.getWorld().getRegistryKey().getValue().getPath();
-        for (String key : WAYSTONES.keySet()) {
-            if (WAYSTONES.get(key).pos.equals(block.getPos()) && WAYSTONES.get(key).world.equals(worldName)) {
-                removal = key;
+        for (Entry<String, Waystone> set : WAYSTONES.entrySet()) {
+            if (set.getValue().pos.equals(block.getPos()) && set.getValue().world.equals(worldName)) {
+                removal = set.getKey();
                 break;
             }
         }
@@ -181,7 +186,7 @@ public class WaystoneDatabase {
     public int getPlayerDiscoveredCount(PlayerEntity player) {
         int count = 0;
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || Waystones.GLOBAL_DISCOVER) {
+            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || Config.getInstance().canGlobalDiscover()) {
                 ++count;
             }
         }
@@ -196,7 +201,7 @@ public class WaystoneDatabase {
 
     public void forgetWaystone(PlayerEntity player, String id) {
         String name = player.getName().asString();
-        if (WAYSTONES.containsKey(id) && WAYSTONES.get(id).discoveredBy.contains(name)) {
+        if (WAYSTONES.containsKey(id)) {
             WAYSTONES.get(id).discoveredBy.remove(name);
         }
         loadOrSaveWaystones(true);
@@ -208,22 +213,26 @@ public class WaystoneDatabase {
         loadOrSaveWaystones(true);
     }
 
-    public ArrayList<String> getDiscoveredWaystoneNames(PlayerEntity player) {
+    public List<String> getDiscoveredWaystoneNames(PlayerEntity player) {
         ArrayList<String> discovered = new ArrayList<>();
         String name = player.getName().asString();
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(name) || SERVER == null || Waystones.GLOBAL_DISCOVER) {
+            if (waystone.discoveredBy.contains(name) || SERVER == null || Config.getInstance().canGlobalDiscover()) {
                 discovered.add(waystone.name);
             }
         }
+        Collections.sort(discovered);
         return discovered;
     }
 
-    public ArrayList<Waystone> getDiscoveredWaystones(PlayerEntity player) {
+    public List<Waystone> getDiscoveredWaystones(PlayerEntity player) {
         ArrayList<Waystone> discovered = new ArrayList<>();
         String name = player.getName().asString();
-        for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(name) || SERVER == null || Waystones.GLOBAL_DISCOVER) {
+        List<String> sortedWaystones = new ArrayList<>(WAYSTONES.keySet());
+        Collections.sort(sortedWaystones);
+        for (String waystoneName : sortedWaystones) {
+            Waystone waystone = WAYSTONES.get(waystoneName);
+            if (waystone.discoveredBy.contains(name) || SERVER == null || Config.getInstance().canGlobalDiscover()) {
                 discovered.add(waystone);
             }
         }
@@ -288,7 +297,7 @@ public class WaystoneDatabase {
     public void sendToPlayer(ServerPlayerEntity player) {
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
 
-        ArrayList<Waystone> waystones = getDiscoveredWaystones(player);
+        List<Waystone> waystones = getDiscoveredWaystones(player);
         ListTag list = new ListTag();
         int i = 0;
         for (Waystone waystone : waystones) {
@@ -303,6 +312,6 @@ public class WaystoneDatabase {
         CompoundTag tag = new CompoundTag();
         tag.put("Waystones", list);
         data.writeCompoundTag(tag);
-        ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, new Identifier(Waystones.MOD_ID, "waystone_packet"), data);
+        ServerPlayNetworking.send(player, Utils.ID("waystone_packet"), data);
     }
 }

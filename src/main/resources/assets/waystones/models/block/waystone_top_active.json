@@ -3,7 +3,7 @@
 	"texture_size": [64, 64],
 	"textures": {
 		"0": "waystones:block/waystone",
-		"particle": "waystones:block/waystone"
+		"particle": "minecraft:block/stone"
 	},
 	"elements": [
 		{

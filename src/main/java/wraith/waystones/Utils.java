@@ -23,6 +23,10 @@ public class Utils {
         return random.nextInt(max - min + 1) + min;
     }
 
+    public static Identifier ID(String id) {
+        return new Identifier(Waystones.MOD_ID, id);
+    }
+
     public static String generateWaystoneName(String id) {
         String out;
         if (!"".equals(id) && !Waystones.WAYSTONE_DATABASE.containsWaystone(id)) {
@@ -79,35 +83,69 @@ public class Utils {
         return pool;
     }
 
+    //Values from https://minecraft.gamepedia.com/Experience
+    public static long determineLevelXP(final PlayerEntity player)
+    {
+        int level = player.experienceLevel;
+        long total = player.totalExperience;
+        if(level <= 16)
+        {
+            total += (long) (Math.pow(level, 2) + 6 * level);
+        }
+        else if(level <= 31)
+        {
+            total += (long) (2.5 * Math.pow(level, 2) - 40.5 * level + 360);
+        }
+        else {
+            total += (long) (4.5 * Math.pow(level, 2) - 162.5 * level + 2220);
+        }
+        return total;
+    }
+
     public static boolean canTeleport(PlayerEntity player, WaystoneBlockEntity waystone) {
-        String cost = Waystones.TELEPORT_COST;
-        if ("none".equals(cost)) {
+        String cost = Config.getInstance().teleportType();
+        int amount = Config.getInstance().teleportCost();
+        if(player.isCreative()) {
             return true;
-        } else if ("xp".equals(cost)) {
-            if (player.experienceLevel >= Waystones.COST_AMOUNT) {
-                player.experienceLevel -= Waystones.COST_AMOUNT;
+        }
+        switch(cost)
+        {
+            case "none":
                 return true;
-            } else {
-                return false;
-            }
-        } else if ("item".equals(cost)) {
-            if (containsItem(player.inventory, Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT)) {
-                removeItem(player.inventory, Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT);
-                if (waystone != null) {
-                    ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.inventory);
-                    oldInventory.add(new ItemStack(Registry.ITEM.get(Waystones.COST_ITEM), Waystones.COST_AMOUNT));
-                    waystone.inventory = DefaultedList.ofSize(oldInventory.size(), ItemStack.EMPTY);
-                    for (int i = 0; i < oldInventory.size(); i++) {
-                        waystone.inventory.set(i, oldInventory.get(i));
-                    }
+            case "xp":
+                long total = determineLevelXP(player);
+                if(total < amount) {
+                    return false;
+                }
+                player.addExperience(-amount);
+                return true;
+            case "level":
+                if (player.experienceLevel < amount) {
+                    return false;
+                }
+                player.experienceLevel -= amount;
+                return true;
+            case "item":
+                Identifier item = Config.getInstance().teleportCostItem();
+                if (!containsItem(player.inventory, Registry.ITEM.get(item), amount)) {
+                    return false;
+                }
+                removeItem(player.inventory, Registry.ITEM.get(item), amount);
+
+                if (waystone == null) {
+                    return true;
+                }
+                ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.inventory);
+                oldInventory.add(new ItemStack(Registry.ITEM.get(item), amount));
+                waystone.inventory = DefaultedList.ofSize(oldInventory.size(), ItemStack.EMPTY);
+                for (int i = 0; i < oldInventory.size(); i++) {
+                    waystone.inventory.set(i, oldInventory.get(i));
                 }
                 return true;
-            }
-            else {
+            default:
                 return false;
-            }
         }
-        return true;
+        
     }
 
     private static boolean containsItem(PlayerInventory inventory, Item item, int maxAmount) {

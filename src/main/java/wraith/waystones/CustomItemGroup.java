@@ -7,5 +7,5 @@ import net.minecraft.util.Identifier;
 import wraith.waystones.registries.BlockRegistry;
 
 public class CustomItemGroup {
-    public static final ItemGroup WAYSTONE_GROUP = FabricItemGroupBuilder.create(new Identifier(Waystones.MOD_ID, "blocks")).icon(() -> new ItemStack(BlockRegistry.WAYSTONE)).build();
+    public static final ItemGroup WAYSTONE_GROUP = FabricItemGroupBuilder.create(Utils.ID("blocks")).icon(() -> new ItemStack(BlockRegistry.WAYSTONE)).build();
 }

@@ -3,9 +3,9 @@ package wraith.waystones;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.util.Identifier;
@@ -24,15 +24,13 @@ public class WaystonesClient implements ClientModInitializer {
     }
 
     private void registerPacketHandlers() {
-        ClientSidePacketRegistry.INSTANCE.register(new Identifier(Waystones.MOD_ID, "waystone_packet"), (packetContext, attachedData) -> {
-            PlayerEntity player = packetContext.getPlayer();
-
-            // A note for the future: Please just treat the integrated server as remote. This is a bit of a hack.
-            if(!(MinecraftClient.getInstance().getNetworkHandler().getConnection().isLocal())) {
+        ClientPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_packet"), (client, networkHandler, data, sender) -> {
+            ClientPlayerEntity player = MinecraftClient.getInstance().player;
+            if(!(networkHandler.getConnection().isLocal())) {
                 Waystones.WAYSTONE_DATABASE = new WaystoneDatabase(player == null ? null : player.getServer());
             }
 
-            ListTag list = attachedData.readCompoundTag().getList("Waystones", 10);
+            ListTag list = data.readCompoundTag().getList("Waystones", 10);
             for (int i = 0; i < list.size(); ++i) {
                 CompoundTag tag = list.getCompound(i);
                 String name = tag.getString("Name");
@@ -44,6 +42,16 @@ public class WaystonesClient implements ClientModInitializer {
                 Waystones.WAYSTONE_DATABASE.addWaystone(waystone);
                 Waystones.WAYSTONE_DATABASE.discoverWaystone(player, name);
             }
+
+        });
+        ClientPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_config_update"), (client, networkHandler, data, sender) -> {
+            if (client.isInSingleplayer()) {
+                return;
+            }
+            CompoundTag tag = data.readCompoundTag();
+            String config = tag.getString("config");
+            String recipe = tag.getString("recipe");
+            Config.getInstance().loadConfig(Config.getJsonObject(config), Config.getJsonObject(recipe));
         });
     }
 

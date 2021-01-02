@@ -3,24 +3,20 @@ package wraith.waystones.block;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.block.enums.StairShape;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.*;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -28,15 +24,18 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import wraith.waystones.Config;
 import wraith.waystones.Utils;
 import wraith.waystones.Waystone;
 import wraith.waystones.Waystones;
+import wraith.waystones.registries.ItemRegistry;
+
+import java.util.List;
 
 public class WaystoneBlock extends BlockWithEntity {
 
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
-    public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;;
-    private static final Text TITLE = new TranslatableText("container." + Waystones.MOD_ID + ".waystone");
+    public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
 
     //BOTTOM
     protected static final VoxelShape vs1_1 = Block.createCuboidShape(1f, 0f, 1f, 15f, 2f, 15f);
@@ -134,6 +133,22 @@ public class WaystoneBlock extends BlockWithEntity {
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient) {
 
+            if (player.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("empty_scroll")) {
+                ItemStack waystoneScroll = new ItemStack(ItemRegistry.ITEMS.get("waystone_scroll"));
+                List<Waystone> discovered = Waystones.WAYSTONE_DATABASE.getDiscoveredWaystones(player);
+                if (discovered.size() == 0) {
+                    return ActionResult.FAIL;
+                }
+                CompoundTag tag = new CompoundTag();
+                for(Waystone waystone : discovered) {
+                    tag.putString(waystone.name, waystone.name);
+                }
+                waystoneScroll.setTag(tag);
+                player.getMainHandStack().decrement(1);
+                player.inventory.offerOrDrop(world, waystoneScroll);
+                return ActionResult.SUCCESS;
+            }
+
             BlockPos openPos = pos;
             if (state.get(HALF) == DoubleBlockHalf.UPPER) {
                 openPos = pos.down();
@@ -142,7 +157,7 @@ public class WaystoneBlock extends BlockWithEntity {
 
             if (player.isSneaking() && player.hasPermissionLevel(2)) {
                 for (ItemStack item : blockEntity.inventory) {
-                    world.spawnEntity(new ItemEntity(world, openPos.getX(), openPos.getY() + 1, openPos.getZ(), item));
+                    world.spawnEntity(new ItemEntity(world, openPos.getX(), openPos.getY() + 1.0, openPos.getZ(), item));
                 }
                 blockEntity.inventory.clear();
             }
@@ -161,7 +176,7 @@ public class WaystoneBlock extends BlockWithEntity {
                 }
 
                 if (!Waystones.WAYSTONE_DATABASE.playerHasDiscovered(player, id)) {
-                    if (!Waystones.GLOBAL_DISCOVER) {
+                    if (!Config.getInstance().canGlobalDiscover()) {
                         player.sendMessage(new LiteralText(id + " has been discovered!").formatted(Formatting.AQUA), false);
                     }
                     Waystones.WAYSTONE_DATABASE.discoverWaystone(player, id);

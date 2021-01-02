@@ -6,7 +6,9 @@
   "mixins": [
     "DynamicRegistryManagerImplMixin",
     "DynamicRegistryManagerMixin",
+    "HandledScreenMixin",
     "NoiseChunkGeneratorMixin",
+    "PlayerManagerMixin",
     "RecipeManagerMixin",
     "SimpleRegistryAccessor",
     "SinglePoolElementAccessor",
