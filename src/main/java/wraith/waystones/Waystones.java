@@ -111,7 +111,6 @@ public class Waystones implements ModInitializer {
         final float fZ = z;
         final float fYaw = yaw;
         final ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
-        MinecraftServer server = serverPlayer.getServer();
             /*
             final List<StatusEffectInstance> effects = serverPlayer.getStatusEffects().stream().map(StatusEffectInstance::new).collect(Collectors.toList());
             */
@@ -126,9 +125,7 @@ public class Waystones implements ModInitializer {
                 }
                  */
         };
-        if(server != null){
-            server.execute(r);
-        }
+        serverPlayer.getServer().execute(r);
     }
 
     public void registerEvents() {
