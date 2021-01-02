@@ -42,17 +42,8 @@ public class UniversalWaystoneScreenHandler extends ScreenHandler {
             return true;
         }
         else if (Utils.canTeleport(player, null)) {
-            data = new PacketByteBuf(Unpooled.buffer());
-            tag = new CompoundTag();
-            tag.putString("WorldName", waystone.world);
-            tag.putString("Facing", waystone.facing);
-            tag.putIntArray("Coordinates", new int[]{waystone.pos.getX(), waystone.pos.getY(), waystone.pos.getZ()});
-            data.writeCompoundTag(tag);
-            if (player instanceof ServerPlayerEntity) {
-                Waystones.teleportPlayer(player, tag);
-            }
-            else {
-                ClientPlayNetworking.send(Utils.ID("teleport_player"), data);
+            if(!player.world.isClient) {
+                Waystones.teleportPlayer(player, waystone.world, waystone.facing, waystone.pos);
             }
             return true;
         } return false;
