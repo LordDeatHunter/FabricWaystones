@@ -122,7 +122,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
     private void rename() {
         String fieldName = this.nameInputField.getText();
         Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystone(((WaystoneScreenHandler)handler).getPos(), ((WaystoneScreenHandler)handler).getWorld());
-        if (waystone == null) {
+        if (waystone == null || !Waystones.WAYSTONE_DATABASE.playerHasDiscovered(playerInventory.player, waystone.name)) {
             return;
         }
         String oldName = waystone.name;

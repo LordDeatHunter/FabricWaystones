@@ -6,7 +6,6 @@
   "mixins": [
     "DynamicRegistryManagerImplMixin",
     "DynamicRegistryManagerMixin",
-    "HandledScreenMixin",
     "NoiseChunkGeneratorMixin",
     "PlayerManagerMixin",
     "RecipeManagerMixin",
@@ -15,6 +14,7 @@
     "StructurePoolAccess"
   ],
   "client": [
+    "HandledScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

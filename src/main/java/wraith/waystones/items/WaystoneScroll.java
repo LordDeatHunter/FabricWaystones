@@ -24,7 +24,9 @@ public class WaystoneScroll extends Item {
             return TypedActionResult.fail(scroll);
         }
         for(String key : tag.getKeys()) {
-            Waystones.WAYSTONE_DATABASE.discoverWaystone(user, key);
+            if (Waystones.WAYSTONE_DATABASE.containsWaystone(key)) {
+                Waystones.WAYSTONE_DATABASE.discoverWaystone(user, key);
+            }
         }
         user.setStackInHand(hand, new ItemStack(ItemRegistry.ITEMS.get("empty_scroll")));
         return TypedActionResult.success(scroll);

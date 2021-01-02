@@ -12,7 +12,6 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
-import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.BlockRegistry;
@@ -39,22 +38,33 @@ public class Waystones implements ModInitializer {
         registerEvents();
         registerPacketHandlers();
         LogManager.getLogger().info("[Fabric-Waystones] has successfully been loaded.");
+        LogManager.getLogger().info("[Fabric-Waystones] If you have any issues or questions, feel free to join our Discord: https://discord.gg/vMjzgS4.");
     }
 
     private void registerPacketHandlers() {
-        ServerPlayNetworking.registerGlobalReceiver(new Identifier(MOD_ID, "rename_waystone"), (server, player, networkHandler, data, sender) -> {
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("rename_waystone"), (server, player, networkHandler, data, sender) -> {
             CompoundTag tag = data.readCompoundTag();
+            if (tag == null) {
+                return;
+            }
             String oldName = tag.getString("old_name");
             String newName = tag.getString("new_name");
             if (WAYSTONE_DATABASE.containsWaystone(oldName)) {
                 WAYSTONE_DATABASE.renameWaystone(oldName, newName);
             }
         });
-        ServerPlayNetworking.registerGlobalReceiver(new Identifier(MOD_ID, "get_waystones"), (server, player, networkHandler, data, sender) -> {
-            WAYSTONE_DATABASE.sendToPlayer(player);
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("discover_waystones"), (server, player, networkHandler, data, sender) -> {
+            CompoundTag tag = data.readCompoundTag();
+            if (tag == null) {
+                return;
+            }
+            for (String key : tag.getKeys()) {
+                Waystones.WAYSTONE_DATABASE.discoverWaystone(player, key);
+            }
         });
-        ServerPlayNetworking.registerGlobalReceiver(new Identifier(MOD_ID, "forget_waystone"), (server, player, networkHandler, data, sender) -> {
-            String id = data.readString();
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("get_waystones"), (server, player, networkHandler, data, sender) -> WAYSTONE_DATABASE.sendToPlayer(player));
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("forget_waystone"), (server, player, networkHandler, data, sender) -> {
+            String id = data.readCompoundTag().getString("id");
             if (Config.getInstance().canGlobalDiscover()) {
                 for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
                     WAYSTONE_DATABASE.forgetWaystone(p, id);
@@ -63,7 +73,7 @@ public class Waystones implements ModInitializer {
                 WAYSTONE_DATABASE.forgetWaystone(player, id);
             }
         });
-        ServerPlayNetworking.registerGlobalReceiver(new Identifier(MOD_ID, "teleport_player"), (server, player, networkHandler, data, sender) -> {
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("teleport_player"), (server, player, networkHandler, data, sender) -> {
             CompoundTag tag = data.readCompoundTag();
             teleportPlayer(player, tag);
         });

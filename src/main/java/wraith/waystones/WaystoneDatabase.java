@@ -10,10 +10,8 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
-import org.apache.logging.log4j.LogManager;
 import wraith.waystones.block.WaystoneBlockEntity;
 
 import java.io.IOException;
@@ -105,7 +103,7 @@ public class WaystoneDatabase {
         Collections.sort(sortedWaystones);
         for (String waystoneName : sortedWaystones) {
             Waystone waystone = WAYSTONES.get(waystoneName);
-            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || Config.getInstance().canGlobalDiscover()) {
+            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || (Config.getInstance().canGlobalDiscover() && waystone.discoveredBy.size() > 0)) {
                 if (id == i) {
                     return waystone;
                 }
@@ -186,7 +184,7 @@ public class WaystoneDatabase {
     public int getPlayerDiscoveredCount(PlayerEntity player) {
         int count = 0;
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || Config.getInstance().canGlobalDiscover()) {
+            if (waystone.discoveredBy.contains(player.getName().asString()) || SERVER == null || (Config.getInstance().canGlobalDiscover() && waystone.discoveredBy.size() > 0)) {
                 ++count;
             }
         }
@@ -217,7 +215,7 @@ public class WaystoneDatabase {
         ArrayList<String> discovered = new ArrayList<>();
         String name = player.getName().asString();
         for (Waystone waystone : WAYSTONES.values()) {
-            if (waystone.discoveredBy.contains(name) || SERVER == null || Config.getInstance().canGlobalDiscover()) {
+            if (waystone.discoveredBy.contains(name) || SERVER == null || (Config.getInstance().canGlobalDiscover() && waystone.discoveredBy.size() > 0)) {
                 discovered.add(waystone.name);
             }
         }
@@ -232,7 +230,7 @@ public class WaystoneDatabase {
         Collections.sort(sortedWaystones);
         for (String waystoneName : sortedWaystones) {
             Waystone waystone = WAYSTONES.get(waystoneName);
-            if (waystone.discoveredBy.contains(name) || SERVER == null || Config.getInstance().canGlobalDiscover()) {
+            if (waystone.discoveredBy.contains(name) || SERVER == null || (Config.getInstance().canGlobalDiscover() && waystone.discoveredBy.size() > 0)) {
                 discovered.add(waystone);
             }
         }

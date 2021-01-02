@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import wraith.waystones.Config;
 import wraith.waystones.Utils;
+import wraith.waystones.Waystones;
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
@@ -21,6 +22,7 @@ public class PlayerManagerMixin {
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
         data.writeCompoundTag(Config.getInstance().toCompoundTag());
         ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);
+        Waystones.WAYSTONE_DATABASE.sendToPlayer(player);
     }
 
 }

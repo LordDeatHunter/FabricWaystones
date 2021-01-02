@@ -1,7 +1,9 @@
 package wraith.waystones.screens;
 
 import io.netty.buffer.Unpooled;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
@@ -29,18 +31,19 @@ public class UniversalWaystoneScreenHandler extends ScreenHandler {
         if (waystone == null) {
             return false;
         }
-        data.writeString(waystone.name);
+        CompoundTag tag = new CompoundTag();
+        tag.putString("id", waystone.name);
+        data.writeCompoundTag(tag);
         if (id % 2 != 0) {
-            if (player instanceof ClientPlayerEntity) {
-                ClientPlayNetworking.send(Utils.ID("forget_waystone"), data);
-                return true;
-            } else {
+            if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT) {
                 return false;
             }
+            ClientPlayNetworking.send(Utils.ID("forget_waystone"), data);
+            return true;
         }
         else if (Utils.canTeleport(player, null)) {
             data = new PacketByteBuf(Unpooled.buffer());
-            CompoundTag tag = new CompoundTag();
+            tag = new CompoundTag();
             tag.putString("WorldName", waystone.world);
             tag.putString("Facing", waystone.facing);
             tag.putIntArray("Coordinates", new int[]{waystone.pos.getX(), waystone.pos.getY(), waystone.pos.getZ()});

@@ -8,7 +8,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import wraith.waystones.registries.BlockEntityRendererRegistry;
 import wraith.waystones.registries.CustomScreenRegistry;
