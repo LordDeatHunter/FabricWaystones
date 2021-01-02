@@ -12,6 +12,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
+import net.minecraft.util.math.BlockPos;
 import org.apache.logging.log4j.LogManager;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.BlockRegistry;
@@ -37,7 +38,7 @@ public class Waystones implements ModInitializer {
         CustomScreenHandlerRegistry.registerScreenHandlers();
         registerEvents();
         registerPacketHandlers();
-        LogManager.getLogger().info("[Fabric-Waystones] has successfully been loaded.");
+        LogManager.getLogger().info("[Fabric-Waystones] has successfully loaded.");
         LogManager.getLogger().info("[Fabric-Waystones] If you have any issues or questions, feel free to join our Discord: https://discord.gg/vMjzgS4.");
     }
 
@@ -73,15 +74,9 @@ public class Waystones implements ModInitializer {
                 WAYSTONE_DATABASE.forgetWaystone(player, id);
             }
         });
-        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("teleport_player"), (server, player, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
-            teleportPlayer(player, tag);
-        });
     }
 
-    public static void teleportPlayer(PlayerEntity player, CompoundTag tag) {
-        String world = tag.getString("WorldName");
-        String facing = tag.getString("Facing");
+    public static void teleportPlayer(PlayerEntity player, String world, String facing, BlockPos pos) {
         if (WAYSTONE_DATABASE.getWorld(world) == null) {
             return;
         }
@@ -110,25 +105,24 @@ public class Waystones implements ModInitializer {
                 yaw = 270;
                 break;
         }
-        int[] coords = tag.getIntArray("Coordinates");
-        
+
         final float fX = x;
         final float fZ = z;
         final float fYaw = yaw;
-        final ServerPlayerEntity serverPlayer = (ServerPlayerEntity)player;
+        final ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
         final List<StatusEffectInstance> effects = serverPlayer.getStatusEffects().stream().map(StatusEffectInstance::new).collect(Collectors.toList());
-
+            
         Runnable r = () -> {
-            serverPlayer.teleport(WAYSTONE_DATABASE.getWorld(world), coords[0] + fX, coords[1], coords[2] + fZ, fYaw, 0);
+            serverPlayer.teleport(WAYSTONE_DATABASE.getWorld(world), pos.getX() + fX, pos.getY(), pos.getZ() + fZ, fYaw, 0);
             serverPlayer.onTeleportationDone();
             serverPlayer.addExperience(0);
             serverPlayer.clearStatusEffects();
-            for(StatusEffectInstance effect : effects)
-            {
-                serverPlayer.applyStatusEffect(effect);
-            }
+                
+                for (StatusEffectInstance effect : effects) {
+                    serverPlayer.addStatusEffect(effect);
+                }
+                 
         };
-
         serverPlayer.getServer().execute(r);
     }
 
@@ -148,7 +142,7 @@ public class Waystones implements ModInitializer {
                     }
                     ServerPlayerEntity player = context.getSource().getPlayer();
                     if (player != null) {
-                        player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully been reloaded!"), false);
+                        player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully reloaded!"), false);
                     }
                     return 1;
                 })

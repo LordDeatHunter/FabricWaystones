@@ -6,6 +6,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.apache.logging.log4j.LogManager;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Identifier;
 
@@ -92,7 +94,7 @@ public class Config {
         defaultConf.addProperty("global_discover", false);
         defaultConf.addProperty("cost_type", "xp");
         defaultConf.addProperty("cost_item", "minecraft:ender_pearl");
-        defaultConf.addProperty("cost_amount", 1);
+        defaultConf.addProperty("cost_amount", 7);
         defaultConf.addProperty("village_generation", true);
         //Recipe File
         JsonObject defaultRec = new JsonObject();
@@ -105,7 +107,7 @@ public class Config {
         JsonObject e = new JsonObject();
         JsonObject o = new JsonObject();
         b.addProperty("item", "minecraft:stone_bricks");
-        e.addProperty("item", "minecraft:ender_pearl");
+        e.addProperty("item", "minecraft:emerald");
         o.addProperty("item", "minecraft:obsidian");
         key.add("B", b);
         key.add("E", e);
@@ -145,13 +147,9 @@ public class Config {
                 }   
             }
         }
-        catch(ClassCastException ex)
+        catch(ClassCastException|IllegalStateException ex)
         {
-            System.out.println("Error with config...");
-        }
-        catch(IllegalStateException ex)
-        {
-            System.out.println("Error with recipe...");
+            LogManager.getLogger().error("[Fabric-Waystones] Error with config....", ex);
         }
     }
 
