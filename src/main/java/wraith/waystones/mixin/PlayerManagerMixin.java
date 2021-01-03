@@ -22,7 +22,9 @@ public class PlayerManagerMixin {
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
         data.writeCompoundTag(Config.getInstance().toCompoundTag());
         ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);
-        Waystones.WAYSTONE_DATABASE.sendToPlayer(player);
+        if(connection.isLocal()) {
+            Waystones.WAYSTONE_DATABASE.sendToPlayer(player);
+        }
     }
 
 }
