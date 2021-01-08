@@ -66,12 +66,17 @@ public class Config {
         return recipe;
     }
 
+    public float getHardness() {
+        return hardness;
+    }
+
     private JsonObject recipe;
     private boolean globalDiscover;
     private String teleportType;
     private int costTotal;
     private Identifier costItem;
     private boolean villageGen;
+    private float hardness;
 
     private static final String CONFIG_FILE = "config/waystones/config.json";
     private static final String RECIPE_FILE = "config/waystones/recipe.json";
@@ -84,6 +89,8 @@ public class Config {
         costTotal = 0;
         costItem = new Identifier("empty");
         villageGen = true;
+        // set to whatever default you want
+        hardness = 4.0f;
         createDefaults();
     }
 
@@ -96,6 +103,7 @@ public class Config {
         defaultConf.addProperty("cost_item", "minecraft:ender_pearl");
         defaultConf.addProperty("cost_amount", 7);
         defaultConf.addProperty("village_generation", true);
+        defaultConf.addProperty("waystone_hardness_value", 5.0f);;
         //Recipe File
         JsonObject defaultRec = new JsonObject();
         defaultRec.addProperty("type", "minecraft:crafting_shaped");
@@ -132,6 +140,7 @@ public class Config {
         this.recipe = recipe;
         try{
             this.globalDiscover = config.get("global_discover").getAsBoolean();
+            this.hardness = config.get("waystone_hardness_value").getAsFloat();
             if (config.has("cost_type") && config.has("cost_amount")) {
                 teleportType = config.get("cost_type").getAsString();
                 costTotal = Math.abs(config.get("cost_amount").getAsInt());
