@@ -1,52 +1,52 @@
 package wraith.waystones.screens;
 
 import io.netty.buffer.Unpooled;
-import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.server.network.ServerPlayerEntity;
-
-import org.jetbrains.annotations.Nullable;
+import wraith.waystones.PlayerAccess;
 import wraith.waystones.Utils;
-import wraith.waystones.Waystone;
-import wraith.waystones.Waystones;
+
+import java.util.ArrayList;
 
 public class UniversalWaystoneScreenHandler extends ScreenHandler {
 
-    protected UniversalWaystoneScreenHandler(@Nullable ScreenHandlerType<?> type, int syncId) {
+    protected UniversalWaystoneScreenHandler(ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type, int syncId) {
         super(type, syncId);
     }
 
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
-        int waystoneID = Math.floorDiv(id, 2);
-        Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystoneFromClick(player, waystoneID);
+        if (!player.world.isClient) {
+            return false;
+        }
 
-        PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+        int waystoneID = Math.floorDiv(id, 2);
+        ArrayList<String> waystones = ((PlayerAccess)player).getHashesSorted();
+        if (waystoneID >= waystones.size()) {
+            return false;
+        }
+
+        String waystone = waystones.get(waystoneID);
         if (waystone == null) {
             return false;
         }
+
+        PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
         CompoundTag tag = new CompoundTag();
-        tag.putString("id", waystone.name);
+        tag.putString("waystone_hash", waystone);
         data.writeCompoundTag(tag);
+
         if (id % 2 != 0) {
-            if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT || player instanceof ServerPlayerEntity) {
-                return false;
-            }
             ClientPlayNetworking.send(Utils.ID("forget_waystone"), data);
-            return true;
         }
-        else if (Utils.canTeleport(player, null)) {
-            if(!player.world.isClient) {
-                Waystones.teleportPlayer(player, waystone.world, waystone.facing, waystone.pos);
-            }
-            return true;
-        } return false;
+        else {
+            ClientPlayNetworking.send(Utils.ID("teleport_to_waystone"), data);
+        }
+        return true;
     }
 
     @Override

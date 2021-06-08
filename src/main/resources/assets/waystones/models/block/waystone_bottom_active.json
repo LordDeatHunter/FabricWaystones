@@ -3,7 +3,7 @@
 	"texture_size": [64, 64],
 	"textures": {
 		"0": "waystones:block/waystone",
-		"particle": "minecraft:block/stone"
+		"particle": "block/stone"
 	},
 	"elements": [
 		{
@@ -27,8 +27,7 @@
 				"east": {"uv": [0, 3, 3, 3.75], "texture": "#0"},
 				"south": {"uv": [0, 3, 3, 3.75], "texture": "#0"},
 				"west": {"uv": [0, 3, 3, 3.75], "texture": "#0"},
-				"up": {"uv": [0, 4, 3, 7], "texture": "#0"},
-				"down": {"uv": [0, 4, 3, 7], "texture": "#0"}
+				"up": {"uv": [0, 4, 3, 7], "texture": "#0"}
 			}
 		},
 		{
@@ -40,8 +39,7 @@
 				"east": {"uv": [2.5, 0.25, 5, 3], "texture": "#0"},
 				"south": {"uv": [0, 0.25, 2.5, 3], "texture": "#0"},
 				"west": {"uv": [7.5, 0.25, 10, 3], "texture": "#0"},
-				"up": {"uv": [0, 0, 2.5, 2.5], "texture": "#missing"},
-				"down": {"uv": [0, 0, 2.5, 2.5], "texture": "#missing"}
+				"up": {"uv": [6.75, 4.25, 9.25, 6.75], "texture": "#0"}
 			}
 		}
 	]

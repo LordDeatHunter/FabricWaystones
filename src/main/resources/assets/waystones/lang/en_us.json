@@ -7,5 +7,7 @@
   "block.waystones.waystone": "Waystone",
   "container.waystones.waystone": "Waystones",
   "container.waystones.pocket_wormhole": "Pocket Wormhole",
+  "container.waystones.abyss_watcher": "Abyss Watcher",
+  "waystones.discover_waystone": " has been discovered!",
   "itemGroup.waystones.blocks": "Waystones"
 }

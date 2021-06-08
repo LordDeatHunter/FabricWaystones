@@ -1,5 +1,7 @@
 package wraith.waystones;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -12,13 +14,14 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.registry.Registry;
 import wraith.waystones.block.WaystoneBlockEntity;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Random;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 public class Utils {
 
-    public static final Random random = new Random(Calendar.getInstance().getTimeInMillis());
+    public static final Random random = new Random();
     public static int getRandomIntInRange(int min, int max) {
         return random.nextInt(max - min + 1) + min;
     }
@@ -28,15 +31,7 @@ public class Utils {
     }
 
     public static String generateWaystoneName(String id) {
-        String out;
-        if (!"".equals(id) && !Waystones.WAYSTONE_DATABASE.containsWaystone(id)) {
-            out = id;
-        } else {
-            do {
-                out = generateUniqueId();
-            } while(Waystones.WAYSTONE_DATABASE.containsWaystone(out));
-        }
-        return out;
+        return "".equals(id) ? generateUniqueId() : id;
     }
 
     private static String generateUniqueId() {
@@ -90,7 +85,7 @@ public class Utils {
         long total = player.totalExperience;
         if(level <= 16)
         {
-            total += (long) (Math.pow(level, 2) + 6 * level);
+            total += (long) (Math.pow(level, 2) + 6L * level);
         }
         else if(level <= 31)
         {
@@ -108,8 +103,7 @@ public class Utils {
         if(player.isCreative()) {
             return true;
         }
-        switch(cost)
-        {
+        switch(cost) {
             case "none":
                 return true;
             case "xp":
@@ -199,6 +193,53 @@ public class Utils {
                 return;
             }
         }
+    }
+
+    public static JsonObject createRecipe(String patternString, HashMap<String, String> itemMap, String output, int amount) {
+        JsonObject json = new JsonObject();
+
+        json.addProperty("type", "minecraft:crafting_shaped");
+
+        JsonArray jsonArray = new JsonArray();
+
+        String[] pattern = patternString.split("_");
+
+        jsonArray.add(pattern[0]);
+        if (pattern.length > 1) {
+            jsonArray.add(pattern[1]);
+        }
+        if (pattern.length > 2) {
+            jsonArray.add(pattern[2]);
+        }
+
+        json.add("pattern", jsonArray);
+
+        JsonObject individualKey;
+        JsonObject keyList = new JsonObject();
+
+        for (Map.Entry<String, String> item : itemMap.entrySet()) {
+            individualKey = new JsonObject();
+            individualKey.addProperty("item", item.getValue());
+            keyList.add(item.getKey(), individualKey);
+        }
+
+        json.add("key", keyList);
+
+        JsonObject result = new JsonObject();
+        result.addProperty("item", output);
+        result.addProperty("count", amount);
+        json.add("result", result);
+
+        return json;
+    }
+
+    public static String getSHA256(String data) {
+        try {
+            return Arrays.toString(MessageDigest.getInstance("SHA-256").digest(data.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
 }

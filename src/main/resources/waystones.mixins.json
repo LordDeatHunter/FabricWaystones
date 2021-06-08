@@ -6,15 +6,18 @@
   "mixins": [
     "DynamicRegistryManagerImplMixin",
     "DynamicRegistryManagerMixin",
+    "FlatChunkGeneratorMixin",
     "NoiseChunkGeneratorMixin",
-    "PlayerManagerMixin",
+    "PlayerEntityMixin",
     "RecipeManagerMixin",
+    "ServerPlayerEntityMixin",
     "SimpleRegistryAccessor",
     "SinglePoolElementAccessor",
     "StructurePoolAccess"
   ],
   "client": [
-    "HandledScreenMixin"
+    "ClientPlayerEntityMixin",
+    "ClientPlayNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

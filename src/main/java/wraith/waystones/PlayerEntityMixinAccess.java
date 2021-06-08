@@ -1,0 +1,24 @@
+package wraith.waystones;
+
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundTag;
+import wraith.waystones.block.WaystoneBlockEntity;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+
+public interface PlayerEntityMixinAccess extends PlayerAccess {
+
+    void discoverWaystone(WaystoneBlockEntity waystone);
+    boolean hasDiscoveredWaystone(WaystoneBlockEntity waystone);
+    void forgetWaystone(WaystoneBlockEntity waystone);
+    void forgetWaystone(String hash);
+    void syncData();
+    HashSet<String> getDiscoveredWaystones();
+    int getDiscoveredAmount();
+    ArrayList<String> getWaystonesSorted();
+    void learnWaystones(PlayerEntity player, boolean overwrite);
+    void fromTagW(CompoundTag tag);
+    CompoundTag toTagW(CompoundTag tag);
+
+}

@@ -1,6 +1,8 @@
 package wraith.waystones.screens;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -8,14 +10,20 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
+import wraith.waystones.ClientPlayerEntityMixinAccess;
 import wraith.waystones.Config;
-import wraith.waystones.Waystones;
+import wraith.waystones.PlayerEntityMixinAccess;
+import wraith.waystones.Utils;
+
+import java.util.ArrayList;
 
 public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
@@ -70,10 +78,21 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 break;
         }
 
-        this.textRenderer.draw(matrices, text + ": " + Config.getInstance().teleportCost(), x + 16f, y + 5f, 0x161616);
+        renderCostText(matrices, x, y, text);
     }
+
+    protected void renderCostText(MatrixStack matrices, int x, int y, String text) {
+        this.textRenderer.draw(matrices, text + ": " + Config.getInstance().teleportCost(), x + 20, y + 5, 0x161616);
+    }
+
+    @Override
+    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
+        this.textRenderer.draw(matrices, this.title, (float)this.titleX, (float)this.titleY, 4210752);
+    }
+
+
     protected void renderForgetButtons(MatrixStack matrixStack, int mouseX, int mouseY, int x, int y) {
-        int n = Waystones.WAYSTONE_DATABASE.getPlayerDiscoveredCount(playerInventory.player);
+        int n = getDiscoveredCount();
         for (int i = 0; i < 3; ++i) {
             int r = y + i * 18;
             int v = 0;
@@ -92,7 +111,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected void renderWaystoneBackground(MatrixStack matrixStack, int mouseX, int mouseY, int k, int l, int m) {
-        for(int n = this.scrollOffset; n < m && n < Waystones.WAYSTONE_DATABASE.getPlayerDiscoveredCount(playerInventory.player); ++n) {
+        for(int n = this.scrollOffset; n < m && n < getDiscoveredCount(); ++n) {
             int o = n - this.scrollOffset;
             int r = l + o * 18 + 2;
             int s = this.backgroundHeight;
@@ -108,16 +127,20 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected void renderWaystoneNames(MatrixStack matrices, int k, int l, int m) {
-        for(int n = this.scrollOffset; n < m && n < Waystones.WAYSTONE_DATABASE.getPlayerDiscoveredCount(playerInventory.player); ++n) {
+        ArrayList<String> waystones = ((ClientPlayerEntityMixinAccess)playerInventory.player).getWaystonesSorted();
+        for(int n = this.scrollOffset; n < m && n < waystones.size(); ++n) {
             int o = n - this.scrollOffset;
             int r = l + o * 18 + 2;
 
-            this.textRenderer.draw(matrices, Waystones.WAYSTONE_DATABASE.getDiscoveredWaystoneNames(playerInventory.player).get(n), k + 5f, r - 1 + 5f, 0x161616);
+            this.textRenderer.draw(matrices, waystones.get(n), k + 5f, r - 1 + 5f, 0x161616);
         }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button != 0) {
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
         this.mouseClicked = false;
         if (this.hasWaystones()) {
             int i1 = this.x + 25;
@@ -126,7 +149,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             int j2 = this.y + 35;
             int k = this.scrollOffset + 3;
 
-            int n = Waystones.WAYSTONE_DATABASE.getPlayerDiscoveredCount(playerInventory.player);
+            int n = getDiscoveredCount();
             for(int l = this.scrollOffset; l < k; ++l) {
                 int m = l - this.scrollOffset;
                 double x1 = mouseX - (double)(i1);
@@ -138,13 +161,26 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                     MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                     MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_ANVIL_BREAK, 1.0F));
                     this.scrollOffset = Math.max(0, this.scrollOffset - 1);
-                    this.client.interactionManager.clickButton((this.handler).syncId, l * 2 + 1);
+
+                    CompoundTag tag = new CompoundTag();
+                    tag.putInt("sync_id", handler.syncId);
+                    tag.putInt("clicked_slot", l * 2 + 1);
+                    PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeCompoundTag(tag);
+
+                    ClientPlayNetworking.send(Utils.ID("waystone_gui_slot_click"), packet);
+
                     return true;
                 }
                 if (x2 >= 0.0D && y2 >= 0.0D && x2 < 101.0D && y2 < 18.0D && (this.handler).onButtonClick(this.client.player, l * 2)) {
                     MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                     MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F));
-                    this.client.interactionManager.clickButton((this.handler).syncId, l * 2);
+
+                    CompoundTag tag = new CompoundTag();
+                    tag.putInt("sync_id", handler.syncId);
+                    tag.putInt("clicked_slot", l * 2);
+                    PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeCompoundTag(tag);
+
+                    ClientPlayNetworking.send(Utils.ID("waystone_gui_slot_click"), packet);
                     return true;
                 }
             }
@@ -186,16 +222,19 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected boolean hasWaystones() {
-        return Waystones.WAYSTONE_DATABASE.getPlayerDiscoveredCount(playerInventory.player) > 0;
+        return getDiscoveredCount() > 0;
     }
 
     protected boolean shouldScroll() {
-        return Waystones.WAYSTONE_DATABASE.getPlayerDiscoveredCount(playerInventory.player) > 3;
+        return getDiscoveredCount() > 3;
     }
 
     protected int getMaxScroll() {
-        return Waystones.WAYSTONE_DATABASE.getPlayerDiscoveredCount(playerInventory.player) - 3;
+        return getDiscoveredCount() - 3;
     }
 
+    protected int getDiscoveredCount() {
+        return ((PlayerEntityMixinAccess)playerInventory.player).getDiscoveredAmount();
+    }
 
 }

@@ -1,13 +1,11 @@
 package wraith.waystones.registries;
 
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import wraith.waystones.Utils;
-import wraith.waystones.Waystones;
-import wraith.waystones.block.*;
+import wraith.waystones.block.WaystoneBlockEntity;
 
-public class BlockEntityRegistry {
+public final class BlockEntityRegistry {
 
     public static final BlockEntityType<WaystoneBlockEntity> WAYSTONE_BLOCK_ENTITY = BlockEntityType.Builder.create(WaystoneBlockEntity::new, BlockRegistry.WAYSTONE).build(null);
 

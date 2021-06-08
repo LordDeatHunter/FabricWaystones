@@ -4,50 +4,41 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.math.BlockPos;
-import wraith.waystones.Waystone;
-import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 
+import java.util.function.Function;
+
 public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
 
-    private final String world;
-    private final BlockPos pos;
+    private String hash;
+    private Function<PlayerEntity, Boolean> canUse = null;
 
-    public WaystoneScreenHandler(int syncId, BlockPos pos, String world, WaystoneBlockEntity waystoneEntity) {
+    public WaystoneScreenHandler(int syncId, WaystoneBlockEntity waystoneEntity) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId);
-        this.pos = pos;
-        this.world = world;
+        this.hash = waystoneEntity.getHash();
+        canUse = waystoneEntity::canAccess;
     }
 
     public WaystoneScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId);
-        CompoundTag tag = buf.readCompoundTag();
-        int[] coords = tag.getIntArray("Coordinates");
-        this.pos = new BlockPos(coords[0], coords[1], coords[2]);
-        this.world = tag.getString("WorldName");
+        if (buf != null) {
+            CompoundTag tag = buf.readCompoundTag();
+            if (tag != null) {
+                if (tag.contains("waystone_hash")) {
+                    this.hash = tag.getString("waystone_hash");
+                }
+            }
+        }
     }
 
     @Override
     public boolean canUse(PlayerEntity player) {
-        return player.squaredDistanceTo((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D) <= 64.0D;
+        return canUse != null ? canUse.apply(player) : true;
     }
 
-    public BlockPos getPos() {
-        return this.pos;
-    }
-
-    public String getWorld() {
-        return this.world;
-    }
-
-    public String getName() {
-        return getWaystone().name;
-    }
-
-    private Waystone getWaystone() {
-        return Waystones.WAYSTONE_DATABASE.getWaystone(pos, world);
+    public String getWaystone() {
+        return this.hash;
     }
 
 }

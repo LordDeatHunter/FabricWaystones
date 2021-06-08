@@ -14,6 +14,8 @@ import wraith.waystones.Config;
 import wraith.waystones.Utils;
 import wraith.waystones.Waystones;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @Mixin(RecipeManager.class)
@@ -21,7 +23,10 @@ public class RecipeManagerMixin {
 
     @Inject(method = "apply", at = @At("HEAD"))
     public void apply(Map<Identifier, JsonElement> map, ResourceManager resourceManager, Profiler profiler, CallbackInfo ci) {
-        map.put(Utils.ID("waystone"), Config.getInstance().getRecipe());
+        HashMap<String, JsonElement> recipes = Config.getInstance().getRecipes();
+        for (Map.Entry<String, JsonElement> recipe : recipes.entrySet()) {
+            map.put(Utils.ID(recipe.getKey()), recipe.getValue());
+        }
     }
 
 }

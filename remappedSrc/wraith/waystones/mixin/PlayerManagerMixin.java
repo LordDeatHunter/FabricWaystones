@@ -20,7 +20,7 @@ public class PlayerManagerMixin {
     @Inject(method = "onPlayerConnect", at = @At("TAIL"))
     public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-        data.writeCompoundTag(Config.getInstance().toCompoundTag());
+        data.writeNbt(Config.getInstance().toNbtCompound());
         ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);
         if(!connection.isLocal()) {
             Waystones.WAYSTONE_DATABASE.sendToPlayer(player);

@@ -1,0 +1,96 @@
+package wraith.waystones.block;
+
+
+import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
+import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
+import wraith.waystones.Waystones;
+import wraith.waystones.registries.BlockEntityRegistry;
+import wraith.waystones.screens.WaystoneScreenHandler;
+
+public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, BlockEntityClientSerializable {
+
+    public WaystoneBlockEntity() {
+        super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY);
+    }
+    public DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
+
+    @Override
+    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+        return new WaystoneScreenHandler(syncId, pos, this.world.toString(), this);
+    }
+
+    @Override
+    public Text getDisplayName() {
+        return new TranslatableText( "container." + Waystones.MOD_ID + ".waystone");
+    }
+
+    @Override
+    public void fromTag(BlockState state, NbtCompound tag) {
+        super.fromTag(state, tag);
+        this.inventory = DefaultedList.ofSize(tag.getInt("InventorySize"), ItemStack.EMPTY);
+        Inventories.fromTag(tag, inventory);
+    }
+
+    @Override
+    public NbtCompound toTag(NbtCompound tag) {
+        super.toTag(tag);
+        tag.putInt("InventorySize", this.inventory.size());
+        Inventories.toTag(tag, this.inventory);
+        return tag;
+    }
+
+    @Override
+    public void markDirty(){
+        if (this.world != null) {
+            BlockState blockState = this.getCachedState();
+            BlockPos pos2;
+            if (blockState.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
+                pos2 = this.pos.down();
+            } else {
+                pos2 = this.pos;
+            }
+            world.markDirty(pos2, world.getBlockEntity(pos2));
+            world.markDirty(pos2.up(), world.getBlockEntity(pos2.up()));
+            if (!world.getBlockState(pos2).isAir()) {
+                this.world.updateComparators(this.pos, world.getBlockState(pos2).getBlock());
+            }
+            if (!world.getBlockState(pos2.up()).isAir()) {
+                this.world.updateComparators(this.pos, world.getBlockState(pos2.up()).getBlock());
+            }
+        }
+    }
+
+    @Override
+    public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf packetByteBuf) {
+        NbtCompound tag = new NbtCompound();
+        String worldName = this.world.getRegistryKey().getValue().getNamespace() + ":" + this.world.getRegistryKey().getValue().getPath();
+        tag.putString("WorldName", worldName);
+        tag.putIntArray("Coordinates", new int[]{pos.getX(), pos.getY(), pos.getZ()});
+        packetByteBuf.writeNbt(tag);
+    }
+
+    @Override
+    public void fromClientTag(NbtCompound tag) {
+        fromTag(world.getBlockState(pos), tag);
+    }
+
+    @Override
+    public NbtCompound toClientTag(NbtCompound tag) {
+        return toTag(tag);
+    }
+}

@@ -1,6 +1,12 @@
 {
   "item.waystones.waystone": "Патен камен",
+  "item.waystones.pocket_wormhole": "Pocket Wormhole",
+  "item.waystones.empty_scroll": "Празен скрол",
+  "item.waystones.waystone_scroll": "Скрол за патни камења",
+  "item.waystones.abyss_watcher": "Abyss Watcher",
   "block.waystones.waystone": "Патен камен",
-  "container.waystones.waystone": "Патени камења",
-  "itemGroup.waystones.blocks": "Патени камења §7(Waystones)"
+  "container.waystones.waystone": "Патни камења",
+  "container.waystones.pocket_wormhole": "Pocket Wormhole",
+  "waystones.discover_waystone": " е откриен!",
+  "itemGroup.waystones.blocks": "Патни камења"
 }

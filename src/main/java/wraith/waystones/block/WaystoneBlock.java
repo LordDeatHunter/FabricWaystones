@@ -9,14 +9,18 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.LiteralText;
-import net.minecraft.util.*;
+import net.minecraft.text.TranslatableText;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -25,37 +29,20 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import wraith.waystones.Config;
-import wraith.waystones.Utils;
-import wraith.waystones.Waystone;
+import wraith.waystones.PlayerEntityMixinAccess;
 import wraith.waystones.Waystones;
+import wraith.waystones.registries.BlockRegistry;
 import wraith.waystones.registries.ItemRegistry;
 
-import java.util.List;
+import java.util.HashSet;
 
 public class WaystoneBlock extends BlockWithEntity {
 
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
 
-    //BOTTOM
-    protected static final VoxelShape vs1_1 = Block.createCuboidShape(1f, 0f, 1f, 15f, 2f, 15f);
-    protected static final VoxelShape vs2_1 = Block.createCuboidShape(2f, 2f, 2f, 14f, 5f, 14f);
-    protected static final VoxelShape vs3_1 = Block.createCuboidShape(3f, 5f, 3f, 13f, 16f, 13f);
-    //TOP
-    protected static final VoxelShape vs1_2 = Block.createCuboidShape(3f, 0f, 3f, 13f, 1f, 13f);
-    protected static final VoxelShape vs2_2 = Block.createCuboidShape(2f, 1f, 2f, 14f, 5f, 14f);
-    protected static final VoxelShape vs3_2 = Block.createCuboidShape(3f, 5f, 3f, 13f, 7f, 13f);
-    protected static final VoxelShape vs4_2 = Block.createCuboidShape(7f, 5f, 1f, 9f, 8f, 3f);
-    protected static final VoxelShape vs5_2 = Block.createCuboidShape(7f, 7f, 3f, 9f, 10f, 4f);
-    protected static final VoxelShape vs6_2 = Block.createCuboidShape(1f, 5f, 7f, 3f, 8f, 9f);
-    protected static final VoxelShape vs7_2 = Block.createCuboidShape(3f, 7f, 7f, 4f, 10f, 9f);
-    protected static final VoxelShape vs8_2 = Block.createCuboidShape(7f, 5f, 13f, 9f, 8f, 15f);
-    protected static final VoxelShape vs9_2 = Block.createCuboidShape(7f, 7f, 12f, 9f, 10f, 13f);
-    protected static final VoxelShape vs10_2 = Block.createCuboidShape(13f, 5f, 7f, 15f, 8f, 9f);
-    protected static final VoxelShape vs11_2 = Block.createCuboidShape(12f, 7f, 7f, 13f, 10f, 9f);
-
-    protected static final VoxelShape VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2).simplify();
-    protected static final VoxelShape VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1).simplify();
+    protected static final VoxelShape VOXEL_SHAPE_TOP;
+    protected static final VoxelShape VOXEL_SHAPE_BOTTOM;
 
     public WaystoneBlock(AbstractBlock.Settings settings) {
         super(settings);
@@ -70,16 +57,6 @@ public class WaystoneBlock extends BlockWithEntity {
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
         stateManager.add(HALF, FACING);
-    }
-
-    @Override
-    public BlockState rotate(BlockState state, BlockRotation rotation) {
-        return state.with(FACING, rotation.rotate(state.get(FACING)));
-    }
-
-    @Override
-    public BlockState mirror(BlockState state, BlockMirror mirror) {
-        return state.rotate(mirror.getRotation(state.get(FACING)));
     }
 
     @Override
@@ -102,26 +79,8 @@ public class WaystoneBlock extends BlockWithEntity {
     }
 
     @Override
-    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient) {
-            BlockPos newBlock;
-            if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-                newBlock = pos.down();
-            } else {
-                newBlock = pos.up();
-            }
-            BlockState newBlockState = world.getBlockState(newBlock);
-            if (newBlockState.getBlock() == state.getBlock() && newBlockState.get(HALF) != state.get(HALF)) {
-                world.setBlockState(newBlock, Blocks.AIR.getDefaultState(), 35);
-                world.syncWorldEvent(player, 2001, newBlock, Block.getRawIdFromState(newBlockState));
-            }
-        }
-        super.onBreak(world, pos, state, player);
-    }
-
-    @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-        world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER), 3);
+        world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER));
     }
 
     @Override
@@ -133,16 +92,19 @@ public class WaystoneBlock extends BlockWithEntity {
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient) {
 
+            HashSet<String> discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
+
             if (player.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("empty_scroll")) {
                 ItemStack waystoneScroll = new ItemStack(ItemRegistry.ITEMS.get("waystone_scroll"));
-                List<Waystone> discovered = Waystones.WAYSTONE_DATABASE.getDiscoveredWaystones(player);
-                if (discovered.size() == 0) {
+                if (discovered.isEmpty()) {
                     return ActionResult.FAIL;
                 }
                 CompoundTag tag = new CompoundTag();
-                for(Waystone waystone : discovered) {
-                    tag.putString(waystone.name, waystone.name);
+                ListTag list = new ListTag();
+                for (String hash : discovered) {
+                    list.add(StringTag.of(hash));
                 }
+                tag.put("waystones", list);
                 waystoneScroll.setTag(tag);
                 player.getMainHandStack().decrement(1);
                 player.inventory.offerOrDrop(world, waystoneScroll);
@@ -154,52 +116,94 @@ public class WaystoneBlock extends BlockWithEntity {
                 openPos = pos.down();
             }
             WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
+            if (blockEntity == null) {
+                return ActionResult.FAIL;
+            }
 
             if (player.isSneaking() && player.hasPermissionLevel(2)) {
                 for (ItemStack item : blockEntity.inventory) {
                     world.spawnEntity(new ItemEntity(world, openPos.getX(), openPos.getY() + 1.0, openPos.getZ(), item));
                 }
                 blockEntity.inventory.clear();
-            }
-            else {
-                String worldName = world.getRegistryKey().getValue().getNamespace() + ":" + world.getRegistryKey().getValue().getPath();
-                Waystone waystone = Waystones.WAYSTONE_DATABASE.getWaystone(openPos, worldName);
-                String id;
-                if (waystone != null) {
-                    id = waystone.name;
-                } else {
-                    id = Utils.generateWaystoneName("");
+            } else {
+                if (!Waystones.WAYSTONE_STORAGE.containsHash(blockEntity.getHash())) {
+                    Waystones.WAYSTONE_STORAGE.addWaystone(blockEntity);
                 }
 
-                if (!Waystones.WAYSTONE_DATABASE.containsWaystone(id)) {
-                    Waystones.WAYSTONE_DATABASE.addWaystone(id, blockEntity);
-                }
-
-                if (!Waystones.WAYSTONE_DATABASE.playerHasDiscovered(player, id)) {
+                if (!discovered.contains(blockEntity.getHash())) {
                     if (!Config.getInstance().canGlobalDiscover()) {
-                        player.sendMessage(new LiteralText(id + " has been discovered!").formatted(Formatting.AQUA), false);
+                        player.sendMessage(new LiteralText(blockEntity.getName()).append(new TranslatableText("waystones.discover_waystone")).formatted(Formatting.AQUA), false);
                     }
-                    Waystones.WAYSTONE_DATABASE.discoverWaystone(player, id);
+                    ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
                 }
+
                 NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
 
                 if (screenHandlerFactory != null) {
-                    Waystones.WAYSTONE_DATABASE.sendToPlayer((ServerPlayerEntity) player);
                     player.openHandledScreen(screenHandlerFactory);
                 }
             }
+            blockEntity.markDirty();
         }
-        world.getBlockEntity(pos).markDirty();
         return ActionResult.SUCCESS;
     }
 
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
-            Waystones.WAYSTONE_DATABASE.removeWaystone((WaystoneBlockEntity)world.getBlockEntity(pos.down()));
-        } else {
-            Waystones.WAYSTONE_DATABASE.removeWaystone((WaystoneBlockEntity)world.getBlockEntity(pos));
+        if (world.isClient) {
+            return;
         }
+        BlockPos newPos;
+        DoubleBlockHalf facing;
+        if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
+            newPos = pos.down();
+            facing = DoubleBlockHalf.LOWER;
+        } else {
+            newPos = pos.up();
+            facing = DoubleBlockHalf.UPPER;
+        }
+
+        if (newState.isAir()) {
+            world.setBlockState(newPos, newState);
+        }
+        if (newState.getBlock() != BlockRegistry.WAYSTONE) {
+            if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
+                pos = pos.down();
+            }
+            BlockEntity entity = world.getBlockEntity(pos);
+            if (entity instanceof WaystoneBlockEntity) {
+                Waystones.WAYSTONE_STORAGE.removeWaystone(((WaystoneBlockEntity) entity).getHash());
+            }
+        } else {
+            world.setBlockState(newPos, newState.with(WaystoneBlock.HALF, facing));
+        }
+        super.onStateReplaced(state, world, pos, newState, moved);
+    }
+
+    public static String getDimensionName(World world) {
+        return world.getRegistryKey().getValue().toString();
+    }
+
+    static {
+        //TOP
+        VoxelShape vs1_1 = Block.createCuboidShape(1f, 0f, 1f, 15f, 2f, 15f);
+        VoxelShape vs2_1 = Block.createCuboidShape(2f, 2f, 2f, 14f, 5f, 14f);
+        VoxelShape vs3_1 = Block.createCuboidShape(3f, 5f, 3f, 13f, 16f, 13f);
+        //BOTTOM
+        VoxelShape vs1_2 = Block.createCuboidShape(3f, 0f, 3f, 13f, 1f, 13f);
+        VoxelShape vs2_2 = Block.createCuboidShape(2f, 1f, 2f, 14f, 5f, 14f);
+        VoxelShape vs3_2 = Block.createCuboidShape(3f, 5f, 3f, 13f, 7f, 13f);
+        VoxelShape vs4_2 = Block.createCuboidShape(7f, 5f, 1f, 9f, 8f, 3f);
+        VoxelShape vs5_2 = Block.createCuboidShape(7f, 7f, 3f, 9f, 10f, 4f);
+        VoxelShape vs6_2 = Block.createCuboidShape(1f, 5f, 7f, 3f, 8f, 9f);
+        VoxelShape vs7_2 = Block.createCuboidShape(3f, 7f, 7f, 4f, 10f, 9f);
+        VoxelShape vs8_2 = Block.createCuboidShape(7f, 5f, 13f, 9f, 8f, 15f);
+        VoxelShape vs9_2 = Block.createCuboidShape(7f, 7f, 12f, 9f, 10f, 13f);
+        VoxelShape vs10_2 = Block.createCuboidShape(13f, 5f, 7f, 15f, 8f, 9f);
+        VoxelShape vs11_2 = Block.createCuboidShape(12f, 7f, 7f, 13f, 10f, 9f);
+
+        VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2).simplify();
+        VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1).simplify();
     }
 
 }
