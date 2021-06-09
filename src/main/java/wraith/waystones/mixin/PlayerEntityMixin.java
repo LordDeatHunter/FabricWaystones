@@ -26,6 +26,8 @@ import java.util.HashSet;
 public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     private final HashSet<String> discoveredWaystones = new HashSet<>();
+    private boolean viewDiscoveredWaystones = true;
+    private boolean viewGlobalWaystones = true;
 
     @Override
     public void discoverWaystone(WaystoneBlockEntity waystone) {
@@ -66,7 +68,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
     @Override
-    public int getDiscoveredAmount() {
+    public int getDiscoveredCount() {
         return discoveredWaystones.size();
     }
 
@@ -116,11 +118,16 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Override
     public CompoundTag toTagW(CompoundTag tag) {
+        CompoundTag customTag = new CompoundTag();
         ListTag waystones = new ListTag();
-        for(String waystone : discoveredWaystones) {
+        for (String waystone : discoveredWaystones) {
             waystones.add(StringTag.of(waystone));
         }
-        tag.put("discovered_waystones", waystones);
+        customTag.put("discovered_waystones", waystones);
+        customTag.putBoolean("view_discovered_waystones", this.viewDiscoveredWaystones);
+        customTag.putBoolean("view_global_waystones", this.viewGlobalWaystones);
+
+        tag.put("waystones", customTag);
         return tag;
     }
 
@@ -137,14 +144,46 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Override
     public void fromTagW(CompoundTag tag) {
-        if (!tag.contains("discovered_waystones")) {
+        if (!tag.contains("waystones")) {
             return;
         }
-        discoveredWaystones.clear();
-        ListTag waystones = tag.getList("discovered_waystones", 8);
-        for (Tag waystone : waystones) {
-            discoveredWaystones.add(waystone.asString());
+        tag = tag.getCompound("waystones");
+        if (tag.contains("discovered_waystones")) {
+            discoveredWaystones.clear();
+            ListTag waystones = tag.getList("discovered_waystones", 8);
+            for (Tag waystone : waystones) {
+                discoveredWaystones.add(waystone.asString());
+            }
+        }
+        if (tag.contains("view_global_waystones")) {
+            this.viewGlobalWaystones = tag.getBoolean("view_global_waystones");
+        }
+        if (tag.contains("view_discovered_waystones")) {
+            this.viewDiscoveredWaystones = tag.getBoolean("view_discovered_waystones");
         }
     }
+
+    @Override
+    public boolean shouldViewGlobalWaystones() {
+        return this.viewGlobalWaystones;
+    }
+
+    @Override
+    public boolean shouldViewDiscoveredWaystones() {
+        return this.viewDiscoveredWaystones;
+    }
+
+    @Override
+    public void toggleViewGlobalWaystones() {
+        this.viewGlobalWaystones = !this.viewGlobalWaystones;
+        syncData();
+    }
+
+    @Override
+    public void toggleViewDiscoveredWaystones() {
+        this.viewDiscoveredWaystones = !this.viewDiscoveredWaystones;
+        syncData();
+    }
+
 
 }

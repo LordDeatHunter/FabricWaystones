@@ -1,10 +1,13 @@
 package wraith.waystones.registries;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
 import wraith.waystones.screens.AbyssScreen;
 import wraith.waystones.screens.PocketWormholeScreen;
 import wraith.waystones.screens.WaystoneScreen;
 
+@Environment(EnvType.CLIENT)
 public final class CustomScreenRegistry {
 
     public static void registerScreens() {

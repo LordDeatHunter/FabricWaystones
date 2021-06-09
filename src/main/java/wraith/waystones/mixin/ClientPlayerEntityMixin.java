@@ -5,7 +5,10 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import org.spongepowered.asm.mixin.Mixin;
-import wraith.waystones.*;
+import wraith.waystones.ClientPlayerEntityMixinAccess;
+import wraith.waystones.PlayerEntityMixinAccess;
+import wraith.waystones.Utils;
+import wraith.waystones.WaystonesClient;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -39,6 +42,7 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
         return waystones;
     }
 
+
     @Override
     public ArrayList<String> getHashesSorted() {
         ArrayList<String> waystones = new ArrayList<>();
@@ -57,6 +61,11 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
 
         waystones.sort(Comparator.comparing(a -> WaystonesClient.WAYSTONE_STORAGE.getName(a)));
         return waystones;
+    }
+
+    @Override
+    public int getDiscoveredCount() {
+        return ((PlayerEntityMixinAccess)this).getDiscoveredCount();
     }
 
 }

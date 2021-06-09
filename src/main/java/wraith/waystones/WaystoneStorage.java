@@ -4,7 +4,6 @@ import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.*;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
@@ -12,7 +11,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
-import org.apache.logging.log4j.core.jmx.Server;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
 
@@ -91,6 +89,12 @@ public class WaystoneStorage {
             waystones.add(waystoneTag);
         }
         tag.put("waystones", waystones);
+        ListTag globals = new ListTag();
+        ArrayList<String> globalWaystones = getGlobals();
+        for (String globalWaystone : globalWaystones) {
+            globals.add(StringTag.of(globalWaystone));
+        }
+        tag.put("global_waystones", globals);
         return tag;
     }
 
@@ -174,6 +178,25 @@ public class WaystoneStorage {
 
     public boolean containsHash(String hash) {
         return WAYSTONES.containsKey(hash);
+    }
+
+    public ArrayList<String> getGlobals() {
+        ArrayList<String> globals = new ArrayList<>();
+        for (Map.Entry<String, WaystoneBlockEntity> waystone : WAYSTONES.entrySet()) {
+            if (waystone.getValue().isGlobal()) {
+                globals.add(waystone.getKey());
+            }
+        }
+        return globals;
+    }
+
+    public void toggleGlobal(String hash) {
+        WaystoneBlockEntity waystone = getWaystone(hash);
+        if (waystone == null) {
+            return;
+        }
+        waystone.toggleGlobal();
+        sendToAllPlayers();
     }
 
 }

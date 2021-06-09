@@ -72,13 +72,23 @@ public class Waystones implements ModInitializer {
 
             String hash = tag.getString("waystone_hash");
             server.execute(() -> {
-                if (Config.getInstance().canGlobalDiscover()) {
-                    WAYSTONE_STORAGE.removeWaystone(hash);
+                WaystoneBlockEntity waystone = WAYSTONE_STORAGE.getWaystone(hash);
+                if (waystone == null || waystone.isGlobal()) {
+                    return;
                 }
+                WAYSTONE_STORAGE.removeWaystone(hash);
                 ((PlayerEntityMixinAccess)player).forgetWaystone(hash);
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("request_player_waystone_update"), (server, player, networkHandler, data, sender) -> server.execute(((PlayerEntityMixinAccess) player)::syncData));
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("toggle_global_waystone"), (server, player, networkHandler, data, sender) -> {
+            String hash = data.readString();
+            server.execute(() -> WAYSTONE_STORAGE.toggleGlobal(hash));
+        });
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("sync_player_from_client"), (server, player, networkHandler, data, sender) -> {
+            CompoundTag tag = data.readCompoundTag();
+            server.execute(() -> ((PlayerEntityMixinAccess)player).fromTagW(tag));
+        });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("teleport_to_waystone"), (server, player, networkHandler, data, sender) -> {
             CompoundTag tag = data.readCompoundTag();
             if (tag == null || !tag.contains("waystone_hash")) {
@@ -101,6 +111,10 @@ public class Waystones implements ModInitializer {
 
     public void registerEvents() {
         ServerLifecycleEvents.SERVER_STARTED.register((server) -> WAYSTONE_STORAGE = new WaystoneStorage(server));
+        ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
+            WAYSTONE_STORAGE.loadOrSaveWaystones(true);
+            WAYSTONE_STORAGE = null;
+        });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 
@@ -118,9 +132,9 @@ public class Waystones implements ModInitializer {
                 .requires(source -> source.hasPermissionLevel(1))
                 .executes(context -> {
                     Config.getInstance().loadConfig();
+                    PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+                    data.writeCompoundTag(Config.getInstance().toCompoundTag());
                     for (ServerPlayerEntity player : context.getSource().getMinecraftServer().getPlayerManager().getPlayerList()) {
-                        PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-                        data.writeCompoundTag(Config.getInstance().toCompoundTag());
                         ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);
                     }
                     ServerPlayerEntity player = context.getSource().getPlayer();

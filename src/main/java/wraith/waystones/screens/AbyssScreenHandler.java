@@ -14,7 +14,7 @@ import wraith.waystones.registries.ItemRegistry;
 public class AbyssScreenHandler extends UniversalWaystoneScreenHandler {
 
     public AbyssScreenHandler(int syncId, PlayerInventory inventory) {
-        super(CustomScreenHandlerRegistry.ABYSS_SCREEN_HANDLER, syncId);
+        super(CustomScreenHandlerRegistry.ABYSS_SCREEN_HANDLER, syncId, inventory.player);
     }
 
     @Override

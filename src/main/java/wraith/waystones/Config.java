@@ -49,10 +49,6 @@ public class Config {
         return Math.abs(configData.getInt("cost_amount"));
     }
 
-    public boolean canGlobalDiscover() {
-        return configData.getBoolean("global_discover");
-    }
-
     public float getHardness() {
         return configData.getFloat("waystone_block_hardness");
     }
@@ -61,14 +57,11 @@ public class Config {
         return configData.getInt("waystone_block_required_mining_level");
     }
 
-    private Config() {
-        createDefaults();
-    }
+    private Config() {}
 
     private CompoundTag getDefaults() {
         CompoundTag defaultConfig = new CompoundTag();
 
-        defaultConfig.putBoolean("global_discover", false);
         defaultConfig.putBoolean("generate_in_villages", true);
         defaultConfig.putInt("cost_amount", 1);
         defaultConfig.putString("cost_type", "level");
@@ -99,66 +92,162 @@ public class Config {
         itemMap.clear();
         itemMap.put("P", "minecraft:paper");
         itemMap.put("S", "minecraft:stick");
-        recipesTag.putString("empty_scroll", Utils.createRecipe("SPS_PPP_SPS", itemMap, "waystones:empty_scroll", 1).toString());
+        recipesTag.putString("empty_scroll", Utils.createRecipe("SPS_PPP_SPS", itemMap, "waystones:waystone_scroll", 1).toString());
 
         defaultConfig.put("recipes", recipesTag);
 
         return defaultConfig;
     }
 
-    private void createDefaults() {
-        createFile(toJson(getDefaults()), false);
-    }
-
     private JsonObject toJson(CompoundTag tag) {
+        boolean overwrite = false;
         JsonObject json = new JsonObject();
 
         CompoundTag defaults = getDefaults();
 
-        boolean globalDiscover = tag.contains("global_discover") ? tag.getBoolean("global_discover") : defaults.getBoolean("global_discover");
-        json.addProperty("global_discover", globalDiscover);
-
         boolean generateInVillages = tag.contains("generate_in_villages") ? tag.getBoolean("generate_in_villages") : defaults.getBoolean("generate_in_villages");
         json.addProperty("generate_in_villages", generateInVillages);
 
-        int costAmount = tag.contains("cost_amount") ? tag.getInt("cost_amount") : defaults.getInt("cost_amount");
+        int costAmount;
+        if (tag.contains("cost_amount")) {
+            costAmount = tag.getInt("cost_amount");
+        } else {
+            overwrite = true;
+            costAmount = defaults.getInt("cost_amount");
+        }
         json.addProperty("cost_amount", costAmount);
 
-        String costItem = tag.contains("cost_item") ? tag.getString("cost_item") : defaults.getString("cost_item");
+        String costType;
+        if (tag.contains("cost_type")) {
+            costType = tag.getString("cost_type");
+        } else {
+            overwrite = true;
+            costType = defaults.getString("cost_type");
+        }
+        json.addProperty("cost_type", costType);
+
+        String costItem;
+        if (tag.contains("cost_item")) {
+            costItem = tag.getString("cost_item");
+        } else {
+            overwrite = true;
+            costItem = defaults.getString("cost_item");
+        }
         json.addProperty("cost_item", costItem);
 
-        int blockHardness = tag.contains("waystone_block_hardness") ? tag.getInt("waystone_block_hardness") : defaults.getInt("waystone_block_hardness");
+        int blockHardness;
+        if (tag.contains("waystone_block_hardness")) {
+            blockHardness = tag.getInt("waystone_block_hardness");
+        } else {
+            overwrite = true;
+            blockHardness = defaults.getInt("waystone_block_hardness");
+        }
         json.addProperty("waystone_block_hardness", blockHardness);
 
-        float miningLevel = tag.contains("waystone_block_required_mining_level") ? tag.getFloat("waystone_block_required_mining_level") : defaults.getFloat("waystone_block_required_mining_level");
+        float miningLevel;
+        if (tag.contains("waystone_block_required_mining_level")) {
+            miningLevel = tag.getFloat("waystone_block_required_mining_level");
+        } else {
+            overwrite = true;
+            miningLevel = defaults.getFloat("waystone_block_required_mining_level");
+        }
         json.addProperty("waystone_block_required_mining_level", miningLevel);
 
         JsonObject recipesJson = new JsonObject();
         CompoundTag recipesTag = tag.getCompound("recipes");
-        for (String recipe : recipesTag.getKeys()) {
-            recipesJson.addProperty(recipe, recipesTag.getString(recipe));
+        CompoundTag defaultRecipes = defaults.getCompound("recipes");
+        for (String recipe : defaultRecipes.getKeys()) {
+            String recipeString;
+            if (recipesTag.contains(recipe)) {
+                recipeString = recipesTag.getString(recipe);
+            } else {
+                overwrite = true;
+                recipeString = defaultRecipes.getString(recipe);
+            }
+            recipesJson.addProperty(recipe, recipeString);
         }
         json.add("recipes", recipesJson);
+        createFile(json, overwrite);
         return json;
     }
 
     private CompoundTag toCompoundTag(JsonObject json) {
+        boolean overwrite = false;
         CompoundTag tag = new CompoundTag();
 
-        tag.putBoolean("global_discover", json.get("global_discover").getAsBoolean());
-        tag.putBoolean("generate_in_villages", json.get("generate_in_villages").getAsBoolean());
-        tag.putInt("cost_amount", json.get("cost_amount").getAsInt());
-        tag.putString("cost_item", json.get("cost_item").getAsString());
-        tag.putInt("waystone_block_hardness", json.get("waystone_block_hardness").getAsInt());
-        tag.putFloat("waystone_block_required_mining_level", json.get("waystone_block_required_mining_level").getAsFloat());
+        CompoundTag defaults = getDefaults();
+
+        boolean generateInVillages;
+        if (json.has("generate_in_villages")) {
+            generateInVillages = json.get("generate_in_villages").getAsBoolean();
+        } else {
+            overwrite = true;
+            generateInVillages = defaults.getBoolean("generate_in_villages");
+        }
+        tag.putBoolean("generate_in_villages", generateInVillages);
+
+        int costAmount;
+        if (json.has("cost_amount")) {
+            costAmount = json.get("cost_amount").getAsInt();
+        } else {
+            overwrite = true;
+            costAmount = defaults.getInt("cost_amount");
+        }
+        tag.putInt("cost_amount", costAmount);
+
+        String costItem;
+        if (json.has("cost_item")) {
+            costItem = json.get("cost_item").getAsString();
+        } else {
+            overwrite = true;
+            costItem = defaults.getString("cost_item");
+        }
+        tag.putString("cost_item", costItem);
+
+        String costType;
+        if (json.has("cost_type")) {
+            costType = json.get("cost_type").getAsString();
+        } else {
+            overwrite = true;
+            costType = defaults.getString("cost_type");
+        }
+        tag.putString("cost_type", costType);
+
+        int blockHardness;
+        if (json.has("waystone_block_hardness")) {
+            blockHardness = json.get("waystone_block_hardness").getAsInt();
+        } else {
+            overwrite = true;
+            blockHardness = defaults.getInt("waystone_block_hardness");
+        }
+        tag.putInt("waystone_block_hardness", blockHardness);
+
+        float miningLevel;
+        if (json.has("waystone_block_required_mining_level")) {
+            miningLevel = json.get("waystone_block_required_mining_level").getAsFloat();
+        } else {
+            overwrite = true;
+            miningLevel = defaults.getFloat("waystone_block_required_mining_level");
+        }
+        tag.putFloat("waystone_block_required_mining_level", miningLevel);
 
         JsonObject recipesJson = json.get("recipes").getAsJsonObject();
         CompoundTag recipesTag = new CompoundTag();
 
-        for (Map.Entry<String, JsonElement> recipe : recipesJson.entrySet()) {
-            recipesTag.putString(recipe.getKey(), recipe.getValue().getAsString());
+        CompoundTag defaultRecipes = defaults.getCompound("recipes");
+        for (String recipe : defaultRecipes.getKeys()) {
+            String recipeString;
+            if (recipesJson.has(recipe)) {
+                recipeString = recipesJson.get(recipe).toString();
+            } else {
+                overwrite = true;
+                recipeString = defaultRecipes.getString(recipe);
+            }
+            recipesJson.addProperty(recipe, recipeString);
         }
+
         tag.put("recipes", recipesTag);
+        createFile(toJson(tag), overwrite);
         return tag;
     }
 
@@ -166,8 +255,10 @@ public class Config {
         try {
             JsonObject fileConfig = getJsonObject(readFile(new File(CONFIG_FILE)));
             return loadConfig(fileConfig);
-        } catch (JsonParseException ex) {
+        } catch (Exception e) {
             LOGGER.info("Found error with config. Using default config.");
+            this.configData = getDefaults();
+            createFile(toJson(this.configData), true);
             return false;
         }
     }
@@ -177,9 +268,10 @@ public class Config {
             CompoundTag config = toCompoundTag(fileConfig);
             this.configData = config;
             return true;
-        } catch (Exception ex) {
+        } catch (Exception e) {
             LOGGER.info("Found error with config. Using default config.");
             this.configData = getDefaults();
+            createFile(toJson(this.configData), true);
             return false;
         }
     }
@@ -188,22 +280,26 @@ public class Config {
         try {
             this.configData = config;
             return true;
-        } catch (Exception ex) {
+        } catch (Exception e) {
             LOGGER.info("Found error with config. Using default config.");
             this.configData = getDefaults();
+            createFile(toJson(this.configData), true);
             return false;
         }
     }
 
     private void createFile(JsonObject contents, boolean overwrite) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        contents = new JsonParser().parse(gson.toJson(contents)).getAsJsonObject();
+
         StringBuilder recipes = new StringBuilder();
         if (contents != null && contents.has("recipes")) {
             for (Map.Entry<String, JsonElement> recipe : contents.get("recipes").getAsJsonObject().entrySet()) {
-                recipes.append("\"").append(recipe.getKey()).append("\": ").append(gson.toJson(new JsonParser().parse(recipe.getValue().getAsString()).getAsJsonObject())).append(",\n");
+                recipes.append("\"").append(recipe.getKey()).append("\": ").append(gson.toJson(new JsonParser().parse(recipe.getValue().getAsString()).getAsJsonObject())).append(",");
             }
-            recipes = new StringBuilder(recipes.substring(0, recipes.length() - 2));
-            recipes.append("\n}");
+            recipes = new StringBuilder(recipes.toString().replace("\n", "").replace("\r", ""));
+            recipes = new StringBuilder(recipes.substring(0, recipes.length() - 1));
+            recipes.append("}}");
             contents.remove("recipes");
         }
 
@@ -214,7 +310,7 @@ public class Config {
         file.getParentFile().mkdirs();
         try {
             file.createNewFile();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         file.setReadable(true);
@@ -224,10 +320,12 @@ public class Config {
             return;
         }
         try (FileWriter writer = new FileWriter(file)) {
-            String json = gson.toJson(contents);
-            json = json.substring(0, json.length() - 2) + ",\n" + recipes;
+            String json = gson.toJson(contents).replace("\n", "").replace("\r", "");
+            if (!"".equals(recipes.toString())) {
+                json = json.substring(0, json.length() - 1) + ",\"recipes\":{" + recipes;
+            }
             writer.write(gson.toJson(new JsonParser().parse(json).getAsJsonObject()));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -236,15 +334,10 @@ public class Config {
         return configData;
     }
 
-    public static String readFile(File file) {
-        String output = "";
-        try (Scanner scanner = new Scanner(file)) {
-            scanner.useDelimiter("\\Z");
-            output = scanner.next();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        return output;
+    public static String readFile(File file) throws FileNotFoundException {
+        Scanner scanner = new Scanner(file);
+        scanner.useDelimiter("\\Z");
+        return scanner.next();
     }
 
     public static JsonObject getJsonObject(String json) {

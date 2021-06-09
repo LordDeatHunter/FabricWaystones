@@ -8,9 +8,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
@@ -28,11 +25,11 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-import wraith.waystones.Config;
 import wraith.waystones.PlayerEntityMixinAccess;
 import wraith.waystones.Waystones;
+import wraith.waystones.item.LocalVoid;
+import wraith.waystones.item.WaystoneScroll;
 import wraith.waystones.registries.BlockRegistry;
-import wraith.waystones.registries.ItemRegistry;
 
 import java.util.HashSet;
 
@@ -79,8 +76,33 @@ public class WaystoneBlock extends BlockWithEntity {
     }
 
     @Override
+    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        BlockPos newPos;
+        BlockPos botPos;
+        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
+            newPos = pos.down();
+            botPos = newPos;
+        } else {
+            newPos = pos.up();
+            botPos = pos;
+        }
+        if (!player.isCreative()) {
+            dropStacks(world.getBlockState(botPos), world, botPos);
+        }
+
+        world.removeBlock(newPos, false);
+        world.updateNeighbors(newPos, Blocks.AIR);
+
+        super.onBreak(world, pos, state, player);
+    }
+
+    @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER));
+        BlockEntity entity = world.getBlockEntity(pos);
+        if (placer instanceof PlayerEntity && entity instanceof WaystoneBlockEntity) {
+            ((WaystoneBlockEntity) entity).setOnwer((PlayerEntity) placer);
+        }
     }
 
     @Override
@@ -94,21 +116,8 @@ public class WaystoneBlock extends BlockWithEntity {
 
             HashSet<String> discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
 
-            if (player.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("empty_scroll")) {
-                ItemStack waystoneScroll = new ItemStack(ItemRegistry.ITEMS.get("waystone_scroll"));
-                if (discovered.isEmpty()) {
-                    return ActionResult.FAIL;
-                }
-                CompoundTag tag = new CompoundTag();
-                ListTag list = new ListTag();
-                for (String hash : discovered) {
-                    list.add(StringTag.of(hash));
-                }
-                tag.put("waystones", list);
-                waystoneScroll.setTag(tag);
-                player.getMainHandStack().decrement(1);
-                player.inventory.offerOrDrop(world, waystoneScroll);
-                return ActionResult.SUCCESS;
+            if (player.getMainHandStack().getItem() instanceof WaystoneScroll || player.getMainHandStack().getItem() instanceof LocalVoid) {
+                return ActionResult.PASS;
             }
 
             BlockPos openPos = pos;
@@ -126,12 +135,16 @@ public class WaystoneBlock extends BlockWithEntity {
                 }
                 blockEntity.inventory.clear();
             } else {
+                if (blockEntity.getOwner() == null) {
+                    blockEntity.setOnwer(player);
+                }
+
                 if (!Waystones.WAYSTONE_STORAGE.containsHash(blockEntity.getHash())) {
                     Waystones.WAYSTONE_STORAGE.addWaystone(blockEntity);
                 }
 
                 if (!discovered.contains(blockEntity.getHash())) {
-                    if (!Config.getInstance().canGlobalDiscover()) {
+                    if (!blockEntity.isGlobal()) {
                         player.sendMessage(new LiteralText(blockEntity.getName()).append(new TranslatableText("waystones.discover_waystone")).formatted(Formatting.AQUA), false);
                     }
                     ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);

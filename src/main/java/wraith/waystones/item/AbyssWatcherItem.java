@@ -1,4 +1,4 @@
-package wraith.waystones.items;
+package wraith.waystones.item;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;

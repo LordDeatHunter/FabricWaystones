@@ -15,10 +15,13 @@ public interface PlayerEntityMixinAccess extends PlayerAccess {
     void forgetWaystone(String hash);
     void syncData();
     HashSet<String> getDiscoveredWaystones();
-    int getDiscoveredAmount();
     ArrayList<String> getWaystonesSorted();
     void learnWaystones(PlayerEntity player, boolean overwrite);
     void fromTagW(CompoundTag tag);
     CompoundTag toTagW(CompoundTag tag);
+    boolean shouldViewGlobalWaystones();
+    boolean shouldViewDiscoveredWaystones();
+    void toggleViewGlobalWaystones();
+    void toggleViewDiscoveredWaystones();
 
 }

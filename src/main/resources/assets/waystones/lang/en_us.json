@@ -2,6 +2,7 @@
   "item.waystones.waystone": "Waystone",
   "item.waystones.pocket_wormhole": "Pocket Wormhole",
   "item.waystones.empty_scroll": "Empty Scroll",
+  "item.waystones.local_void": "Local Void",
   "item.waystones.waystone_scroll": "Waystone Scroll",
   "item.waystones.abyss_watcher": "Abyss Watcher",
   "block.waystones.waystone": "Waystone",
@@ -9,5 +10,15 @@
   "container.waystones.pocket_wormhole": "Pocket Wormhole",
   "container.waystones.abyss_watcher": "Abyss Watcher",
   "waystones.discover_waystone": " has been discovered!",
+  "waystones.search": "",
+  "waystones.rename": "",
+  "waystones.config.global": "Toggle global waystone",
+  "waystones.config.view_discovered": "View discovered waystones",
+  "waystones.config.view_global": "View global waystones",
+  "waystones.config.owner": "Owned by",
+  "waystones.config.no_owner": "No one",
+  "waystones.cost.item": "Total",
+  "waystones.cost.xp": "XP",
+  "waystones.cost.level": "Level(s)",
   "itemGroup.waystones.blocks": "Waystones"
 }

@@ -5,8 +5,8 @@ import net.minecraft.item.Item;
 import net.minecraft.util.registry.Registry;
 import wraith.waystones.CustomItemGroup;
 import wraith.waystones.Utils;
-import wraith.waystones.items.PocketWormholeItem;
-import wraith.waystones.items.WaystoneScroll;
+import wraith.waystones.item.PocketWormholeItem;
+import wraith.waystones.item.WaystoneScroll;
 
 import java.util.HashMap;
 

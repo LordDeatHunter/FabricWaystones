@@ -31,7 +31,7 @@ public class Utils {
     }
 
     public static String generateWaystoneName(String id) {
-        return "".equals(id) ? generateUniqueId() : id;
+        return id == null || "".equals(id) ? generateUniqueId() : id;
     }
 
     private static String generateUniqueId() {

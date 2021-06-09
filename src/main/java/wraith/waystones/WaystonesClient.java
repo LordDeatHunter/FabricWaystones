@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.nbt.CompoundTag;
 import wraith.waystones.registries.BlockEntityRendererRegistry;
 import wraith.waystones.registries.CustomScreenRegistry;
+import wraith.waystones.registries.WaystonesModelProviderRegistry;
 
 @Environment(EnvType.CLIENT)
 public class WaystonesClient implements ClientModInitializer {
@@ -18,6 +19,7 @@ public class WaystonesClient implements ClientModInitializer {
     public void onInitializeClient() {
         BlockEntityRendererRegistry.RegisterBlockEntityRenderers();
         CustomScreenRegistry.registerScreens();
+        WaystonesModelProviderRegistry.register();
         registerPacketHandlers();
         registerEvents();
     }

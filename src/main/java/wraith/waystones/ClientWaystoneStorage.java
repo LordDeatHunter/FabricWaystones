@@ -6,19 +6,35 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 @Environment(EnvType.CLIENT)
 public class ClientWaystoneStorage {
 
     private final HashMap<String, String> WAYSTONES = new HashMap<>();
+    private final HashSet<String> GLOBALS = new HashSet<>();
 
     public void fromTag(CompoundTag tag) {
-        if (tag == null || !tag.contains("waystones")) {
+        if (tag == null) {
             return;
         }
-        WAYSTONES.clear();
-        ListTag waystones = tag.getList("waystones", 10);
+        if (tag.contains("waystones")) {
+            loadWaystones(tag.getList("waystones", 10));
+        }
+        if (tag.contains("global_waystones")) {
+            loadGlobals(tag.getList("global_waystones", 8));
+        }
+    }
 
+    private void loadGlobals(ListTag globals) {
+        GLOBALS.clear();
+        for (int i = 0; i < globals.size(); ++i) {
+            GLOBALS.add(globals.getString(i));
+        }
+    }
+
+    private void loadWaystones(ListTag waystones) {
+        WAYSTONES.clear();
         for (int i = 0; i < waystones.size(); ++i) {
             CompoundTag waystoneTag = waystones.getCompound(i);
             if (!waystoneTag.contains("hash") || !waystoneTag.contains("name")) {
@@ -36,6 +52,10 @@ public class ClientWaystoneStorage {
 
     public boolean containsWaystone(String hash) {
         return WAYSTONES.containsKey(hash);
+    }
+
+    public HashSet<String> getGlobals() {
+        return new HashSet<>(GLOBALS);
     }
 
 }

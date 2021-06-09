@@ -35,27 +35,38 @@ import wraith.waystones.screens.WaystoneScreenHandler;
 
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, BlockEntityClientSerializable, Tickable {
 
     private String name = "";
     private String hash;
+    private boolean isGlobal = false;
+    private UUID owner = null;
+    private String ownerName;
 
     public WaystoneBlockEntity() {
         super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY);
-        name = Utils.generateWaystoneName(name);
+        this.name = Utils.generateWaystoneName(this.name);
+    }
+
+    public void setOnwer(PlayerEntity player) {
+        this.owner = player.getUuid();
+        this.ownerName = player.getName().asString();
+        markDirty();
     }
 
     public void createHash(World world, BlockPos pos) {
-        hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + world + "\">");
+        this.hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + world + "\">");
+        markDirty();
     }
 
     public DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
 
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new WaystoneScreenHandler(syncId, this);
+        return new WaystoneScreenHandler(syncId, this, player);
     }
 
     @Override
@@ -72,6 +83,15 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
         if (tag.contains("waystone_hash")) {
             this.hash = tag.getString("waystone_hash");
         }
+        if (tag.contains("waystone_is_global")) {
+            this.isGlobal = tag.getBoolean("waystone_is_global");
+        }
+        if (tag.contains("waystone_owner")) {
+            this.owner = tag.getUuid("waystone_owner");
+        }
+        if (tag.contains("waystone_owner_name")) {
+            this.ownerName = tag.getString("waystone_owner_name");
+        }
         this.inventory = DefaultedList.ofSize(tag.getInt("inventory_size"), ItemStack.EMPTY);
         Inventories.fromTag(tag, inventory);
     }
@@ -79,12 +99,23 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public CompoundTag toTag(CompoundTag tag) {
         super.toTag(tag);
+        return createTag(tag);
+    }
+
+    private CompoundTag createTag(CompoundTag tag) {
         tag.putInt("inventory_size", this.inventory.size());
         tag.putString("waystone_name", this.name);
-        if (hash == null) {
-            createHash(world, pos);
+        if (this.hash == null) {
+            createHash(this.world, this.pos);
         }
         tag.putString("waystone_hash", this.hash);
+        if (this.owner != null) {
+            tag.putUuid("waystone_owner", this.owner);
+        }
+        if (this.ownerName != null) {
+            tag.putString("waystone_owner_name", this.ownerName);
+        }
+        tag.putBoolean("waystone_is_global", this.isGlobal);
         Inventories.toTag(tag, this.inventory);
         return tag;
     }
@@ -99,10 +130,7 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf packetByteBuf) {
-        CompoundTag tag = new CompoundTag();
-        tag.putString("waystone_name", this.name);
-        tag.putString("waystone_hash", this.hash);
-        packetByteBuf.writeCompoundTag(tag);
+        packetByteBuf.writeCompoundTag(createTag(new CompoundTag()));
     }
 
     @Override
@@ -263,6 +291,7 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     public void setName(String name) {
         this.name = name;
+        markDirty();
     }
 
     public String getHash() {
@@ -270,6 +299,28 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
             createHash(world, pos);
         }
         return this.hash;
+    }
+
+    public boolean isGlobal() {
+        return this.isGlobal;
+    }
+
+    public void setGlobal(boolean global) {
+        this.isGlobal = global;
+        markDirty();
+    }
+
+    public UUID getOwner() {
+        return this.owner;
+    }
+
+    public void toggleGlobal() {
+        this.isGlobal = !this.isGlobal;
+        markDirty();
+    }
+
+    public String getOwnerName() {
+        return this.ownerName;
     }
 
 }
