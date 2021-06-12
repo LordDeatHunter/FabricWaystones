@@ -12,6 +12,11 @@ public class PocketWormholeScreenHandler extends UniversalWaystoneScreenHandler 
     }
 
     @Override
+    public void onForget(String waystone) {
+
+    }
+
+    @Override
     public boolean canUse(PlayerEntity player) {
         return player.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("pocket_wormhole");
     }

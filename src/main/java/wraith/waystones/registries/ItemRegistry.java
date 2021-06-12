@@ -5,10 +5,7 @@ import net.minecraft.item.Item;
 import net.minecraft.util.registry.Registry;
 import wraith.waystones.CustomItemGroup;
 import wraith.waystones.Utils;
-import wraith.waystones.item.AbyssWatcherItem;
-import wraith.waystones.item.LocalVoid;
-import wraith.waystones.item.PocketWormholeItem;
-import wraith.waystones.item.WaystoneScroll;
+import wraith.waystones.item.*;
 
 import java.util.HashMap;
 
@@ -28,6 +25,7 @@ public final class ItemRegistry {
         ITEMS.put("abyss_watcher", new AbyssWatcherItem(new Item.Settings().maxCount(4).group(CustomItemGroup.WAYSTONE_GROUP).fireproof()));
         ITEMS.put("waystone_scroll", new WaystoneScroll(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP)));
         ITEMS.put("local_void", new LocalVoid(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP)));
+        ITEMS.put("scroll_of_infinite_knowledge", new ScrollOfInfiniteKnowledge(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP).fireproof()));
     }
 
 }

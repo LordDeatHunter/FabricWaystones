@@ -58,4 +58,12 @@ public class ClientWaystoneStorage {
         return new HashSet<>(GLOBALS);
     }
 
+    public int getHashCount() {
+        return WAYSTONES.size();
+    }
+
+    public HashSet<String> getAllHashes() {
+        return new HashSet<>(WAYSTONES.keySet());
+    }
+
 }

@@ -1,5 +1,7 @@
 package wraith.waystones.screens;
 
+import net.minecraft.text.Text;
+
 public class Button {
 
     private int x;
@@ -8,6 +10,7 @@ public class Button {
     private int v;
     private int height;
     private int width;
+    protected Text tooltip = null;
 
     public Button(int x, int y, int width, int height, int u, int v) {
         this.x = x;
@@ -70,8 +73,16 @@ public class Button {
         this.width = width;
     }
 
-    public void onClick() {}
+    public void onClick(){}
 
     public void setup(){}
+
+    public boolean isVisible(){
+        return true;
+    }
+
+    public boolean hasToolTip(){return this.tooltip != null;}
+
+    public Text tooltip(){return this.tooltip;}
 
 }

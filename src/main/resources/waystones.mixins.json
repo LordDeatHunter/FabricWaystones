@@ -10,12 +10,14 @@
     "NoiseChunkGeneratorMixin",
     "PlayerEntityMixin",
     "RecipeManagerMixin",
+    "ServerPlayerEntityAccessor",
     "ServerPlayerEntityMixin",
     "SimpleRegistryAccessor",
     "SinglePoolElementAccessor",
     "StructurePoolAccess"
   ],
   "client": [
+    "ClientPlayerEntityAccessor",
     "ClientPlayerEntityMixin",
     "ClientPlayNetworkHandlerMixin"
   ],

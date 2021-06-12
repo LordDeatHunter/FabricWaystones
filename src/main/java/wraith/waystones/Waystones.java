@@ -11,7 +11,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.LiteralText;
+import net.minecraft.util.math.BlockPos;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wraith.waystones.block.WaystoneBlockEntity;
@@ -19,6 +22,8 @@ import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.BlockRegistry;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 import wraith.waystones.registries.ItemRegistry;
+
+import java.util.UUID;
 
 public class Waystones implements ModInitializer {
 
@@ -41,6 +46,19 @@ public class Waystones implements ModInitializer {
     }
 
     private void registerPacketHandlers() {
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("remove_waystone_owner"), (server, player, networkHandler, data, sender) -> {
+            CompoundTag tag = data.readCompoundTag();
+            server.execute(() -> {
+                if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
+                    return;
+                }
+                String hash = tag.getString("waystone_hash");
+                UUID owner = tag.getUuid("waystone_owner");
+                if (WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner) && WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner)) || player.hasPermissionLevel(2))) {
+                    WAYSTONE_STORAGE.setOwner(hash, null);
+                }
+            });
+        });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_gui_slot_click"), (server, player, networkHandler, data, sender) -> {
             CompoundTag tag = data.readCompoundTag();
             server.execute(() -> {
@@ -56,12 +74,17 @@ public class Waystones implements ModInitializer {
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("rename_waystone"), (server, player, networkHandler, data, sender) -> {
             CompoundTag tag = data.readCompoundTag();
-            if (tag == null || !tag.contains("waystone_name") || !tag.contains("waystone_hash")) {
+            if (tag == null || !tag.contains("waystone_name") || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
                 return;
             }
             String name = tag.getString("waystone_name");
             String hash = tag.getString("waystone_hash");
-            server.execute(() -> WAYSTONE_STORAGE.renameWaystone(hash, name));
+            UUID owner = tag.getUuid("waystone_owner");
+            server.execute(() -> {
+                if (WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner) && WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner)) || player.hasPermissionLevel(2))) {
+                    WAYSTONE_STORAGE.renameWaystone(hash, name);
+                }
+            });
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("forget_waystone"), (server, player, networkHandler, data, sender) -> {
             CompoundTag tag = data.readCompoundTag();
@@ -76,14 +99,22 @@ public class Waystones implements ModInitializer {
                 if (waystone == null || waystone.isGlobal()) {
                     return;
                 }
-                WAYSTONE_STORAGE.removeWaystone(hash);
                 ((PlayerEntityMixinAccess)player).forgetWaystone(hash);
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("request_player_waystone_update"), (server, player, networkHandler, data, sender) -> server.execute(((PlayerEntityMixinAccess) player)::syncData));
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("toggle_global_waystone"), (server, player, networkHandler, data, sender) -> {
-            String hash = data.readString();
-            server.execute(() -> WAYSTONE_STORAGE.toggleGlobal(hash));
+            CompoundTag tag = data.readCompoundTag();
+            if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
+                return;
+            }
+            server.execute(() -> {
+                String hash = tag.getString("waystone_hash");
+                UUID owner = tag.getUuid("waystone_owner");
+                if (WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner) && WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner)) || player.hasPermissionLevel(2))) {
+                    WAYSTONE_STORAGE.toggleGlobal(hash);
+                }
+            });
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("sync_player_from_client"), (server, player, networkHandler, data, sender) -> {
             CompoundTag tag = data.readCompoundTag();
@@ -101,8 +132,25 @@ public class Waystones implements ModInitializer {
                 String hash = tag.getString("waystone_hash");
                 boolean isAbyssWatcher = tag.contains("from_abyss_watcher") && tag.getBoolean("from_abyss_watcher");
                 WaystoneBlockEntity waystone = WAYSTONE_STORAGE.getWaystone(hash);
-                if (waystone != null && Utils.canTeleport(player, waystone)) {
+                if (waystone == null) {
+                    return;
+                }
+                if (waystone.getWorld() != null && waystone.getWorld().getBlockState(waystone.getPos()).getBlock() != BlockRegistry.WAYSTONE) {
+                    WAYSTONE_STORAGE.removeWaystone(hash);
+                    waystone.getWorld().removeBlockEntity(waystone.getPos());
+                } else if (Utils.canTeleport(player, hash)) {
+                    BlockPos playerPos = player.getBlockPos();
                     waystone.teleportPlayer(player, isAbyssWatcher);
+
+                    player.world.playSound(player, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+                    if (isAbyssWatcher) {
+                        player.world.playSound(player, playerPos, SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
+                    }
+
+                    BlockPos waystonePos = waystone.getPos();
+                    if (!waystonePos.isWithinDistance(playerPos, 6)) {
+                        player.world.playSound(player, waystonePos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+                    }
                 }
             });
         });

@@ -22,7 +22,7 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
     private Function<PlayerEntity, Boolean> canUse = null;
     private boolean isConfig = false;
     private boolean isClient;
-    private String ownerName;
+    private String ownerName = "";
 
     public WaystoneScreenHandler(int syncId, WaystoneBlockEntity waystoneEntity, PlayerEntity player) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, player);
@@ -42,25 +42,26 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
         if (tag != null) {
             this.hash = tag.getString("waystone_hash");
             this.name = tag.getString("waystone_name");
-            this.owner = tag.getUuid("waystone_owner");
-            this.ownerName = tag.getString("waystone_owner_name");
+            if (tag.contains("waystone_owner")) {
+                this.owner = tag.getUuid("waystone_owner");
+            }
+            if (tag.contains("waystone_owner_name")) {
+                this.ownerName = tag.getString("waystone_owner_name");
+            }
             this.isGlobal = tag.getBoolean("waystone_is_global");
+        }
+    }
+
+    @Override
+    public void onForget(String waystone) {
+        if (this.hash.equals(waystone)) {
+            closeScreen();
         }
     }
 
     @Override
     public boolean canUse(PlayerEntity player) {
         return canUse != null ? canUse.apply(player) : true;
-    }
-
-    @Override
-    public boolean onButtonClick(PlayerEntity player, int id) {
-        if (isConfig) {
-            //TODO
-            return true;
-        } else {
-            return super.onButtonClick(player, id);
-        }
     }
 
     public String getWaystone() {
@@ -72,12 +73,18 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
             return;
         }
         PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
-        packet.writeString(this.hash);
+        CompoundTag tag = new CompoundTag();
+        tag.putString("waystone_hash", this.hash);
+        if (this.owner != null) {
+            tag.putUuid("waystone_owner", this.owner);
+        }
+        packet.writeCompoundTag(tag);
         ClientPlayNetworking.send(Utils.ID("toggle_global_waystone"), packet);
+        this.isGlobal = !this.isGlobal;
     }
 
     public boolean isOwner(PlayerEntity player) {
-        return this.owner.equals(player.getUuid());
+        return this.owner != null && this.owner.equals(player.getUuid());
     }
 
     public String getName() {
@@ -97,7 +104,16 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
     }
 
     public String getOwnerName() {
-        return this.ownerName;
+        return this.ownerName == null ? "" : this.ownerName;
+    }
+
+    public void removeOwner() {
+        this.owner = null;
+        this.ownerName = null;
+    }
+
+    public boolean hasOwner() {
+        return this.owner != null;
     }
 
 }

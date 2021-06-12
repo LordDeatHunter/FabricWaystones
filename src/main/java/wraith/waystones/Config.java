@@ -10,14 +10,13 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
 public class Config {
-
     private static Config instance = null;
+
     private CompoundTag configData;
     private final Logger LOGGER = Waystones.LOGGER;
     private static final String CONFIG_FILE = "config/waystones/config.json";
@@ -31,6 +30,10 @@ public class Config {
 
     public boolean generateInVillages() {
         return configData.getBoolean("generate_in_villages");
+    }
+
+    public boolean canOwnersRedeemPayments() {
+        return configData.getBoolean("can_owners_redeem_payments");
     }
 
     public Identifier teleportCostItem() {
@@ -57,12 +60,18 @@ public class Config {
         return configData.getInt("waystone_block_required_mining_level");
     }
 
+    public boolean consumeInfiniteScroll() {
+        return configData.getBoolean("consume_infinite_knowledge_scroll_on_use");
+    }
+
     private Config() {}
 
     private CompoundTag getDefaults() {
         CompoundTag defaultConfig = new CompoundTag();
 
         defaultConfig.putBoolean("generate_in_villages", true);
+        defaultConfig.putBoolean("consume_infinite_knowledge_scroll_on_use", false);
+        defaultConfig.putBoolean("can_owners_redeem_payments", false);
         defaultConfig.putInt("cost_amount", 1);
         defaultConfig.putString("cost_type", "level");
         defaultConfig.putString("cost_item", "minecraft:ender_pearl");
@@ -92,7 +101,14 @@ public class Config {
         itemMap.clear();
         itemMap.put("P", "minecraft:paper");
         itemMap.put("S", "minecraft:stick");
-        recipesTag.putString("empty_scroll", Utils.createRecipe("SPS_PPP_SPS", itemMap, "waystones:waystone_scroll", 1).toString());
+        recipesTag.putString("waystone_scroll", Utils.createRecipe("SPS_PPP_SPS", itemMap, "waystones:waystone_scroll", 1).toString());
+
+        itemMap.clear();
+        itemMap.put("A", "waystones:abyss_watcher");
+        itemMap.put("B", "minecraft:blaze_powder");
+        recipesTag.putString("local_void", Utils.createRecipe(" B _BAB_ B ", itemMap, "waystones:local_void", 1).toString());
+
+        recipesTag.putString("scroll_of_infinite_knowledge", "none");
 
         defaultConfig.put("recipes", recipesTag);
 
@@ -105,8 +121,32 @@ public class Config {
 
         CompoundTag defaults = getDefaults();
 
-        boolean generateInVillages = tag.contains("generate_in_villages") ? tag.getBoolean("generate_in_villages") : defaults.getBoolean("generate_in_villages");
+        boolean generateInVillages;
+        if (tag.contains("generate_in_villages")) {
+            generateInVillages = tag.getBoolean("generate_in_villages");
+        } else {
+            overwrite = true;
+            generateInVillages = defaults.getBoolean("generate_in_villages");
+        }
         json.addProperty("generate_in_villages", generateInVillages);
+
+        boolean consumeInfiniteScroll;
+        if (tag.contains("consume_infinite_knowledge_scroll_on_use")) {
+            consumeInfiniteScroll = tag.getBoolean("consume_infinite_knowledge_scroll_on_use");
+        } else {
+            overwrite = true;
+            consumeInfiniteScroll = defaults.getBoolean("consume_infinite_knowledge_scroll_on_use");
+        }
+        json.addProperty("consume_infinite_knowledge_scroll_on_use", consumeInfiniteScroll);
+
+        boolean canOnwersRedeem;
+        if (tag.contains("can_owners_redeem_payments")) {
+            canOnwersRedeem = tag.getBoolean("can_owners_redeem_payments");
+        } else {
+            overwrite = true;
+            canOnwersRedeem = defaults.getBoolean("can_owners_redeem_payments");
+        }
+        json.addProperty("can_owners_redeem_payments", canOnwersRedeem);
 
         int costAmount;
         if (tag.contains("cost_amount")) {
@@ -186,6 +226,24 @@ public class Config {
         }
         tag.putBoolean("generate_in_villages", generateInVillages);
 
+        boolean consumeInfiniteScroll;
+        if (json.has("consume_infinite_knowledge_scroll_on_use")) {
+            consumeInfiniteScroll = json.get("consume_infinite_knowledge_scroll_on_use").getAsBoolean();
+        } else {
+            overwrite = true;
+            consumeInfiniteScroll = defaults.getBoolean("consume_infinite_knowledge_scroll_on_use");
+        }
+        tag.putBoolean("consume_infinite_knowledge_scroll_on_use", consumeInfiniteScroll);
+
+        boolean canOnwersRedeem;
+        if (json.has("can_owners_redeem_payments")) {
+            canOnwersRedeem = json.get("can_owners_redeem_payments").getAsBoolean();
+        } else {
+            overwrite = true;
+            canOnwersRedeem = defaults.getBoolean("can_owners_redeem_payments");
+        }
+        tag.putBoolean("can_owners_redeem_payments", canOnwersRedeem);
+
         int costAmount;
         if (json.has("cost_amount")) {
             costAmount = json.get("cost_amount").getAsInt();
@@ -243,10 +301,10 @@ public class Config {
                 overwrite = true;
                 recipeString = defaultRecipes.getString(recipe);
             }
-            recipesJson.addProperty(recipe, recipeString);
+            recipesTag.putString(recipe, recipeString);
         }
-
         tag.put("recipes", recipesTag);
+
         createFile(toJson(tag), overwrite);
         return tag;
     }
@@ -295,6 +353,9 @@ public class Config {
         StringBuilder recipes = new StringBuilder();
         if (contents != null && contents.has("recipes")) {
             for (Map.Entry<String, JsonElement> recipe : contents.get("recipes").getAsJsonObject().entrySet()) {
+                if ("none".equals(recipe.getValue().getAsString())) {
+                    continue;
+                }
                 recipes.append("\"").append(recipe.getKey()).append("\": ").append(gson.toJson(new JsonParser().parse(recipe.getValue().getAsString()).getAsJsonObject())).append(",");
             }
             recipes = new StringBuilder(recipes.toString().replace("\n", "").replace("\r", ""));
@@ -348,7 +409,11 @@ public class Config {
         JsonObject json = toJson(configData).get("recipes").getAsJsonObject();
         HashMap<String, JsonElement> recipes = new HashMap<>();
         for (Map.Entry<String, JsonElement> recipe : json.entrySet()) {
-            recipes.put(recipe.getKey(), new JsonParser().parse(recipe.getValue().getAsString()));
+            String recipeString = recipe.getValue().getAsString();
+            if ("none".equals(recipeString)) {
+                continue;
+            }
+            recipes.put(recipe.getKey(), new JsonParser().parse(recipeString));
         }
         return recipes;
     }
@@ -361,5 +426,4 @@ public class Config {
             player.sendMessage(new LiteralText("§6[§e" + config.getKey() + "§6] §3 " + config.getValue()), false);
         }
     }
-
 }

@@ -23,5 +23,8 @@ public interface PlayerEntityMixinAccess extends PlayerAccess {
     boolean shouldViewDiscoveredWaystones();
     void toggleViewGlobalWaystones();
     void toggleViewDiscoveredWaystones();
+    boolean hasDiscoveredWaystone(String hash);
+    void discoverWaystones(HashSet<String> toLearn);
+    void forgetWaystones(HashSet<String> toForget);
 
 }

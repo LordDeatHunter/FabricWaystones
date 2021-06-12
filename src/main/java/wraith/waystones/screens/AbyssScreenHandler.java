@@ -6,7 +6,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
-import wraith.waystones.PlayerAccess;
+import net.minecraft.sound.SoundEvents;
+import wraith.waystones.ClientStuff;
 import wraith.waystones.Utils;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 import wraith.waystones.registries.ItemRegistry;
@@ -22,8 +23,13 @@ public class AbyssScreenHandler extends UniversalWaystoneScreenHandler {
         if (!player.world.isClient) {
             return false;
         }
+
         int waystoneID = Math.floorDiv(id, 2);
-        String waystone = ((PlayerAccess)player).getHashesSorted().get(waystoneID);
+        if (waystoneID >= this.filteredWaystones.size()) {
+            return false;
+        }
+
+        String waystone = this.filteredWaystones.get(waystoneID);
         if (waystone == null) {
             return false;
         }
@@ -35,14 +41,32 @@ public class AbyssScreenHandler extends UniversalWaystoneScreenHandler {
         data.writeCompoundTag(tag);
 
         if (id % 2 != 0) {
+            this.sortedWaystones.remove(waystone);
+            this.filteredWaystones.remove(waystone);
             ClientPlayNetworking.send(Utils.ID("forget_waystone"), data);
+            onForget(waystone);
         }
-        else if (player.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("abyss_watcher")) {
-            ClientPlayNetworking.send(Utils.ID("teleport_to_waystone"), data);
-            return true;
+        else {
+            if (Utils.canTeleport(player, waystone)) {
+                ClientPlayNetworking.send(Utils.ID("teleport_to_waystone"), data);
+                playSounds();
+            }
+            closeScreen();
         }
         return true;
     }
+
+    @Override
+    protected void playSounds() {
+        if (!player.world.isClient) {
+            return;
+        }
+        super.playSounds();
+        ClientStuff.playSound(SoundEvents.ENTITY_ENDER_EYE_DEATH, 1.0F);
+    }
+
+    @Override
+    public void onForget(String waystone) {}
 
     @Override
     public boolean canUse(PlayerEntity player) {

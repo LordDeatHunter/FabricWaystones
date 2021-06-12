@@ -3,7 +3,6 @@ package wraith.waystones.block;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
@@ -18,6 +17,8 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -25,6 +26,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import wraith.waystones.Config;
 import wraith.waystones.PlayerEntityMixinAccess;
 import wraith.waystones.Waystones;
 import wraith.waystones.item.LocalVoid;
@@ -59,6 +61,7 @@ public class WaystoneBlock extends BlockWithEntity {
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         BlockPos blockPos = ctx.getBlockPos();
+
         if (blockPos.getY() < 255 && ctx.getWorld().getBlockState(blockPos.up()).canReplace(ctx)) {
             return this.getDefaultState().with(FACING, ctx.getPlayerFacing().getOpposite()).with(HALF, DoubleBlockHalf.LOWER);
         } else {
@@ -79,17 +82,29 @@ public class WaystoneBlock extends BlockWithEntity {
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         BlockPos newPos;
         BlockPos botPos;
+        BlockEntity entity;
+        entity = world.getBlockEntity(pos);
+        if (Waystones.WAYSTONE_STORAGE != null && entity instanceof WaystoneBlockEntity) {
+            Waystones.WAYSTONE_STORAGE.removeWaystone((WaystoneBlockEntity) entity);
+            world.removeBlockEntity(pos);
+        }
         if (state.get(HALF) == DoubleBlockHalf.UPPER) {
             newPos = pos.down();
             botPos = newPos;
+
         } else {
             newPos = pos.up();
             botPos = pos;
         }
-        if (!player.isCreative()) {
+        if (!player.isCreative() && player.isUsingEffectiveTool(world.getBlockState(botPos))) {
             dropStacks(world.getBlockState(botPos), world, botPos);
         }
 
+        entity = world.getBlockEntity(newPos);
+        if (Waystones.WAYSTONE_STORAGE != null && entity instanceof WaystoneBlockEntity) {
+            Waystones.WAYSTONE_STORAGE.removeWaystone((WaystoneBlockEntity) entity);
+            world.removeBlockEntity(newPos);
+        }
         world.removeBlock(newPos, false);
         world.updateNeighbors(newPos, Blocks.AIR);
 
@@ -101,7 +116,23 @@ public class WaystoneBlock extends BlockWithEntity {
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER));
         BlockEntity entity = world.getBlockEntity(pos);
         if (placer instanceof PlayerEntity && entity instanceof WaystoneBlockEntity) {
-            ((WaystoneBlockEntity) entity).setOnwer((PlayerEntity) placer);
+            ((WaystoneBlockEntity) entity).setOwner((PlayerEntity)placer);
+        }
+    }
+
+    public static WaystoneBlockEntity getEntity(World world, BlockPos pos) {
+        BlockState state = world.getBlockState(pos);
+        if (state.getBlock() != BlockRegistry.WAYSTONE) {
+            return null;
+        }
+        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
+            pos = pos.down();
+        }
+        BlockEntity entity = world.getBlockEntity(pos);
+        if (entity instanceof WaystoneBlockEntity) {
+            return (WaystoneBlockEntity) entity;
+        } else {
+            return null;
         }
     }
 
@@ -129,14 +160,14 @@ public class WaystoneBlock extends BlockWithEntity {
                 return ActionResult.FAIL;
             }
 
-            if (player.isSneaking() && player.hasPermissionLevel(2)) {
-                for (ItemStack item : blockEntity.inventory) {
-                    world.spawnEntity(new ItemEntity(world, openPos.getX(), openPos.getY() + 1.0, openPos.getZ(), item));
+            if ((player.isSneaking() && (player.hasPermissionLevel(2)) || (Config.getInstance().canOwnersRedeemPayments() && blockEntity.getOwner().equals(player.getUuid())))) {
+                if (blockEntity.hasStorage()) {
+                    ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
+                    blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
                 }
-                blockEntity.inventory.clear();
             } else {
                 if (blockEntity.getOwner() == null) {
-                    blockEntity.setOnwer(player);
+                    blockEntity.setOwner(player);
                 }
 
                 if (!Waystones.WAYSTONE_STORAGE.containsHash(blockEntity.getHash())) {
@@ -145,7 +176,7 @@ public class WaystoneBlock extends BlockWithEntity {
 
                 if (!discovered.contains(blockEntity.getHash())) {
                     if (!blockEntity.isGlobal()) {
-                        player.sendMessage(new LiteralText(blockEntity.getName()).append(new TranslatableText("waystones.discover_waystone")).formatted(Formatting.AQUA), false);
+                        player.sendMessage(new LiteralText(blockEntity.getName() + " ").append(new TranslatableText("waystones.discover_waystone")).formatted(Formatting.AQUA), false);
                     }
                     ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
                 }
@@ -158,16 +189,19 @@ public class WaystoneBlock extends BlockWithEntity {
             }
             blockEntity.markDirty();
         }
-        return ActionResult.SUCCESS;
+        return ActionResult.success(world.isClient());
     }
 
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (world.isClient) {
-            return;
-        }
         BlockPos newPos;
         DoubleBlockHalf facing;
+        world.removeBlockEntity(pos);
+        if (state.getBlock() != this) {
+            super.onStateReplaced(state, world, pos, newState, moved);
+            return;
+        }
+
         if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
             newPos = pos.down();
             facing = DoubleBlockHalf.LOWER;
@@ -178,12 +212,14 @@ public class WaystoneBlock extends BlockWithEntity {
 
         if (newState.isAir()) {
             world.setBlockState(newPos, newState);
+            world.removeBlockEntity(newPos);
         }
         if (newState.getBlock() != BlockRegistry.WAYSTONE) {
+            BlockPos testPos = pos;
             if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
-                pos = pos.down();
+                testPos = pos.down();
             }
-            BlockEntity entity = world.getBlockEntity(pos);
+            BlockEntity entity = world.getBlockEntity(testPos);
             if (entity instanceof WaystoneBlockEntity) {
                 Waystones.WAYSTONE_STORAGE.removeWaystone(((WaystoneBlockEntity) entity).getHash());
             }

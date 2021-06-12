@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import wraith.waystones.ClientStuff;
 import wraith.waystones.PlayerEntityMixinAccess;
 import wraith.waystones.Utils;
 import wraith.waystones.Waystones;
@@ -150,9 +151,20 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         tag = tag.getCompound("waystones");
         if (tag.contains("discovered_waystones")) {
             discoveredWaystones.clear();
+            HashSet<String> hashes = new HashSet<>();
+            if (Waystones.WAYSTONE_STORAGE != null) {
+                hashes = Waystones.WAYSTONE_STORAGE.getAllHashes();
+            } else if (((PlayerEntity)(Object)this).world.isClient) {
+                HashSet<String> tmpHashes = ClientStuff.getWaystoneHashes();
+                if (tmpHashes != null) {
+                    hashes = tmpHashes;
+                }
+            }
             ListTag waystones = tag.getList("discovered_waystones", 8);
             for (Tag waystone : waystones) {
-                discoveredWaystones.add(waystone.asString());
+                if (hashes.contains(waystone.asString())) {
+                    discoveredWaystones.add(waystone.asString());
+                }
             }
         }
         if (tag.contains("view_global_waystones")) {
@@ -182,6 +194,33 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void toggleViewDiscoveredWaystones() {
         this.viewDiscoveredWaystones = !this.viewDiscoveredWaystones;
+        syncData();
+    }
+
+    @Override
+    public boolean hasDiscoveredWaystone(String hash) {
+        return this.discoveredWaystones.contains(hash);
+    }
+
+    @Override
+    public void discoverWaystones(HashSet<String> toLearn) {
+        if (Waystones.WAYSTONE_STORAGE == null) {
+            return;
+        }
+        for (String waystone : toLearn) {
+            if (!Waystones.WAYSTONE_STORAGE.containsHash(waystone)) {
+                continue;
+            }
+            this.discoveredWaystones.add(waystone);
+        }
+        syncData();
+    }
+
+    @Override
+    public void forgetWaystones(HashSet<String> toForget) {
+        for (String hash : toForget) {
+            discoveredWaystones.remove(hash);
+        }
         syncData();
     }
 

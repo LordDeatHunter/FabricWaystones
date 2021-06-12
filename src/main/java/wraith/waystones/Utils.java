@@ -2,6 +2,7 @@ package wraith.waystones;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -97,7 +98,7 @@ public class Utils {
         return total;
     }
 
-    public static boolean canTeleport(PlayerEntity player, WaystoneBlockEntity waystone) {
+    public static boolean canTeleport(PlayerEntity player, String hash) {
         String cost = Config.getInstance().teleportType();
         int amount = Config.getInstance().teleportCost();
         if(player.isCreative()) {
@@ -120,21 +121,33 @@ public class Utils {
                 player.experienceLevel -= amount;
                 return true;
             case "item":
-                Identifier item = Config.getInstance().teleportCostItem();
-                if (!containsItem(player.inventory, Registry.ITEM.get(item), amount)) {
+                Identifier itemId = Config.getInstance().teleportCostItem();
+                Item item = Registry.ITEM.get(itemId);
+                if (!containsItem(player.inventory, item, amount)) {
                     return false;
                 }
-                removeItem(player.inventory, Registry.ITEM.get(item), amount);
+                removeItem(player.inventory, Registry.ITEM.get(itemId), amount);
 
+                if (player.world.isClient || Waystones.WAYSTONE_STORAGE == null) {
+                    return true;
+                }
+                WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
                 if (waystone == null) {
                     return true;
                 }
-                ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.inventory);
-                oldInventory.add(new ItemStack(Registry.ITEM.get(item), amount));
-                waystone.inventory = DefaultedList.ofSize(oldInventory.size(), ItemStack.EMPTY);
-                for (int i = 0; i < oldInventory.size(); i++) {
-                    waystone.inventory.set(i, oldInventory.get(i));
+                ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.getInventory());
+                boolean found = false;
+                for (ItemStack stack : oldInventory) {
+                    if (stack.getItem() == item) {
+                        stack.increment(amount);
+                        found = true;
+                        break;
+                    }
                 }
+                if (!found) {
+                    oldInventory.add(new ItemStack(Registry.ITEM.get(itemId), amount));
+                }
+                waystone.setInventory(oldInventory);
                 return true;
             default:
                 return false;

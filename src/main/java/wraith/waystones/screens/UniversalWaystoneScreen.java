@@ -105,8 +105,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         this.searchField.render(matrices, mouseX, mouseY, delta);
     }
 
-    protected void renderButtons(MatrixStack matrices, int mouseX, int mouseY) {
-    }
+    protected void renderButtons(MatrixStack matrices, int mouseX, int mouseY) {}
 
     @Override
     public boolean charTyped(char chr, int keyCode) {
@@ -143,7 +142,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         switch(Config.getInstance().teleportType())
         {
             case "xp":
-                this.drawTexture(matrices, x, y, 177, 15, 9, 9);
+                this.drawTexture(matrices, x, y + 3, 178, 15, 9, 9);
                 text = new TranslatableText("waystones.cost.xp");
                 break;
             case "level":
@@ -212,13 +211,6 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     @Override
-    protected void onMouseClick(Slot slot, int invSlot, int clickData, SlotActionType actionType) {
-        super.onMouseClick(slot, invSlot, clickData, actionType);
-        this.searchField.setCursorToEnd();
-        this.searchField.setSelectionEnd(0);
-    }
-
-    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button != 0) {
             return super.mouseClicked(mouseX, mouseY, button);
@@ -255,7 +247,6 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 }
                 if (x2 >= 0.0D && y2 >= 0.0D && x2 < 101.0D && y2 < 18.0D && (this.handler).onButtonClick(this.client.player, l * 2)) {
                     MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                    MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F));
 
                     CompoundTag tag = new CompoundTag();
                     tag.putInt("sync_id", handler.syncId);

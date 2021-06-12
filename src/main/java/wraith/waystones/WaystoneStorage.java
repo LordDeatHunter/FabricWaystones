@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.*;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
@@ -22,7 +23,7 @@ public class WaystoneStorage {
     private final PersistentState state;
 
     private final ConcurrentHashMap<String, WaystoneBlockEntity> WAYSTONES = new ConcurrentHashMap<>();
-    private MinecraftServer server;
+    private final MinecraftServer server;
 
     private static final String ID = Waystones.MOD_ID + ":waystones";
 
@@ -59,9 +60,9 @@ public class WaystoneStorage {
             BlockPos pos = new BlockPos(coordinates[0], coordinates[1], coordinates[2]);
             for (ServerWorld world : server.getWorlds()) {
                 if (WaystoneBlock.getDimensionName(world).equals(dimension)) {
-                    BlockEntity entity = world.getBlockEntity(pos);
-                    if (entity instanceof WaystoneBlockEntity) {
-                        WAYSTONES.put(hash, (WaystoneBlockEntity) entity);
+                    WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, pos);
+                    if (entity != null) {
+                        WAYSTONES.put(hash, entity);
                     }
                     break;
                 }
@@ -197,6 +198,20 @@ public class WaystoneStorage {
         }
         waystone.toggleGlobal();
         sendToAllPlayers();
+    }
+
+    public void setOwner(String hash, PlayerEntity owner) {
+        if (WAYSTONES.containsKey(hash)) {
+            WAYSTONES.get(hash).setOwner(owner);
+        }
+    }
+
+    public HashSet<String> getAllHashes() {
+        return new HashSet<>(WAYSTONES.keySet());
+    }
+
+    public int getCount() {
+        return WAYSTONES.size();
     }
 
 }

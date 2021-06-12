@@ -9,6 +9,9 @@ import net.minecraft.nbt.CompoundTag;
 import wraith.waystones.registries.BlockEntityRendererRegistry;
 import wraith.waystones.registries.CustomScreenRegistry;
 import wraith.waystones.registries.WaystonesModelProviderRegistry;
+import wraith.waystones.screens.WaystoneScreenHandler;
+
+import java.util.HashSet;
 
 @Environment(EnvType.CLIENT)
 public class WaystonesClient implements ClientModInitializer {
@@ -27,10 +30,27 @@ public class WaystonesClient implements ClientModInitializer {
     private void registerPacketHandlers() {
         ClientPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_packet"), (client, networkHandler, data, sender) -> {
             CompoundTag tag = data.readCompoundTag();
-            if (Waystones.WAYSTONE_STORAGE != null) {
+            if (Waystones.WAYSTONE_STORAGE != null && client.getServer() != null) {
                 client.getServer().execute(() -> Waystones.WAYSTONE_STORAGE.fromTag(tag));
             }
-            client.execute(() -> WAYSTONE_STORAGE.fromTag(tag));
+            client.execute(() -> {
+                WAYSTONE_STORAGE.fromTag(tag);
+
+                if (client.player == null) {
+                    return;
+                }
+                HashSet<String> toForget = new HashSet<>();
+                for (String hash : ((PlayerEntityMixinAccess)client.player).getDiscoveredWaystones()) {
+                    if (!WAYSTONE_STORAGE.containsWaystone(hash)) {
+                        toForget.add(hash);
+                    }
+                }
+                ((PlayerEntityMixinAccess)client.player).forgetWaystones(toForget);
+
+                if (client.player.currentScreenHandler instanceof WaystoneScreenHandler) {
+                    ((WaystoneScreenHandler)client.player.currentScreenHandler).updateWaystones(client.player);
+                }
+            });
         });
         ClientPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_config_update"), (client, networkHandler, data, sender) -> {
             CompoundTag tag = data.readCompoundTag();
