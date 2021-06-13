@@ -59,5 +59,5 @@
   "waystones.cost.health": "Half-Hearts",
   "waystones.cost.level": "Level(s)",
 
-  "itemGroup.waystones.blocks": "Waystones"
+  "itemGroup.waystones.waystones": "Waystones"
 }

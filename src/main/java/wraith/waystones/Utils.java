@@ -2,7 +2,6 @@ package wraith.waystones;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -12,7 +11,6 @@ import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorLists;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.registry.Registry;
 import wraith.waystones.block.WaystoneBlockEntity;
 
@@ -38,7 +36,7 @@ public class Utils {
 
     private static String generateUniqueId() {
         StringBuilder sb = new StringBuilder();
-        ArrayList<Character> vowels = new ArrayList<Character>(){{
+        ArrayList<Character> vowels = new ArrayList<>() {{
             add('a');
             add('e');
             add('i');
@@ -65,7 +63,7 @@ public class Utils {
     public static StructurePool tryAddElementToPool(Identifier targetPool, StructurePool pool, String elementId, StructurePool.Projection projection, int weight) {
         if(targetPool.equals(pool.getId())) {
             ModifiableStructurePool modPool = new ModifiableStructurePool(pool);
-            modPool.addStructurePoolElement(StructurePoolElement.method_30426(elementId, StructureProcessorLists.EMPTY).apply(projection), weight);
+            modPool.addStructurePoolElement(StructurePoolElement.ofProcessedSingle(elementId, StructureProcessorLists.EMPTY).apply(projection), weight);
             return modPool.getStructurePool();
         }
         return pool;
@@ -74,7 +72,7 @@ public class Utils {
     public static StructurePool tryAddElementToPool(Identifier targetPool, StructurePool pool, String elementId, StructurePool.Projection projection) {
         if(targetPool.equals(pool.getId())) {
             ModifiableStructurePool modPool = new ModifiableStructurePool(pool);
-            modPool.addStructurePoolElement(StructurePoolElement.method_30426(elementId, StructureProcessorLists.EMPTY).apply(projection));
+            modPool.addStructurePoolElement(StructurePoolElement.ofProcessedSingle(elementId, StructureProcessorLists.EMPTY).apply(projection));
             return modPool.getStructurePool();
         }
         return pool;
@@ -130,10 +128,10 @@ public class Utils {
             case "item":
                 Identifier itemId = Config.getInstance().teleportCostItem();
                 Item item = Registry.ITEM.get(itemId);
-                if (!containsItem(player.inventory, item, amount)) {
+                if (!containsItem(player.getInventory(), item, amount)) {
                     return false;
                 }
-                removeItem(player.inventory, Registry.ITEM.get(itemId), amount);
+                removeItem(player.getInventory(), Registry.ITEM.get(itemId), amount);
 
                 if (player.world.isClient || Waystones.WAYSTONE_STORAGE == null) {
                     return true;

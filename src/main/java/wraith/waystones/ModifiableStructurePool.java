@@ -8,29 +8,23 @@ import wraith.waystones.mixin.StructurePoolAccess;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ModifiableStructurePool {
-
-    private final StructurePool pool;
-
-    public ModifiableStructurePool(StructurePool pool) {
-        this.pool = pool;
-    }
+public record ModifiableStructurePool(StructurePool pool) {
 
     public void addStructurePoolElement(StructurePoolElement element) {
         addStructurePoolElement(element, 1);
     }
 
     public void addStructurePoolElement(StructurePoolElement element, int weight) {
-        List<Pair<StructurePoolElement, Integer>> list = new ArrayList<>(((StructurePoolAccess)pool).getElementCounts());
+        List<Pair<StructurePoolElement, Integer>> list = new ArrayList<>(((StructurePoolAccess) pool).getElementCounts());
         list.add(Pair.of(element, weight));
-        ((StructurePoolAccess)pool).setElementCounts(list);
+        ((StructurePoolAccess) pool).setElementCounts(list);
         for (int i = 0; i < weight; i++) {
-            ((StructurePoolAccess)pool).getElements().add(element);
+            ((StructurePoolAccess) pool).getElements().add(element);
         }
     }
 
     public List<StructurePoolElement> getElements() {
-        return ((StructurePoolAccess)pool).getElements();
+        return ((StructurePoolAccess) pool).getElements();
     }
 
     public StructurePool getStructurePool() {

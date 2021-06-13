@@ -4,6 +4,7 @@ package wraith.waystones.block;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -12,7 +13,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
@@ -23,7 +24,6 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Tickable;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -41,9 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable, Tickable {
+public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable {
 
     private String name = "";
     private String hash;
@@ -52,8 +51,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private String ownerName = null;
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
 
-    public WaystoneBlockEntity() {
-        super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY);
+    public WaystoneBlockEntity(BlockPos pos, BlockState state) {
+        super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, pos, state);
         this.name = Utils.generateWaystoneName(this.name);
     }
 
@@ -104,8 +103,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public void fromTag(BlockState state, CompoundTag tag) {
-        super.fromTag(state, tag);
+    public void readNbt(NbtCompound tag) {
+        super.readNbt(tag);
         if (tag.contains("waystone_name")) {
             this.name = tag.getString("waystone_name");
         }
@@ -119,16 +118,16 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             this.ownerName = tag.getString("waystone_owner_name");
         }
         this.inventory = DefaultedList.ofSize(tag.getInt("inventory_size"), ItemStack.EMPTY);
-        Inventories.fromTag(tag, inventory);
+        Inventories.readNbt(tag, inventory);
     }
 
     @Override
-    public CompoundTag toTag(CompoundTag tag) {
-        super.toTag(tag);
+    public NbtCompound writeNbt(NbtCompound tag) {
+        super.writeNbt(tag);
         return createTag(tag);
     }
 
-    private CompoundTag createTag(CompoundTag tag) {
+    private NbtCompound createTag(NbtCompound tag) {
         tag.putString("waystone_name", this.name);
         if (this.owner != null) {
             tag.putUuid("waystone_owner", this.owner);
@@ -138,7 +137,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         }
         tag.putBoolean("waystone_is_global", this.isGlobal);
         tag.putInt("inventory_size", this.inventory.size());
-        Inventories.toTag(tag, this.inventory);
+        Inventories.writeNbt(tag, this.inventory);
         return tag;
     }
 
@@ -166,19 +165,19 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf packetByteBuf) {
-        CompoundTag tag = createTag(new CompoundTag());
+        NbtCompound tag = createTag(new NbtCompound());
         tag.putString("waystone_hash", this.hash);
-        packetByteBuf.writeCompoundTag(tag);
+        packetByteBuf.writeNbt(tag);
     }
 
     @Override
-    public void fromClientTag(CompoundTag tag) {
-        fromTag(world.getBlockState(pos), tag);
+    public void fromClientTag(NbtCompound tag) {
+        readNbt(tag);
     }
 
     @Override
-    public CompoundTag toClientTag(CompoundTag tag) {
-        return toTag(tag);
+    public NbtCompound toClientTag(NbtCompound tag) {
+        return writeNbt(tag);
     }
     public float lookingRotR = 0;
     private float turningSpeedR = 2;
@@ -255,7 +254,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         }
     }
 
-    @Override
     public void tick() {
         ++tickDelta;
         PlayerEntity closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D,
@@ -289,35 +287,34 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public void teleportPlayer(PlayerEntity player, boolean isAbyssWatcher) {
-        if (!(player instanceof ServerPlayerEntity)) {
+        if (!(player instanceof ServerPlayerEntity playerEntity)) {
             return;
         }
-        ServerPlayerEntity playerEntity = (ServerPlayerEntity) player;
         Direction facing = getCachedState().get(WaystoneBlock.FACING);
         float x = 0;
         float z = 0;
-        float yaw = playerEntity.yaw;
+        float yaw = playerEntity.getYaw();
         switch (facing) {
-            case NORTH:
+            case NORTH -> {
                 x = 0.5f;
                 z = -0.5f;
                 yaw = 0;
-                break;
-            case SOUTH:
+            }
+            case SOUTH -> {
                 x = 0.5f;
                 z = 1.5f;
                 yaw = 180;
-                break;
-            case EAST:
+            }
+            case EAST -> {
                 x = 1.5f;
                 z = 0.5f;
                 yaw = 90;
-                break;
-            case WEST:
+            }
+            case WEST -> {
                 x = -0.5f;
                 z = 0.5f;
                 yaw = 270;
-                break;
+            }
         }
 
         final float fX = x;
@@ -419,4 +416,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
         return false;
     }
+
+    public static <T extends BlockEntity> void ticker(World world, BlockPos blockPos, BlockState blockState, WaystoneBlockEntity waystone) {
+        waystone.tick();
+    }
+
 }

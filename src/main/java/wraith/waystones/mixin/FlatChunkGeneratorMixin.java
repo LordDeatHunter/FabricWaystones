@@ -5,7 +5,6 @@ import net.minecraft.structure.StructurePiece;
 import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.ChunkSectionPos;
-import net.minecraft.world.WorldAccess;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.chunk.FlatChunkGenerator;
@@ -17,13 +16,14 @@ import wraith.waystones.Config;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Mixin(FlatChunkGenerator.class)
 public class FlatChunkGeneratorMixin {
 
     @ModifyVariable(method = "populateNoise", at = @At("HEAD"))
-    public StructureAccessor populateNoise(StructureAccessor sa, WorldAccess worldAccess, StructureAccessor accessor, Chunk chunk) {
+    public StructureAccessor populateNoise(StructureAccessor sa, Executor executor, StructureAccessor accessor, Chunk chunk) {
         if (!Config.getInstance().generateInVillages()) {
             return accessor;
         }
@@ -38,7 +38,7 @@ public class FlatChunkGeneratorMixin {
                     StructurePiece structure = structures.getChildren().get(j);
                     if (structure instanceof PoolStructurePiece &&
                             ((PoolStructurePiece) structure).getPoolElement() instanceof SinglePoolElement &&
-                            "waystones:village_waystone".equals(((SinglePoolElementAccessor)((PoolStructurePiece) structure).getPoolElement()).getField_24015().left().get().toString()) &&
+                            "waystones:village_waystone".equals(((SinglePoolElementAccessor)((PoolStructurePiece) structure).getPoolElement()).getLocation().left().get().toString()) &&
                             waystones.getAndIncrement() > 0) {
                         toRemove.add(j);
                     }

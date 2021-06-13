@@ -5,7 +5,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
@@ -30,7 +30,7 @@ public class LocalVoid extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
-        CompoundTag tag = stack.getTag();
+        NbtCompound tag = stack.getTag();
         if (tag == null || !tag.contains("waystone")) {
             return TypedActionResult.fail(stack);
         }
@@ -59,7 +59,7 @@ public class LocalVoid extends Item {
         WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, context.getBlockPos());
         if (entity != null) {
             ItemStack stack = context.getStack();
-            CompoundTag tag = new CompoundTag();
+            NbtCompound tag = new NbtCompound();
             tag.putString("waystone", entity.getHash());
             stack.setTag(tag);
         }
@@ -70,7 +70,7 @@ public class LocalVoid extends Item {
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
         String name = null;
-        CompoundTag tag = stack.getTag();
+        NbtCompound tag = stack.getTag();
         boolean invalid = false;
         if (tag == null || !tag.contains("waystone")) {
             invalid = true;

@@ -1,7 +1,7 @@
 package wraith.waystones;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import wraith.waystones.block.WaystoneBlockEntity;
 
 import java.util.ArrayList;
@@ -17,8 +17,8 @@ public interface PlayerEntityMixinAccess extends PlayerAccess {
     HashSet<String> getDiscoveredWaystones();
     ArrayList<String> getWaystonesSorted();
     void learnWaystones(PlayerEntity player, boolean overwrite);
-    void fromTagW(CompoundTag tag);
-    CompoundTag toTagW(CompoundTag tag);
+    void fromTagW(NbtCompound tag);
+    NbtCompound toTagW(NbtCompound tag);
     boolean shouldViewGlobalWaystones();
     boolean shouldViewDiscoveredWaystones();
     void toggleViewGlobalWaystones();

@@ -1,7 +1,7 @@
 package wraith.waystones;
 
 import com.google.gson.*;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
@@ -17,7 +17,7 @@ import java.util.Scanner;
 public class Config {
     private static Config instance = null;
 
-    private CompoundTag configData;
+    private NbtCompound configData;
     private final Logger LOGGER = Waystones.LOGGER;
     private static final String CONFIG_FILE = "config/waystones/config.json";
 
@@ -66,8 +66,8 @@ public class Config {
 
     private Config() {}
 
-    private CompoundTag getDefaults() {
-        CompoundTag defaultConfig = new CompoundTag();
+    private NbtCompound getDefaults() {
+        NbtCompound defaultConfig = new NbtCompound();
 
         defaultConfig.putBoolean("generate_in_villages", true);
         defaultConfig.putBoolean("consume_infinite_knowledge_scroll_on_use", false);
@@ -78,7 +78,7 @@ public class Config {
         defaultConfig.putFloat("waystone_block_hardness", 4F);
         defaultConfig.putInt("waystone_block_required_mining_level", 1);
 
-        CompoundTag recipesTag = new CompoundTag();
+        NbtCompound recipesTag = new NbtCompound();
 
         HashMap<String, String> itemMap = new HashMap<>();
         itemMap.put("S", "minecraft:stone_bricks");
@@ -115,11 +115,11 @@ public class Config {
         return defaultConfig;
     }
 
-    private JsonObject toJson(CompoundTag tag) {
+    private JsonObject toJson(NbtCompound tag) {
         boolean overwrite = false;
         JsonObject json = new JsonObject();
 
-        CompoundTag defaults = getDefaults();
+        NbtCompound defaults = getDefaults();
 
         boolean generateInVillages;
         if (tag.contains("generate_in_villages")) {
@@ -194,8 +194,8 @@ public class Config {
         json.addProperty("waystone_block_required_mining_level", miningLevel);
 
         JsonObject recipesJson = new JsonObject();
-        CompoundTag recipesTag = tag.getCompound("recipes");
-        CompoundTag defaultRecipes = defaults.getCompound("recipes");
+        NbtCompound recipesTag = tag.getCompound("recipes");
+        NbtCompound defaultRecipes = defaults.getCompound("recipes");
         for (String recipe : defaultRecipes.getKeys()) {
             String recipeString;
             if (recipesTag.contains(recipe)) {
@@ -211,11 +211,11 @@ public class Config {
         return json;
     }
 
-    private CompoundTag toCompoundTag(JsonObject json) {
+    private NbtCompound toNbtCompound(JsonObject json) {
         boolean overwrite = false;
-        CompoundTag tag = new CompoundTag();
+        NbtCompound tag = new NbtCompound();
 
-        CompoundTag defaults = getDefaults();
+        NbtCompound defaults = getDefaults();
 
         boolean generateInVillages;
         if (json.has("generate_in_villages")) {
@@ -290,9 +290,9 @@ public class Config {
         tag.putFloat("waystone_block_required_mining_level", miningLevel);
 
         JsonObject recipesJson = json.get("recipes").getAsJsonObject();
-        CompoundTag recipesTag = new CompoundTag();
+        NbtCompound recipesTag = new NbtCompound();
 
-        CompoundTag defaultRecipes = defaults.getCompound("recipes");
+        NbtCompound defaultRecipes = defaults.getCompound("recipes");
         for (String recipe : defaultRecipes.getKeys()) {
             String recipeString;
             if (recipesJson.has(recipe)) {
@@ -323,7 +323,7 @@ public class Config {
 
     private boolean loadConfig(JsonObject fileConfig) {
         try {
-            CompoundTag config = toCompoundTag(fileConfig);
+            NbtCompound config = toNbtCompound(fileConfig);
             this.configData = config;
             return true;
         } catch (Exception e) {
@@ -334,7 +334,7 @@ public class Config {
         }
     }
 
-    public boolean loadConfig(CompoundTag config) {
+    public boolean loadConfig(NbtCompound config) {
         try {
             this.configData = config;
             return true;
@@ -391,7 +391,7 @@ public class Config {
         }
     }
 
-    public CompoundTag toCompoundTag() {
+    public NbtCompound toNbtCompound() {
         return configData;
     }
 

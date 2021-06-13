@@ -2,14 +2,17 @@ package wraith.waystones.block;
 
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
@@ -29,11 +32,13 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Config;
 import wraith.waystones.PlayerEntityMixinAccess;
 import wraith.waystones.Waystones;
 import wraith.waystones.item.LocalVoid;
 import wraith.waystones.item.WaystoneScroll;
+import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.BlockRegistry;
 import wraith.waystones.registries.ItemRegistry;
 
@@ -53,8 +58,15 @@ public class WaystoneBlock extends BlockWithEntity {
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockView world) {
-        return new WaystoneBlockEntity();
+    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+        if(state.get(HALF) == DoubleBlockHalf.UPPER) return null;
+        return new WaystoneBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+        return checkType(type, BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, WaystoneBlockEntity::ticker);
     }
 
     @Override
@@ -97,14 +109,11 @@ public class WaystoneBlock extends BlockWithEntity {
 
         entity = world.getBlockEntity(botPos);
         if (entity instanceof WaystoneBlockEntity) {
-            /*
-            dropStacks(state, world, botPos);
-            */
-            if (!player.isCreative() && player.isUsingEffectiveTool(world.getBlockState(botPos)) && world instanceof ServerWorld) {
+            if (!player.isCreative() && player.canHarvest(world.getBlockState(botPos)) && world instanceof ServerWorld) {
                 WaystoneBlockEntity waystoneBlockEntity = (WaystoneBlockEntity)entity;
                 if (!world.isClient) {
                     ItemStack itemStack = new ItemStack(ItemRegistry.ITEMS.get("waystone"));
-                    CompoundTag compoundTag = waystoneBlockEntity.toTag(new CompoundTag());
+                    NbtCompound compoundTag = waystoneBlockEntity.writeNbt(new NbtCompound());
                     if (!compoundTag.isEmpty()) {
                         itemStack.putSubTag("BlockEntityTag", compoundTag);
                     }
@@ -136,7 +145,7 @@ public class WaystoneBlock extends BlockWithEntity {
     public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER));
         BlockEntity entity = world.getBlockEntity(pos);
-        if (placer instanceof PlayerEntity && entity instanceof WaystoneBlockEntity) {
+        if (placer instanceof ServerPlayerEntity && entity instanceof WaystoneBlockEntity) {
             ((WaystoneBlockEntity) entity).setOwner((PlayerEntity)placer);
             if (Waystones.WAYSTONE_STORAGE != null) {
                 Waystones.WAYSTONE_STORAGE.addWaystone(((WaystoneBlockEntity) entity));

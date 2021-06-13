@@ -9,13 +9,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import wraith.waystones.Config;
 import wraith.waystones.Utils;
-import wraith.waystones.Waystones;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 @Mixin(RecipeManager.class)

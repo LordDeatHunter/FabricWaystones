@@ -30,17 +30,20 @@ public class WaystoneStorage {
     public WaystoneStorage(MinecraftServer server) {
         CompatibilityLayer compatLoading = new CompatibilityLayer(this, server);
         this.server = server;
-        state = this.server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(() -> new PersistentState(ID) {
-            @Override
-            public void fromTag(CompoundTag tag) {
-                WaystoneStorage.this.fromTag(tag);
-            }
-            @Override
-            public CompoundTag toTag(CompoundTag tag) {
-                return WaystoneStorage.this.toTag(tag);
-            }
-        }, ID);
 
+        var pState = new PersistentState(){
+            @Override
+            public NbtCompound writeNbt(NbtCompound tag) {
+                return toTag(tag);
+            }
+        };
+
+        state = this.server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(
+                nbtCompound -> {
+                    fromTag(nbtCompound);
+                    return pState;
+                },
+                () -> pState, ID);
 
         if (!compatLoading.loadCompatibility()) {
             compatLoading = null;
@@ -50,15 +53,15 @@ public class WaystoneStorage {
         loadOrSaveWaystones(false);
     }
 
-    public void fromTag(CompoundTag tag) {
+    public void fromTag(NbtCompound tag) {
         if (server == null || tag == null || !tag.contains("waystones")) {
             return;
         }
         WAYSTONES.clear();
-        ListTag waystones = tag.getList("waystones", 10);
+        NbtList waystones = tag.getList("waystones", 10);
 
         for (int i = 0; i < waystones.size(); ++i) {
-            CompoundTag waystoneTag = waystones.getCompound(i);
+            NbtCompound waystoneTag = waystones.getCompound(i);
             if (!waystoneTag.contains("hash") || !waystoneTag.contains("dimension") || !waystoneTag.contains("position")) {
                 continue;
             }
@@ -79,16 +82,16 @@ public class WaystoneStorage {
 
     }
 
-    public CompoundTag toTag(CompoundTag tag) {
+    public NbtCompound toTag(NbtCompound tag) {
         if (tag == null) {
-            tag = new CompoundTag();
+            tag = new NbtCompound();
         }
-        ListTag waystones = new ListTag();
+        NbtList waystones = new NbtList();
         for (Map.Entry<String, WaystoneBlockEntity> waystone : WAYSTONES.entrySet()) {
             String hash = waystone.getKey();
             WaystoneBlockEntity entity = waystone.getValue();
 
-            CompoundTag waystoneTag = new CompoundTag();
+            NbtCompound waystoneTag = new NbtCompound();
             waystoneTag.putString("hash", hash);
             waystoneTag.putString("name", entity.getWaystoneName());
             BlockPos pos = entity.getPos();
@@ -98,10 +101,10 @@ public class WaystoneStorage {
             waystones.add(waystoneTag);
         }
         tag.put("waystones", waystones);
-        ListTag globals = new ListTag();
+        NbtList globals = new NbtList();
         ArrayList<String> globalWaystones = getGlobals();
         for (String globalWaystone : globalWaystones) {
-            globals.add(StringTag.of(globalWaystone));
+            globals.add(NbtString.of(globalWaystone));
         }
         tag.put("global_waystones", globals);
         return tag;
@@ -135,8 +138,8 @@ public class WaystoneStorage {
         }
         else {
             try {
-                CompoundTag compoundTag = world.getPersistentStateManager().readTag(ID, SharedConstants.getGameVersion().getWorldVersion());
-                state.fromTag(compoundTag.getCompound("data"));
+                NbtCompound compoundTag = world.getPersistentStateManager().readNbt(ID, SharedConstants.getGameVersion().getWorldVersion());
+                state.writeNbt(compoundTag.getCompound("data"));
             } catch (IOException ignored) {
             }
         }
@@ -154,7 +157,7 @@ public class WaystoneStorage {
 
     public void sendToPlayer(ServerPlayerEntity player) {
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-        data.writeCompoundTag(toTag(new CompoundTag()));
+        data.writeNbt(toTag(new NbtCompound()));
         ServerPlayNetworking.send(player, Utils.ID("waystone_packet"), data);
     }
 

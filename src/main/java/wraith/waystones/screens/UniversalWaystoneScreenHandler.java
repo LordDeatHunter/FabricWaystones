@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
 import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
@@ -33,12 +33,12 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         this.player = player;
         for (int y = 0; y < 3; ++y) {
             for (int x = 0; x < 9; ++x) {
-                this.addSlot(new Slot(this.player.inventory, x + y * 9 + 9, 2000000000, 2000000000));
+                this.addSlot(new Slot(this.player.getInventory(), x + y * 9 + 9, 2000000000, 2000000000));
             }
         }
 
         for (int x = 0; x < 9; ++x) {
-            this.addSlot(new Slot(this.player.inventory, x, 2000000000, 2000000000));
+            this.addSlot(new Slot(this.player.getInventory(), x, 2000000000, 2000000000));
         }
     }
 
@@ -58,7 +58,6 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
             }
         }
         this.sortedWaystones.sort(Comparator.comparing(a -> WaystonesClient.WAYSTONE_STORAGE.getName(a)));
-        this.filteredWaystones = new ArrayList<>(this.sortedWaystones);
         filterWaystones();
     }
 
@@ -79,9 +78,9 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         }
 
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-        CompoundTag tag = new CompoundTag();
+        NbtCompound tag = new NbtCompound();
         tag.putString("waystone_hash", waystone);
-        data.writeCompoundTag(tag);
+        data.writeNbt(tag);
 
         if (id % 2 != 0) {
             this.sortedWaystones.remove(waystone);
@@ -114,7 +113,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
 
     protected void closeOnClient() {
         ((ClientPlayerEntityAccessor)player).getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(this.syncId));
-        player.inventory.setCursorStack(ItemStack.EMPTY);
+        setCursorStack(ItemStack.EMPTY);
         player.currentScreenHandler = player.playerScreenHandler;
         MinecraftClient.getInstance().openScreen(null);
     }

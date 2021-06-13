@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "wraith.waystones.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
   "mixins": [
     "DynamicRegistryManagerImplMixin",
     "DynamicRegistryManagerMixin",

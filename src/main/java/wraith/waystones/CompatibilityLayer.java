@@ -1,8 +1,8 @@
 package wraith.waystones;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -28,21 +28,20 @@ public class CompatibilityLayer {
     }
 
     public boolean loadCompatibility() {
-        PersistentState compatState = this.SERVER.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().get(() -> new PersistentState(OLD_ID) {
-            @Override
-            public void fromTag(CompoundTag tag) {
-                CompatibilityLayer.this.fromTag(tag);
-            }
-            @Override
-            public CompoundTag toTag(CompoundTag tag) {
-                return CompatibilityLayer.this.toTag(tag);
-            }
+        PersistentState compatState = this.SERVER.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().get( nbtCompound -> {
+            fromTag(nbtCompound);
+            return new PersistentState() {
+                @Override
+                public NbtCompound writeNbt(NbtCompound nbt) {
+                    return CompatibilityLayer.this.writeNbt(nbt);
+                }
+            };
         }, OLD_ID);
 
         return compatState != null;
     }
 
-    public void fromTag(CompoundTag tag) {
+    public void fromTag(NbtCompound tag) {
         if(tag.contains("Waystones")) {
             Waystones.LOGGER.info("[Fabric-Waystones] Found old save data. Converting to new save format.");
             COMPATABILITY_ENABLED = true;
@@ -54,11 +53,11 @@ public class CompatibilityLayer {
         }
     }
 
-    private void parseOldTag(CompoundTag tag) {
-        ListTag compatTags = tag.getList("Waystones", 10);
+    private void parseOldTag(NbtCompound tag) {
+        NbtList compatTags = tag.getList("Waystones", 10);
         HashSet<WaystoneBlockEntity> entities = new HashSet<>();
         for(int i = 0; i < compatTags.size(); i++) {
-            CompoundTag waystoneTag = compatTags.getCompound(i);
+            NbtCompound waystoneTag = compatTags.getCompound(i);
 
             String name = waystoneTag.getString("Name");
             ServerWorld world = getWorld(waystoneTag.getString("World"));
@@ -74,9 +73,9 @@ public class CompatibilityLayer {
             String hash = entity.getHash();
             entities.add(entity);
 
-            ListTag players = waystoneTag.getList("DiscoveredBy", 10);
+            NbtList players = waystoneTag.getList("DiscoveredBy", 10);
             for (int ii = 0; ii < players.size(); ii++) {
-                CompoundTag player = players.getCompound(ii);
+                NbtCompound player = players.getCompound(ii);
                 String playerName = player.getString("PlayerName");
                 if(playerName.equals("")) continue;
                 if(!COMPATABILITY_MAP.containsKey(playerName)) {
@@ -88,14 +87,14 @@ public class CompatibilityLayer {
         STORAGE.addWaystones(entities);
     }
 
-    private void parseCompatTag(CompoundTag tag) {
-        ListTag compatTags = tag.getList("waystones_compat", 10);
+    private void parseCompatTag(NbtCompound tag) {
+        NbtList compatTags = tag.getList("waystones_compat", 10);
         for(int i = 0; i < compatTags.size(); i++) {
-            CompoundTag playerTag = compatTags.getCompound(i);
+            NbtCompound playerTag = compatTags.getCompound(i);
             if(playerTag.contains("username") && playerTag.contains("waystones")) {
                 String user = playerTag.getString("username");
                 if(user.equals("")) continue;
-                ListTag knownWaystones = playerTag.getList("waystones", 10);
+                NbtList knownWaystones = playerTag.getList("waystones", 10);
                 HashSet<String> waystones = new HashSet<>();
                 for (int j = 0; j < knownWaystones.size(); j++) {
                     String hash = knownWaystones.getString(j);
@@ -106,17 +105,17 @@ public class CompatibilityLayer {
         }
     }
 
-    public CompoundTag toTag(CompoundTag tag) {
+    public NbtCompound writeNbt(NbtCompound tag) {
         if(COMPATABILITY_ENABLED) return tag;
-        if(tag == null) tag = new CompoundTag();
+        if(tag == null) tag = new NbtCompound();
 
-        ListTag compatWaystones = new ListTag();
+        NbtList compatWaystones = new NbtList();
         for (Map.Entry<String, HashSet<String>> player: COMPATABILITY_MAP.entrySet()) {
-            CompoundTag playerTag = new CompoundTag();
+            NbtCompound playerTag = new NbtCompound();
             playerTag.putString("username", player.getKey());
-            ListTag knownWaystones = new ListTag();
+            NbtList knownWaystones = new NbtList();
             for (String hash: player.getValue()) {
-                CompoundTag waystone = new CompoundTag();
+                NbtCompound waystone = new NbtCompound();
                 waystone.putString("hash", hash);
                 knownWaystones.add(waystone);
             }
