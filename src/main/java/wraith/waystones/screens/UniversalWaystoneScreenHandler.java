@@ -13,6 +13,8 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import wraith.waystones.*;
 import wraith.waystones.mixin.ClientPlayerEntityAccessor;
 import wraith.waystones.mixin.ServerPlayerEntityAccessor;
@@ -26,6 +28,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     protected ArrayList<String> sortedWaystones = new ArrayList<>();
     protected ArrayList<String> filteredWaystones = new ArrayList<>();
     protected String filter = "";
+    private SearchType searchType;
 
     protected UniversalWaystoneScreenHandler(ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type, int syncId, PlayerEntity player) {
         super(type, syncId);
@@ -147,10 +150,29 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     public void filterWaystones() {
         this.filteredWaystones.clear();
         for (String waystone : this.sortedWaystones) {
-            if ("".equals(this.filter) || WaystonesClient.WAYSTONE_STORAGE.getName(waystone).toLowerCase().startsWith(this.filter)) {
+            String name = WaystonesClient.WAYSTONE_STORAGE.getName(waystone).toLowerCase();
+            if ("".equals(this.filter) || (this.searchType == SearchType.STARTS_WITH && name.startsWith(this.filter)) || (this.searchType == SearchType.CONTAINS && name.contains(this.filter))) {
                 filteredWaystones.add(waystone);
             }
         }
+    }
+
+    public void toggleSearchType() {
+        if (this.searchType == SearchType.CONTAINS) {
+            this.searchType = SearchType.STARTS_WITH;
+        } else {
+            this.searchType = SearchType.CONTAINS;
+        }
+        filterWaystones();
+    }
+
+    public Text getSearchTypeTooltip() {
+        return new TranslatableText("waystones.gui." + (this.searchType == SearchType.CONTAINS ? "contains" : "starts_with"));
+    }
+
+    enum SearchType {
+        CONTAINS,
+        STARTS_WITH
     }
 
 }

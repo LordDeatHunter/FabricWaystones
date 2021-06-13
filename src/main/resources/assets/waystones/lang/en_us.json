@@ -12,6 +12,8 @@
   "container.waystones.abyss_watcher": "Abyss Watcher",
 
   "waystones.gui.displayed_waystones": "Displayed waystones:",
+  "waystones.gui.contains": "Search at: Anywhere in name.",
+  "waystones.gui.starts_with": "Search at: Start of name.",
 
   "waystones.waystone_tooltip.name": "§6[§eStored name§6]",
   "waystones.waystone_tooltip.global": "§6[§eGlobal§6]",

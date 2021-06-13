@@ -23,7 +23,6 @@ import wraith.waystones.PlayerEntityMixinAccess;
 import wraith.waystones.Utils;
 import wraith.waystones.WaystonesClient;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 public class WaystoneScreen extends UniversalWaystoneScreen {
@@ -32,10 +31,8 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
     private static final Identifier CONFIG_TEXTURE = Utils.ID("textures/gui/waystone_config.png");
 
     private TextFieldWidget nameField;
-    private final ArrayList<Button> buttons = new ArrayList<>();
-    protected boolean mousePressed;
 
-    private Button configPage = new Button(156, -17, 18, 18, 210, 0) {
+    private Button configPage = new Button(156, -17, 18, 18, 207, 0) {
         @Override
         public void onClick() {
             if (!isVisible()) {
@@ -70,7 +67,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
         buttons.add(configPage);
 
-        buttons.add(new Button(156, -17, 18, 18, 178, 0) {
+        buttons.add(new Button(156, -17, 18, 18, 177, 0) {
             @Override
             public void onClick() {
                 if (!isVisible()) {
@@ -92,7 +89,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         });
 
         //Reset name
-        buttons.add(new Button(8, 103, 13, 13, 178, 54) {
+        buttons.add(new Button(8, 103, 13, 13, 177, 54) {
             @Override
             public void onClick() {
                 if (!isVisible()) {
@@ -113,7 +110,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         });
 
         //Set name
-        buttons.add(new ToggleableButton(128, 103, 13, 13, 191, 54, 217, 54) {
+        buttons.add(new ToggleableButton(128, 103, 13, 13, 190, 54, 216, 54) {
             @Override
             public void setup() {
                 this.tooltip = new TranslatableText("waystones.config.tooltip.set_name");
@@ -142,7 +139,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         });
 
         //Randomize name
-        buttons.add(new Button(143, 103, 13, 13, 204, 54) {
+        buttons.add(new Button(143, 103, 13, 13, 203, 54) {
             @Override
             public void onClick() {
                 if (!isVisible()) {
@@ -162,7 +159,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         });
 
         //Global Toggle
-        buttons.add(new ToggleableButton(8, 48, 17, 17, 213, 0, 196, 0) {
+        buttons.add(new ToggleableButton(8, 48, 17, 17, 212, 0, 195, 0) {
 
             @Override
             public void setup() {
@@ -184,7 +181,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         });
 
         //View discovered
-        buttons.add(new ToggleableButton(8, 11, 13, 13, 178, 54, 191, 54) {
+        buttons.add(new ToggleableButton(8, 11, 13, 13, 177, 54, 190, 54) {
             @Override
             public void setup() {
                 this.toggled = ((PlayerEntityMixinAccess)inventory.player).shouldViewDiscoveredWaystones();
@@ -211,7 +208,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         });
 
         //View global
-        buttons.add(new ToggleableButton(8, 27, 13, 13, 178, 54, 191, 54) {
+        buttons.add(new ToggleableButton(8, 27, 13, 13, 177, 54, 190, 54) {
             @Override
             public void setup() {
                 this.tooltip = new TranslatableText("waystones.config.tooltip.toggle_global_view");
@@ -237,7 +234,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         });
 
         //Revoke ownership
-        buttons.add(new Button(30, 48, 17, 17, 230, 0) {
+        buttons.add(new Button(30, 48, 17, 17, 229, 0) {
             @Override
             public void onClick() {
                 super.onClick();
@@ -297,12 +294,17 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         this.nameField.setText(waystone == null ? "" : waystone);
         this.nameField.setChangedListener((s) -> {
             boolean settable = !((WaystoneScreenHandler)handler).getName().equals(s);
-            ToggleableButton button = ((ToggleableButton)buttons.get(3));
+            ToggleableButton button = ((ToggleableButton)buttons.get(4));
             if (button.isToggled() == settable) {
                 button.toggle();
             }
         });
         this.addDrawableChild(this.nameField);
+    }
+
+    @Override
+    protected boolean searchVisible() {
+        return page == Page.WAYSTONES;
     }
 
     private boolean canEdit() {
@@ -399,8 +401,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
             if (this.nameField.isVisible()) {
                 this.nameField.render(matrices, mouseX, mouseY, delta);
             }
-
-            this.renderButtonTooltips(matrices, mouseX, mouseY);
+            renderButtonTooltips(matrices, mouseX, mouseY);
         }
     }
 
@@ -471,7 +472,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
         int i3 = this.x + 141;
         int j3 = this.y + 40;
-        if (mouseX >= (double)i3 && mouseX < (double)(i3 + 12) && mouseY >= (double)j3 && mouseY < (double)(j3 + 54)) {
+        if (mouseX >= (double)i3 && mouseX < (double)(i3 + 11) && mouseY >= (double)j3 && mouseY < (double)(j3 + 54)) {
             this.mouseClicked = true;
         }
         return false;
@@ -500,30 +501,17 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        this.mousePressed = true;
-        if (page == Page.WAYSTONES) {
-            if (configPage.isVisible() && configPage.isInBounds((int)mouseX - this.x, (int)mouseY - this.y)) {
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                configPage.onClick();
-            } else {
-                return super.mouseClicked(mouseX, mouseY, button);
-            }
-        } else {
-            for (Button guiButton : buttons) {
-                if (!guiButton.isVisible() || !guiButton.isInBounds((int)mouseX - this.x, (int)mouseY - this.y)) {
-                    continue;
-                }
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                guiButton.onClick();
-            }
+        if (page == Page.WAYSTONES && configPage.isVisible() && configPage.isInBounds((int)mouseX - this.x, (int)mouseY - this.y)) {
+            MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            configPage.onClick();
+            return super.superMouseClicked(mouseX, mouseY, button);
         }
-        return super.superMouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        this.mousePressed = false;
-        return super.mouseReleased(mouseX, mouseY, button);
+    protected boolean canClickWaystones() {
+        return page == Page.WAYSTONES;
     }
 
     @Override
@@ -541,30 +529,6 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
             return super.mouseScrolled(mouseX, mouseY, amount);
         } else {
             return super.superMouseScrolled(mouseX, mouseY, amount);
-        }
-    }
-
-    @Override
-    public void renderButtons(MatrixStack matrices, int mouseX, int mouseY) {
-        for (Button button : buttons) {
-            if (!button.isVisible()) {
-                continue;
-            }
-            int u = button.getU();
-            int v = button.getV();
-            if (button.isInBounds(mouseX - this.x, mouseY - this.y)) {
-                v += button.getHeight() * (this.mousePressed ? 1 : 2);
-            }
-            this.drawTexture(matrices, this.x + button.getX(), this.y + button.getY(), u, v, button.getWidth(), button.getHeight());
-        }
-    }
-
-    private void renderButtonTooltips(MatrixStack matrices, int mouseX, int mouseY) {
-        for (Button button : buttons) {
-            if (!button.isVisible() || !button.hasToolTip() || !button.isInBounds(mouseX - this.x, mouseY - this.y)) {
-                continue;
-            }
-            this.renderTooltip(matrices, button.tooltip(), mouseX, mouseY);
         }
     }
 

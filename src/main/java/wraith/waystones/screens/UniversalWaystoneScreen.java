@@ -40,6 +40,8 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     protected int scrollOffset;
     protected boolean ignoreTypedCharacter;
     private TextFieldWidget searchField;
+    protected final ArrayList<Button> buttons = new ArrayList<>();
+    protected boolean mousePressed;
 
     public UniversalWaystoneScreen(ScreenHandler handler, PlayerInventory inventory, Identifier texture, Text title) {
         super(handler, inventory, title);
@@ -47,11 +49,41 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         this.texture = texture;
         this.backgroundWidth = 177;
         this.backgroundHeight = 140;
+        buttons.add(new Button(140, 25, 13, 13, 225, 0) {
+            @Override
+            public void onClick() {
+                if (!isVisible()) {
+                    return;
+                }
+                super.onClick();
+                ((UniversalWaystoneScreenHandler)handler).toggleSearchType();
+            }
+            @Override
+            public boolean isVisible() {
+                return searchVisible();
+            }
+
+            @Override
+            public boolean hasToolTip() {
+                return true;
+            }
+
+            @Override
+            public Text tooltip() {
+                return ((UniversalWaystoneScreenHandler)handler).getSearchTypeTooltip();
+            }
+        });
+
+    }
+
+    protected boolean searchVisible() {
+        return true;
     }
 
     @Override
     protected void init() {
         super.init();
+
         this.searchField = new TextFieldWidget(this.textRenderer, this.x + 37, this.y + 27, 93, 10, new TranslatableText("waystone.search")) {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -99,7 +131,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         RenderSystem.setShaderTexture(0, texture);
         this.drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
         int k = (int)(41.0F * this.scrollAmount);
-        this.drawTexture(matrices, x + 141, y + 40 + k, 178 + (this.shouldScroll() ? 0 : 12), 0, 12, 15);
+        this.drawTexture(matrices, x + 141, y + 40 + k, 177 + (this.shouldScroll() ? 0 : 11), 0, 11, 15);
         int n = this.scrollOffset + 3;
         this.renderWaystoneBackground(matrices, mouseX, mouseY, this.x + 36, this.y + 39, n);
         this.renderForgetButtons(matrices, mouseX, mouseY, this.x + 24, this.y + 45);
@@ -108,13 +140,35 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         this.renderWaystoneNames(matrices, this.x + 36, this.y + 40, n);
         this.renderWaystoneAmount(matrices, this.x + 10, this.y + 124);
         this.searchField.render(matrices, mouseX, mouseY, delta);
+        this.renderButtonTooltips(matrices, mouseX, mouseY);
+    }
+
+    protected void renderButtonTooltips(MatrixStack matrices, int mouseX, int mouseY) {
+        for (Button button : buttons) {
+            if (!button.isVisible() || !button.hasToolTip() || !button.isInBounds(mouseX - this.x, mouseY - this.y)) {
+                continue;
+            }
+            this.renderTooltip(matrices, button.tooltip(), mouseX, mouseY);
+        }
     }
 
     private void renderWaystoneAmount(MatrixStack matrices, int x, int y) {
         this.textRenderer.draw(matrices, new TranslatableText("waystones.gui.displayed_waystones").append(new LiteralText(" " + this.getDiscoveredCount())), x, y, 0x161616);
     }
 
-    protected void renderButtons(MatrixStack matrices, int mouseX, int mouseY) {}
+    protected void renderButtons(MatrixStack matrices, int mouseX, int mouseY) {
+        for (Button button : buttons) {
+            if (!button.isVisible()) {
+                continue;
+            }
+            int u = button.getU();
+            int v = button.getV();
+            if (button.isInBounds(mouseX - this.x, mouseY - this.y)) {
+                v += button.getHeight() * (this.mousePressed ? 1 : 2);
+            }
+            this.drawTexture(matrices, this.x + button.getX(), this.y + button.getY(), u, v, button.getWidth(), button.getHeight());
+        }
+    }
 
     @Override
     public boolean charTyped(char chr, int keyCode) {
@@ -150,11 +204,11 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         MutableText text;
         switch (Config.getInstance().teleportType()) {
             case "hp", "health" -> {
-                this.drawTexture(matrices, x, y + 3, 187, 15, 9, 9);
+                this.drawTexture(matrices, x, y + 3, 186, 15, 9, 9);
                 text = new TranslatableText("waystones.cost.health");
             }
             case "xp", "experience" -> {
-                this.drawTexture(matrices, x, y + 3, 178, 15, 9, 9);
+                this.drawTexture(matrices, x, y + 3, 177, 15, 9, 9);
                 text = new TranslatableText("waystones.cost.xp");
             }
             case "level" -> {
@@ -192,7 +246,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             else if (mouseX >= x && mouseY >= r && mouseX < x + 8 && mouseY < r + 8) {
                 v += 8 * (mouseClicked ? 1 : 2);
             }
-            this.drawTexture(matrixStack, x, r, 202, v, 8, 8);
+            this.drawTexture(matrixStack, x, r, 199, v, 8, 8);
         }
     }
 
@@ -225,15 +279,27 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        this.mousePressed = true;
         if (button != 0) {
             return super.mouseClicked(mouseX, mouseY, button);
         }
         this.mouseClicked = false;
-        if (this.hasWaystones() && tryClick(mouseX, mouseY)) {
+        if (this.hasWaystones() && canClickWaystones() && tryClick(mouseX, mouseY)) {
             return true;
+        }
+        for (Button guiButton : buttons) {
+            if (!guiButton.isVisible() || !guiButton.isInBounds((int)mouseX - this.x, (int)mouseY - this.y)) {
+                continue;
+            }
+            MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            guiButton.onClick();
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    protected boolean canClickWaystones() {
+        return true;
     }
 
     protected boolean tryClick(double mouseX, double mouseY) {
@@ -280,7 +346,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
         int i3 = this.x + 141;
         int j3 = this.y + 40;
-        if (mouseX >= (double)i3 && mouseX < (double)(i3 + 12) && mouseY >= (double)j3 && mouseY < (double)(j3 + 54)) {
+        if (mouseX >= (double)i3 && mouseX < (double)(i3 + 11) && mouseY >= (double)j3 && mouseY < (double)(j3 + 54)) {
             this.mouseClicked = true;
         }
         return false;
@@ -340,16 +406,22 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
     }
 
-    protected boolean superMouseClicked(double mouseX, double mouseY, int button) {
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
     protected void superResize(MinecraftClient client, int width, int height) {
         super.resize(client, width, height);
     }
 
     protected void superOnMouseClick(Slot slot, int invSlot, int clickData, SlotActionType actionType) {
         super.onMouseClick(slot, invSlot, clickData, actionType);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        this.mousePressed = false;
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    protected boolean superMouseClicked(double mouseX, double mouseY, int button) {
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
 }
