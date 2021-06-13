@@ -10,6 +10,7 @@ import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
@@ -136,7 +137,7 @@ public class WaystoneBlock extends BlockWithEntity {
     public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER));
         BlockEntity entity = world.getBlockEntity(pos);
-        if (placer instanceof PlayerEntity && entity instanceof WaystoneBlockEntity) {
+        if (placer instanceof ServerPlayerEntity && entity instanceof WaystoneBlockEntity) {
             ((WaystoneBlockEntity) entity).setOwner((PlayerEntity)placer);
             if (Waystones.WAYSTONE_STORAGE != null) {
                 Waystones.WAYSTONE_STORAGE.addWaystone(((WaystoneBlockEntity) entity));
