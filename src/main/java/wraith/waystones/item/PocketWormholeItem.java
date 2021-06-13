@@ -24,7 +24,7 @@ public class PocketWormholeItem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         user.openHandledScreen(createScreenHandlerFactory());
-        return TypedActionResult.consume(user.getMainHandStack());
+        return TypedActionResult.success(user.getStackInHand(hand), world.isClient());
     }
 
     public NamedScreenHandlerFactory createScreenHandlerFactory() {

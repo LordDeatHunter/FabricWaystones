@@ -1,6 +1,5 @@
 package wraith.waystones.item;
 
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -15,7 +14,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import wraith.waystones.ClientWaystoneStorage;
 import wraith.waystones.Waystones;
 import wraith.waystones.WaystonesClient;
 import wraith.waystones.block.WaystoneBlock;
