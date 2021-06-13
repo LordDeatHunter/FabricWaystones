@@ -44,7 +44,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         super(handler, inventory, title);
         this.texture = texture;
         this.backgroundWidth = 177;
-        this.backgroundHeight = 125;
+        this.backgroundHeight = 140;
     }
 
     @Override
@@ -67,6 +67,8 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         this.searchField.setFocusUnlocked(true);
         this.searchField.setText("");
         this.searchField.setChangedListener((s) -> {
+            this.scrollAmount = 0;
+            this.scrollOffset = (int)((double)(this.scrollAmount * (float)this.getMaxScroll()) + 0.5D);
             ((UniversalWaystoneScreenHandler)handler).setFilter(this.searchField != null ? this.searchField.getText() : "");
             ((UniversalWaystoneScreenHandler)handler).filterWaystones();
         });
@@ -102,7 +104,12 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         renderButtons(matrices, mouseX, mouseY);
         this.renderCostItem(matrices, this.x + 40, this.y + 100);
         this.renderWaystoneNames(matrices, this.x + 36, this.y + 40, n);
+        this.renderWaystoneAmount(matrices, this.x + 10, this.y + 124);
         this.searchField.render(matrices, mouseX, mouseY, delta);
+    }
+
+    private void renderWaystoneAmount(MatrixStack matrices, int x, int y) {
+        this.textRenderer.draw(matrices, new TranslatableText("waystones.gui.displayed_waystones").append(new LiteralText(" " + this.getDiscoveredCount())), x, y, 0x161616);
     }
 
     protected void renderButtons(MatrixStack matrices, int mouseX, int mouseY) {}
@@ -141,7 +148,13 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         MutableText text;
         switch(Config.getInstance().teleportType())
         {
+            case "hp":
+            case "health":
+                this.drawTexture(matrices, x, y + 3, 187, 15, 9, 9);
+                text = new TranslatableText("waystones.cost.health");
+                break;
             case "xp":
+            case "experience":
                 this.drawTexture(matrices, x, y + 3, 178, 15, 9, 9);
                 text = new TranslatableText("waystones.cost.xp");
                 break;
@@ -149,9 +162,12 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 this.itemRenderer.renderGuiItemIcon(new ItemStack(Items.EXPERIENCE_BOTTLE), x, y);
                 text = new TranslatableText("waystones.cost.level");
                 break;
-            default:
+            case "item":
                 this.itemRenderer.renderGuiItemIcon(new ItemStack(Registry.ITEM.get(Config.getInstance().teleportCostItem())), x, y);
                 text = new TranslatableText("waystones.cost.item");
+                break;
+            default:
+                text = new TranslatableText("waystones.cost.free");
                 break;
         }
 

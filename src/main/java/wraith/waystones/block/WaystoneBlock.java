@@ -3,11 +3,14 @@ package wraith.waystones.block;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -32,6 +35,7 @@ import wraith.waystones.Waystones;
 import wraith.waystones.item.LocalVoid;
 import wraith.waystones.item.WaystoneScroll;
 import wraith.waystones.registries.BlockRegistry;
+import wraith.waystones.registries.ItemRegistry;
 
 import java.util.HashSet;
 
@@ -80,33 +84,50 @@ public class WaystoneBlock extends BlockWithEntity {
 
     @Override
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        BlockPos newPos;
+        BlockPos topPos;
         BlockPos botPos;
         BlockEntity entity;
-        entity = world.getBlockEntity(pos);
-        if (Waystones.WAYSTONE_STORAGE != null && entity instanceof WaystoneBlockEntity) {
-            Waystones.WAYSTONE_STORAGE.removeWaystone((WaystoneBlockEntity) entity);
-            world.removeBlockEntity(pos);
-        }
         if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-            newPos = pos.down();
-            botPos = newPos;
-
+            topPos = pos;
+            botPos = pos.down();
         } else {
-            newPos = pos.up();
+            topPos = pos.up();
             botPos = pos;
         }
-        if (!player.isCreative() && player.isUsingEffectiveTool(world.getBlockState(botPos))) {
-            dropStacks(world.getBlockState(botPos), world, botPos);
+
+        entity = world.getBlockEntity(botPos);
+        if (entity instanceof WaystoneBlockEntity) {
+            /*
+            dropStacks(state, world, botPos);
+            */
+            if (!player.isCreative() && player.isUsingEffectiveTool(world.getBlockState(botPos)) && world instanceof ServerWorld) {
+                WaystoneBlockEntity waystoneBlockEntity = (WaystoneBlockEntity)entity;
+                if (!world.isClient) {
+                    ItemStack itemStack = new ItemStack(ItemRegistry.ITEMS.get("waystone"));
+                    CompoundTag compoundTag = waystoneBlockEntity.toTag(new CompoundTag());
+                    if (!compoundTag.isEmpty()) {
+                        itemStack.putSubTag("BlockEntityTag", compoundTag);
+                    }
+                    ItemEntity itemEntity = new ItemEntity(world, (double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, itemStack);
+                    itemEntity.setToDefaultPickupDelay();
+                    world.spawnEntity(itemEntity);
+                } else {
+                    waystoneBlockEntity.checkLootInteraction(player);
+                }
+            }
+            if (Waystones.WAYSTONE_STORAGE != null) {
+                Waystones.WAYSTONE_STORAGE.removeWaystone((WaystoneBlockEntity) entity);
+            }
+            world.removeBlockEntity(botPos);
         }
 
-        entity = world.getBlockEntity(newPos);
+        entity = world.getBlockEntity(topPos);
         if (Waystones.WAYSTONE_STORAGE != null && entity instanceof WaystoneBlockEntity) {
             Waystones.WAYSTONE_STORAGE.removeWaystone((WaystoneBlockEntity) entity);
-            world.removeBlockEntity(newPos);
+            world.removeBlockEntity(topPos);
         }
-        world.removeBlock(newPos, false);
-        world.updateNeighbors(newPos, Blocks.AIR);
+        world.removeBlock(topPos, false);
+        world.updateNeighbors(topPos, Blocks.AIR);
 
         super.onBreak(world, pos, state, player);
     }
@@ -117,6 +138,9 @@ public class WaystoneBlock extends BlockWithEntity {
         BlockEntity entity = world.getBlockEntity(pos);
         if (placer instanceof PlayerEntity && entity instanceof WaystoneBlockEntity) {
             ((WaystoneBlockEntity) entity).setOwner((PlayerEntity)placer);
+            if (Waystones.WAYSTONE_STORAGE != null) {
+                Waystones.WAYSTONE_STORAGE.addWaystone(((WaystoneBlockEntity) entity));
+            }
         }
     }
 
@@ -176,7 +200,7 @@ public class WaystoneBlock extends BlockWithEntity {
 
                 if (!discovered.contains(blockEntity.getHash())) {
                     if (!blockEntity.isGlobal()) {
-                        player.sendMessage(new LiteralText(blockEntity.getName() + " ").append(new TranslatableText("waystones.discover_waystone")).formatted(Formatting.AQUA), false);
+                        player.sendMessage(new LiteralText(blockEntity.getWaystoneName() + " ").append(new TranslatableText("waystones.discover_waystone")).formatted(Formatting.AQUA), false);
                     }
                     ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
                 }
@@ -228,6 +252,8 @@ public class WaystoneBlock extends BlockWithEntity {
         }
         super.onStateReplaced(state, world, pos, newState, moved);
     }
+
+
 
     public static String getDimensionName(World world) {
         return world.getRegistryKey().getValue().toString();

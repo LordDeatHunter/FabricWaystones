@@ -3,6 +3,7 @@ package wraith.waystones;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -105,9 +106,15 @@ public class Utils {
             return true;
         }
         switch(cost) {
-            case "none":
+            case "hp":
+            case "health":
+                if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
+                    return false;
+                }
+                player.damage(DamageSource.OUT_OF_WORLD, amount);
                 return true;
             case "xp":
+            case "experience":
                 long total = determineLevelXP(player);
                 if(total < amount) {
                     return false;
@@ -150,7 +157,7 @@ public class Utils {
                 waystone.setInventory(oldInventory);
                 return true;
             default:
-                return false;
+                return true;
         }
         
     }

@@ -3,7 +3,6 @@ package wraith.waystones;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.*;
 import net.minecraft.network.PacketByteBuf;
@@ -26,8 +25,10 @@ public class WaystoneStorage {
     private final MinecraftServer server;
 
     private static final String ID = Waystones.MOD_ID + ":waystones";
+    private final CompatibilityLayer compat;
 
     public WaystoneStorage(MinecraftServer server) {
+        CompatibilityLayer compatLoading = new CompatibilityLayer(this, server);
         this.server = server;
         state = this.server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(() -> new PersistentState(ID) {
             @Override
@@ -39,6 +40,13 @@ public class WaystoneStorage {
                 return WaystoneStorage.this.toTag(tag);
             }
         }, ID);
+
+
+        if (!compatLoading.loadCompatibility()) {
+            compatLoading = null;
+        }
+        compat = compatLoading;
+
         loadOrSaveWaystones(false);
     }
 
@@ -82,7 +90,7 @@ public class WaystoneStorage {
 
             CompoundTag waystoneTag = new CompoundTag();
             waystoneTag.putString("hash", hash);
-            waystoneTag.putString("name", entity.getName());
+            waystoneTag.putString("name", entity.getWaystoneName());
             BlockPos pos = entity.getPos();
             waystoneTag.putIntArray("position", Arrays.asList(pos.getX(), pos.getY(), pos.getZ()));
             waystoneTag.putString("dimension", WaystoneBlock.getDimensionName(entity.getWorld()));
@@ -105,6 +113,13 @@ public class WaystoneStorage {
 
     public void addWaystone(WaystoneBlockEntity waystone) {
         WAYSTONES.put(waystone.getHash(), waystone);
+        loadOrSaveWaystones(true);
+    }
+
+    public void addWaystones(HashSet<WaystoneBlockEntity> waystones) {
+        for (WaystoneBlockEntity waystone : waystones) {
+            WAYSTONES.put(waystone.getHash(), waystone);
+        }
         loadOrSaveWaystones(true);
     }
 
@@ -212,6 +227,12 @@ public class WaystoneStorage {
 
     public int getCount() {
         return WAYSTONES.size();
+    }
+
+    public void sendCompatData(ServerPlayerEntity player) {
+        if (this.compat != null) {
+            this.compat.updatePlayerCompatibility(player);
+        }
     }
 
 }

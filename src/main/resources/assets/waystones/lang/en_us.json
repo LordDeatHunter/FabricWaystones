@@ -11,6 +11,13 @@
   "container.waystones.pocket_wormhole": "Pocket Wormhole",
   "container.waystones.abyss_watcher": "Abyss Watcher",
 
+  "waystones.gui.displayed_waystones": "Displayed waystones:",
+
+  "waystones.waystone_tooltip.name": "§6[§eStored name§6]",
+  "waystones.waystone_tooltip.global": "§6[§eGlobal§6]",
+  "waystones.waystone_tooltip.global_on": "§3ON",
+  "waystones.waystone_tooltip.global_off": "§3OFF",
+
   "waystones.scroll.tooltip": "Stored waystones:",
   "waystones.scroll.infinite": "Discover everything there is to discover.",
   "waystones.scroll.infinite_tooltip": "Existing waystones:",
@@ -47,7 +54,9 @@
   "waystones.config.no_owner": "No one",
 
   "waystones.cost.item": "Total",
+  "waystones.cost.free": "Free",
   "waystones.cost.xp": "XP",
+  "waystones.cost.health": "Half-Hearts",
   "waystones.cost.level": "Level(s)",
 
   "itemGroup.waystones.blocks": "Waystones"

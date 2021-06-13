@@ -7,6 +7,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import wraith.waystones.Utils;
+import wraith.waystones.WaystonesClient;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 
@@ -27,7 +28,7 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
     public WaystoneScreenHandler(int syncId, WaystoneBlockEntity waystoneEntity, PlayerEntity player) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, player);
         this.hash = waystoneEntity.getHash();
-        this.name = waystoneEntity.getName();
+        this.name = waystoneEntity.getWaystoneName();
         this.owner = waystoneEntity.getOwner();
         this.isGlobal = waystoneEntity.isGlobal();
         this.canUse = waystoneEntity::canAccess;
@@ -55,6 +56,17 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
     @Override
     public void onForget(String waystone) {
         if (this.hash.equals(waystone)) {
+            closeScreen();
+        }
+    }
+
+    @Override
+    public void updateWaystones(PlayerEntity player) {
+        super.updateWaystones(player);
+        if (!player.world.isClient) {
+            return;
+        }
+        if (!WaystonesClient.WAYSTONE_STORAGE.containsWaystone(this.hash)) {
             closeScreen();
         }
     }

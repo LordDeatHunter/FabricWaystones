@@ -40,7 +40,6 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         for (int x = 0; x < 9; ++x) {
             this.addSlot(new Slot(this.player.inventory, x, 2000000000, 2000000000));
         }
-
     }
 
     public void updateWaystones(PlayerEntity player) {
@@ -101,6 +100,9 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     }
 
     protected void closeScreen() {
+        if (player == null) {
+            return;
+        }
         if (player.world.isClient) {
             closeOnClient();
         } else {

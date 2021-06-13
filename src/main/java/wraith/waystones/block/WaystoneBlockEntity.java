@@ -4,12 +4,13 @@ package wraith.waystones.block;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
@@ -29,6 +30,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Utils;
 import wraith.waystones.Waystones;
 import wraith.waystones.registries.BlockEntityRegistry;
@@ -41,7 +43,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, BlockEntityClientSerializable, Tickable {
+public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable, Tickable {
 
     private String name = "";
     private String hash;
@@ -72,8 +74,23 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
     }
 
     @Override
+    protected DefaultedList<ItemStack> getInvStackList() {
+        return this.inventory;
+    }
+
+    @Override
+    protected void setInvStackList(DefaultedList<ItemStack> list) {
+        this.inventory = list;
+    }
+
+    @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
         return new WaystoneScreenHandler(syncId, this, player);
+    }
+
+    @Override
+    protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
+        return createMenu(syncId, playerInventory, playerInventory.player);
     }
 
     @Override
@@ -82,13 +99,15 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
     }
 
     @Override
+    protected Text getContainerName() {
+        return getDisplayName();
+    }
+
+    @Override
     public void fromTag(BlockState state, CompoundTag tag) {
         super.fromTag(state, tag);
         if (tag.contains("waystone_name")) {
             this.name = tag.getString("waystone_name");
-        }
-        if (tag.contains("waystone_hash")) {
-            this.hash = tag.getString("waystone_hash");
         }
         if (tag.contains("waystone_is_global")) {
             this.isGlobal = tag.getBoolean("waystone_is_global");
@@ -111,10 +130,6 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     private CompoundTag createTag(CompoundTag tag) {
         tag.putString("waystone_name", this.name);
-        if (this.hash == null) {
-            createHash(this.world, this.pos);
-        }
-        tag.putString("waystone_hash", this.hash);
         if (this.owner != null) {
             tag.putUuid("waystone_owner", this.owner);
         }
@@ -125,6 +140,11 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
         tag.putInt("inventory_size", this.inventory.size());
         Inventories.toTag(tag, this.inventory);
         return tag;
+    }
+
+    @Override
+    public int size() {
+        return 0;
     }
 
     @Override
@@ -146,7 +166,9 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf packetByteBuf) {
-        packetByteBuf.writeCompoundTag(createTag(new CompoundTag()));
+        CompoundTag tag = createTag(new CompoundTag());
+        tag.putString("waystone_hash", this.hash);
+        packetByteBuf.writeCompoundTag(tag);
     }
 
     @Override
@@ -254,7 +276,7 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
         lookingRotR = rotClamp(360, lookingRotR);
     }
 
-    public String getName() {
+    public String getWaystoneName() {
         return this.name;
     }
 
@@ -301,7 +323,7 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
         final float fX = x;
         final float fZ = z;
         final float fYaw = yaw;
-        final List<StatusEffectInstance> effects = playerEntity.getStatusEffects().stream().map(StatusEffectInstance::new).collect(Collectors.toList());
+        final List<StatusEffectInstance> effects = new ArrayList<>(playerEntity.getStatusEffects());
         if (playerEntity.getServer() == null) {
             return;
         }
@@ -311,7 +333,6 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
             playerEntity.teleport((ServerWorld) world, pos.getX() + fX, pos.getY(), pos.getZ() + fZ, fYaw, 0);
             playerEntity.onTeleportationDone();
             playerEntity.addExperience(0);
-            playerEntity.clearStatusEffects();
             if (isAbyssWatcher && playerEntity.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("abyss_watcher")) {
                 if (!playerEntity.isCreative()) {
                     player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
@@ -323,9 +344,12 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
             if (playerEntity.getMainHandStack().isEmpty()) {
                 playerEntity.setStackInHand(playerEntity.getActiveHand(), ItemStack.EMPTY);
             }
+
+            float absorption = playerEntity.getAbsorptionAmount();
             for (StatusEffectInstance effect : effects) {
                 playerEntity.addStatusEffect(effect);
             }
+            playerEntity.setAbsorptionAmount(absorption);
             player.getEntityWorld().sendEntityStatus(player, (byte) 46);
         });
 
@@ -381,4 +405,18 @@ public class WaystoneBlockEntity extends BlockEntity implements ExtendedScreenHa
         markDirty();
     }
 
+    @Override
+    public int[] getAvailableSlots(Direction side) {
+        return new int[0];
+    }
+
+    @Override
+    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
+        return false;
+    }
+
+    @Override
+    public boolean canExtract(int slot, ItemStack stack, Direction dir) {
+        return false;
+    }
 }

@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import wraith.waystones.registries.BlockEntityRendererRegistry;
 import wraith.waystones.registries.CustomScreenRegistry;
 import wraith.waystones.registries.WaystonesModelProviderRegistry;
+import wraith.waystones.screens.UniversalWaystoneScreenHandler;
 import wraith.waystones.screens.WaystoneScreenHandler;
 
 import java.util.HashSet;
@@ -47,8 +48,8 @@ public class WaystonesClient implements ClientModInitializer {
                 }
                 ((PlayerEntityMixinAccess)client.player).forgetWaystones(toForget);
 
-                if (client.player.currentScreenHandler instanceof WaystoneScreenHandler) {
-                    ((WaystoneScreenHandler)client.player.currentScreenHandler).updateWaystones(client.player);
+                if (client.player.currentScreenHandler instanceof UniversalWaystoneScreenHandler) {
+                    ((UniversalWaystoneScreenHandler)client.player.currentScreenHandler).updateWaystones(client.player);
                 }
             });
         });

@@ -171,6 +171,8 @@ public class Waystones implements ModInitializer {
             ServerPlayNetworking.send(handler.player, Utils.ID("waystone_config_update"), data);
 
             Waystones.WAYSTONE_STORAGE.sendToPlayer(handler.player);
+
+            Waystones.WAYSTONE_STORAGE.sendCompatData(handler.player);
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess)newPlayer).syncData());

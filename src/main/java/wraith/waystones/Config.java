@@ -159,7 +159,7 @@ public class Config {
 
         String costType;
         if (tag.contains("cost_type")) {
-            costType = tag.getString("cost_type");
+            costType = tag.getString("cost_type").toLowerCase();
         } else {
             overwrite = true;
             costType = defaults.getString("cost_type");
@@ -168,7 +168,7 @@ public class Config {
 
         String costItem;
         if (tag.contains("cost_item")) {
-            costItem = tag.getString("cost_item");
+            costItem = tag.getString("cost_item").toLowerCase();
         } else {
             overwrite = true;
             costItem = defaults.getString("cost_item");
