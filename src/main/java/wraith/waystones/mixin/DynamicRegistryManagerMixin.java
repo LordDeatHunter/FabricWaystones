@@ -35,15 +35,15 @@ public abstract class DynamicRegistryManagerMixin {
                 e.setValue(Utils.tryAddElementToPool(new Identifier("village/savanna/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
                 e.setValue(Utils.tryAddElementToPool(new Identifier("village/taiga/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
                 e.setValue(Utils.tryAddElementToPool(new Identifier("village/snowy/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
-                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "village/badlands/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
-                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "village/birch/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
-                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "village/crimson/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
-                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "village/dark_forest/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
-                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "village/giant_taiga/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
-                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "village/jungle/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
-                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "village/mountains/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
-                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "village/swamp/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
-                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "village/warped/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/badlands/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/birch/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/crimson/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/dark_forest/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/giant_taiga/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/jungle/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/mountains/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/swamp/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/warped/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
             }
         }
     }
