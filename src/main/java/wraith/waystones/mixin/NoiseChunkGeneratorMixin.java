@@ -29,8 +29,8 @@ public class NoiseChunkGeneratorMixin {
             return accessor;
         }
         ChunkPos chunkPos = chunk.getPos();
-        for(int i = 0; i < StructureFeature.JIGSAW_STRUCTURES.size(); ++i) {
-            StructureFeature<?> structureFeature = StructureFeature.JIGSAW_STRUCTURES.get(i);
+        for(int i = 0; i < StructureFeature.LAND_MODIFYING_STRUCTURES.size(); ++i) {
+            StructureFeature<?> structureFeature = StructureFeature.LAND_MODIFYING_STRUCTURES.get(i);
             AtomicInteger waystones = new AtomicInteger(0);
             accessor.getStructuresWithChildren(ChunkSectionPos.from(chunkPos, 0), structureFeature).forEach((structures) -> {
                 int pre = structures.getChildren().size();
