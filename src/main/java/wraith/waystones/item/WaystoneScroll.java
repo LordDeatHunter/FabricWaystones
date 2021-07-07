@@ -19,7 +19,6 @@ import org.jetbrains.annotations.Nullable;
 import wraith.waystones.ClientStuff;
 import wraith.waystones.PlayerEntityMixinAccess;
 import wraith.waystones.Waystones;
-import wraith.waystones.WaystonesClient;
 import wraith.waystones.block.WaystoneBlock;
 
 import java.util.HashSet;
