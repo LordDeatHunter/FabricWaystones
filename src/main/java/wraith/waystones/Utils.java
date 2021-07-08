@@ -7,17 +7,27 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.structure.PoolStructurePiece;
+import net.minecraft.structure.StructurePiece;
+import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorLists;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.gen.feature.StructureFeature;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.mixin.SinglePoolElementAccessor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Utils {
 
@@ -260,4 +270,32 @@ public class Utils {
         return "";
     }
 
+    public static StructureAccessor populateNoise(StructureAccessor accessor, Chunk chunk) {
+        if (!Config.getInstance().generateInVillages()) {
+            return accessor;
+        }
+        ChunkPos chunkPos = chunk.getPos();
+        for (int i = 0; i < StructureFeature.LAND_MODIFYING_STRUCTURES.size(); ++i) {
+            StructureFeature<?> structureFeature = StructureFeature.LAND_MODIFYING_STRUCTURES.get(i);
+            AtomicInteger waystones = new AtomicInteger(0);
+            accessor.getStructuresWithChildren(ChunkSectionPos.from(chunkPos, 0), structureFeature).forEach((structures) -> {
+                int pre = structures.getChildren().size();
+                ArrayList<Integer> toRemove = new ArrayList<>();
+                for (int j = 0; j < pre; ++j) {
+                    StructurePiece structure = structures.getChildren().get(j);
+                    if (structure instanceof PoolStructurePiece &&
+                        ((PoolStructurePiece) structure).getPoolElement() instanceof SinglePoolElement &&
+                        "waystones:village_waystone".equals(((SinglePoolElementAccessor)((PoolStructurePiece) structure).getPoolElement()).getLocation().left().get().toString()) &&
+                        waystones.getAndIncrement() > 0) {
+                        toRemove.add(j);
+                    }
+                }
+                toRemove.sort(Collections.reverseOrder());
+                for(int remove : toRemove) {
+                    structures.getChildren().remove(remove);
+                }
+            });
+        }
+        return accessor;
+    }
 }

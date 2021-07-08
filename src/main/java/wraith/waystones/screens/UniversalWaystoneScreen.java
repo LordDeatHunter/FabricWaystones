@@ -110,7 +110,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     @Override
-    public void tick() {
+    public void handledScreenTick() {
         if (this.searchField != null) {
             this.searchField.tick();
         }

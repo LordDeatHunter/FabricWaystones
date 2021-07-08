@@ -312,10 +312,8 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public void tick() {
-        if (page == Page.WAYSTONES) {
-            super.tick();
-        } else if (this.nameField != null && this.nameField.isVisible()) {
+    public void handledScreenTick() {
+        if (this.nameField != null && this.nameField.isVisible()) {
             this.nameField.tick();
         }
     }

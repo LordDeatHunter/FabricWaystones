@@ -184,7 +184,7 @@ public class Waystones implements ModInitializer {
                     Config.getInstance().loadConfig();
                     PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
                     data.writeNbt(Config.getInstance().toNbtCompound());
-                    for (ServerPlayerEntity player : context.getSource().getMinecraftServer().getPlayerManager().getPlayerList()) {
+                    for (ServerPlayerEntity player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
                         ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);
                     }
                     ServerPlayerEntity player = context.getSource().getPlayer();
