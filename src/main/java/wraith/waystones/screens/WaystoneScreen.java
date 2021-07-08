@@ -548,7 +548,9 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         NbtCompound tag = new NbtCompound();
         tag.putString("waystone_name", name);
         tag.putString("waystone_hash", hash);
-        tag.putUuid("waystone_owner", owner);
+        if (owner != null) {
+            tag.putUuid("waystone_owner", owner);
+        }
         data.writeNbt(tag);
 
         ClientPlayNetworking.send(Utils.ID("rename_waystone"), data);
