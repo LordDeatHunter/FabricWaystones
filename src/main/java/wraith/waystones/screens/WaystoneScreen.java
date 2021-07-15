@@ -244,7 +244,9 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 CompoundTag tag = new CompoundTag();
                 tag.putString("waystone_hash", ((WaystoneScreenHandler)handler).getWaystone());
                 UUID owner = ((WaystoneScreenHandler)handler).getOwner();
-                tag.putUuid("waystone_owner", owner);
+                if (owner != null) {
+                    tag.putUuid("waystone_owner", owner);
+                }
                 packet.writeCompoundTag(tag);
                 ClientPlayNetworking.send(Utils.ID("remove_waystone_owner"), packet);
                 ((WaystoneScreenHandler)handler).removeOwner();

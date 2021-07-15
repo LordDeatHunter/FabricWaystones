@@ -31,7 +31,7 @@ public class WaystoneBlockEntityRenderer extends BlockEntityRenderer<WaystoneBlo
         matrices.translate(1f, 1.5f, 1f);
 
         matrices.multiply(Vector3f.NEGATIVE_Y.getDegreesQuaternion(entity.lookingRotR));
-        matrices.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(80));
+        matrices.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(90));
         //matrices.multiply(Vector3f.NEGATIVE_X.getDegreesQuaternion(entity.lookingRotH));
         int lightAbove = WorldRenderer.getLightmapCoordinates(entity.getWorld(), entity.getPos().up());
         MinecraftClient.getInstance().getItemRenderer().renderItem(stack, ModelTransformation.Mode.FIXED, lightAbove,
