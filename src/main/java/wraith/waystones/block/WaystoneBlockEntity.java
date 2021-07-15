@@ -233,23 +233,25 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         int j = r.nextInt(2) * 2 - 1;
         int k = r.nextInt(2) * 2 - 1;
 
+        double y = this.getPos().getY();
+
         int rd = r.nextInt(10);
         if(rd  > 5) {
             if(p == ParticleTypes.ENCHANT) {
                 this.world.addParticle(p, playerPos.x, playerPos.y + 2D, playerPos.z,
                         (getPos().getX() + 0.5D - playerPos.x),
-                        (getPos().getY() + -1.25D - playerPos.y),
+                        (y + 1.25D - playerPos.y),
                         (getPos().getZ() + 0.5D - playerPos.z));
             }
             else {
-                this.world.addParticle(p, this.getPos().getX() + 0.5D, this.getPos().getY() + 0.8D, this.getPos().getZ() + 0.5D,
+                this.world.addParticle(p, this.getPos().getX() + 0.5D, y + 0.8D, this.getPos().getZ() + 0.5D,
                         (playerPos.x - getPos().getX()) - r.nextDouble(),
                         (playerPos.y - getPos().getY()) - r.nextDouble() * 0.5D,
                         (playerPos.z - getPos().getZ()) - r.nextDouble());
             }
         }
         if(rd > 8) {
-            this.world.addParticle(p, this.getPos().getX() + 0.5D, this.getPos().getY() + 0.8D,
+            this.world.addParticle(p, y + 0.5D, this.getPos().getY() + 0.8D,
                     this.getPos().getZ() + 0.5D, r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D,
                     r.nextDouble() * k);
         }
@@ -340,9 +342,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                     playerEntity.getMainHandStack().decrement(1);
                     player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
                 }
-            }
-            if (playerEntity.getMainHandStack().isEmpty()) {
-                playerEntity.setStackInHand(playerEntity.getActiveHand(), ItemStack.EMPTY);
             }
 
             float absorption = playerEntity.getAbsorptionAmount();

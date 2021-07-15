@@ -4,6 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.nbt.CompoundTag;
 import wraith.waystones.registries.BlockEntityRendererRegistry;
@@ -68,7 +69,7 @@ public class WaystonesClient implements ClientModInitializer {
     }
 
     public void registerEvents() {
-        ClientLoginConnectionEvents.INIT.register((handler, client) -> WAYSTONE_STORAGE = new ClientWaystoneStorage());
+        ClientPlayConnectionEvents.JOIN.register((handler, packetSender, client) -> WAYSTONE_STORAGE = new ClientWaystoneStorage());
     }
 
 }
