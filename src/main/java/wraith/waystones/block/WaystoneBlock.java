@@ -115,7 +115,7 @@ public class WaystoneBlock extends BlockWithEntity {
                     ItemStack itemStack = new ItemStack(ItemRegistry.ITEMS.get("waystone"));
                     NbtCompound compoundTag = waystoneBlockEntity.writeNbt(new NbtCompound());
                     if (!compoundTag.isEmpty()) {
-                        itemStack.putSubTag("BlockEntityTag", compoundTag);
+                        itemStack.setSubNbt("BlockEntityTag", compoundTag);
                     }
                     ItemEntity itemEntity = new ItemEntity(world, (double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, itemStack);
                     itemEntity.setToDefaultPickupDelay();

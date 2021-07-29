@@ -18,10 +18,10 @@ public final class WaystonesModelProviderRegistry {
                         return 0f;
                     }
                     if (stack.getItem() instanceof WaystoneScroll) {
-                        NbtCompound tag = stack.getTag();
+                        NbtCompound tag = stack.getNbt();
                         return tag == null || !tag.contains("waystones") || tag.getList("waystones", 8).isEmpty() ? 0 : 1;
                     } else if (stack.getItem() instanceof LocalVoid) {
-                        NbtCompound tag = stack.getTag();
+                        NbtCompound tag = stack.getNbt();
                         return tag == null || !tag.contains("waystone") ? 0 : 1;
                     }
                     return 0f;

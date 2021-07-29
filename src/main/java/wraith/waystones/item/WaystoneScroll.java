@@ -33,7 +33,7 @@ public class WaystoneScroll extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
-        NbtCompound tag = stack.getTag();
+        NbtCompound tag = stack.getNbt();
         if (tag == null || !tag.contains("waystones")) {
             return TypedActionResult.fail(stack);
         }
@@ -56,7 +56,7 @@ public class WaystoneScroll extends Item {
             }
         } else {
             text = new TranslatableText("waystones.learned.none").formatted(Formatting.AQUA);
-            stack.setTag(null);
+            stack.setNbt(null);
         }
         if (!world.isClient) {
             user.sendMessage(text, false);
@@ -85,7 +85,7 @@ public class WaystoneScroll extends Item {
                 list.add(NbtString.of(hash));
             }
             tag.put("waystones", list);
-            stack.setTag(tag);
+            stack.setNbt(tag);
         }
         return super.useOnBlock(context);
     }
@@ -93,7 +93,7 @@ public class WaystoneScroll extends Item {
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
-        NbtCompound tag = stack.getTag();
+        NbtCompound tag = stack.getNbt();
         if (tag == null || !tag.contains("waystones")) {
             return;
         }
@@ -111,7 +111,7 @@ public class WaystoneScroll extends Item {
 
     @Override
     public String getTranslationKey(ItemStack stack) {
-        NbtCompound tag = stack.getTag();
+        NbtCompound tag = stack.getNbt();
         if (tag == null || !tag.contains("waystones")) {
             return "item.waystones.empty_scroll";
         }

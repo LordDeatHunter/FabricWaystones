@@ -30,7 +30,7 @@ public class LocalVoid extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
-        NbtCompound tag = stack.getTag();
+        NbtCompound tag = stack.getNbt();
         if (tag == null || !tag.contains("waystone")) {
             return TypedActionResult.fail(stack);
         }
@@ -38,7 +38,7 @@ public class LocalVoid extends Item {
         if (Waystones.WAYSTONE_STORAGE != null) {
             WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
             if (waystone == null) {
-                stack.setTag(null);
+                stack.setNbt(null);
             } else {
                 if (!user.isCreative()) {
                     stack.decrement(1);
@@ -61,7 +61,7 @@ public class LocalVoid extends Item {
             ItemStack stack = context.getStack();
             NbtCompound tag = new NbtCompound();
             tag.putString("waystone", entity.getHash());
-            stack.setTag(tag);
+            stack.setNbt(tag);
         }
         return super.useOnBlock(context);
     }
@@ -70,7 +70,7 @@ public class LocalVoid extends Item {
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
         String name = null;
-        NbtCompound tag = stack.getTag();
+        NbtCompound tag = stack.getNbt();
         boolean invalid = false;
         if (tag == null || !tag.contains("waystone")) {
             invalid = true;

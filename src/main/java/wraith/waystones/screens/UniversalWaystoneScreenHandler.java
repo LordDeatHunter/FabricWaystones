@@ -118,7 +118,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         ((ClientPlayerEntityAccessor)player).getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(this.syncId));
         setCursorStack(ItemStack.EMPTY);
         player.currentScreenHandler = player.playerScreenHandler;
-        MinecraftClient.getInstance().openScreen(null);
+        MinecraftClient.getInstance().setScreen(null);
     }
 
     protected void playSounds() {
