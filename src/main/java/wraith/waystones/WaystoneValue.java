@@ -13,4 +13,6 @@ public interface WaystoneValue {
 	BlockPos getPos();
 
 	String getWorldName();
+
+	boolean isGlobal();
 }

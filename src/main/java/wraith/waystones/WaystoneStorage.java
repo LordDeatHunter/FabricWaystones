@@ -60,6 +60,12 @@ public class WaystoneStorage {
             return;
         }
         WAYSTONES.clear();
+
+        Set<String> globals = new HashSet<>();
+        for(NbtElement element : tag.getList("global_waystones", NbtElement.STRING_TYPE)) {
+            globals.add(element.asString());
+        }
+
         NbtList waystones = tag.getList("waystones", 10);
 
         for (int i = 0; i < waystones.size(); ++i) {
@@ -72,7 +78,7 @@ public class WaystoneStorage {
             String dimension = waystoneTag.getString("dimension");
             int[] coordinates = waystoneTag.getIntArray("position");
             BlockPos pos = new BlockPos(coordinates[0], coordinates[1], coordinates[2]);
-            WAYSTONES.put(hash, new Lazy(name, pos, hash, dimension));
+            WAYSTONES.put(hash, new Lazy(name, pos, hash, dimension, globals.contains(hash)));
         }
     }
 
@@ -83,14 +89,16 @@ public class WaystoneStorage {
         final String name;
         final BlockPos pos;
         final String hash, dimension;
+        final boolean isGlobal;
         WaystoneBlockEntity entity;
         World world;
 
-        Lazy(String name, BlockPos pos, String hash, String dimension) {
+        Lazy(String name, BlockPos pos, String hash, String dimension, boolean global) {
             this.name = name;
             this.pos = pos;
             this.hash = hash;
             this.dimension = dimension;
+            this.isGlobal = global;
         }
 
         @Override
@@ -124,6 +132,11 @@ public class WaystoneStorage {
         @Override
         public String getWorldName() {
             return this.dimension;
+        }
+
+        @Override
+        public boolean isGlobal() {
+            return this.isGlobal;
         }
     }
 
@@ -219,8 +232,9 @@ public class WaystoneStorage {
     }
 
     public void removeWaystone(WaystoneBlockEntity waystone) {
-        WAYSTONES.remove(waystone.getHash());
-        forgetForAllPlayers(waystone.getHash());
+        String hash = waystone.getHash();
+        WAYSTONES.remove(hash);
+        forgetForAllPlayers(hash);
         loadOrSaveWaystones(true);
     }
 
@@ -248,7 +262,7 @@ public class WaystoneStorage {
     public ArrayList<String> getGlobals() {
         ArrayList<String> globals = new ArrayList<>();
         for (Map.Entry<String, WaystoneValue> waystone : WAYSTONES.entrySet()) {
-            if (waystone.getValue().getEntity().isGlobal()) {
+            if (waystone.getValue().isGlobal()) {
                 globals.add(waystone.getKey());
             }
         }

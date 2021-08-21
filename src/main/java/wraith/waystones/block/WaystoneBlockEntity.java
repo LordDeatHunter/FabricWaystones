@@ -375,6 +375,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return this.hash;
     }
 
+    @Override
     public boolean isGlobal() {
         return this.isGlobal;
     }
