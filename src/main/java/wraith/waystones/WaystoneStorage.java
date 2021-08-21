@@ -11,6 +11,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
+import net.minecraft.world.World;
+
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.mixin.MinecraftServerAccessor;
@@ -23,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WaystoneStorage {
     private final PersistentState state;
 
-    private final ConcurrentHashMap<String, WaystoneBlockEntity> WAYSTONES = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
     private final MinecraftServer server;
 
     private static final String ID = "fw_" + Waystones.MOD_ID;
@@ -64,6 +66,12 @@ public class WaystoneStorage {
             return;
         }
         WAYSTONES.clear();
+
+        Set<String> globals = new HashSet<>();
+        for(NbtElement element : tag.getList("global_waystones", NbtElement.STRING_TYPE)) {
+            globals.add(element.asString());
+        }
+
         NbtList waystones = tag.getList("waystones", 10);
 
         for (int i = 0; i < waystones.size(); ++i) {
@@ -71,21 +79,71 @@ public class WaystoneStorage {
             if (!waystoneTag.contains("hash") || !waystoneTag.contains("dimension") || !waystoneTag.contains("position")) {
                 continue;
             }
+            String name = waystoneTag.getString("name");
             String hash = waystoneTag.getString("hash");
             String dimension = waystoneTag.getString("dimension");
             int[] coordinates = waystoneTag.getIntArray("position");
             BlockPos pos = new BlockPos(coordinates[0], coordinates[1], coordinates[2]);
-            for (ServerWorld world : server.getWorlds()) {
-                if (WaystoneBlock.getDimensionName(world).equals(dimension)) {
-                    WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, pos);
-                    if (entity != null) {
-                        WAYSTONES.put(hash, entity);
-                    }
-                    break;
-                }
-            }
+            WAYSTONES.put(hash, new Lazy(name, pos, hash, dimension, globals.contains(hash)));
+        }
+    }
+
+    final class Lazy implements WaystoneValue {
+        /**
+         * unresolved name
+         */
+        final String name;
+        final BlockPos pos;
+        final String hash, dimension;
+        final boolean isGlobal;
+        WaystoneBlockEntity entity;
+        World world;
+
+        Lazy(String name, BlockPos pos, String hash, String dimension, boolean global) {
+            this.name = name;
+            this.pos = pos;
+            this.hash = hash;
+            this.dimension = dimension;
+            this.isGlobal = global;
         }
 
+        @Override
+        public WaystoneBlockEntity getEntity() {
+            if(this.entity == null) {
+                for(ServerWorld world : server.getWorlds()) {
+                    if(WaystoneBlock.getDimensionName(world).equals(dimension)) {
+                        WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, pos);
+                        if(entity != null) {
+                            WAYSTONES.put(hash, entity); // should allow this instance to be GCed
+                            this.entity = entity;
+                            this.world = world;
+                        }
+                        break;
+                    }
+                }
+            }
+            return this.entity;
+        }
+
+        @Override
+        public String getWaystoneName() {
+            return name;
+        }
+
+        @Override
+        public BlockPos getPos() {
+            return pos;
+        }
+
+        @Override
+        public String getWorldName() {
+            return this.dimension;
+        }
+
+        @Override
+        public boolean isGlobal() {
+            return this.isGlobal;
+        }
     }
 
     public NbtCompound toTag(NbtCompound tag) {
@@ -93,16 +151,16 @@ public class WaystoneStorage {
             tag = new NbtCompound();
         }
         NbtList waystones = new NbtList();
-        for (Map.Entry<String, WaystoneBlockEntity> waystone : WAYSTONES.entrySet()) {
+        for (Map.Entry<String, WaystoneValue> waystone : WAYSTONES.entrySet()) {
             String hash = waystone.getKey();
-            WaystoneBlockEntity entity = waystone.getValue();
+            WaystoneValue entity = waystone.getValue();
 
             NbtCompound waystoneTag = new NbtCompound();
             waystoneTag.putString("hash", hash);
             waystoneTag.putString("name", entity.getWaystoneName());
             BlockPos pos = entity.getPos();
             waystoneTag.putIntArray("position", Arrays.asList(pos.getX(), pos.getY(), pos.getZ()));
-            waystoneTag.putString("dimension", WaystoneBlock.getDimensionName(entity.getWorld()));
+            waystoneTag.putString("dimension", entity.getWorldName());
 
             waystones.add(waystoneTag);
         }
@@ -180,8 +238,9 @@ public class WaystoneStorage {
     }
 
     public void removeWaystone(WaystoneBlockEntity waystone) {
-        WAYSTONES.remove(waystone.getHash());
-        forgetForAllPlayers(waystone.getHash());
+        String hash = waystone.getHash();
+        WAYSTONES.remove(hash);
+        forgetForAllPlayers(hash);
         loadOrSaveWaystones(true);
     }
 
@@ -192,13 +251,14 @@ public class WaystoneStorage {
 
     public void renameWaystone(String hash, String name) {
         if (WAYSTONES.containsKey(hash)) {
-            WAYSTONES.get(hash).setName(name);
+            WAYSTONES.get(hash).getEntity().setName(name);
             loadOrSaveWaystones(true);
         }
     }
 
     public WaystoneBlockEntity getWaystone(String hash) {
-        return WAYSTONES.getOrDefault(hash, null);
+        WaystoneValue value = WAYSTONES.getOrDefault(hash, null);
+        return value != null ? value.getEntity() : null;
     }
 
     public boolean containsHash(String hash) {
@@ -207,7 +267,7 @@ public class WaystoneStorage {
 
     public ArrayList<String> getGlobals() {
         ArrayList<String> globals = new ArrayList<>();
-        for (Map.Entry<String, WaystoneBlockEntity> waystone : WAYSTONES.entrySet()) {
+        for (Map.Entry<String, WaystoneValue> waystone : WAYSTONES.entrySet()) {
             if (waystone.getValue().isGlobal()) {
                 globals.add(waystone.getKey());
             }
@@ -226,7 +286,7 @@ public class WaystoneStorage {
 
     public void setOwner(String hash, PlayerEntity owner) {
         if (WAYSTONES.containsKey(hash)) {
-            WAYSTONES.get(hash).setOwner(owner);
+            WAYSTONES.get(hash).getEntity().setOwner(owner);
         }
     }
 
@@ -243,5 +303,4 @@ public class WaystoneStorage {
             this.compat.updatePlayerCompatibility(player);
         }
     }
-
 }
