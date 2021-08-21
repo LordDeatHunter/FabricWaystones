@@ -32,6 +32,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Utils;
+import wraith.waystones.WaystoneValue;
 import wraith.waystones.Waystones;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.ItemRegistry;
@@ -42,7 +43,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable {
+public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable, WaystoneValue {
 
     private String name = "";
     private String hash;
@@ -70,6 +71,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     public void createHash(World world, BlockPos pos) {
         this.hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + world + "\">");
         markDirty();
+    }
+
+    @Override
+    public WaystoneBlockEntity getEntity() {
+        return this;
     }
 
     @Override
@@ -276,8 +282,14 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         lookingRotR = rotClamp(360, lookingRotR);
     }
 
+    @Override
     public String getWaystoneName() {
         return this.name;
+    }
+
+    @Override
+    public String getWorldName() {
+        return WaystoneBlock.getDimensionName(this.getWorld());
     }
 
     public boolean canAccess(PlayerEntity player) {
