@@ -13,7 +13,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.mixin.MinecraftServerAccessor;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,12 +26,17 @@ public class WaystoneStorage {
     private final ConcurrentHashMap<String, WaystoneBlockEntity> WAYSTONES = new ConcurrentHashMap<>();
     private final MinecraftServer server;
 
-    private static final String ID = Waystones.MOD_ID + ":waystones";
+    private static final String ID = "fw_" + Waystones.MOD_ID;
     private final CompatibilityLayer compat;
 
     public WaystoneStorage(MinecraftServer server) {
         CompatibilityLayer compatLoading = new CompatibilityLayer(this, server);
         this.server = server;
+        File worldDirectory = ((MinecraftServerAccessor) server).getSession().getWorldDirectory(server.getOverworld().getRegistryKey());
+        File file = new File(worldDirectory, "data/waystones:waystones.dat");
+        if (file.exists()) {
+            file.renameTo(new File(worldDirectory, "data/" + ID));
+        }
 
         var pState = new PersistentState(){
             @Override
@@ -37,7 +44,6 @@ public class WaystoneStorage {
                 return toTag(tag);
             }
         };
-
         state = this.server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(
                 nbtCompound -> {
                     fromTag(nbtCompound);

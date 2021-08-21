@@ -20,7 +20,7 @@ public class CompatibilityLayer {
     private final ConcurrentHashMap<String,HashSet<String>> COMPATABILITY_MAP = new ConcurrentHashMap<>();
     private boolean COMPATABILITY_ENABLED = false;
     private final MinecraftServer SERVER;
-    private static final String OLD_ID = Waystones.MOD_ID + "_waystones";
+    private static final String OLD_ID = "waystones_waystones";
 
     public CompatibilityLayer(WaystoneStorage storage, MinecraftServer server) {
         SERVER = server;

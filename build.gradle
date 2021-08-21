@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.8-SNAPSHOT'
+	id 'fabric-loom' version '0.9-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -21,8 +21,8 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 }
 
-minecraft {
-	accessWidener "src/main/resources/waystones.accesswidener"
+loom {
+	accessWidenerPath = file("src/main/resources/waystones.accesswidener")
 }
 
 processResources {
