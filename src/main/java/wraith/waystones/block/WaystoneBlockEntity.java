@@ -288,6 +288,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
+    public BlockPos way_getPos() {
+        return this.getPos();
+    }
+
+    @Override
     public String getWorldName() {
         return WaystoneBlock.getDimensionName(this.getWorld());
     }
