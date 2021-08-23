@@ -125,7 +125,7 @@ public class WaystoneStorage {
         }
 
         @Override
-        public BlockPos getPos() {
+        public BlockPos way_getPos() {
             return pos;
         }
 
@@ -152,7 +152,7 @@ public class WaystoneStorage {
             NbtCompound waystoneTag = new NbtCompound();
             waystoneTag.putString("hash", hash);
             waystoneTag.putString("name", entity.getWaystoneName());
-            BlockPos pos = entity.getPos();
+            BlockPos pos = entity.way_getPos();
             waystoneTag.putIntArray("position", Arrays.asList(pos.getX(), pos.getY(), pos.getZ()));
             waystoneTag.putString("dimension", entity.getWorldName());
 

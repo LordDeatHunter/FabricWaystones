@@ -10,7 +10,7 @@ public interface WaystoneValue {
 
 	String getWaystoneName();
 
-	BlockPos getPos();
+	BlockPos way_getPos();
 
 	String getWorldName();
 
