@@ -49,7 +49,7 @@ public class WaystoneScroll extends Item {
         }
         Text text;
         if (learned > 0) {
-            text = new TranslatableText("waystones.learned.first").append(" " + learned + " ").append(new TranslatableText("waystones.learned.second")).formatted(Formatting.AQUA);
+            text = new TranslatableText(learned > 1 ? "waystones.learned.multiple" : "waystones.learned", learned).formatted(Formatting.AQUA);
             ((PlayerEntityMixinAccess)user).discoverWaystones(toLearn);
             if (!user.isCreative()) {
                 stack.decrement(1);

@@ -1,0 +1,65 @@
+{
+  "item.waystones.waystone": "Wegstein",
+  "item.waystones.pocket_wormhole": "Tragbares Wurmloch",
+  "item.waystones.local_void": "Örtliches Nichts",
+  "item.waystones.waystone_scroll": "Wegsteinrolle",
+  "item.waystones.empty_scroll": "Leere Schriftrolle",
+  "item.waystones.abyss_watcher": "Auge des Abgrunds",
+  "item.waystones.scroll_of_infinite_knowledge": "Schrift unendlichen Wissens",
+  "block.waystones.waystone": "Wegstein",
+  "container.waystones.waystone": "Wegsteine",
+  "container.waystones.pocket_wormhole": "Tragbares Wurmloch",
+  "container.waystones.abyss_watcher": "Auge des Abgrunds",
+
+  "waystones.gui.displayed_waystones": "Angezeigte Wegsteine:",
+  "waystones.gui.contains": "Suchen in: Ganzer Name.",
+  "waystones.gui.starts_with": "Suchen in: Anfang des Namens.",
+
+  "waystones.waystone_tooltip.name": "§6[§eGemerkter Name§6]",
+  "waystones.waystone_tooltip.global": "§6[§eGlobal§6]",
+  "waystones.waystone_tooltip.global_on": "§3AN",
+  "waystones.waystone_tooltip.global_off": "§3AUS",
+
+  "waystones.scroll.tooltip": "Enhaltene Wegsteine:",
+  "waystones.scroll.infinite": "Erlerne alles was zu erlernen ist.",
+  "waystones.scroll.infinite_tooltip": "Vorhandene Wegsteine:",
+
+  "waystones.local_void.tooltip": "Gebunden an:",
+  "waystones.local_void.empty_tooltip": "Ungebunden.",
+
+  "waystones.config.tooltip.revoke_ownership": "Besitzer entfernen.",
+  "waystones.config.tooltip.toggle_global_view": "Sichtbarkeit globaler Wegsteine umschalten.",
+  "waystones.config.tooltip.toggle_discovered_view": "Sichtbarkeit entdeckter Wegsteine umschalten.",
+  "waystones.config.tooltip.toggle_is_global": "Globale Sichtbarkeit umschalten.",
+  "waystones.config.tooltip.randomize_name": "Zuälligen Namen erzeugen.",
+  "waystones.config.tooltip.set_name": "Namen speichern.",
+  "waystones.config.tooltip.delete_name": "Namen löschen.",
+  "waystones.config.tooltip.back": "Zurück zur Wegsteinliste.",
+  "waystones.config.tooltip.config": "Einstellungen öffnen.",
+
+  "waystones.learned": "Einen neuen Wegstein erlernt!",
+  "waystones.learned.multiple": "%1$s neue Wegsteine erlernt!",
+  "waystones.learned.none": "Keine neuen Wegsteine erlernt!",
+
+  "waystones.learned.infinite.first": "Es wurden",
+  "waystones.learned.infinite.second": "Wegsteine erlernt!",
+  "waystones.learned.infinite.none": "Du weißt bereits alles was zu wissen ist!",
+
+  "waystones.discover_waystone": "wurde entdeckt!",
+  "waystones.search": "",
+  "waystones.rename": "",
+
+  "waystones.config.global": "Globale Sichtbarkeit umschalten",
+  "waystones.config.view_discovered": "Entdeckte Wegsteine anzeigen",
+  "waystones.config.view_global": "Globale Wegsteine anzeigen",
+  "waystones.config.owner": "Besitzer",
+  "waystones.config.no_owner": "Kein Besitzer",
+
+  "waystones.cost.item": "Ingesamt",
+  "waystones.cost.free": "Kostenlos",
+  "waystones.cost.xp": "XP",
+  "waystones.cost.health": "Halbe Herzen",
+  "waystones.cost.level": "Level",
+
+  "itemGroup.waystones.waystones": "Waystones"
+}

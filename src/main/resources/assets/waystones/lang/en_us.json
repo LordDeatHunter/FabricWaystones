@@ -37,8 +37,8 @@
   "waystones.config.tooltip.back": "Back to waystone list.",
   "waystones.config.tooltip.config": "Open config menu.",
 
-  "waystones.learned.first": "Learned",
-  "waystones.learned.second": "new waystones!",
+  "waystones.learned": "Learned one new waystone!",
+  "waystones.learned.multiple": "Learned %1$s new waystones!",
   "waystones.learned.none": "No new waystones learned!",
 
   "waystones.learned.infinite.first": "Learned",
