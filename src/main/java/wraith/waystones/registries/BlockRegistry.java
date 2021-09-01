@@ -12,9 +12,13 @@ import wraith.waystones.Config;
 public final class BlockRegistry {
 
     public static final Block WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().breakByTool(FabricToolTags.PICKAXES, Config.getInstance().getMiningLevel()).strength(Config.getInstance().getHardness(), 3600000));
+    public static final Block DESERT_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().breakByTool(FabricToolTags.PICKAXES, Config.getInstance().getMiningLevel()).strength(Config.getInstance().getHardness(), 3600000));
+    public static final Block STONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().breakByTool(FabricToolTags.PICKAXES, Config.getInstance().getMiningLevel()).strength(Config.getInstance().getHardness(), 3600000));
 
     public static void registerBlocks(){
         Registry.register(Registry.BLOCK, Utils.ID("waystone"), WAYSTONE);
+        Registry.register(Registry.BLOCK, Utils.ID("desert_waystone"), DESERT_WAYSTONE);
+        Registry.register(Registry.BLOCK, Utils.ID("stone_brick_waystone"), STONE_BRICK_WAYSTONE);
     }
 
 }

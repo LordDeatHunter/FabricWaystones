@@ -17,6 +17,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.util.math.BlockPos;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.BlockRegistry;
@@ -135,7 +136,7 @@ public class Waystones implements ModInitializer {
                 if (waystone == null) {
                     return;
                 }
-                if (waystone.getWorld() != null && waystone.getWorld().getBlockState(waystone.getPos()).getBlock() != BlockRegistry.WAYSTONE) {
+                if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos()).getBlock() instanceof WaystoneBlock)) {
                     WAYSTONE_STORAGE.removeWaystone(hash);
                     waystone.getWorld().removeBlockEntity(waystone.getPos());
                 } else if (Utils.canTeleport(player, hash)) {

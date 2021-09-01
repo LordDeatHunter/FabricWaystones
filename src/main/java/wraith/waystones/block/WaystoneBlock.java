@@ -8,13 +8,16 @@ import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
@@ -39,22 +42,23 @@ import wraith.waystones.Waystones;
 import wraith.waystones.item.LocalVoid;
 import wraith.waystones.item.WaystoneScroll;
 import wraith.waystones.registries.BlockEntityRegistry;
-import wraith.waystones.registries.BlockRegistry;
-import wraith.waystones.registries.ItemRegistry;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class WaystoneBlock extends BlockWithEntity {
 
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
+    public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
 
     protected static final VoxelShape VOXEL_SHAPE_TOP;
     protected static final VoxelShape VOXEL_SHAPE_BOTTOM;
+    private static final HashMap<Block, Item> DROPS;
 
     public WaystoneBlock(AbstractBlock.Settings settings) {
         super(settings);
-        setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH));
+        setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false));
     }
 
     @Override
@@ -71,7 +75,7 @@ public class WaystoneBlock extends BlockWithEntity {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
-        stateManager.add(HALF, FACING);
+        stateManager.add(HALF, FACING, MOSSY);
     }
 
     @Override
@@ -112,7 +116,7 @@ public class WaystoneBlock extends BlockWithEntity {
             if (!player.isCreative() && player.canHarvest(world.getBlockState(botPos)) && world instanceof ServerWorld) {
                 WaystoneBlockEntity waystoneBlockEntity = (WaystoneBlockEntity)entity;
                 if (!world.isClient) {
-                    ItemStack itemStack = new ItemStack(ItemRegistry.ITEMS.get("waystone"));
+                    ItemStack itemStack = new ItemStack(getDrop(this));
                     NbtCompound compoundTag = waystoneBlockEntity.writeNbt(new NbtCompound());
                     if (!compoundTag.isEmpty()) {
                         itemStack.setSubNbt("BlockEntityTag", compoundTag);
@@ -141,6 +145,10 @@ public class WaystoneBlock extends BlockWithEntity {
         super.onBreak(world, pos, state, player);
     }
 
+    private static Item getDrop(WaystoneBlock block) {
+        return DROPS.getOrDefault(block, Items.AIR);
+    }
+
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER));
@@ -155,7 +163,7 @@ public class WaystoneBlock extends BlockWithEntity {
 
     public static WaystoneBlockEntity getEntity(World world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
-        if (state.getBlock() != BlockRegistry.WAYSTONE) {
+        if (!(state.getBlock() instanceof WaystoneBlock)) {
             return null;
         }
         if (state.get(HALF) == DoubleBlockHalf.UPPER) {
@@ -178,16 +186,39 @@ public class WaystoneBlock extends BlockWithEntity {
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient) {
 
-            HashSet<String> discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
-
-            if (player.getMainHandStack().getItem() instanceof WaystoneScroll || player.getMainHandStack().getItem() instanceof LocalVoid) {
-                return ActionResult.PASS;
-            }
-
+            Item heldItem = player.getMainHandStack().getItem();
             BlockPos openPos = pos;
             if (state.get(HALF) == DoubleBlockHalf.UPPER) {
                 openPos = pos.down();
             }
+
+            BlockState topState = world.getBlockState(openPos.up());
+            BlockState bottomState = world.getBlockState(openPos);
+            if (heldItem == Items.VINE) {
+                if (!topState.get(MOSSY)) {
+                    world.setBlockState(openPos.up(), topState.with(MOSSY, true));
+                    world.setBlockState(openPos, bottomState.with(MOSSY, true));
+                    player.getMainHandStack().decrement(1);
+                }
+                return ActionResult.PASS;
+            }
+
+            if (heldItem == Items.SHEARS) {
+                if (topState.get(MOSSY)) {
+                    world.setBlockState(openPos.up(), topState.with(MOSSY, false));
+                    world.setBlockState(openPos, bottomState.with(MOSSY, false));
+                    openPos = openPos.up(2);
+                    ItemScatterer.spawn(world, openPos.getX(), openPos.getY(), openPos.getZ(), new ItemStack(Items.VINE));
+                }
+                return ActionResult.PASS;
+            }
+
+            if (heldItem instanceof WaystoneScroll || heldItem instanceof LocalVoid) {
+                return ActionResult.PASS;
+            }
+
+            HashSet<String> discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
+
             WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
             if (blockEntity == null) {
                 return ActionResult.FAIL;
@@ -247,7 +278,7 @@ public class WaystoneBlock extends BlockWithEntity {
             world.setBlockState(newPos, newState);
             world.removeBlockEntity(newPos);
         }
-        if (newState.getBlock() != BlockRegistry.WAYSTONE) {
+        if (!(newState.getBlock() instanceof WaystoneBlock)) {
             BlockPos testPos = pos;
             if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
                 testPos = pos.down();
@@ -288,6 +319,13 @@ public class WaystoneBlock extends BlockWithEntity {
 
         VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2).simplify();
         VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1).simplify();
+
+        DROPS = new HashMap<>();
+        /*
+        DROPS.put(BlockRegistry.WAYSTONE, ItemRegistry.ITEMS.get("waystone"));
+        DROPS.put(BlockRegistry.DESERT_WAYSTONE, ItemRegistry.ITEMS.get("desert_waystone"));
+        DROPS.put(BlockRegistry.STONE_BRICK_WAYSTONE, ItemRegistry.ITEMS.get("stone_brick_waystone"));
+         */
     }
 
 }
