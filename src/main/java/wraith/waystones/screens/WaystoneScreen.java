@@ -19,9 +19,9 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
-import wraith.waystones.PlayerEntityMixinAccess;
-import wraith.waystones.Utils;
-import wraith.waystones.WaystonesClient;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.util.Utils;
+import wraith.waystones.client.WaystonesClient;
 
 import java.util.UUID;
 

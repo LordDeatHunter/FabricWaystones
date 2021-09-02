@@ -16,8 +16,8 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import wraith.waystones.ClientStuff;
-import wraith.waystones.PlayerEntityMixinAccess;
+import wraith.waystones.client.ClientStuff;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 

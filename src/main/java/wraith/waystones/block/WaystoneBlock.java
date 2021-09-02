@@ -36,14 +36,13 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import wraith.waystones.Config;
-import wraith.waystones.PlayerEntityMixinAccess;
+import wraith.waystones.util.Config;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
 import wraith.waystones.Waystones;
 import wraith.waystones.item.LocalVoid;
 import wraith.waystones.item.WaystoneScroll;
 import wraith.waystones.registries.BlockEntityRegistry;
 
-import java.util.HashMap;
 import java.util.HashSet;
 
 public class WaystoneBlock extends BlockWithEntity {
@@ -54,7 +53,6 @@ public class WaystoneBlock extends BlockWithEntity {
 
     protected static final VoxelShape VOXEL_SHAPE_TOP;
     protected static final VoxelShape VOXEL_SHAPE_BOTTOM;
-    private static final HashMap<Block, Item> DROPS;
 
     public WaystoneBlock(AbstractBlock.Settings settings) {
         super(settings);
@@ -116,9 +114,9 @@ public class WaystoneBlock extends BlockWithEntity {
             if (!player.isCreative() && player.canHarvest(world.getBlockState(botPos)) && world instanceof ServerWorld) {
                 WaystoneBlockEntity waystoneBlockEntity = (WaystoneBlockEntity)entity;
                 if (!world.isClient) {
-                    ItemStack itemStack = new ItemStack(getDrop(this));
+                    ItemStack itemStack = new ItemStack(state.getBlock().asItem());
                     NbtCompound compoundTag = waystoneBlockEntity.writeNbt(new NbtCompound());
-                    if (!compoundTag.isEmpty()) {
+                    if (Config.getInstance().storeWaystoneNbt() && !compoundTag.isEmpty()) {
                         itemStack.setSubNbt("BlockEntityTag", compoundTag);
                     }
                     ItemEntity itemEntity = new ItemEntity(world, (double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, itemStack);
@@ -143,10 +141,6 @@ public class WaystoneBlock extends BlockWithEntity {
         world.updateNeighbors(topPos, Blocks.AIR);
 
         super.onBreak(world, pos, state, player);
-    }
-
-    private static Item getDrop(WaystoneBlock block) {
-        return DROPS.getOrDefault(block, Items.AIR);
     }
 
     @Override
@@ -319,13 +313,6 @@ public class WaystoneBlock extends BlockWithEntity {
 
         VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2).simplify();
         VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1).simplify();
-
-        DROPS = new HashMap<>();
-        /*
-        DROPS.put(BlockRegistry.WAYSTONE, ItemRegistry.ITEMS.get("waystone"));
-        DROPS.put(BlockRegistry.DESERT_WAYSTONE, ItemRegistry.ITEMS.get("desert_waystone"));
-        DROPS.put(BlockRegistry.STONE_BRICK_WAYSTONE, ItemRegistry.ITEMS.get("stone_brick_waystone"));
-         */
     }
 
 }

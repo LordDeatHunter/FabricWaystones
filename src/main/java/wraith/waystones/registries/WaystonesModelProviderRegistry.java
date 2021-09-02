@@ -4,7 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.object.builder.v1.client.model.FabricModelPredicateProviderRegistry;
 import net.minecraft.nbt.NbtCompound;
-import wraith.waystones.Utils;
+import wraith.waystones.util.Utils;
 import wraith.waystones.item.LocalVoid;
 import wraith.waystones.item.WaystoneScroll;
 

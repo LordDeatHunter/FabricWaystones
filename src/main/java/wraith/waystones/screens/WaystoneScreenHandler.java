@@ -6,8 +6,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
-import wraith.waystones.Utils;
-import wraith.waystones.WaystonesClient;
+import wraith.waystones.util.Utils;
+import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 

@@ -1,4 +1,4 @@
-package wraith.waystones;
+package wraith.waystones.util;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -7,8 +7,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
+import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
 
 import java.util.HashSet;
 import java.util.Map;

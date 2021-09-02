@@ -1,4 +1,4 @@
-package wraith.waystones;
+package wraith.waystones.util;
 
 import com.google.gson.*;
 import net.minecraft.nbt.NbtCompound;
@@ -6,6 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.Logger;
+import wraith.waystones.Waystones;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -63,6 +64,9 @@ public class Config {
     public boolean consumeInfiniteScroll() {
         return configData.getBoolean("consume_infinite_knowledge_scroll_on_use");
     }
+
+    //TODO @DetHunt make this a config option
+    public boolean storeWaystoneNbt() {return true;}
 
     private Config() {}
 

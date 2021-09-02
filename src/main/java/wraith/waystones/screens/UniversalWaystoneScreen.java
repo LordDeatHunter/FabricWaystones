@@ -25,9 +25,9 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
-import wraith.waystones.Config;
-import wraith.waystones.Utils;
-import wraith.waystones.WaystonesClient;
+import wraith.waystones.util.Config;
+import wraith.waystones.util.Utils;
+import wraith.waystones.client.WaystonesClient;
 
 import java.util.ArrayList;
 

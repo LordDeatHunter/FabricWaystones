@@ -15,9 +15,13 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import wraith.waystones.*;
+import wraith.waystones.client.ClientStuff;
+import wraith.waystones.client.WaystonesClient;
+import wraith.waystones.interfaces.PlayerAccess;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
 import wraith.waystones.mixin.ClientPlayerEntityAccessor;
 import wraith.waystones.mixin.ServerPlayerEntityAccessor;
+import wraith.waystones.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Comparator;

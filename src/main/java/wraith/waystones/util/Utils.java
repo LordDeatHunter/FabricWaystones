@@ -1,4 +1,4 @@
-package wraith.waystones;
+package wraith.waystones.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -20,6 +20,7 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.feature.StructureFeature;
+import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.mixin.SinglePoolElementAccessor;
 
@@ -66,7 +67,7 @@ public class Utils {
             sb.append(c);
             sb.append(vowels.get(Utils.random.nextInt(5)));
         }
-        return sb.toString();
+        return random.nextDouble() < 1e-4 ? "dethunter based" : sb.toString();
     }
 
 

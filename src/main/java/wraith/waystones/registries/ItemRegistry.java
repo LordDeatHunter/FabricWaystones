@@ -2,8 +2,8 @@ package wraith.waystones.registries;
 
 import net.minecraft.item.Item;
 import net.minecraft.util.registry.Registry;
-import wraith.waystones.CustomItemGroup;
-import wraith.waystones.Utils;
+import wraith.waystones.util.CustomItemGroup;
+import wraith.waystones.util.Utils;
 import wraith.waystones.item.*;
 
 import java.util.HashMap;

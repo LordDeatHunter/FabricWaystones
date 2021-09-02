@@ -7,8 +7,8 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
-import wraith.waystones.ClientStuff;
-import wraith.waystones.Utils;
+import wraith.waystones.client.ClientStuff;
+import wraith.waystones.util.Utils;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 import wraith.waystones.registries.ItemRegistry;
 

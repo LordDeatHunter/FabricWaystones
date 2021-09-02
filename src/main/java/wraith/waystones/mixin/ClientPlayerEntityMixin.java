@@ -5,10 +5,10 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import org.spongepowered.asm.mixin.Mixin;
-import wraith.waystones.ClientPlayerEntityMixinAccess;
-import wraith.waystones.PlayerEntityMixinAccess;
-import wraith.waystones.Utils;
-import wraith.waystones.WaystonesClient;
+import wraith.waystones.interfaces.ClientPlayerEntityMixinAccess;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.util.Utils;
+import wraith.waystones.client.WaystonesClient;
 
 import java.util.ArrayList;
 import java.util.Comparator;

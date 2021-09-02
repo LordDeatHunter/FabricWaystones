@@ -1,12 +1,15 @@
-package wraith.waystones;
+package wraith.waystones.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.nbt.NbtCompound;
+import wraith.waystones.util.Config;
+import wraith.waystones.util.Utils;
+import wraith.waystones.Waystones;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
 import wraith.waystones.registries.CustomBlockEntityRendererRegistry;
 import wraith.waystones.registries.CustomScreenRegistry;
 import wraith.waystones.registries.WaystonesModelProviderRegistry;

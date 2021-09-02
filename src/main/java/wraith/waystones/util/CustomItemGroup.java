@@ -1,4 +1,4 @@
-package wraith.waystones;
+package wraith.waystones.util;
 
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.minecraft.item.ItemGroup;

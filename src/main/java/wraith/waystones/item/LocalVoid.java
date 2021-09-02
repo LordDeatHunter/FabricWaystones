@@ -15,7 +15,7 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
-import wraith.waystones.WaystonesClient;
+import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
 

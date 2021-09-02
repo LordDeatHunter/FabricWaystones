@@ -22,7 +22,7 @@
       "wraith.waystones.Waystones"
     ],
     "client": [
-      "wraith.waystones.WaystonesClient"
+      "wraith.waystones.client.WaystonesClient"
     ]
   },
   "mixins": [

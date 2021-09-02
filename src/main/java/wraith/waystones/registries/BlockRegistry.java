@@ -5,9 +5,9 @@ import net.fabricmc.fabric.api.tool.attribute.v1.FabricToolTags;
 import net.minecraft.block.Block;
 import net.minecraft.block.Material;
 import net.minecraft.util.registry.Registry;
-import wraith.waystones.Utils;
+import wraith.waystones.util.Utils;
 import wraith.waystones.block.WaystoneBlock;
-import wraith.waystones.Config;
+import wraith.waystones.util.Config;
 
 public final class BlockRegistry {
 

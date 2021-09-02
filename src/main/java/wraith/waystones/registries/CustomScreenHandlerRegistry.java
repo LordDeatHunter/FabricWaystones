@@ -2,7 +2,7 @@ package wraith.waystones.registries;
 
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.screen.ScreenHandlerType;
-import wraith.waystones.Utils;
+import wraith.waystones.util.Utils;
 import wraith.waystones.screens.AbyssScreenHandler;
 import wraith.waystones.screens.PocketWormholeScreenHandler;
 import wraith.waystones.screens.UniversalWaystoneScreenHandler;

@@ -1,4 +1,4 @@
-package wraith.waystones;
+package wraith.waystones.util;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.structure.pool.StructurePool;

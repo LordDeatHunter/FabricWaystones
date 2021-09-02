@@ -1,4 +1,4 @@
-package wraith.waystones;
+package wraith.waystones.util;
 
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -13,8 +13,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 
+import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.interfaces.WaystoneValue;
 import wraith.waystones.mixin.MinecraftServerAccessor;
 
 import java.io.File;

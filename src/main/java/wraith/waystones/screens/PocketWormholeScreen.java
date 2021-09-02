@@ -7,8 +7,8 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import wraith.waystones.Config;
-import wraith.waystones.Utils;
+import wraith.waystones.util.Config;
+import wraith.waystones.util.Utils;
 
 
 public class PocketWormholeScreen extends UniversalWaystoneScreen {
