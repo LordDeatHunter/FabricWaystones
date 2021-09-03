@@ -8,7 +8,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -101,11 +101,11 @@ public class WaystoneBlock extends BlockWithEntity {
             /*
             dropStacks(state, world, botPos);
             */
-            if (!player.isCreative() && player.isUsingEffectiveTool(world.getBlockState(botPos)) && world instanceof ServerWorld) {
+            if (!player.isCreative() && player.canHarvest(world.getBlockState(botPos)) && world instanceof ServerWorld) {
                 WaystoneBlockEntity waystoneBlockEntity = (WaystoneBlockEntity)entity;
                 if (!world.isClient) {
                     ItemStack itemStack = new ItemStack(ItemRegistry.ITEMS.get("waystone"));
-                    CompoundTag compoundTag = waystoneBlockEntity.toTag(new CompoundTag());
+                    NbtCompound compoundTag = waystoneBlockEntity.writeNbt(new NbtCompound());
                     if (!compoundTag.isEmpty()) {
                         itemStack.putSubTag("BlockEntityTag", compoundTag);
                     }

@@ -4,13 +4,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -43,6 +42,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 return;
             }
             page = Page.CONFIG;
+            backgroundHeight = 125;
             for (Button button : buttons) {
                 button.setup();
             }
@@ -77,6 +77,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                     return;
                 }
                 page = Page.WAYSTONES;
+                backgroundHeight = 140;
                 ((UniversalWaystoneScreenHandler)handler).updateWaystones(playerInventory.player);
             }
             @Override
@@ -199,7 +200,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 ((PlayerEntityMixinAccess)playerInventory.player).toggleViewDiscoveredWaystones();
                 ((UniversalWaystoneScreenHandler)handler).updateWaystones(playerInventory.player);
                 PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
-                packet.writeCompoundTag(((PlayerEntityMixinAccess)playerInventory.player).toTagW(new CompoundTag()));
+                packet.writeNbt(((PlayerEntityMixinAccess)playerInventory.player).toTagW(new NbtCompound()));
                 ClientPlayNetworking.send(Utils.ID("sync_player_from_client"), packet);
             }
             @Override
@@ -226,7 +227,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 ((PlayerEntityMixinAccess)playerInventory.player).toggleViewGlobalWaystones();
                 ((UniversalWaystoneScreenHandler)handler).updateWaystones(playerInventory.player);
                 PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
-                packet.writeCompoundTag(((PlayerEntityMixinAccess)playerInventory.player).toTagW(new CompoundTag()));
+                packet.writeNbt(((PlayerEntityMixinAccess)playerInventory.player).toTagW(new NbtCompound()));
                 ClientPlayNetworking.send(Utils.ID("sync_player_from_client"), packet);
             }
             @Override
@@ -241,13 +242,13 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
             public void onClick() {
                 super.onClick();
                 PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
-                CompoundTag tag = new CompoundTag();
+                NbtCompound tag = new NbtCompound();
                 tag.putString("waystone_hash", ((WaystoneScreenHandler)handler).getWaystone());
                 UUID owner = ((WaystoneScreenHandler)handler).getOwner();
                 if (owner != null) {
                     tag.putUuid("waystone_owner", owner);
                 }
-                packet.writeCompoundTag(tag);
+                packet.writeNbt(tag);
                 ClientPlayNetworking.send(Utils.ID("remove_waystone_owner"), packet);
                 ((WaystoneScreenHandler)handler).removeOwner();
             }
@@ -511,11 +512,13 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
 
-        CompoundTag tag = new CompoundTag();
+        NbtCompound tag = new NbtCompound();
         tag.putString("waystone_name", name);
         tag.putString("waystone_hash", hash);
-        tag.putUuid("waystone_owner", owner);
-        data.writeCompoundTag(tag);
+        if (owner != null) {
+            tag.putUuid("waystone_owner", owner);
+        }
+        data.writeNbt(tag);
 
         ClientPlayNetworking.send(Utils.ID("rename_waystone"), data);
     }

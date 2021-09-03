@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -47,7 +47,7 @@ public class Waystones implements ModInitializer {
 
     private void registerPacketHandlers() {
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("remove_waystone_owner"), (server, player, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
             server.execute(() -> {
                 if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
                     return;
@@ -60,7 +60,7 @@ public class Waystones implements ModInitializer {
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_gui_slot_click"), (server, player, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
             server.execute(() -> {
                 if (tag == null || !tag.contains("sync_id") || !tag.contains("clicked_slot")) {
                     return;
@@ -73,7 +73,7 @@ public class Waystones implements ModInitializer {
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("rename_waystone"), (server, player, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
             if (tag == null || !tag.contains("waystone_name") || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
                 return;
             }
@@ -87,7 +87,7 @@ public class Waystones implements ModInitializer {
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("forget_waystone"), (server, player, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
 
             if (tag == null || !tag.contains("waystone_hash")) {
                 return;
@@ -104,7 +104,7 @@ public class Waystones implements ModInitializer {
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("request_player_waystone_update"), (server, player, networkHandler, data, sender) -> server.execute(((PlayerEntityMixinAccess) player)::syncData));
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("toggle_global_waystone"), (server, player, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
             if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
                 return;
             }
@@ -117,11 +117,11 @@ public class Waystones implements ModInitializer {
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("sync_player_from_client"), (server, player, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
             server.execute(() -> ((PlayerEntityMixinAccess)player).fromTagW(tag));
         });
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("teleport_to_waystone"), (server, player, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
             if (tag == null || !tag.contains("waystone_hash")) {
                 return;
             }
@@ -167,7 +167,7 @@ public class Waystones implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 
             PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-            data.writeCompoundTag(Config.getInstance().toCompoundTag());
+            data.writeNbt(Config.getInstance().toNbtCompound());
             ServerPlayNetworking.send(handler.player, Utils.ID("waystone_config_update"), data);
 
             Waystones.WAYSTONE_STORAGE.sendToPlayer(handler.player);
@@ -183,7 +183,7 @@ public class Waystones implements ModInitializer {
                 .executes(context -> {
                     Config.getInstance().loadConfig();
                     PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-                    data.writeCompoundTag(Config.getInstance().toCompoundTag());
+                    data.writeNbt(Config.getInstance().toNbtCompound());
                     for (ServerPlayerEntity player : context.getSource().getMinecraftServer().getPlayerManager().getPlayerList()) {
                         ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);
                     }

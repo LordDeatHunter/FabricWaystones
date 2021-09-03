@@ -1,6 +1,5 @@
 package wraith.waystones.block;
 
-
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
@@ -12,7 +11,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
@@ -104,7 +103,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public void fromTag(BlockState state, CompoundTag tag) {
+    public void fromTag(BlockState state, NbtCompound tag) {
         super.fromTag(state, tag);
         if (tag.contains("waystone_name")) {
             this.name = tag.getString("waystone_name");
@@ -119,16 +118,16 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             this.ownerName = tag.getString("waystone_owner_name");
         }
         this.inventory = DefaultedList.ofSize(tag.getInt("inventory_size"), ItemStack.EMPTY);
-        Inventories.fromTag(tag, inventory);
+        Inventories.readNbt(tag, inventory);
     }
 
     @Override
-    public CompoundTag toTag(CompoundTag tag) {
-        super.toTag(tag);
-        return createTag(tag);
+    public NbtCompound writeNbt(NbtCompound nbt) {
+        super.writeNbt(nbt);
+        return createTag(nbt);
     }
 
-    private CompoundTag createTag(CompoundTag tag) {
+    private NbtCompound createTag(NbtCompound tag) {
         tag.putString("waystone_name", this.name);
         if (this.owner != null) {
             tag.putUuid("waystone_owner", this.owner);
@@ -138,7 +137,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         }
         tag.putBoolean("waystone_is_global", this.isGlobal);
         tag.putInt("inventory_size", this.inventory.size());
-        Inventories.toTag(tag, this.inventory);
+        Inventories.writeNbt(tag, this.inventory);
         return tag;
     }
 
@@ -166,19 +165,19 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf packetByteBuf) {
-        CompoundTag tag = createTag(new CompoundTag());
+        NbtCompound tag = createTag(new NbtCompound());
         tag.putString("waystone_hash", this.hash);
-        packetByteBuf.writeCompoundTag(tag);
+        packetByteBuf.writeNbt(tag);
     }
 
     @Override
-    public void fromClientTag(CompoundTag tag) {
+    public void fromClientTag(NbtCompound tag) {
         fromTag(world.getBlockState(pos), tag);
     }
 
     @Override
-    public CompoundTag toClientTag(CompoundTag tag) {
-        return toTag(tag);
+    public NbtCompound toClientTag(NbtCompound tag) {
+        return writeNbt(tag);
     }
     public float lookingRotR = 0;
     private float turningSpeedR = 2;

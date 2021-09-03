@@ -2,8 +2,8 @@ package wraith.waystones;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,7 +14,7 @@ public class ClientWaystoneStorage {
     private final HashMap<String, String> WAYSTONES = new HashMap<>();
     private final HashSet<String> GLOBALS = new HashSet<>();
 
-    public void fromTag(CompoundTag tag) {
+    public void fromTag(NbtCompound tag) {
         if (tag == null) {
             return;
         }
@@ -26,17 +26,17 @@ public class ClientWaystoneStorage {
         }
     }
 
-    private void loadGlobals(ListTag globals) {
+    private void loadGlobals(NbtList globals) {
         GLOBALS.clear();
         for (int i = 0; i < globals.size(); ++i) {
             GLOBALS.add(globals.getString(i));
         }
     }
 
-    private void loadWaystones(ListTag waystones) {
+    private void loadWaystones(NbtList waystones) {
         WAYSTONES.clear();
         for (int i = 0; i < waystones.size(); ++i) {
-            CompoundTag waystoneTag = waystones.getCompound(i);
+            NbtCompound waystoneTag = waystones.getCompound(i);
             if (!waystoneTag.contains("hash") || !waystoneTag.contains("name")) {
                 continue;
             }

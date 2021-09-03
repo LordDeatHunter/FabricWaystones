@@ -5,9 +5,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
@@ -34,11 +34,11 @@ public class WaystoneScroll extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
-        CompoundTag tag = stack.getTag();
+        NbtCompound tag = stack.getTag();
         if (tag == null || !tag.contains("waystones")) {
             return TypedActionResult.fail(stack);
         }
-        ListTag list = tag.getList("waystones", 8);
+        NbtList list = tag.getList("waystones", 8);
         int learned = 0;
         HashSet<String> toLearn = new HashSet<>();
         for (int i = 0; i < list.size(); ++i) {
@@ -80,10 +80,10 @@ public class WaystoneScroll extends Item {
             if (discovered.isEmpty()) {
                 return ActionResult.FAIL;
             }
-            CompoundTag tag = new CompoundTag();
-            ListTag list = new ListTag();
+            NbtCompound tag = new NbtCompound();
+            NbtList list = new NbtList();
             for (String hash : discovered) {
-                list.add(StringTag.of(hash));
+                list.add(NbtString.of(hash));
             }
             tag.put("waystones", list);
             stack.setTag(tag);
@@ -94,7 +94,7 @@ public class WaystoneScroll extends Item {
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
-        CompoundTag tag = stack.getTag();
+        NbtCompound tag = stack.getTag();
         if (tag == null || !tag.contains("waystones")) {
             return;
         }
@@ -112,7 +112,7 @@ public class WaystoneScroll extends Item {
 
     @Override
     public String getTranslationKey(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
+        NbtCompound tag = stack.getTag();
         if (tag == null || !tag.contains("waystones")) {
             return "item.waystones.empty_scroll";
         }

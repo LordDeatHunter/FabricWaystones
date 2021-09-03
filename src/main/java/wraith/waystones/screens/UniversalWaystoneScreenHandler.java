@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
 import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
@@ -79,9 +79,9 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         }
 
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-        CompoundTag tag = new CompoundTag();
+        NbtCompound tag = new NbtCompound();
         tag.putString("waystone_hash", waystone);
-        data.writeCompoundTag(tag);
+        data.writeNbt(tag);
 
         if (id % 2 != 0) {
             this.sortedWaystones.remove(waystone);

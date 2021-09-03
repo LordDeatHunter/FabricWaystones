@@ -6,7 +6,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import wraith.waystones.registries.BlockEntityRendererRegistry;
 import wraith.waystones.registries.CustomScreenRegistry;
 import wraith.waystones.registries.WaystonesModelProviderRegistry;
@@ -31,7 +31,7 @@ public class WaystonesClient implements ClientModInitializer {
 
     private void registerPacketHandlers() {
         ClientPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_packet"), (client, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
             if (Waystones.WAYSTONE_STORAGE != null && client.getServer() != null) {
                 client.getServer().execute(() -> Waystones.WAYSTONE_STORAGE.fromTag(tag));
             }
@@ -55,11 +55,11 @@ public class WaystonesClient implements ClientModInitializer {
             });
         });
         ClientPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_config_update"), (client, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
             client.execute(() -> Config.getInstance().loadConfig(tag));
         });
         ClientPlayNetworking.registerGlobalReceiver(Utils.ID("sync_player"), (client, networkHandler, data, sender) -> {
-            CompoundTag tag = data.readCompoundTag();
+            NbtCompound tag = data.readNbt();
             client.execute(() -> {
                 if (client.player != null) {
                     ((PlayerEntityMixinAccess) client.player).fromTagW(tag);

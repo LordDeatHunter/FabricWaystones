@@ -4,7 +4,7 @@ import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import wraith.waystones.Utils;
 import wraith.waystones.WaystonesClient;
@@ -39,7 +39,7 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
     public WaystoneScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, playerInventory.player);
         this.isClient = playerInventory.player.world.isClient;
-        CompoundTag tag = buf.readCompoundTag();
+        NbtCompound tag = buf.readNbt();
         if (tag != null) {
             this.hash = tag.getString("waystone_hash");
             this.name = tag.getString("waystone_name");
@@ -85,12 +85,12 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
             return;
         }
         PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
-        CompoundTag tag = new CompoundTag();
+        NbtCompound tag = new NbtCompound();
         tag.putString("waystone_hash", this.hash);
         if (this.owner != null) {
             tag.putUuid("waystone_owner", this.owner);
         }
-        packet.writeCompoundTag(tag);
+        packet.writeNbt(tag);
         ClientPlayNetworking.send(Utils.ID("toggle_global_waystone"), packet);
         this.isGlobal = !this.isGlobal;
     }

@@ -4,7 +4,7 @@ import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
 import wraith.waystones.ClientStuff;
@@ -35,10 +35,10 @@ public class AbyssScreenHandler extends UniversalWaystoneScreenHandler {
         }
 
         PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
-        CompoundTag tag = new CompoundTag();
+        NbtCompound tag = new NbtCompound();
         tag.putString("waystone_hash", waystone);
         tag.putBoolean("from_abyss_watcher", true);
-        data.writeCompoundTag(tag);
+        data.writeNbt(tag);
 
         if (id % 2 != 0) {
             this.sortedWaystones.remove(waystone);

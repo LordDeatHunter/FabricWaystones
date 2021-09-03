@@ -3,10 +3,10 @@ package wraith.waystones.mixin;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -59,7 +59,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             return;
         }
         PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
-        packet.writeCompoundTag(toTagW(new CompoundTag()));
+        packet.writeNbt(toTagW(new NbtCompound()));
         ServerPlayNetworking.send((ServerPlayerEntity)(Object)this, Utils.ID("sync_player"), packet);
     }
 
@@ -112,17 +112,17 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
 
-    @Inject(method = "writeCustomDataToTag", at = @At("RETURN"))
-    public void writeCustomDataToTag(CompoundTag tag, CallbackInfo ci) {
+    @Inject(method = "writeCustomDataToNbt", at = @At("RETURN"))
+    public void writeCustomDataToTag(NbtCompound tag, CallbackInfo ci) {
         toTagW(tag);
     }
 
     @Override
-    public CompoundTag toTagW(CompoundTag tag) {
-        CompoundTag customTag = new CompoundTag();
-        ListTag waystones = new ListTag();
+    public NbtCompound toTagW(NbtCompound tag) {
+        NbtCompound customTag = new NbtCompound();
+        NbtList waystones = new NbtList();
         for (String waystone : discoveredWaystones) {
-            waystones.add(StringTag.of(waystone));
+            waystones.add(NbtString.of(waystone));
         }
         customTag.put("discovered_waystones", waystones);
         customTag.putBoolean("view_discovered_waystones", this.viewDiscoveredWaystones);
@@ -138,13 +138,13 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         this.discoveredWaystones.addAll(((PlayerEntityMixinAccess)player).getDiscoveredWaystones());
     }
 
-    @Inject(method = "readCustomDataFromTag", at = @At("RETURN"))
-    public void readCustomDataFromTag(CompoundTag tag, CallbackInfo ci) {
+    @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
+    public void readCustomDataFromTag(NbtCompound tag, CallbackInfo ci) {
         fromTagW(tag);
     }
 
     @Override
-    public void fromTagW(CompoundTag tag) {
+    public void fromTagW(NbtCompound tag) {
         if (!tag.contains("waystones")) {
             return;
         }
@@ -160,8 +160,8 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
                     hashes = tmpHashes;
                 }
             }
-            ListTag waystones = tag.getList("discovered_waystones", 8);
-            for (Tag waystone : waystones) {
+            NbtList waystones = tag.getList("discovered_waystones", 8);
+            for (NbtElement waystone : waystones) {
                 if (hashes.contains(waystone.asString())) {
                     discoveredWaystones.add(waystone.asString());
                 }

@@ -12,7 +12,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -252,10 +252,10 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                     MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_ANVIL_BREAK, 1.0F));
                     this.scrollOffset = Math.max(0, this.scrollOffset - 1);
 
-                    CompoundTag tag = new CompoundTag();
+                    NbtCompound tag = new NbtCompound();
                     tag.putInt("sync_id", handler.syncId);
                     tag.putInt("clicked_slot", l * 2 + 1);
-                    PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeCompoundTag(tag);
+                    PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeNbt(tag);
 
                     ClientPlayNetworking.send(Utils.ID("waystone_gui_slot_click"), packet);
 
@@ -264,10 +264,10 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 if (x2 >= 0.0D && y2 >= 0.0D && x2 < 101.0D && y2 < 18.0D && (this.handler).onButtonClick(this.client.player, l * 2)) {
                     MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 
-                    CompoundTag tag = new CompoundTag();
+                    NbtCompound tag = new NbtCompound();
                     tag.putInt("sync_id", handler.syncId);
                     tag.putInt("clicked_slot", l * 2);
-                    PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeCompoundTag(tag);
+                    PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeNbt(tag);
 
                     ClientPlayNetworking.send(Utils.ID("waystone_gui_slot_click"), packet);
                     return true;
