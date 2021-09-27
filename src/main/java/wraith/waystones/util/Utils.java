@@ -248,7 +248,13 @@ public class Utils {
 
         for (Map.Entry<String, String> item : itemMap.entrySet()) {
             individualKey = new JsonObject();
-            individualKey.addProperty("item", item.getValue());
+            var itemIdentifier = item.getValue();
+            var recipeType = "item";
+            if (itemIdentifier.startsWith("#")) {
+                recipeType = "tag";
+                itemIdentifier = itemIdentifier.substring(1);
+            }
+            individualKey.addProperty(recipeType, itemIdentifier);
             keyList.add(item.getKey(), individualKey);
         }
 

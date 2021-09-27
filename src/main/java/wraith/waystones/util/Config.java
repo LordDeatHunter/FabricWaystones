@@ -65,9 +65,6 @@ public class Config {
         return configData.getBoolean("consume_infinite_knowledge_scroll_on_use");
     }
 
-    //TODO @DetHunt make this a config option
-    public boolean storeWaystoneNbt() {return true;}
-
     private Config() {}
 
     private NbtCompound getDefaults() {
@@ -85,11 +82,25 @@ public class Config {
         NbtCompound recipesTag = new NbtCompound();
 
         HashMap<String, String> itemMap = new HashMap<>();
-        itemMap.put("S", "minecraft:stone_bricks");
+        itemMap.put("S", "minecraft:stone");
         itemMap.put("A", "waystones:abyss_watcher");
         itemMap.put("O", "minecraft:obsidian");
         itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("waystone_recipe", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:waystone", 1).toString());
+        recipesTag.putString("waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:waystone", 1).toString());
+
+        itemMap.clear();
+        itemMap.put("S", "minecraft:sandstone");
+        itemMap.put("A", "waystones:abyss_watcher");
+        itemMap.put("O", "minecraft:obsidian");
+        itemMap.put("E", "minecraft:emerald");
+        recipesTag.putString("desert_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:desert_waystone", 1).toString());
+
+        itemMap.clear();
+        itemMap.put("S", "#minecraft:stone_bricks");
+        itemMap.put("A", "waystones:abyss_watcher");
+        itemMap.put("O", "minecraft:obsidian");
+        itemMap.put("E", "minecraft:emerald");
+        recipesTag.putString("stone_brick_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:stone_brick_waystone", 1).toString());
 
         itemMap.clear();
         itemMap.put("A", "waystones:abyss_watcher");

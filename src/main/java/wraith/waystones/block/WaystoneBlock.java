@@ -121,12 +121,13 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 if (!world.isClient) {
                     ItemStack itemStack = new ItemStack(state.getBlock().asItem());
                     NbtCompound compoundTag = waystoneBlockEntity.writeNbt(new NbtCompound());
-                    if (Config.getInstance().storeWaystoneNbt() && player.isSneaking() && !compoundTag.isEmpty()) {
+                    if (player.isSneaking() && !compoundTag.isEmpty()) {
                         itemStack.setSubNbt("BlockEntityTag", compoundTag);
                     }
-                    ItemEntity itemEntity = new ItemEntity(world, (double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, itemStack);
-                    itemEntity.setToDefaultPickupDelay();
-                    world.spawnEntity(itemEntity);
+                    ItemScatterer.spawn(world, (double)topPos.getX() + 0.5D, (double)topPos.getY() + 0.5D, (double)topPos.getZ() + 0.5D, itemStack);
+                    if (waystoneBlockEntity.getCachedState().get(MOSSY)) {
+                        ItemScatterer.spawn(world, (double)topPos.getX() + 0.5D, (double)topPos.getY() + 0.5D, (double)topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
+                    }
                 } else {
                     waystoneBlockEntity.checkLootInteraction(player);
                 }
@@ -208,7 +209,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     world.setBlockState(openPos.up(), topState.with(MOSSY, false));
                     world.setBlockState(openPos, bottomState.with(MOSSY, false));
                     openPos = openPos.up(2);
-                    ItemScatterer.spawn(world, openPos.getX(), openPos.getY(), openPos.getZ(), new ItemStack(Items.VINE));
+                    ItemScatterer.spawn(world, openPos.getX() + 0.5F, openPos.getY() + 0.5F, openPos.getZ() + 0.5F, new ItemStack(Items.VINE));
                 }
                 return ActionResult.PASS;
             }

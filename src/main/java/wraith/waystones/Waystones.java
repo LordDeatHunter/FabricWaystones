@@ -38,7 +38,7 @@ public class Waystones implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LogManager.getLogger().info("[Fabric-Waystones] is initializing.");
+        LOGGER.info("[Fabric-Waystones] is initializing.");
         Config.getInstance().loadConfig();
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
@@ -46,8 +46,8 @@ public class Waystones implements ModInitializer {
         CustomScreenHandlerRegistry.registerScreenHandlers();
         registerEvents();
         registerPacketHandlers();
-        LogManager.getLogger().info("[Fabric-Waystones] has successfully been initialized.");
-        LogManager.getLogger().info("[Fabric-Waystones] If you have any issues or questions, feel free to join our Discord: https://discord.gg/vMjzgS4.");
+        LOGGER.info("[Fabric-Waystones] has successfully been initialized.");
+        LOGGER.info("[Fabric-Waystones] If you have any issues or questions, feel free to join our Discord: https://discord.gg/vMjzgS4.");
     }
 
     private void registerPacketHandlers() {
