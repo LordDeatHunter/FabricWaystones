@@ -1,5 +1,7 @@
 {
   "item.waystones.waystone": "Waystone",
+  "item.waystones.desert_waystone": "Desert Waystone",
+  "item.waystones.stone_brick_waystone": "Stone Brick Waystone",
   "item.waystones.pocket_wormhole": "Pocket Wormhole",
   "item.waystones.local_void": "Local Void",
   "item.waystones.waystone_scroll": "Waystone Scroll",
@@ -7,6 +9,8 @@
   "item.waystones.abyss_watcher": "Abyss Watcher",
   "item.waystones.scroll_of_infinite_knowledge": "Scroll of Infinite Knowledge",
   "block.waystones.waystone": "Waystone",
+  "block.waystones.desert_waystone": "Desert Waystone",
+  "block.waystones.stone_brick_waystone": "Stone Brick Waystone",
   "container.waystones.waystone": "Waystones",
   "container.waystones.pocket_wormhole": "Pocket Wormhole",
   "container.waystones.abyss_watcher": "Abyss Watcher",
