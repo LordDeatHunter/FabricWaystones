@@ -60,7 +60,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     public WaystoneBlock(AbstractBlock.Settings settings) {
         super(settings);
-        setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, true));
+        setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, false));
     }
 
     @Override
@@ -225,7 +225,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 return ActionResult.FAIL;
             }
 
-            if ((player.isSneaking() && (player.hasPermissionLevel(2)) || (Config.getInstance().canOwnersRedeemPayments() && blockEntity.getOwner().equals(player.getUuid())))) {
+            if (player.isSneaking() && (player.hasPermissionLevel(2) || (Config.getInstance().canOwnersRedeemPayments() && player.getUuid().equals(blockEntity.getOwner())))) {
                 if (blockEntity.hasStorage()) {
                     ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
                     blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
