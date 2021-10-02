@@ -40,7 +40,7 @@ public class WaystoneStorage {
         File worldDirectory = ((MinecraftServerAccessor) server).getSession().getWorldDirectory(server.getOverworld().getRegistryKey());
         File file = new File(worldDirectory, "data/waystones:waystones.dat");
         if (file.exists()) {
-            file.renameTo(new File(worldDirectory, "data/" + ID));
+            file.renameTo(new File(worldDirectory, "data/" + ID + ".dat"));
         }
 
         var pState = new PersistentState(){
