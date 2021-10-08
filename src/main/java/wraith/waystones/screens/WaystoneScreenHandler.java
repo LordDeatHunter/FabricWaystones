@@ -21,7 +21,6 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
     private UUID owner;
     private boolean isGlobal;
     private Function<PlayerEntity, Boolean> canUse = null;
-    private boolean isConfig = false;
     private boolean isClient;
     private String ownerName = "";
 

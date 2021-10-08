@@ -4,6 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerRespawnS2CPacket;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,19 +17,20 @@ import wraith.waystones.interfaces.ClientPlayerEntityMixinAccess;
 public class ClientPlayNetworkHandlerMixin {
 
     @Final
-    @Shadow private MinecraftClient client;
+    @Shadow
+    private MinecraftClient client;
 
     @Inject(method = "onPlayerRespawn", at = @At("RETURN"))
     public void onPlayerRespawn(PlayerRespawnS2CPacket packet, CallbackInfo ci) {
         if (this.client.player != null) {
-            ((ClientPlayerEntityMixinAccess)this.client.player).requestSync();
+            ((ClientPlayerEntityMixinAccess) this.client.player).requestSync();
         }
     }
 
     @Inject(method = "onGameJoin", at = @At("RETURN"))
     public void onPlayerSpawn(GameJoinS2CPacket packet, CallbackInfo ci) {
         if (this.client.player != null) {
-            ((ClientPlayerEntityMixinAccess)this.client.player).requestSync();
+            ((ClientPlayerEntityMixinAccess) this.client.player).requestSync();
         }
     }
 
