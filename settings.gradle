@@ -1,4 +1,9 @@
 pluginManagement {
+    plugins {
+        id 'fabric-loom' version '0.9-SNAPSHOT'
+        id 'maven-publish'
+        id 'com.matthewprenger.cursegradle' version '1.4.0'
+    }
     repositories {
         mavenCentral()
         maven {

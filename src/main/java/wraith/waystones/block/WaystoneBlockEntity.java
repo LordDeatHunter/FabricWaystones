@@ -31,14 +31,14 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.TeleportTarget;
 import org.jetbrains.annotations.Nullable;
+
+import wraith.waystones.util.TeleporterManager;
 import wraith.waystones.util.Utils;
 import wraith.waystones.interfaces.WaystoneValue;
 import wraith.waystones.Waystones;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.ItemRegistry;
 import wraith.waystones.screens.WaystoneScreenHandler;
-
-import io.github.elbakramer.mc.teleportutils.util.TeleportUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -354,8 +354,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
             return;
         }
         playerEntity.getServer().execute(() -> {
-            TeleportUtils.teleportEntityWithItsPassengersLeashedAnimalsAndVehiclesRecursively(playerEntity, target,
-                    (ServerWorld) world);
+            TeleporterManager.getTeleporter().teleport(playerEntity, (ServerWorld) world, target);
             playerEntity.addExperience(0);
             if (isAbyssWatcher
                     && playerEntity.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("abyss_watcher")) {

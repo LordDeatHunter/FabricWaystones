@@ -25,6 +25,7 @@ import wraith.waystones.registries.BlockRegistry;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 import wraith.waystones.registries.ItemRegistry;
 import wraith.waystones.util.Config;
+import wraith.waystones.util.TeleporterManager;
 import wraith.waystones.util.Utils;
 import wraith.waystones.util.WaystoneStorage;
 
@@ -44,6 +45,7 @@ public class Waystones implements ModInitializer {
         BlockEntityRegistry.registerBlockEntities();
         ItemRegistry.registerItems();
         CustomScreenHandlerRegistry.registerScreenHandlers();
+        TeleporterManager.initialize();
         registerEvents();
         registerPacketHandlers();
         LOGGER.info("[Fabric-Waystones] has successfully been initialized.");
