@@ -150,6 +150,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             world.removeBlockEntity(topPos);
         }
         world.removeBlock(topPos, false);
+        world.removeBlock(botPos, false);
         world.updateNeighbors(topPos, Blocks.AIR);
 
         super.onBreak(world, pos, state, player);
@@ -301,7 +302,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 Waystones.WAYSTONE_STORAGE.removeWaystone(((WaystoneBlockEntity) entity).getHash());
             }
         } else {
-            world.setBlockState(newPos, newState.with(WaystoneBlock.HALF, facing));
+            var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER || facing == DoubleBlockHalf.LOWER;
+            world.setBlockState(newPos, newState.with(WaystoneBlock.HALF, facing).with(WATERLOGGED, fluid));
         }
         super.onStateReplaced(state, world, pos, newState, moved);
     }

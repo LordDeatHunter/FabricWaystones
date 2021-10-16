@@ -204,11 +204,15 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         MutableText text;
         switch (Config.getInstance().teleportType()) {
             case "hp", "health" -> {
-                this.drawTexture(matrices, x, y + 3, 186, 15, 9, 9);
+                this.drawTexture(matrices, x + 4, y + 4, 186, 15, 9, 9);
                 text = new TranslatableText("waystones.cost.health");
             }
+            case "hunger" -> {
+                this.drawTexture(matrices, x + 4, y + 4, 177, 24, 9, 9);
+                text = new TranslatableText("waystones.cost.hunger");
+            }
             case "xp", "experience" -> {
-                this.drawTexture(matrices, x, y + 3, 177, 15, 9, 9);
+                this.drawTexture(matrices, x + 4, y + 4, 177, 15, 9, 9);
                 text = new TranslatableText("waystones.cost.xp");
             }
             case "level" -> {

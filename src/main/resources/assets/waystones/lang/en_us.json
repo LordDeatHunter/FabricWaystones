@@ -63,6 +63,7 @@
   "waystones.cost.free": "Free",
   "waystones.cost.xp": "XP",
   "waystones.cost.health": "Half-Hearts",
+  "waystones.cost.hunger": "Hunger",
   "waystones.cost.level": "Level(s)",
 
   "itemGroup.waystones.waystones": "Waystones",

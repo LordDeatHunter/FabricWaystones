@@ -122,6 +122,15 @@ public class Utils {
                 }
                 player.damage(DamageSource.OUT_OF_WORLD, amount);
                 return true;
+            case "hunger":
+            case "saturation":
+                var hungerManager = player.getHungerManager();
+                var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
+                if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustion() / 4F <= amount) {
+                    return false;
+                }
+                hungerManager.addExhaustion(4 * amount);
+                return true;
             case "xp":
             case "experience":
                 long total = determineLevelXP(player);
