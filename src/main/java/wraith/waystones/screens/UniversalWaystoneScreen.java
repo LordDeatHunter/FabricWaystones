@@ -48,7 +48,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         this.inventory = inventory;
         this.texture = texture;
         this.backgroundWidth = 177;
-        this.backgroundHeight = 140;
+        this.backgroundHeight = 176;
         buttons.add(new Button(140, 25, 13, 13, 225, 0) {
             @Override
             public void onClick() {
@@ -130,15 +130,15 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, texture);
         this.drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
-        int k = (int)(41.0F * this.scrollAmount);
+        int k = (int)(75.0F * this.scrollAmount);
         this.drawTexture(matrices, x + 141, y + 40 + k, 177 + (this.shouldScroll() ? 0 : 11), 0, 11, 15);
-        int n = this.scrollOffset + 3;
+        int n = this.scrollOffset + 5;
         this.renderWaystoneBackground(matrices, mouseX, mouseY, this.x + 36, this.y + 39, n);
         this.renderForgetButtons(matrices, mouseX, mouseY, this.x + 24, this.y + 45);
         renderButtons(matrices, mouseX, mouseY);
-        this.renderCostItem(matrices, this.x + 40, this.y + 100);
+        this.renderCostItem(matrices, this.x + 40, this.y + 136);
         this.renderWaystoneNames(matrices, this.x + 36, this.y + 40, n);
-        this.renderWaystoneAmount(matrices, this.x + 10, this.y + 124);
+        this.renderWaystoneAmount(matrices, this.x + 10, this.y + 160);
         this.searchField.render(matrices, mouseX, mouseY, delta);
         this.renderButtonTooltips(matrices, mouseX, mouseY);
     }
@@ -241,7 +241,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
     protected void renderForgetButtons(MatrixStack matrixStack, int mouseX, int mouseY, int x, int y) {
         int n = getDiscoveredCount();
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 5; ++i) {
             int r = y + i * 18;
             int v = 0;
             if (i >= n) {
@@ -311,7 +311,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         int j1 = this.y + 45;
         int i2 = this.x + 36;
         int j2 = this.y + 39;
-        int k = this.scrollOffset + 3;
+        int k = this.scrollOffset + 5;
 
         int n = getDiscoveredCount();
         for(int l = this.scrollOffset; l < k; ++l) {
@@ -350,7 +350,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
         int i3 = this.x + 141;
         int j3 = this.y + 40;
-        if (mouseX >= (double)i3 && mouseX < (double)(i3 + 11) && mouseY >= (double)j3 && mouseY < (double)(j3 + 54)) {
+        if (mouseX >= (double)i3 && mouseX < (double)(i3 + 11) && mouseY >= (double)j3 && mouseY < (double)(j3 + 90)) {
             this.mouseClicked = true;
         }
         return false;
@@ -372,7 +372,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (this.mouseClicked && this.shouldScroll()) {
             int i = this.y + 40;
-            int j = i + 54;
+            int j = i + 90;
             this.scrollAmount = ((float)mouseY - (float)i - 7.5F) / ((float)(j - i) - 15.0F);
             this.scrollAmount = MathHelper.clamp(this.scrollAmount, 0.0F, 1.0F);
             this.scrollOffset = (int)((double)(this.scrollAmount * (float)this.getMaxScroll()) + 0.5D);
@@ -387,11 +387,11 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected boolean shouldScroll() {
-        return getDiscoveredCount() > 3;
+        return getDiscoveredCount() > 5;
     }
 
     protected int getMaxScroll() {
-        return getDiscoveredCount() - 3;
+        return getDiscoveredCount() - 5;
     }
 
     protected int getDiscoveredCount() {

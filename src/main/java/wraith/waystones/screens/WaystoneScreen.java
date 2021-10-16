@@ -428,7 +428,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         int j1 = this.y + 45;
         int i2 = this.x + 36;
         int j2 = this.y + 39;
-        int k = this.scrollOffset + 3;
+        int k = this.scrollOffset + 5;
 
         int n = getDiscoveredCount();
         for(int l = this.scrollOffset; l < k && l < n; ++l) {
@@ -470,7 +470,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
         int i3 = this.x + 141;
         int j3 = this.y + 40;
-        if (mouseX >= (double)i3 && mouseX < (double)(i3 + 11) && mouseY >= (double)j3 && mouseY < (double)(j3 + 54)) {
+        if (mouseX >= (double)i3 && mouseX < (double)(i3 + 11) && mouseY >= (double)j3 && mouseY < (double)(j3 + 90)) {
             this.mouseClicked = true;
         }
         return false;
