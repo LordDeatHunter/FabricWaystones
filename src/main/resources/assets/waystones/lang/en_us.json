@@ -65,5 +65,24 @@
   "waystones.cost.health": "Half-Hearts",
   "waystones.cost.level": "Level(s)",
 
-  "itemGroup.waystones.waystones": "Waystones"
+  "itemGroup.waystones.waystones": "Waystones",
+
+  "text.autoconfig.waystones.title": "Fabric Waystones Config",
+  "text.autoconfig.waystones.category.general": "General",
+  "text.autoconfig.waystones.option.generate_in_villages": "generate_in_villages",
+  "text.autoconfig.waystones.option.generate_in_villages.@Tooltip": "generate_in_villages",
+  "text.autoconfig.waystones.option.consume_infinite_knowledge_scroll_on_use": "consume_infinite_knowledge_scroll_on_use",
+  "text.autoconfig.waystones.option.consume_infinite_knowledge_scroll_on_use.@Tooltip": "consume_infinite_knowledge_scroll_on_use",
+  "text.autoconfig.waystones.option.can_owners_redeem_payments": "can_owners_redeem_payments",
+  "text.autoconfig.waystones.option.can_owners_redeem_payments.@Tooltip": "can_owners_redeem_payments",
+  "text.autoconfig.waystones.option.cost_amount": "cost_amount",
+  "text.autoconfig.waystones.option.cost_amount.@Tooltip": "cost_amount",
+  "text.autoconfig.waystones.option.cost_type": "cost_type",
+  "text.autoconfig.waystones.option.cost_type.@Tooltip": "cost_type",
+  "text.autoconfig.waystones.option.cost_item": "cost_item",
+  "text.autoconfig.waystones.option.cost_item.@Tooltip": "cost_item",
+  "text.autoconfig.waystones.option.waystone_block_hardness": "waystone_block_hardness",
+  "text.autoconfig.waystones.option.waystone_block_hardness.@Tooltip": "waystone_block_hardness",
+  "text.autoconfig.waystones.option.waystone_block_required_mining_level": "waystone_block_required_mining_level",
+  "text.autoconfig.waystones.option.waystone_block_required_mining_level.@Tooltip": "waystone_block_required_mining_level"
 }

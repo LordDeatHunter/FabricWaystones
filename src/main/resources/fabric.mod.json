@@ -2,7 +2,6 @@
   "schemaVersion": 1,
   "id": "waystones",
   "version": "${version}",
-
   "name": "Waystones",
   "description": "A better way of transport!",
   "authors": [
@@ -10,12 +9,11 @@
   ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/fabric-waystones",
-    "sources": "https://github.com/LordDeatHunter/FabricWaystones"
+    "sources": "https://github.com/LordDeatHunter/FabricWaystones",
+    "issues": "https://github.com/LordDeatHunter/FabricWaystones/issues"
   },
-
   "license": "MIT License",
   "icon": "assets/waystones/WaystoneIcon.png",
-
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -23,14 +21,15 @@
     ],
     "client": [
       "wraith.waystones.client.WaystonesClient"
+    ],
+    "modmenu": [
+      "wraith.waystones.util.WaystonesModMenuIntegration"
     ]
   },
   "mixins": [
     "waystones.mixins.json"
   ],
-
-  "accessWidener" : "waystones.accesswidener",
-
+  "accessWidener": "waystones.accesswidener",
   "depends": {
     "fabricloader": ">=0.11.3",
     "fabric": "*",
