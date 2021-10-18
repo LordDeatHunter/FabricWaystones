@@ -11,7 +11,9 @@ public class TeleportUtilsTeleporter implements ServerPlayerEntityTeleporter {
 
     @Override
     public void teleport(ServerPlayerEntity player, ServerWorld targetWorld, TeleportTarget target) {
-        TeleportUtils.teleportEntityWithItsPassengersLeashedAnimalsAndVehiclesRecursively(player, target, targetWorld);
+        // let waystones do the particle and sound things
+        TeleportUtils.teleportEntityWithItsPassengersLeashedAnimalsAndVehiclesRecursively(player, target, targetWorld,
+                false, false);
     }
 
 }

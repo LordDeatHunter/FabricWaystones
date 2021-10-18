@@ -11,4 +11,7 @@ public interface ServerPlayerEntityAccessor {
     @Accessor("networkHandler")
     ServerPlayNetworkHandler getNetworkHandler();
 
+    @Accessor("inTeleportationState")
+    public void setInTeleportationState(boolean inTeleportationState);
+
 }

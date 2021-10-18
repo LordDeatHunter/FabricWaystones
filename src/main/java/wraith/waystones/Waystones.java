@@ -146,10 +146,12 @@ public class Waystones implements ModInitializer {
                 (server, player, networkHandler, data, sender) -> {
                     NbtCompound tag = data.readNbt();
                     if (tag == null || !tag.contains("waystone_hash")) {
+                        LOGGER.warn("Tag is null or does not contains waystone_hash, aborting");
                         return;
                     }
                     server.execute(() -> {
                         if (!tag.contains("waystone_hash")) {
+                            LOGGER.warn("Tag does not contains waystone_hash, aborting");
                             return;
                         }
                         String hash = tag.getString("waystone_hash");
@@ -157,10 +159,16 @@ public class Waystones implements ModInitializer {
                                 && tag.getBoolean("from_abyss_watcher");
                         WaystoneBlockEntity waystone = WAYSTONE_STORAGE.getWaystone(hash);
                         if (waystone == null) {
+                            LOGGER.warn("Cannot find waystone for hash {}, forgetting this waystone", hash);
+                            WAYSTONE_STORAGE.removeWaystone(hash);
                             return;
                         }
                         if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos())
                                 .getBlock() instanceof WaystoneBlock)) {
+                            LOGGER.warn(
+                                    "Waystone {} (owned by {}) is not there ({}, {}, {}) anymore, forgetting this waystone",
+                                    waystone.getWaystoneName(), waystone.getOwnerName(), waystone.getPos().getX(),
+                                    waystone.getPos().getY(), waystone.getPos().getZ());
                             WAYSTONE_STORAGE.removeWaystone(hash);
                             waystone.getWorld().removeBlockEntity(waystone.getPos());
                         } else if (Utils.canTeleport(player, hash)) {
@@ -179,6 +187,9 @@ public class Waystones implements ModInitializer {
                                 player.world.playSound(player, waystonePos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
                                         SoundCategory.BLOCKS, 1F, 1F);
                             }
+                        } else {
+                            LOGGER.info("Player {} cannot teleport due to umnet requirement",
+                                    player.getName().getString());
                         }
                     });
                 });

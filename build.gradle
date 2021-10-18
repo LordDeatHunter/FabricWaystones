@@ -40,7 +40,7 @@ dependencies {
 	}
 	modImplementation "com.terraformersmc:modmenu:2.0.14"
 
-	modCompileOnly("curse.maven:teleport-utils-0.2.5-535872:3492182") {
+	modCompileOnly("curse.maven:teleport-utils-0.2.6-535872:3493142") {
 		because "teleporting mechanics can be improved with this library"
 		modCompileOnly("curse.maven:player-vehicle-desync-fix-0.2.2-535864:3490516") {
 			because "this can fix the wrong behavior on teleporting with vehicles"

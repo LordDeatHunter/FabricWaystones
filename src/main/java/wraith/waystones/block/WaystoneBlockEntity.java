@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.waystones.util.TeleporterManager;
 import wraith.waystones.util.Utils;
 import wraith.waystones.interfaces.WaystoneValue;
+import wraith.waystones.mixin.ServerPlayerEntityAccessor;
 import wraith.waystones.Waystones;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.ItemRegistry;
@@ -354,7 +355,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
             return;
         }
         playerEntity.getServer().execute(() -> {
+            playerEntity.getEntityWorld().sendEntityStatus(playerEntity, (byte) 46);
+            ServerPlayerEntityAccessor playerAccessor = (ServerPlayerEntityAccessor) playerEntity;
+            playerAccessor.setInTeleportationState(true);
             TeleporterManager.getTeleporter().teleport(playerEntity, (ServerWorld) world, target);
+            playerEntity.onTeleportationDone();
             playerEntity.addExperience(0);
             if (isAbyssWatcher
                     && playerEntity.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("abyss_watcher")) {
@@ -371,6 +376,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
                 playerEntity.addStatusEffect(effect);
             }
             playerEntity.setAbsorptionAmount(absorption);
+            playerEntity.getEntityWorld().sendEntityStatus(playerEntity, (byte) 46);
         });
 
     }
