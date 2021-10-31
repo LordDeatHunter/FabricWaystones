@@ -6,8 +6,7 @@ import wraith.waystones.block.WaystoneBlockEntityRenderer;
 public final class CustomBlockEntityRendererRegistry {
 
     public static void RegisterBlockEntityRenderers() {
-        BlockEntityRendererRegistry.register(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY,
-                WaystoneBlockEntityRenderer::new);
+        BlockEntityRendererRegistry.register(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, WaystoneBlockEntityRenderer::new);
     }
 
 }

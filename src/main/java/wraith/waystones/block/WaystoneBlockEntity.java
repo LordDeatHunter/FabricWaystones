@@ -31,8 +31,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.TeleportTarget;
 import org.jetbrains.annotations.Nullable;
-
-import wraith.waystones.util.TeleporterManager;
 import wraith.waystones.util.Utils;
 import wraith.waystones.interfaces.WaystoneValue;
 import wraith.waystones.mixin.ServerPlayerEntityAccessor;
@@ -40,14 +38,12 @@ import wraith.waystones.Waystones;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.ItemRegistry;
 import wraith.waystones.screens.WaystoneScreenHandler;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-public class WaystoneBlockEntity extends LootableContainerBlockEntity
-        implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable, WaystoneValue {
+public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable, WaystoneValue {
 
     private String name = "";
     private String hash;
@@ -73,8 +69,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
     }
 
     public void createHash(World world, BlockPos pos) {
-        this.hash = Utils.getSHA256(
-                "<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + world + "\">");
+        this.hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + world + "\">");
         markDirty();
     }
 
@@ -209,8 +204,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
     private boolean checkBound(int amount, float rot) {
         float Rot = Math.round(rot);
         float Rot2 = rotClamp(360, Rot + 180);
-        return ((Rot - amount <= lookingRotR && lookingRotR <= Rot + amount)
-                || (Rot2 - amount <= lookingRotR && lookingRotR <= Rot2 + amount));
+        return ((Rot - amount <= lookingRotR && lookingRotR <= Rot + amount) || (Rot2 - amount <= lookingRotR && lookingRotR <= Rot2 + amount));
     }
 
     private void moveOnTickR(float rot) {
@@ -265,8 +259,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
 
     public void tick() {
         ++tickDelta;
-        PlayerEntity closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D,
-                this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
+        var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D, this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
         if (closestPlayer != null) {
             addParticle(closestPlayer);
             double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
@@ -295,16 +288,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
 
     @Override
     public String getWorldName() {
-        return WaystoneBlock.getDimensionName(this.getWorld());
+        return WaystoneBlock.getDimensionName(world);
     }
 
     public boolean canAccess(PlayerEntity player) {
-        return player.squaredDistanceTo((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D,
-                (double) this.pos.getZ() + 0.5D) <= 64.0D;
-    }
-
-    public String getDimension() {
-        return WaystoneBlock.getDimensionName(world);
+        return player.squaredDistanceTo((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
     }
 
     public void teleportPlayer(PlayerEntity player, boolean isAbyssWatcher) {
@@ -336,33 +324,21 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
                 z = 0.5f;
                 yaw = 270;
             }
-            case UP -> {
-            }
-            case DOWN -> {
-            }
         }
-
         final float fX = x;
         final float fZ = z;
         final float fYaw = yaw;
-        final float fPitch = 0.0f;
-        final Vec3d position = new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ);
-        final Vec3d velocity = new Vec3d(0, 0, 0);
-        final TeleportTarget target = new TeleportTarget(position, velocity, fYaw, fPitch);
         final List<StatusEffectInstance> effects = new ArrayList<>(playerEntity.getStatusEffects());
-
         if (playerEntity.getServer() == null) {
             return;
         }
+
         playerEntity.getServer().execute(() -> {
-            playerEntity.getEntityWorld().sendEntityStatus(playerEntity, (byte) 46);
-            ServerPlayerEntityAccessor playerAccessor = (ServerPlayerEntityAccessor) playerEntity;
-            playerAccessor.setInTeleportationState(true);
-            TeleporterManager.getTeleporter().teleport(playerEntity, (ServerWorld) world, target);
+            player.getEntityWorld().sendEntityStatus(player, (byte) 46);
+            playerEntity.teleport((ServerWorld) world, pos.getX() + fX, pos.getY(), pos.getZ() + fZ, fYaw, 0);
             playerEntity.onTeleportationDone();
             playerEntity.addExperience(0);
-            if (isAbyssWatcher
-                    && playerEntity.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("abyss_watcher")) {
+            if (isAbyssWatcher && playerEntity.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("abyss_watcher")) {
                 if (!playerEntity.isCreative()) {
                     player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
                     player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
@@ -376,7 +352,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
                 playerEntity.addStatusEffect(effect);
             }
             playerEntity.setAbsorptionAmount(absorption);
-            playerEntity.getEntityWorld().sendEntityStatus(playerEntity, (byte) 46);
+            player.getEntityWorld().sendEntityStatus(player, (byte) 46);
         });
 
     }
@@ -447,8 +423,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity
         return false;
     }
 
-    public static <T extends BlockEntity> void ticker(World world, BlockPos blockPos, BlockState blockState,
-            WaystoneBlockEntity waystone) {
+    public static <T extends BlockEntity> void ticker(World world, BlockPos blockPos, BlockState blockState, WaystoneBlockEntity waystone) {
         waystone.tick();
     }
 

@@ -1,7 +1,6 @@
 plugins {
-	id 'fabric-loom'
+	id 'fabric-loom' version '0.9-SNAPSHOT'
 	id 'maven-publish'
-	id 'com.matthewprenger.cursegradle'
 }
 
 sourceCompatibility = JavaVersion.VERSION_16
@@ -11,22 +10,6 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
-repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
-	maven { url "https://maven.shedaniel.me/" }
-	maven { url "https://maven.terraformersmc.com/" }
-	maven {
-        url "https://cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
-    }
-}
-
 dependencies {
 	implementation 'org.jetbrains:annotations:19.0.0'
 
@@ -35,20 +18,6 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modApi("me.shedaniel.cloth:cloth-config-fabric:5.0.38") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
-	modImplementation "com.terraformersmc:modmenu:2.0.14"
-
-	modCompileOnly("curse.maven:teleport-utils-0.2.6-535872:3493142") {
-		because "teleporting mechanics can be improved with this library"
-		modCompileOnly("curse.maven:player-vehicle-desync-fix-0.2.2-535864:3490516") {
-			because "this can fix the wrong behavior on teleporting with vehicles"
-		}
-		modCompileOnly("curse.maven:mtq-fix-0.2.2-535845:3490514") {
-			because "this can fix the wrong behavior on teleporting with vehicles"
-		}
-	}
 }
 
 loom {

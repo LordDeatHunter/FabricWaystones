@@ -21,9 +21,6 @@
     ],
     "client": [
       "wraith.waystones.client.WaystonesClient"
-    ],
-    "modmenu": [
-      "wraith.waystones.util.WaystonesModMenuIntegration"
     ]
   },
   "mixins": [

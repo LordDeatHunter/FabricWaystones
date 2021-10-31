@@ -25,7 +25,6 @@ import wraith.waystones.registries.BlockRegistry;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 import wraith.waystones.registries.ItemRegistry;
 import wraith.waystones.util.Config;
-import wraith.waystones.util.TeleporterManager;
 import wraith.waystones.util.Utils;
 import wraith.waystones.util.WaystoneStorage;
 
@@ -45,154 +44,121 @@ public class Waystones implements ModInitializer {
         BlockEntityRegistry.registerBlockEntities();
         ItemRegistry.registerItems();
         CustomScreenHandlerRegistry.registerScreenHandlers();
-        TeleporterManager.initialize();
         registerEvents();
         registerPacketHandlers();
         LOGGER.info("[Fabric-Waystones] has successfully been initialized.");
-        LOGGER.info(
-                "[Fabric-Waystones] If you have any issues or questions, feel free to join our Discord: https://discord.gg/vMjzgS4.");
+        LOGGER.info("[Fabric-Waystones] If you have any issues or questions, feel free to join our Discord: https://discord.gg/vMjzgS4.");
     }
 
     private void registerPacketHandlers() {
-        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("remove_waystone_owner"),
-                (server, player, networkHandler, data, sender) -> {
-                    NbtCompound tag = data.readNbt();
-                    server.execute(() -> {
-                        if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
-                            return;
-                        }
-                        String hash = tag.getString("waystone_hash");
-                        UUID owner = tag.getUuid("waystone_owner");
-                        if (WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner)
-                                && WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner))
-                                || player.hasPermissionLevel(2))) {
-                            WAYSTONE_STORAGE.setOwner(hash, null);
-                        }
-                    });
-                });
-        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_gui_slot_click"),
-                (server, player, networkHandler, data, sender) -> {
-                    NbtCompound tag = data.readNbt();
-                    server.execute(() -> {
-                        if (tag == null || !tag.contains("sync_id") || !tag.contains("clicked_slot")) {
-                            return;
-                        }
-                        int syncId = tag.getInt("sync_id");
-                        int button = tag.getInt("clicked_slot");
-                        if (player.currentScreenHandler.syncId == syncId) {
-                            player.currentScreenHandler.onButtonClick(player, button);
-                        }
-                    });
-                });
-        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("rename_waystone"),
-                (server, player, networkHandler, data, sender) -> {
-                    NbtCompound tag = data.readNbt();
-                    if (tag == null || !tag.contains("waystone_name") || !tag.contains("waystone_hash")
-                            || !tag.contains("waystone_owner")) {
-                        return;
-                    }
-                    String name = tag.getString("waystone_name");
-                    String hash = tag.getString("waystone_hash");
-                    UUID owner = tag.getUuid("waystone_owner");
-                    server.execute(() -> {
-                        if (WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner)
-                                && WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner))
-                                || player.hasPermissionLevel(2))) {
-                            WAYSTONE_STORAGE.renameWaystone(hash, name);
-                        }
-                    });
-                });
-        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("forget_waystone"),
-                (server, player, networkHandler, data, sender) -> {
-                    NbtCompound tag = data.readNbt();
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("remove_waystone_owner"), (server, player, networkHandler, data, sender) -> {
+            NbtCompound tag = data.readNbt();
+            server.execute(() -> {
+                if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
+                    return;
+                }
+                String hash = tag.getString("waystone_hash");
+                UUID owner = tag.getUuid("waystone_owner");
+                if (WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner) && WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner)) || player.hasPermissionLevel(2))) {
+                    WAYSTONE_STORAGE.setOwner(hash, null);
+                }
+            });
+        });
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_gui_slot_click"), (server, player, networkHandler, data, sender) -> {
+            NbtCompound tag = data.readNbt();
+            server.execute(() -> {
+                if (tag == null || !tag.contains("sync_id") || !tag.contains("clicked_slot")) {
+                    return;
+                }
+                int syncId = tag.getInt("sync_id");
+                int button = tag.getInt("clicked_slot");
+                if (player.currentScreenHandler.syncId == syncId) {
+                    player.currentScreenHandler.onButtonClick(player, button);
+                }
+            });
+        });
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("rename_waystone"), (server, player, networkHandler, data, sender) -> {
+            NbtCompound tag = data.readNbt();
+            if (tag == null || !tag.contains("waystone_name") || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
+                return;
+            }
+            String name = tag.getString("waystone_name");
+            String hash = tag.getString("waystone_hash");
+            UUID owner = tag.getUuid("waystone_owner");
+            server.execute(() -> {
+                if (WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner) && WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner)) || player.hasPermissionLevel(2))) {
+                    WAYSTONE_STORAGE.renameWaystone(hash, name);
+                }
+            });
+        });
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("forget_waystone"), (server, player, networkHandler, data, sender) -> {
+            NbtCompound tag = data.readNbt();
 
-                    if (tag == null || !tag.contains("waystone_hash")) {
-                        return;
+            if (tag == null || !tag.contains("waystone_hash")) {
+                return;
+            }
+
+            String hash = tag.getString("waystone_hash");
+            server.execute(() -> {
+                WaystoneBlockEntity waystone = WAYSTONE_STORAGE.getWaystone(hash);
+                if (waystone == null || waystone.isGlobal()) {
+                    return;
+                }
+                ((PlayerEntityMixinAccess) player).forgetWaystone(hash);
+            });
+        });
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("request_player_waystone_update"), (server, player, networkHandler, data, sender) -> server.execute(((PlayerEntityMixinAccess) player)::syncData));
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("toggle_global_waystone"), (server, player, networkHandler, data, sender) -> {
+            NbtCompound tag = data.readNbt();
+            if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
+                return;
+            }
+            server.execute(() -> {
+                String hash = tag.getString("waystone_hash");
+                UUID owner = tag.getUuid("waystone_owner");
+                if (WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner) && WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner)) || player.hasPermissionLevel(2))) {
+                    WAYSTONE_STORAGE.toggleGlobal(hash);
+                }
+            });
+        });
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("sync_player_from_client"), (server, player, networkHandler, data, sender) -> {
+            NbtCompound tag = data.readNbt();
+            server.execute(() -> ((PlayerEntityMixinAccess) player).fromTagW(tag));
+        });
+        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("teleport_to_waystone"), (server, player, networkHandler, data, sender) -> {
+            NbtCompound tag = data.readNbt();
+            if (tag == null || !tag.contains("waystone_hash")) {
+                return;
+            }
+            server.execute(() -> {
+                if (!tag.contains("waystone_hash")) {
+                    return;
+                }
+                String hash = tag.getString("waystone_hash");
+                boolean isAbyssWatcher = tag.contains("from_abyss_watcher") && tag.getBoolean("from_abyss_watcher");
+                WaystoneBlockEntity waystone = WAYSTONE_STORAGE.getWaystone(hash);
+                if (waystone == null) {
+                    return;
+                }
+                if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos()).getBlock() instanceof WaystoneBlock)) {
+                    WAYSTONE_STORAGE.removeWaystone(hash);
+                    waystone.getWorld().removeBlockEntity(waystone.getPos());
+                } else if (Utils.canTeleport(player, hash)) {
+                    BlockPos playerPos = player.getBlockPos();
+                    waystone.teleportPlayer(player, isAbyssWatcher);
+
+                    player.world.playSound(player, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+                    if (isAbyssWatcher) {
+                        player.world.playSound(player, playerPos, SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
                     }
 
-                    String hash = tag.getString("waystone_hash");
-                    server.execute(() -> {
-                        WaystoneBlockEntity waystone = WAYSTONE_STORAGE.getWaystone(hash);
-                        if (waystone == null || waystone.isGlobal()) {
-                            return;
-                        }
-                        ((PlayerEntityMixinAccess) player).forgetWaystone(hash);
-                    });
-                });
-        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("request_player_waystone_update"), (server, player,
-                networkHandler, data, sender) -> server.execute(((PlayerEntityMixinAccess) player)::syncData));
-        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("toggle_global_waystone"),
-                (server, player, networkHandler, data, sender) -> {
-                    NbtCompound tag = data.readNbt();
-                    if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
-                        return;
+                    BlockPos waystonePos = waystone.getPos();
+                    if (!waystonePos.isWithinDistance(playerPos, 6)) {
+                        player.world.playSound(player, waystonePos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
                     }
-                    server.execute(() -> {
-                        String hash = tag.getString("waystone_hash");
-                        UUID owner = tag.getUuid("waystone_owner");
-                        if (WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner)
-                                && WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner))
-                                || player.hasPermissionLevel(2))) {
-                            WAYSTONE_STORAGE.toggleGlobal(hash);
-                        }
-                    });
-                });
-        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("sync_player_from_client"),
-                (server, player, networkHandler, data, sender) -> {
-                    NbtCompound tag = data.readNbt();
-                    server.execute(() -> ((PlayerEntityMixinAccess) player).fromTagW(tag));
-                });
-        ServerPlayNetworking.registerGlobalReceiver(Utils.ID("teleport_to_waystone"),
-                (server, player, networkHandler, data, sender) -> {
-                    NbtCompound tag = data.readNbt();
-                    if (tag == null || !tag.contains("waystone_hash")) {
-                        LOGGER.warn("Tag is null or does not contains waystone_hash, aborting");
-                        return;
-                    }
-                    server.execute(() -> {
-                        if (!tag.contains("waystone_hash")) {
-                            LOGGER.warn("Tag does not contains waystone_hash, aborting");
-                            return;
-                        }
-                        String hash = tag.getString("waystone_hash");
-                        boolean isAbyssWatcher = tag.contains("from_abyss_watcher")
-                                && tag.getBoolean("from_abyss_watcher");
-                        WaystoneBlockEntity waystone = WAYSTONE_STORAGE.getWaystone(hash);
-                        if (waystone == null) {
-                            LOGGER.warn("Cannot find waystone for hash {}, forgetting this waystone", hash);
-                            WAYSTONE_STORAGE.removeWaystone(hash);
-                            return;
-                        }
-                        if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos())
-                                .getBlock() instanceof WaystoneBlock)) {
-                            LOGGER.warn(
-                                    "Waystone {} (owned by {}) is not there ({}, {}, {}) anymore, forgetting this waystone",
-                                    waystone.getWaystoneName(), waystone.getOwnerName(), waystone.getPos().getX(),
-                                    waystone.getPos().getY(), waystone.getPos().getZ());
-                            WAYSTONE_STORAGE.removeWaystone(hash);
-                            waystone.getWorld().removeBlockEntity(waystone.getPos());
-                        } else if (Utils.canTeleport(player, hash)) {
-                            BlockPos playerPos = player.getBlockPos();
-                            waystone.teleportPlayer(player, isAbyssWatcher);
-
-                            player.world.playSound(player, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
-                                    SoundCategory.BLOCKS, 1F, 1F);
-                            if (isAbyssWatcher) {
-                                player.world.playSound(player, playerPos, SoundEvents.ENTITY_ENDER_EYE_DEATH,
-                                        SoundCategory.BLOCKS, 1F, 1F);
-                            }
-
-                            BlockPos waystonePos = waystone.getPos();
-                            if (!waystonePos.isWithinDistance(playerPos, 6)) {
-                                player.world.playSound(player, waystonePos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
-                                        SoundCategory.BLOCKS, 1F, 1F);
-                            }
-                        } else {
-                            LOGGER.info("Player {} cannot teleport due to umnet requirement",
-                                    player.getName().getString());
-                        }
-                    });
-                });
+                }
+            });
+        });
     }
 
     public void registerEvents() {
@@ -203,43 +169,44 @@ public class Waystones implements ModInitializer {
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-
             PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
             data.writeNbt(Config.getInstance().toNbtCompound());
             ServerPlayNetworking.send(handler.player, Utils.ID("waystone_config_update"), data);
 
             Waystones.WAYSTONE_STORAGE.sendToPlayer(handler.player);
-
             Waystones.WAYSTONE_STORAGE.sendCompatData(handler.player);
         });
 
-        ServerPlayerEvents.AFTER_RESPAWN
-                .register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).syncData());
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).syncData());
 
-        CommandRegistrationCallback.EVENT.register(
-                (dispatcher, dedicated) -> dispatcher.register(CommandManager.literal("waystones").then(CommandManager
-                        .literal("reload").requires(source -> source.hasPermissionLevel(1)).executes(context -> {
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(CommandManager.literal("waystones")
+                .then(CommandManager.literal("reload")
+                        .requires(source -> source.hasPermissionLevel(1))
+                        .executes(context -> {
                             Config.getInstance().loadConfig();
                             PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
                             data.writeNbt(Config.getInstance().toNbtCompound());
-                            for (ServerPlayerEntity player : context.getSource().getServer().getPlayerManager()
-                                    .getPlayerList()) {
+                            for (ServerPlayerEntity player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
                                 ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);
                             }
                             ServerPlayerEntity player = context.getSource().getPlayer();
                             if (player != null) {
-                                player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully reloaded!"),
-                                        false);
+                                player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully reloaded!"), false);
                             }
                             return 1;
-                        })).then(CommandManager.literal("display").executes(context -> {
+                        })
+                )
+                .then(CommandManager.literal("display")
+                        .executes(context -> {
                             ServerPlayerEntity player = context.getSource().getPlayer();
                             if (player == null) {
                                 return 1;
                             }
                             Config.getInstance().print(player);
                             return 1;
-                        }))));
+                        })
+                )
+        ));
     }
 
 }

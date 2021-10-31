@@ -1,15 +1,12 @@
 package wraith.waystones.util;
 
 import com.google.gson.*;
-
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.Logger;
-
 import wraith.waystones.Waystones;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -17,12 +14,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class Config {
+public final class Config {
     private static Config instance = null;
 
     public NbtCompound configData;
     private final Logger LOGGER = Waystones.LOGGER;
     private static final String CONFIG_FILE = "config/waystones/config.json";
+
+    private Config() {}
 
     public static Config getInstance() {
         if (instance == null) {
@@ -67,9 +66,6 @@ public class Config {
         return configData.getBoolean("consume_infinite_knowledge_scroll_on_use");
     }
 
-    private Config() {
-    }
-
     private NbtCompound getDefaults() {
         NbtCompound defaultConfig = new NbtCompound();
 
@@ -89,49 +85,42 @@ public class Config {
         itemMap.put("A", "waystones:abyss_watcher");
         itemMap.put("O", "minecraft:obsidian");
         itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("waystone",
-                Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:waystone", 1).toString());
+        recipesTag.putString("waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:waystone", 1).toString());
 
         itemMap.clear();
         itemMap.put("S", "minecraft:sandstone");
         itemMap.put("A", "waystones:abyss_watcher");
         itemMap.put("O", "minecraft:obsidian");
         itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("desert_waystone",
-                Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:desert_waystone", 1).toString());
+        recipesTag.putString("desert_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:desert_waystone", 1).toString());
 
         itemMap.clear();
         itemMap.put("S", "#minecraft:stone_bricks");
         itemMap.put("A", "waystones:abyss_watcher");
         itemMap.put("O", "minecraft:obsidian");
         itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("stone_brick_waystone",
-                Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:stone_brick_waystone", 1).toString());
+        recipesTag.putString("stone_brick_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:stone_brick_waystone", 1).toString());
 
         itemMap.clear();
         itemMap.put("A", "waystones:abyss_watcher");
         itemMap.put("S", "minecraft:nether_star");
         itemMap.put("P", "minecraft:blaze_powder");
-        recipesTag.putString("pocket_wormhole",
-                Utils.createRecipe(" A _PSP_ P ", itemMap, "waystones:pocket_wormhole", 1).toString());
+        recipesTag.putString("pocket_wormhole", Utils.createRecipe(" A _PSP_ P ", itemMap, "waystones:pocket_wormhole", 1).toString());
 
         itemMap.clear();
         itemMap.put("E", "minecraft:ender_pearl");
         itemMap.put("F", "minecraft:flint");
-        recipesTag.putString("abyss_watcher",
-                Utils.createRecipe("FEF", itemMap, "waystones:abyss_watcher", 1).toString());
+        recipesTag.putString("abyss_watcher", Utils.createRecipe("FEF", itemMap, "waystones:abyss_watcher", 1).toString());
 
         itemMap.clear();
         itemMap.put("P", "minecraft:paper");
         itemMap.put("S", "minecraft:stick");
-        recipesTag.putString("waystone_scroll",
-                Utils.createRecipe("SPS_PPP_SPS", itemMap, "waystones:waystone_scroll", 1).toString());
+        recipesTag.putString("waystone_scroll", Utils.createRecipe("SPS_PPP_SPS", itemMap, "waystones:waystone_scroll", 1).toString());
 
         itemMap.clear();
         itemMap.put("A", "waystones:abyss_watcher");
         itemMap.put("B", "minecraft:blaze_powder");
-        recipesTag.putString("local_void",
-                Utils.createRecipe(" B _BAB_ B ", itemMap, "waystones:local_void", 1).toString());
+        recipesTag.putString("local_void", Utils.createRecipe(" B _BAB_ B ", itemMap, "waystones:local_void", 1).toString());
 
         recipesTag.putString("scroll_of_infinite_knowledge", "none");
 
@@ -371,10 +360,6 @@ public class Config {
         }
     }
 
-    public void saveConfig() {
-        createFile(toJson(this.configData), true);
-    }
-
     private void createFile(JsonObject contents, boolean overwrite) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         contents = new JsonParser().parse(gson.toJson(contents)).getAsJsonObject();
@@ -429,7 +414,7 @@ public class Config {
     public static String readFile(File file) throws FileNotFoundException {
         Scanner scanner = new Scanner(file);
         scanner.useDelimiter("\\Z");
-        String result = scanner.next();
+        var result = scanner.next();
         scanner.close();
         return result;
     }
