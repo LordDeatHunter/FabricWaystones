@@ -45,6 +45,7 @@ public abstract class DynamicRegistryManagerMixin {
                 e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/swamp/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
                 e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/warped/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
                 e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/mushroom/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
+                e.setValue(Utils.tryAddElementToPool(new Identifier("repurposed_structures", "villages/oak/houses"), (StructurePool) e.getValue(), "waystones:village_waystone", StructurePool.Projection.RIGID));
             }
         }
     }
