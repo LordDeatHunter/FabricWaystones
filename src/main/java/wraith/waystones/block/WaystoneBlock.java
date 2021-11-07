@@ -14,7 +14,6 @@ import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -38,15 +37,16 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
-import wraith.waystones.util.Config;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
 import wraith.waystones.Waystones;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
 import wraith.waystones.item.LocalVoid;
 import wraith.waystones.item.WaystoneScroll;
 import wraith.waystones.registries.BlockEntityRegistry;
+import wraith.waystones.util.Config;
 
 import java.util.HashSet;
 
+@SuppressWarnings("deprecation")
 public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;

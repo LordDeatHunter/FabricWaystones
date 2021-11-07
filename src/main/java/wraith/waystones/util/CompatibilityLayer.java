@@ -11,7 +11,9 @@ import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.mixin.MinecraftServerAccessor;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,6 +41,12 @@ public class CompatibilityLayer {
                 }
             };
         }, OLD_ID);
+
+        File worldDirectory = ((MinecraftServerAccessor) SERVER).getSession().getWorldDirectory(SERVER.getOverworld().getRegistryKey());
+        File file = new File(worldDirectory, "data/" + OLD_ID + ".dat");
+        if (file.exists()) {
+            file.renameTo(new File(worldDirectory, "data/old_id_converted.dat"));
+        }
 
         return compatState != null;
     }

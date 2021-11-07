@@ -7,6 +7,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.Logger;
 import wraith.waystones.Waystones;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -21,7 +22,8 @@ public final class Config {
     private final Logger LOGGER = Waystones.LOGGER;
     private static final String CONFIG_FILE = "config/waystones/config.json";
 
-    private Config() {}
+    private Config() {
+    }
 
     public static Config getInstance() {
         if (instance == null) {
@@ -325,8 +327,7 @@ public final class Config {
 
     public boolean loadConfig() {
         try {
-            JsonObject fileConfig = getJsonObject(readFile(new File(CONFIG_FILE)));
-            return loadConfig(fileConfig);
+            return loadConfig(getJsonObject(readFile(new File(CONFIG_FILE))));
         } catch (Exception e) {
             LOGGER.info("Found error with config. Using default config.");
             this.configData = getDefaults();
@@ -337,8 +338,7 @@ public final class Config {
 
     private boolean loadConfig(JsonObject fileConfig) {
         try {
-            NbtCompound config = toNbtCompound(fileConfig);
-            this.configData = config;
+            this.configData = toNbtCompound(fileConfig);
             return true;
         } catch (Exception e) {
             LOGGER.info("Found error with config. Using default config.");
