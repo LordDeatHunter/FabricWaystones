@@ -6,7 +6,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -41,13 +40,13 @@ public class ScrollOfInfiniteKnowledge extends Item {
         }
         Text text;
         if (learned > 0) {
-            text = new TranslatableText("waystones.learned.infinite.first").append(" " + learned + " ").append(new TranslatableText("waystones.learned.infinite.second")).formatted(Formatting.AQUA);
+            text = new TranslatableText(learned > 1 ? "waystones.learned.infinite.multiple" : "waystones.learned.infinite.single", learned);
             ((PlayerEntityMixinAccess)user).discoverWaystones(toLearn);
             if (!user.isCreative() && Config.getInstance().consumeInfiniteScroll()) {
                 stack.decrement(1);
             }
         } else {
-            text = new TranslatableText("waystones.learned.infinite.none").formatted(Formatting.AQUA);
+            text = new TranslatableText("waystones.learned.infinite.none");
         }
         if (!world.isClient) {
             user.sendMessage(text, false);
@@ -63,7 +62,7 @@ public class ScrollOfInfiniteKnowledge extends Item {
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
-        tooltip.add(new TranslatableText("waystones.scroll.infinite").formatted(Formatting.GOLD));
+        tooltip.add(new TranslatableText("waystones.scroll.infinite"));
         int count = -1;
         if (Waystones.WAYSTONE_STORAGE != null) {
             count = Waystones.WAYSTONE_STORAGE.getCount();
@@ -71,7 +70,7 @@ public class ScrollOfInfiniteKnowledge extends Item {
             count = ClientStuff.getWaystoneCount();
         }
         if (count != -1) {
-            tooltip.add(new TranslatableText("waystones.scroll.infinite_tooltip").append(" " + count).formatted(Formatting.GOLD));
+            tooltip.add(new TranslatableText("waystones.scroll.infinite_tooltip", count));
         }
     }
 

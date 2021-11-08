@@ -11,7 +11,6 @@ import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -49,13 +48,13 @@ public class WaystoneScroll extends Item {
         }
         Text text;
         if (learned > 0) {
-            text = new TranslatableText(learned > 1 ? "waystones.learned.multiple" : "waystones.learned", learned).formatted(Formatting.AQUA);
+            text = new TranslatableText(learned > 1 ? "waystones.learned.multiple" : "waystones.learned.single", learned);
             ((PlayerEntityMixinAccess)user).discoverWaystones(toLearn);
             if (!user.isCreative()) {
                 stack.decrement(1);
             }
         } else {
-            text = new TranslatableText("waystones.learned.none").formatted(Formatting.AQUA);
+            text = new TranslatableText("waystones.learned.none");
             stack.setNbt(null);
         }
         if (!world.isClient) {
@@ -105,7 +104,7 @@ public class WaystoneScroll extends Item {
             waystones = ClientStuff.getWaystoneHashes();
         }
         if (waystones != null) {
-            tooltip.add(new TranslatableText("waystones.scroll.tooltip").append(" " + size).formatted(Formatting.GOLD));
+            tooltip.add(new TranslatableText("waystones.scroll.tooltip", size));
         }
     }
 

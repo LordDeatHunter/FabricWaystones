@@ -15,21 +15,21 @@
   "container.waystones.pocket_wormhole": "Pocket Wormhole",
   "container.waystones.abyss_watcher": "Abyss Watcher",
 
-  "waystones.gui.displayed_waystones": "Displayed waystones:",
+  "waystones.gui.displayed_waystones": "Displayed waystones: %1%s",
   "waystones.gui.contains": "Search at: Anywhere in name.",
   "waystones.gui.starts_with": "Search at: Start of name.",
 
-  "waystones.waystone_tooltip.name": "§6[§eStored name§6]",
+  "waystones.waystone_tooltip.name": "§6[§eStored name§6] §3%1$s",
   "waystones.waystone_tooltip.global": "§6[§eGlobal§6]",
   "waystones.waystone_tooltip.global_on": "§3ON",
   "waystones.waystone_tooltip.global_off": "§3OFF",
 
-  "waystones.scroll.tooltip": "Stored waystones:",
-  "waystones.scroll.infinite": "Discover everything there is to discover.",
-  "waystones.scroll.infinite_tooltip": "Existing waystones:",
+  "waystones.scroll.tooltip": "§6Stored waystones: %1$s",
+  "waystones.scroll.infinite": "§6Discover everything there is to discover.",
+  "waystones.scroll.infinite_tooltip": "§6Existing waystones: %1$s",
 
-  "waystones.local_void.tooltip": "Bound to:",
-  "waystones.local_void.empty_tooltip": "Unbound.",
+  "waystones.local_void.tooltip": "§6Bound to: %1%s",
+  "waystones.local_void.empty_tooltip": "§3Unbound.",
 
   "waystones.config.tooltip.revoke_ownership": "Revoke ownership.",
   "waystones.config.tooltip.toggle_global_view": "Toggle global waystone visibility.",
@@ -41,22 +41,22 @@
   "waystones.config.tooltip.back": "Back to waystone list.",
   "waystones.config.tooltip.config": "Open config menu.",
 
-  "waystones.learned": "Learned one new waystone!",
-  "waystones.learned.multiple": "Learned %1$s new waystones!",
-  "waystones.learned.none": "No new waystones learned!",
+  "waystones.learned.single": "Learned one new waystone!",
+  "waystones.learned.multiple": "§bLearned %1$s new waystones!",
+  "waystones.learned.none": "§bNo new waystones learned!",
 
-  "waystones.learned.infinite.first": "Learned",
-  "waystones.learned.infinite.second": "waystones!",
-  "waystones.learned.infinite.none": "You already know everything there is to know!",
+  "waystones.learned.infinite.single": "§bLearned one waystone!",
+  "waystones.learned.infinite.multiple": "§bLearned %1$s waystones!",
+  "waystones.learned.infinite.none": "§6You already know everything there is to know!",
 
-  "waystones.discover_waystone": "has been discovered!",
+  "waystones.discover_waystone": "§b%1%s has been discovered!",
   "waystones.search": "",
   "waystones.rename": "",
 
   "waystones.config.global": "Toggle global waystone",
   "waystones.config.view_discovered": "View discovered waystones",
   "waystones.config.view_global": "View global waystones",
-  "waystones.config.owner": "Owned by",
+  "waystones.config.owner": "Owned by %1$s",
   "waystones.config.no_owner": "No one",
 
   "waystones.cost.item": "Total",

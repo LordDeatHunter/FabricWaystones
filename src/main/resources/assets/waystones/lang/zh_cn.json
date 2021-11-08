@@ -15,21 +15,21 @@
   "container.waystones.pocket_wormhole": "小型虫洞",
   "container.waystones.abyss_watcher": "深渊观察者",
   
-  "waystones.gui.displayed_waystones": "已显示的传送石碑：",
+  "waystones.gui.displayed_waystones": "已显示的传送石碑： %1%s",
   "waystones.gui.contains": "从名称的任意位置搜索。",
   "waystones.gui.starts_with": "从名称的开头搜索。",
 
-  "waystones.waystone_tooltip.name": "§6[§eStored name§6]",
+  "waystones.waystone_tooltip.name": "§6[§eStored name§6] §3%1$s",
   "waystones.waystone_tooltip.global": "§6[§eGlobal§6]",
   "waystones.waystone_tooltip.global_on": "§3开启",
   "waystones.waystone_tooltip.global_off": "§3O关闭",
 
-  "waystones.scroll.tooltip": "已存储的传送石碑:",
-  "waystones.scroll.infinite": "发现一切现存的传送石碑。",
-  "waystones.scroll.infinite_tooltip": "现存的传送石碑：",
+  "waystones.scroll.tooltip": "§6已存储的传送石碑: %1$s",
+  "waystones.scroll.infinite": "§6发现一切现存的传送石碑。",
+  "waystones.scroll.infinite_tooltip": "§6现存的传送石碑： %1$s",
 
-  "waystones.local_void.tooltip": "已绑定至：",
-  "waystones.local_void.empty_tooltip": "未绑定。",
+  "waystones.local_void.tooltip": "§6已绑定至： %1%s",
+  "waystones.local_void.empty_tooltip": "§3未绑定。",
 
   "waystones.config.tooltip.revoke_ownership": "取消已声明的所有权。",
   "waystones.config.tooltip.toggle_global_view": "切换全局传送石碑的可见性。",
@@ -41,22 +41,22 @@
   "waystones.config.tooltip.back": "返回传送石碑列表。",
   "waystones.config.tooltip.config": "打开配置菜单。",
 
-  "waystones.learned": "已发现一个新的传送石碑！",
-  "waystones.learned.multiple": "已发现 %1$s 个新的传送石碑！",
-  "waystones.learned.none": "没有发现新的传送石碑！",
+  "waystones.learned.single": "已发现一个新的传送石碑！",
+  "waystones.learned.multiple": "§b已发现 %1$s 个新的传送石碑！",
+  "waystones.learned.none": "§b没有发现新的传送石碑！",
 
-  "waystones.learned.infinite.first": "已习得",
-  "waystones.learned.infinite.second": "个传送石碑！",
-  "waystones.learned.infinite.none": "你已发现所有现存的传送石碑！",
+  "waystones.learned.infinite.single": "§b已发现一个新的传送石碑！",
+  "waystones.learned.infinite.multiple": "§b已发现 %1$s 个新的传送石碑！",
+  "waystones.learned.infinite.none": "§6你已发现所有现存的传送石碑！",
 
-  "waystones.discover_waystone": "已被发现！",
+  "waystones.discover_waystone": "§b%1%s 已被发现！",
   "waystones.search": "",
   "waystones.rename": "",
 
   "waystones.config.global": "切换全局传送石碑",
   "waystones.config.view_discovered": "查看已发现的传送石碑",
   "waystones.config.view_global": "查看全局传送石碑",
-  "waystones.config.owner": "所有者",
+  "waystones.config.owner": "由 %1$s 拥有 ",
   "waystones.config.no_owner": "无",
 
   "waystones.cost.item": "总计",
@@ -64,6 +64,7 @@
   "waystones.cost.xp": "经验",
   "waystones.cost.health": "半颗红心",
   "waystones.cost.level": "等级",
+  "waystones.cost.hunger": "饥饿",
 
-  "itemGroup.waystones.waystones": "传送石碑§7（Waystones）"
+  "itemGroup.waystones.waystones": "传送石碑（Waystones）"
 }

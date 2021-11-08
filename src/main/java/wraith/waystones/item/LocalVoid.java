@@ -9,7 +9,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -81,10 +80,10 @@ public class LocalVoid extends Item {
             }
         }
         if (invalid) {
-            tooltip.add(new TranslatableText("waystones.local_void.empty_tooltip").formatted(Formatting.DARK_AQUA));
+            tooltip.add(new TranslatableText("waystones.local_void.empty_tooltip"));
             return;
         }
-        tooltip.add(new TranslatableText("waystones.local_void.tooltip").append(" " + name).formatted(Formatting.GOLD));
+        tooltip.add(new TranslatableText("waystones.local_void.tooltip", name));
     }
 
 }

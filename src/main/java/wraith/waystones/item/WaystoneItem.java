@@ -7,7 +7,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,8 +27,9 @@ public class WaystoneItem extends BlockItem {
         }
         String name = tag.getString("waystone_name");
         boolean global = tag.getBoolean("waystone_is_global");
-        tooltip.add(new TranslatableText("waystones.waystone_tooltip.name").append(" " + name).formatted(Formatting.DARK_AQUA));
-        tooltip.add(new TranslatableText("waystones.waystone_tooltip.global").append(" ").append(new TranslatableText("waystones.waystone_tooltip.global_" + (global ? "on" : "off"))).formatted(Formatting.DARK_AQUA));
+        tooltip.add(new TranslatableText("waystones.waystone_tooltip.name", name));
+        tooltip.add(new TranslatableText("waystones.waystone_tooltip.global").append(" ")
+            .append(new TranslatableText("waystones.waystone_tooltip.global_" + (global ? "on" : "off"))));
     }
 
 }

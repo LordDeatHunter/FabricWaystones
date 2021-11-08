@@ -24,7 +24,6 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
@@ -235,7 +234,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
                 if (!discovered.contains(blockEntity.getHash())) {
                     if (!blockEntity.isGlobal()) {
-                        player.sendMessage(new LiteralText(blockEntity.getWaystoneName() + " ").append(new TranslatableText("waystones.discover_waystone")).formatted(Formatting.AQUA),false);
+                        player.sendMessage(new TranslatableText("waystones.discover_waystone", blockEntity.getWaystoneName()),false);
                     }
                     ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
                 }

@@ -395,7 +395,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
             } else {
                 ownerText = new LiteralText(owner);
             }
-            this.textRenderer.draw(matrices, new TranslatableText("waystones.config.owner").append(new LiteralText(": ").append(ownerText)), this.x + 10, this.y + 75, 0x161616);
+            this.textRenderer.draw(matrices, new TranslatableText("waystones.config.owner", ownerText), this.x + 10, this.y + 75, 0x161616);
             if (this.nameField.isVisible()) {
                 this.nameField.render(matrices, mouseX, mouseY, delta);
             }
