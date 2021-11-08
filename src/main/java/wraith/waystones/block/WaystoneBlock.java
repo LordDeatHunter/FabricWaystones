@@ -115,7 +115,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 if (!world.isClient) {
                     ItemStack itemStack = new ItemStack(state.getBlock().asItem());
                     NbtCompound compoundTag = waystoneBlockEntity.writeNbt(new NbtCompound());
-                    if (player.isSneaking() && !compoundTag.isEmpty()) {
+                    if (Config.getInstance().storeWaystoneNbt() && player.isSneaking() && !compoundTag.isEmpty()) {
                         itemStack.setSubNbt("BlockEntityTag", compoundTag);
                     }
                     ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D,(double) topPos.getZ() + 0.5D, itemStack);

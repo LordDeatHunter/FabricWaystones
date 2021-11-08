@@ -48,6 +48,10 @@ public final class Config {
         return null;
     }
 
+    public boolean storeWaystoneNbt() {
+        return true;
+    }
+
     public String teleportType() {
         return configData.getString("cost_type");
     }
@@ -74,6 +78,7 @@ public final class Config {
         defaultConfig.putBoolean("generate_in_villages", true);
         defaultConfig.putBoolean("consume_infinite_knowledge_scroll_on_use", false);
         defaultConfig.putBoolean("can_owners_redeem_payments", false);
+        defaultConfig.putBoolean("store_waystone_data_on_sneak_break", true);
         defaultConfig.putInt("cost_amount", 1);
         defaultConfig.putString("cost_type", "level");
         defaultConfig.putString("cost_item", "minecraft:ender_pearl");
@@ -154,6 +159,15 @@ public final class Config {
             consumeInfiniteScroll = defaults.getBoolean("consume_infinite_knowledge_scroll_on_use");
         }
         json.addProperty("consume_infinite_knowledge_scroll_on_use", consumeInfiniteScroll);
+
+        boolean storeWaystoneDataOnBreak;
+        if (tag.contains("store_waystone_data_on_sneak_break")) {
+            storeWaystoneDataOnBreak = tag.getBoolean("store_waystone_data_on_sneak_break");
+        } else {
+            overwrite = true;
+            storeWaystoneDataOnBreak = defaults.getBoolean("store_waystone_data_on_sneak_break");
+        }
+        json.addProperty("store_waystone_data_on_sneak_break", storeWaystoneDataOnBreak);
 
         boolean canOnwersRedeem;
         if (tag.contains("can_owners_redeem_payments")) {
@@ -250,6 +264,15 @@ public final class Config {
             consumeInfiniteScroll = defaults.getBoolean("consume_infinite_knowledge_scroll_on_use");
         }
         tag.putBoolean("consume_infinite_knowledge_scroll_on_use", consumeInfiniteScroll);
+
+        boolean storeWaystoneDataOnBreak;
+        if (json.has("store_waystone_data_on_sneak_break")) {
+            storeWaystoneDataOnBreak = json.get("store_waystone_data_on_sneak_break").getAsBoolean();
+        } else {
+            overwrite = true;
+            storeWaystoneDataOnBreak = defaults.getBoolean("store_waystone_data_on_sneak_break");
+        }
+        tag.putBoolean("store_waystone_data_on_sneak_break", storeWaystoneDataOnBreak);
 
         boolean canOnwersRedeem;
         if (json.has("can_owners_redeem_payments")) {
