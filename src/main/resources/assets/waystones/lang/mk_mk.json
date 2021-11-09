@@ -1,6 +1,7 @@
 {
   "item.waystones.waystone": "Патен камен",
   "item.waystones.desert_waystone": "Пустински патен камен",
+  "item.waystones.red_desert_waystone": "Црвен пустински патен камен",
   "item.waystones.stone_brick_waystone": "Патен камен од камени цигли",
   "item.waystones.pocket_wormhole": "Джебна црвоточина",
   "item.waystones.local_void": "Локална празнина",
@@ -10,12 +11,13 @@
   "item.waystones.scroll_of_infinite_knowledge": "Скрол на бесконечно знаење",
   "block.waystones.waystone": "Патен камен",
   "block.waystones.desert_waystone": "Пустински патен камен",
+  "block.waystones.red_desert_waystone": "Црвен пустински патен камен",
   "block.waystones.stone_brick_waystone": "Патен камен од камени цигли",
   "container.waystones.waystone": "Патни камења",
   "container.waystones.pocket_wormhole": "Джебна црвоточина",
   "container.waystones.abyss_watcher": "Набљудувач на бездната",
 
-  "waystones.gui.displayed_waystones": "Прикажани патни камења: %1%s",
+  "waystones.gui.displayed_waystones": "Прикажани патни камења: %1$s",
   "waystones.gui.contains": "Барај во: Било каде во името.",
   "waystones.gui.starts_with": "Барај во: Почетокот на името.",
 
@@ -28,7 +30,7 @@
   "waystones.scroll.infinite": "§6Откриј се што има за откривање.",
   "waystones.scroll.infinite_tooltip": "§6Постоечки патни камења: %1$s",
 
-  "waystones.local_void.tooltip": "§6Приврзано со: %1%s",
+  "waystones.local_void.tooltip": "§6Приврзано со: %1$s",
   "waystones.local_void.empty_tooltip": "§3Не приврзано.",
 
   "waystones.config.tooltip.revoke_ownership": "Откажи сопственост.",
@@ -49,7 +51,7 @@
   "waystones.learned.infinite.multiple": "§bОткриени се %1 патни камења!",
   "waystones.learned.infinite.none": "§6Веќе знаете се што треба да знаете!",
 
-  "waystones.discover_waystone": "§b%1%s е откриен!",
+  "waystones.discover_waystone": "§b%1$s е откриен!",
   "waystones.search": "",
   "waystones.rename": "",
 

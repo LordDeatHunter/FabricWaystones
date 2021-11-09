@@ -10,7 +10,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import java.util.List;
 
 @Mixin(StructurePool.class)
-public interface StructurePoolAccess {
+public interface StructurePoolAccessor {
+
     @Accessor(value = "elements")
     List<StructurePoolElement> getElements();
 

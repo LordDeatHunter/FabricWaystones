@@ -2,17 +2,19 @@ package wraith.waystones.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.mojang.datafixers.util.Pair;
+import io.netty.util.internal.StringUtil;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.PoolStructurePiece;
 import net.minecraft.structure.StructurePiece;
 import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
-import net.minecraft.structure.processor.StructureProcessorLists;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.ChunkSectionPos;
@@ -20,9 +22,12 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.feature.StructureFeature;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.mixin.SinglePoolElementAccessor;
+import wraith.waystones.mixin.StructurePoolAccessor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -46,47 +51,45 @@ public class Utils {
     }
 
     private static String generateUniqueId() {
-        StringBuilder sb = new StringBuilder();
-        ArrayList<Character> vowels = new ArrayList<>() {{
-            add('a');
-            add('e');
-            add('i');
-            add('o');
-            add('u');
-        }};
-        char c;
-        do {
-            c = (char)Utils.getRandomIntInRange(65, 90);
-        } while(c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U');
-        sb.append(c);
-        sb.append(vowels.get(Utils.random.nextInt(5)));
-        for (int i = 0; i < 3; ++i) {
-            do {
-                c = (char)Utils.getRandomIntInRange(97, 122);
-            } while(c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u');
-            sb.append(c);
-            sb.append(vowels.get(Utils.random.nextInt(5)));
+        if (random.nextDouble() < 1e-4) {
+            return "DeatHunter was here";
         }
-        return random.nextDouble() < 1e-4 ? "dethunter based" : sb.toString();
+        var sb = new StringBuilder();
+        char[] vowels = {'a', 'e', 'i', 'o', 'u'};
+        char[] consonants = {'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'};
+        for (int i = 0; i < 4; ++i) {
+            var consonant = consonants[Utils.random.nextInt(consonants.length)];
+            if (i == 0) {
+                consonant = Character.toUpperCase(consonant);
+            }
+            sb.append(consonant);
+            sb.append(vowels[Utils.random.nextInt(vowels.length)]);
+        }
+        return sb.toString();
     }
 
-
-    public static StructurePool tryAddElementToPool(Identifier targetPool, StructurePool pool, String elementId, StructurePool.Projection projection, int weight) {
-        if(targetPool.equals(pool.getId())) {
-            ModifiableStructurePool modPool = new ModifiableStructurePool(pool);
-            modPool.addStructurePoolElement(StructurePoolElement.ofProcessedSingle(elementId, StructureProcessorLists.EMPTY).apply(projection), weight);
-            return modPool.getStructurePool();
+    public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
+        var poolGetter = server.getRegistryManager()
+                .get(Registry.STRUCTURE_POOL_KEY)
+                .getEntries().stream()
+                .filter(p -> p.getKey().getValue().equals(village))
+                .findFirst();
+        if (poolGetter.isEmpty()) {
+            Waystones.LOGGER.error("Cannot add to " + village + " as it cannot be found!");
+            return;
         }
-        return pool;
-    }
+        var pool = poolGetter.get().getValue();
 
-    public static StructurePool tryAddElementToPool(Identifier targetPool, StructurePool pool, String elementId, StructurePool.Projection projection) {
-        if(targetPool.equals(pool.getId())) {
-            ModifiableStructurePool modPool = new ModifiableStructurePool(pool);
-            modPool.addStructurePoolElement(StructurePoolElement.ofProcessedSingle(elementId, StructureProcessorLists.EMPTY).apply(projection));
-            return modPool.getStructurePool();
+        var pieceList = ((StructurePoolAccessor)pool).getElements();
+        var piece = StructurePoolElement.ofSingle(waystone.toString()).apply(StructurePool.Projection.RIGID);
+
+        var list = new ArrayList<>(((StructurePoolAccessor) pool).getElementCounts());
+        list.add(Pair.of(piece, weight));
+        ((StructurePoolAccessor)pool).setElementCounts(list);
+
+        for (int i = 0; i < weight; ++i) {
+            pieceList.add(piece);
         }
-        return pool;
     }
 
     //Values from https://minecraft.gamepedia.com/Experience
@@ -292,16 +295,16 @@ public class Utils {
         }
         ChunkPos chunkPos = chunk.getPos();
         for (int i = 0; i < StructureFeature.LAND_MODIFYING_STRUCTURES.size(); ++i) {
-            StructureFeature<?> structureFeature = StructureFeature.LAND_MODIFYING_STRUCTURES.get(i);
-            AtomicInteger waystones = new AtomicInteger(0);
+            var structureFeature = StructureFeature.LAND_MODIFYING_STRUCTURES.get(i);
+            var waystones = new AtomicInteger(0);
             accessor.getStructuresWithChildren(ChunkSectionPos.from(chunkPos, 0), structureFeature).forEach((structures) -> {
                 int pre = structures.getChildren().size();
                 ArrayList<Integer> toRemove = new ArrayList<>();
                 for (int j = 0; j < pre; ++j) {
                     StructurePiece structure = structures.getChildren().get(j);
-                    if (structure instanceof PoolStructurePiece &&
+                    if (structure instanceof PoolStructurePiece poolStructurePiece &&
                         ((PoolStructurePiece) structure).getPoolElement() instanceof SinglePoolElement &&
-                        "waystones:village_waystone".equals(((SinglePoolElementAccessor)((PoolStructurePiece) structure).getPoolElement()).getLocation().left().get().toString()) &&
+                        WaystonesWorldgen.WAYSTONE_STRUCTURES.contains(((SinglePoolElementAccessor)(poolStructurePiece).getPoolElement()).getLocation().left().get()) &&
                         waystones.getAndIncrement() > 0) {
                         toRemove.add(j);
                     }
@@ -314,4 +317,5 @@ public class Utils {
         }
         return accessor;
     }
+
 }

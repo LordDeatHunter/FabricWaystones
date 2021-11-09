@@ -1,6 +1,7 @@
 {
   "item.waystones.waystone": "Waystone",
   "item.waystones.desert_waystone": "Desert Waystone",
+  "item.waystones.red_desert_waystone": "Red Desert Waystone",
   "item.waystones.stone_brick_waystone": "Stone Brick Waystone",
   "item.waystones.pocket_wormhole": "Pocket Wormhole",
   "item.waystones.local_void": "Local Void",
@@ -10,12 +11,13 @@
   "item.waystones.scroll_of_infinite_knowledge": "Scroll of Infinite Knowledge",
   "block.waystones.waystone": "Waystone",
   "block.waystones.desert_waystone": "Desert Waystone",
+  "block.waystones.red_desert_waystone": "Red Desert Waystone",
   "block.waystones.stone_brick_waystone": "Stone Brick Waystone",
   "container.waystones.waystone": "Waystones",
   "container.waystones.pocket_wormhole": "Pocket Wormhole",
   "container.waystones.abyss_watcher": "Abyss Watcher",
 
-  "waystones.gui.displayed_waystones": "Displayed waystones: %1%s",
+  "waystones.gui.displayed_waystones": "Displayed waystones: %1$s",
   "waystones.gui.contains": "Search at: Anywhere in name.",
   "waystones.gui.starts_with": "Search at: Start of name.",
 
@@ -28,7 +30,7 @@
   "waystones.scroll.infinite": "§6Discover everything there is to discover.",
   "waystones.scroll.infinite_tooltip": "§6Existing waystones: %1$s",
 
-  "waystones.local_void.tooltip": "§6Bound to: %1%s",
+  "waystones.local_void.tooltip": "§6Bound to: %1$s",
   "waystones.local_void.empty_tooltip": "§3Unbound.",
 
   "waystones.config.tooltip.revoke_ownership": "Revoke ownership.",
@@ -49,7 +51,7 @@
   "waystones.learned.infinite.multiple": "§bLearned %1$s waystones!",
   "waystones.learned.infinite.none": "§6You already know everything there is to know!",
 
-  "waystones.discover_waystone": "§b%1%s has been discovered!",
+  "waystones.discover_waystone": "§b%1$s has been discovered!",
   "waystones.search": "",
   "waystones.rename": "",
 

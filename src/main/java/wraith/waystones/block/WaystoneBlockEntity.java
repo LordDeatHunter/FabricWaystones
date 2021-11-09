@@ -236,18 +236,18 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         int j = r.nextInt(2) * 2 - 1;
         int k = r.nextInt(2) * 2 - 1;
 
-        double y = this.getPos().getY();
+        double y = this.getPos().getY() + 1;
 
         int rd = r.nextInt(10);
         if (rd > 5) {
             if (p == ParticleTypes.ENCHANT) {
-                this.world.addParticle(p, playerPos.x, playerPos.y + 2D, playerPos.z,
-                        (getPos().getX() + 0.5D - playerPos.x), (y + -1.25D - playerPos.y),
+                this.world.addParticle(p, playerPos.x, playerPos.y + 1.5D, playerPos.z,
+                        (getPos().getX() + 0.5D - playerPos.x), (y - 1.25D - playerPos.y),
                         (getPos().getZ() + 0.5D - playerPos.z));
             } else {
                 this.world.addParticle(p, this.getPos().getX() + 0.5D, y + 0.8D, this.getPos().getZ() + 0.5D,
                         (playerPos.x - getPos().getX()) - r.nextDouble(),
-                        (playerPos.y - getPos().getY()) - r.nextDouble() * 0.5D,
+                        (playerPos.y - getPos().getY() - 0.5D) - r.nextDouble() * 0.5D,
                         (playerPos.z - getPos().getZ()) - r.nextDouble());
             }
         }

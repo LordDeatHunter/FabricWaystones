@@ -4,8 +4,6 @@
   "package": "wraith.waystones.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "DynamicRegistryManagerImplMixin",
-    "DynamicRegistryManagerMixin",
     "FlatChunkGeneratorMixin",
     "MinecraftServerAccessor",
     "NoiseChunkGeneratorMixin",
@@ -15,7 +13,7 @@
     "ServerPlayerEntityMixin",
     "SimpleRegistryAccessor",
     "SinglePoolElementAccessor",
-    "StructurePoolAccess"
+    "StructurePoolAccessor"
   ],
   "client": [
     "ClientPlayerEntityAccessor",

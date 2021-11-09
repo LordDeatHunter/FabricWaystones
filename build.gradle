@@ -10,14 +10,20 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
+repositories {
+	maven { url = "https://www.cursemaven.com" }
+}
+
 dependencies {
-	implementation 'org.jetbrains:annotations:19.0.0'
+	implementation 'org.jetbrains:annotations:22.0.0'
 
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	modCompileOnly 'curse.maven:repurposed-structures-fabric-391366:3519661'
 }
 
 loom {
