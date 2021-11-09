@@ -15,7 +15,7 @@
   "container.waystones.pocket_wormhole": "Tragbares Wurmloch",
   "container.waystones.abyss_watcher": "Auge des Abgrunds",
 
-  "waystones.gui.displayed_waystones": "Angezeigte Wegsteine: %1%s",
+  "waystones.gui.displayed_waystones": "Angezeigte Wegsteine: %1$s",
   "waystones.gui.contains": "Suchen in: Ganzer Name.",
   "waystones.gui.starts_with": "Suchen in: Anfang des Namens.",
 
@@ -28,7 +28,7 @@
   "waystones.scroll.infinite": "Erlerne alles was zu erlernen ist.",
   "waystones.scroll.infinite_tooltip": "Vorhandene Wegsteine:",
 
-  "waystones.local_void.tooltip": "§6Gebunden an: %1%s",
+  "waystones.local_void.tooltip": "§6Gebunden an: %1$s",
   "waystones.local_void.empty_tooltip": "§3Ungebunden.",
 
   "waystones.config.tooltip.revoke_ownership": "Besitzer entfernen.",
@@ -49,7 +49,7 @@
   "waystones.learned.infinite.multiple": "§6%1$s Wegsteine erlernt!",
   "waystones.learned.infinite.none": "§6Du weißt bereits alles was zu wissen ist!",
 
-  "waystones.discover_waystone": "§b%1%s wurde entdeckt!",
+  "waystones.discover_waystone": "§b%1$s wurde entdeckt!",
   "waystones.search": "",
   "waystones.rename": "",
 

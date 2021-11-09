@@ -5,7 +5,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.NbtCompound;
+import wraith.waystones.compat.RepurposedStructuresCompat;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.Utils;
 import wraith.waystones.Waystones;
@@ -29,6 +31,10 @@ public class WaystonesClient implements ClientModInitializer {
         WaystonesModelProviderRegistry.register();
         registerPacketHandlers();
         registerEvents();
+
+        if (FabricLoader.getInstance().isModLoaded("repurposed_structures")) {
+            RepurposedStructuresCompat.init();
+        }
     }
 
     private void registerPacketHandlers() {
