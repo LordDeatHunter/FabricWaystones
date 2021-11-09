@@ -102,6 +102,13 @@ public final class Config {
         recipesTag.putString("desert_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:desert_waystone", 1).toString());
 
         itemMap.clear();
+        itemMap.put("S", "minecraft:red_sandstone");
+        itemMap.put("A", "waystones:abyss_watcher");
+        itemMap.put("O", "minecraft:obsidian");
+        itemMap.put("E", "minecraft:emerald");
+        recipesTag.putString("red_desert_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:red_desert_waystone", 1).toString());
+
+        itemMap.clear();
         itemMap.put("S", "#minecraft:stone_bricks");
         itemMap.put("A", "waystones:abyss_watcher");
         itemMap.put("O", "minecraft:obsidian");
@@ -348,6 +355,7 @@ public final class Config {
         return tag;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean loadConfig() {
         try {
             return loadConfig(getJsonObject(readFile(new File(CONFIG_FILE))));
@@ -371,6 +379,7 @@ public final class Config {
         }
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean loadConfig(NbtCompound config) {
         try {
             this.configData = config;
