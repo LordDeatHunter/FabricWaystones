@@ -37,10 +37,9 @@ import wraith.waystones.registries.ItemRegistry;
 import wraith.waystones.screens.WaystoneScreenHandler;
 import wraith.waystones.util.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable, WaystoneValue {
 
@@ -122,18 +121,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
-        if (tag.contains("waystone_name")) {
-            this.name = tag.getString("waystone_name");
-        }
-        if (tag.contains("waystone_is_global")) {
-            this.isGlobal = tag.getBoolean("waystone_is_global");
-        }
-        if (tag.contains("waystone_owner")) {
-            this.owner = tag.getUuid("waystone_owner");
-        }
-        if (tag.contains("waystone_owner_name")) {
-            this.ownerName = tag.getString("waystone_owner_name");
-        }
+        this.name = tag.contains("waystone_name") ? tag.getString("waystone_name") : "";
+        this.isGlobal = tag.contains("waystone_is_global") && tag.getBoolean("waystone_is_global");
+        this.owner = tag.contains("waystone_owner") ? tag.getUuid("waystone_owner") : null;
+        this.ownerName = tag.contains("waystone_owner_name") ? tag.getString("waystone_owner_name") : null;
         this.inventory = DefaultedList.ofSize(tag.getInt("inventory_size"), ItemStack.EMPTY);
         Inventories.readNbt(tag, inventory);
     }
@@ -381,6 +372,25 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             createHash(world, pos);
         }
         return this.hash;
+    }
+
+    public byte[] getHashByteArray() {
+        var hash = getHash();
+        var values = hash.substring(1, hash.length() - 1).split(", ");
+        var bytes = new byte[values.length];
+        for (int i = 0; i < values.length; ++i) {
+            bytes[i] = Byte.parseByte(values[i]);
+        }
+        return bytes;
+    }
+
+    public String getHexHash() {
+        BigInteger number = new BigInteger(1, getHashByteArray());
+        StringBuilder hexString = new StringBuilder(number.toString(16));
+        while (hexString.length() < 32) {
+            hexString.insert(0, '0');
+        }
+        return hexString.toString();
     }
 
     @Override

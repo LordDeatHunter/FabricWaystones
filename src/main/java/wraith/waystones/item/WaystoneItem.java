@@ -27,7 +27,7 @@ public class WaystoneItem extends BlockItem {
         }
         String name = tag.getString("waystone_name");
         boolean global = tag.getBoolean("waystone_is_global");
-        tooltip.add(new TranslatableText("waystones.waystone_tooltip.name", new TranslatableText("waystones.waystone_tooltip.name.arg_color").getString() + name));
+        tooltip.add(new TranslatableText("waystones.waystone_tooltip.name", new TranslatableText("waystones.waystone_tooltip.name.arg_color").append(name)));
         tooltip.add(new TranslatableText("waystones.waystone_tooltip.global").append(" ")
             .append(new TranslatableText("waystones.waystone_tooltip.global_" + (global ? "on" : "off"))));
     }

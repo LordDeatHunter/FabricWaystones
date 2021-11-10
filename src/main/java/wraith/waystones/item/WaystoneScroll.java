@@ -53,7 +53,7 @@ public class WaystoneScroll extends Item {
         Text text;
         if (learned > 0) {
             if (learned > 1) {
-                text = new TranslatableText("waystones.learned.multiple", new TranslatableText("waystones.learned.multiple.arg_color").getString() + learned);
+                text = new TranslatableText("waystones.learned.multiple", new TranslatableText("waystones.learned.multiple.arg_color").append(String.valueOf(learned)));
             } else {
                 text = new TranslatableText("waystones.learned.single");
             }
@@ -112,7 +112,7 @@ public class WaystoneScroll extends Item {
             waystones = ClientStuff.getWaystoneHashes();
         }
         if (waystones != null) {
-            tooltip.add(new TranslatableText("waystones.scroll.tooltip", new TranslatableText("waystones.scroll.tooltip.arg_color").getString() + size));
+            tooltip.add(new TranslatableText("waystones.scroll.tooltip", new TranslatableText("waystones.scroll.tooltip.arg_color").append(String.valueOf(size))));
         }
     }
 
