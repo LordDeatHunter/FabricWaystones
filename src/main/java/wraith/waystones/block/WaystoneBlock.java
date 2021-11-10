@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.interfaces.PlayerEntityMixinAccess;
 import wraith.waystones.item.LocalVoid;
+import wraith.waystones.item.WaystoneDebugger;
 import wraith.waystones.item.WaystoneScroll;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.util.Config;
@@ -102,9 +103,17 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         BlockPos blockPos = ctx.getBlockPos();
 
-        var fluidState = ctx.getWorld().getFluidState(blockPos);
-        if (blockPos.getY() < 255 && ctx.getWorld().getBlockState(blockPos.up()).canReplace(ctx)) {
-            return this.getDefaultState().with(FACING, ctx.getPlayerFacing().getOpposite()).with(HALF, DoubleBlockHalf.LOWER).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
+        var nbt = ctx.getStack().getSubNbt("BlockEntityTag");
+        boolean hasOwner = nbt != null && nbt.contains("waystone_owner");
+        var world = ctx.getWorld();
+        var fluidState = world.getFluidState(blockPos);
+
+        if (blockPos.getY() < world.getTopY() - 1 && world.getBlockState(blockPos.up()).canReplace(ctx)) {
+            return this.getDefaultState()
+                    .with(FACING, ctx.getPlayerFacing().getOpposite())
+                    .with(HALF, DoubleBlockHalf.LOWER)
+                    .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
+                    .with(ACTIVE, hasOwner);
         } else {
             return null;
         }
@@ -135,9 +144,9 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     if (Config.getInstance().storeWaystoneNbt() && player.isSneaking() && !compoundTag.isEmpty()) {
                         itemStack.setSubNbt("BlockEntityTag", compoundTag);
                     }
-                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D,(double) topPos.getZ() + 0.5D, itemStack);
+                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
                     if (waystone.getCachedState().get(MOSSY)) {
-                        ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D,(double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
+                        ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
                     }
                 } else {
                     waystone.checkLootInteraction(player);
@@ -220,7 +229,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             return ActionResult.PASS;
         }
 
-        if (heldItem instanceof WaystoneScroll || heldItem instanceof LocalVoid) {
+        if (heldItem instanceof WaystoneScroll || heldItem instanceof LocalVoid || heldItem instanceof WaystoneDebugger) {
             return ActionResult.PASS;
         }
 
@@ -248,7 +257,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             if (!discovered.contains(blockEntity.getHash())) {
                 if (!blockEntity.isGlobal()) {
                     player.sendMessage(new TranslatableText("waystones.discover_waystone",
-                            new TranslatableText("waystones.discover_waystone.arg_color").getString() + blockEntity.getWaystoneName()),false);
+                            new TranslatableText("waystones.discover_waystone.arg_color").append(blockEntity.getWaystoneName())), false);
                 }
                 ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
             }

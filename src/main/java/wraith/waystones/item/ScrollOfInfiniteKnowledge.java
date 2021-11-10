@@ -4,17 +4,16 @@ import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import wraith.waystones.client.ClientStuff;
-import wraith.waystones.util.Config;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
 import wraith.waystones.Waystones;
+import wraith.waystones.client.ClientStuff;
+import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.util.Config;
 
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +45,7 @@ public class ScrollOfInfiniteKnowledge extends Item {
         Text text;
         if (learned > 0) {
             if (learned > 1) {
-                text = new TranslatableText("waystones.learned.infinite.multiple", new TranslatableText("waystones.learned.infinite.multiple.arg_color").getString() + learned);
+                text = new TranslatableText("waystones.learned.infinite.multiple", new TranslatableText("waystones.learned.infinite.multiple.arg_color").append(String.valueOf(learned)));
             } else {
                 text = new TranslatableText("waystones.learned.infinite.single");
             }
@@ -79,7 +78,7 @@ public class ScrollOfInfiniteKnowledge extends Item {
             count = ClientStuff.getWaystoneCount();
         }
         if (count != -1) {
-            tooltip.add(new TranslatableText("waystones.scroll.infinite_tooltip", new TranslatableText("waystones.scroll.infinite_tooltip.arg_color").getString() + count));
+            tooltip.add(new TranslatableText("waystones.scroll.infinite_tooltip", new TranslatableText("waystones.scroll.infinite_tooltip.arg_color").append(String.valueOf(count))));
         }
     }
 

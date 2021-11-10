@@ -84,7 +84,7 @@ public class LocalVoid extends Item {
             tooltip.add(new TranslatableText("waystones.local_void.empty_tooltip"));
             return;
         }
-        tooltip.add(new TranslatableText("waystones.local_void.tooltip", new TranslatableText("waystones.local_void.tooltip.arg_color").getString() + name));
+        tooltip.add(new TranslatableText("waystones.local_void.tooltip", new TranslatableText("waystones.local_void.tooltip.arg_color").append(name)));
     }
 
 }
