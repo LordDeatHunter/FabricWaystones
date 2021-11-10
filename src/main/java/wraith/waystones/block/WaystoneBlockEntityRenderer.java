@@ -18,7 +18,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
     @Override
     public void render(WaystoneBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        ItemStack stack = new ItemStack(ItemRegistry.ITEMS.get("abyss_watcher"));
+        ItemStack stack = new ItemStack(ItemRegistry.get("abyss_watcher"));
 
         matrices.push();
         matrices.scale(0.5f, 0.5f, 0.5f);

@@ -27,7 +27,7 @@ public class Waystones implements ModInitializer, DedicatedServerModInitializer 
         Config.getInstance().loadConfig();
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
-        ItemRegistry.registerItems();
+        ItemRegistry.init();
         CustomScreenHandlerRegistry.registerScreenHandlers();
         WaystonesEventManager.registerEvents();
         WaystonePacketHandler.registerPacketHandlers();

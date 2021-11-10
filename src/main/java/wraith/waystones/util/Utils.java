@@ -236,50 +236,6 @@ public class Utils {
         }
     }
 
-    public static JsonObject createRecipe(String patternString, HashMap<String, String> itemMap, String output, int amount) {
-        JsonObject json = new JsonObject();
-
-        json.addProperty("type", "minecraft:crafting_shaped");
-
-        JsonArray jsonArray = new JsonArray();
-
-        String[] pattern = patternString.split("_");
-
-        jsonArray.add(pattern[0]);
-        if (pattern.length > 1) {
-            jsonArray.add(pattern[1]);
-        }
-        if (pattern.length > 2) {
-            jsonArray.add(pattern[2]);
-        }
-
-        json.add("pattern", jsonArray);
-
-        JsonObject individualKey;
-        JsonObject keyList = new JsonObject();
-
-        for (Map.Entry<String, String> item : itemMap.entrySet()) {
-            individualKey = new JsonObject();
-            var itemIdentifier = item.getValue();
-            var recipeType = "item";
-            if (itemIdentifier.startsWith("#")) {
-                recipeType = "tag";
-                itemIdentifier = itemIdentifier.substring(1);
-            }
-            individualKey.addProperty(recipeType, itemIdentifier);
-            keyList.add(item.getKey(), individualKey);
-        }
-
-        json.add("key", keyList);
-
-        JsonObject result = new JsonObject();
-        result.addProperty("item", output);
-        result.addProperty("count", amount);
-        json.add("result", result);
-
-        return json;
-    }
-
     public static String getSHA256(String data) {
         try {
             return Arrays.toString(MessageDigest.getInstance("SHA-256").digest(data.getBytes(StandardCharsets.UTF_8)));

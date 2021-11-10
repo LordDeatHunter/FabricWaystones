@@ -32,6 +32,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.interfaces.WaystoneValue;
+import wraith.waystones.item.AbyssWatcherItem;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.ItemRegistry;
 import wraith.waystones.screens.WaystoneScreenHandler;
@@ -343,7 +344,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             playerEntity.teleport((ServerWorld) world, pos.getX() + fX, pos.getY(), pos.getZ() + fZ, fYaw, 0);
             playerEntity.onTeleportationDone();
             playerEntity.addExperience(0);
-            if (isAbyssWatcher && playerEntity.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("abyss_watcher")) {
+            if (isAbyssWatcher && playerEntity.getMainHandStack().getItem() instanceof AbyssWatcherItem) {
                 if (!playerEntity.isCreative()) {
                     player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
                     player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);

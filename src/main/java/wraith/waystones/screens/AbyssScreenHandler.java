@@ -8,6 +8,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
 import wraith.waystones.client.ClientStuff;
+import wraith.waystones.item.AbyssWatcherItem;
 import wraith.waystones.util.Utils;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
 import wraith.waystones.registries.ItemRegistry;
@@ -70,7 +71,7 @@ public class AbyssScreenHandler extends UniversalWaystoneScreenHandler {
 
     @Override
     public boolean canUse(PlayerEntity player) {
-        return player.getMainHandStack().getItem() == ItemRegistry.ITEMS.get("abyss_watcher");
+        return player.getMainHandStack().getItem() instanceof AbyssWatcherItem;
     }
 
 }

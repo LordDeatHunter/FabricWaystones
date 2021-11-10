@@ -8,7 +8,6 @@
     "MinecraftServerAccessor",
     "NoiseChunkGeneratorMixin",
     "PlayerEntityMixin",
-    "RecipeManagerMixin",
     "ServerPlayerEntityAccessor",
     "ServerPlayerEntityMixin",
     "SimpleRegistryAccessor",
