@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:nether_bricks",
+    "minecraft:chiseled_nether_bricks",
+    "minecraft:cracked_nether_bricks"
+  ]
+}

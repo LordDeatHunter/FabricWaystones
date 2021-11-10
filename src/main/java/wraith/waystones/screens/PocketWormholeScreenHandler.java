@@ -3,8 +3,8 @@ package wraith.waystones.screens;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.Hand;
+import wraith.waystones.item.PocketWormholeItem;
 import wraith.waystones.registries.CustomScreenHandlerRegistry;
-import wraith.waystones.registries.ItemRegistry;
 
 public class PocketWormholeScreenHandler extends UniversalWaystoneScreenHandler {
 
@@ -19,7 +19,8 @@ public class PocketWormholeScreenHandler extends UniversalWaystoneScreenHandler 
 
     @Override
     public boolean canUse(PlayerEntity player) {
-        return player.getStackInHand(Hand.MAIN_HAND).getItem() == ItemRegistry.ITEMS.get("pocket_wormhole") || player.getStackInHand(Hand.OFF_HAND).getItem() == ItemRegistry.ITEMS.get("pocket_wormhole");
+        return player.getStackInHand(Hand.MAIN_HAND).getItem()  instanceof PocketWormholeItem ||
+                player.getStackInHand(Hand.OFF_HAND).getItem() instanceof PocketWormholeItem;
     }
 
 }

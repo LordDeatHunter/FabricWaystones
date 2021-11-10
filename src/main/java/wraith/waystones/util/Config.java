@@ -11,7 +11,6 @@ import wraith.waystones.Waystones;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -89,75 +88,6 @@ public final class Config {
         defaultConfig.putFloat("waystone_block_hardness", 4F);
         defaultConfig.putInt("waystone_block_required_mining_level", 1);
         defaultConfig.putBoolean("prevent_non_owners_from_breaking_waystone", false);
-
-        NbtCompound recipesTag = new NbtCompound();
-
-        HashMap<String, String> itemMap = new HashMap<>();
-        itemMap.put("S", "minecraft:stone");
-        itemMap.put("A", "waystones:abyss_watcher");
-        itemMap.put("O", "minecraft:obsidian");
-        itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:waystone", 1).toString());
-
-        itemMap.clear();
-        itemMap.put("S", "minecraft:sandstone");
-        itemMap.put("A", "waystones:abyss_watcher");
-        itemMap.put("O", "minecraft:obsidian");
-        itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("desert_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:desert_waystone", 1).toString());
-
-        itemMap.clear();
-        itemMap.put("S", "minecraft:red_sandstone");
-        itemMap.put("A", "waystones:abyss_watcher");
-        itemMap.put("O", "minecraft:obsidian");
-        itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("red_desert_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:red_desert_waystone", 1).toString());
-
-        itemMap.clear();
-        itemMap.put("S", "#minecraft:stone_bricks");
-        itemMap.put("A", "waystones:abyss_watcher");
-        itemMap.put("O", "minecraft:obsidian");
-        itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("stone_brick_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:stone_brick_waystone", 1).toString());
-
-        itemMap.clear();
-        itemMap.put("S", "minecraft:nether_bricks");
-        itemMap.put("A", "waystones:abyss_watcher");
-        itemMap.put("O", "minecraft:obsidian");
-        itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("nether_brick_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:nether_brick_waystone", 1).toString());
-
-        itemMap.clear();
-        itemMap.put("S", "minecraft:red_nether_bricks");
-        itemMap.put("A", "waystones:abyss_watcher");
-        itemMap.put("O", "minecraft:obsidian");
-        itemMap.put("E", "minecraft:emerald");
-        recipesTag.putString("red_nether_brick_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:red_nether_brick_waystone", 1).toString());
-
-        itemMap.clear();
-        itemMap.put("A", "waystones:abyss_watcher");
-        itemMap.put("S", "minecraft:nether_star");
-        itemMap.put("P", "minecraft:blaze_powder");
-        recipesTag.putString("pocket_wormhole", Utils.createRecipe(" A _PSP_ P ", itemMap, "waystones:pocket_wormhole", 1).toString());
-
-        itemMap.clear();
-        itemMap.put("E", "minecraft:ender_pearl");
-        itemMap.put("F", "minecraft:flint");
-        recipesTag.putString("abyss_watcher", Utils.createRecipe("FEF", itemMap, "waystones:abyss_watcher", 1).toString());
-
-        itemMap.clear();
-        itemMap.put("P", "minecraft:paper");
-        itemMap.put("S", "minecraft:stick");
-        recipesTag.putString("waystone_scroll", Utils.createRecipe("SPS_PPP_SPS", itemMap, "waystones:waystone_scroll", 1).toString());
-
-        itemMap.clear();
-        itemMap.put("A", "waystones:abyss_watcher");
-        itemMap.put("B", "minecraft:blaze_powder");
-        recipesTag.putString("local_void", Utils.createRecipe(" B _BAB_ B ", itemMap, "waystones:local_void", 1).toString());
-
-        recipesTag.putString("scroll_of_infinite_knowledge", "none");
-
-        defaultConfig.put("recipes", recipesTag);
 
         return defaultConfig;
     }
@@ -258,20 +188,6 @@ public final class Config {
         }
         json.addProperty("prevent_non_owners_from_breaking_waystone", preventNonOwnersBreaking);
 
-        JsonObject recipesJson = new JsonObject();
-        NbtCompound recipesTag = tag.getCompound("recipes");
-        NbtCompound defaultRecipes = defaults.getCompound("recipes");
-        for (String recipe : defaultRecipes.getKeys()) {
-            String recipeString;
-            if (recipesTag.contains(recipe)) {
-                recipeString = recipesTag.getString(recipe);
-            } else {
-                overwrite = true;
-                recipeString = defaultRecipes.getString(recipe);
-            }
-            recipesJson.addProperty(recipe, recipeString);
-        }
-        json.add("recipes", recipesJson);
         createFile(json, overwrite);
         return json;
     }
@@ -372,22 +288,6 @@ public final class Config {
         }
         tag.putBoolean("prevent_non_owners_from_breaking_waystone", preventNonOwnersBreaking);
 
-        JsonObject recipesJson = json.get("recipes").getAsJsonObject();
-        NbtCompound recipesTag = new NbtCompound();
-
-        NbtCompound defaultRecipes = defaults.getCompound("recipes");
-        for (String recipe : defaultRecipes.getKeys()) {
-            String recipeString;
-            if (recipesJson.has(recipe)) {
-                recipeString = recipesJson.get(recipe).toString();
-            } else {
-                overwrite = true;
-                recipeString = defaultRecipes.getString(recipe);
-            }
-            recipesTag.putString(recipe, recipeString);
-        }
-        tag.put("recipes", recipesTag);
-
         createFile(toJson(tag), overwrite);
         return tag;
     }
@@ -433,22 +333,6 @@ public final class Config {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         contents = new JsonParser().parse(gson.toJson(contents)).getAsJsonObject();
 
-        StringBuilder recipes = new StringBuilder();
-        if (contents != null && contents.has("recipes")) {
-            for (Map.Entry<String, JsonElement> recipe : contents.get("recipes").getAsJsonObject().entrySet()) {
-                if ("none".equals(recipe.getValue().getAsString())) {
-                    continue;
-                }
-                recipes.append("\"").append(recipe.getKey()).append("\": ")
-                        .append(gson.toJson(new JsonParser().parse(recipe.getValue().getAsString()).getAsJsonObject()))
-                        .append(",");
-            }
-            recipes = new StringBuilder(recipes.toString().replace("\n", "").replace("\r", ""));
-            recipes = new StringBuilder(recipes.substring(0, recipes.length() - 1));
-            recipes.append("}}");
-            contents.remove("recipes");
-        }
-
         File file = new File(Config.CONFIG_FILE);
         if (file.exists() && !overwrite) {
             return;
@@ -467,9 +351,6 @@ public final class Config {
         }
         try (FileWriter writer = new FileWriter(file)) {
             String json = gson.toJson(contents).replace("\n", "").replace("\r", "");
-            if (!"".equals(recipes.toString())) {
-                json = json.substring(0, json.length() - 1) + ",\"recipes\":{" + recipes;
-            }
             writer.write(gson.toJson(new JsonParser().parse(json).getAsJsonObject()));
         } catch (Exception e) {
             e.printStackTrace();
@@ -490,19 +371,6 @@ public final class Config {
 
     public static JsonObject getJsonObject(String json) {
         return new JsonParser().parse(json).getAsJsonObject();
-    }
-
-    public HashMap<String, JsonElement> getRecipes() {
-        JsonObject json = toJson(configData).get("recipes").getAsJsonObject();
-        HashMap<String, JsonElement> recipes = new HashMap<>();
-        for (Map.Entry<String, JsonElement> recipe : json.entrySet()) {
-            String recipeString = recipe.getValue().getAsString();
-            if ("none".equals(recipeString)) {
-                continue;
-            }
-            recipes.put(recipe.getKey(), new JsonParser().parse(recipeString));
-        }
-        return recipes;
     }
 
     public void print(ServerPlayerEntity player) {
