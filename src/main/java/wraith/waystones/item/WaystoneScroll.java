@@ -42,13 +42,21 @@ public class WaystoneScroll extends Item {
         for (int i = 0; i < list.size(); ++i) {
             String hash = list.getString(i);
             if (Waystones.WAYSTONE_STORAGE != null && Waystones.WAYSTONE_STORAGE.containsHash(hash) && !((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(hash)) {
+                var waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+                if (waystone.getOwner() == null) {
+                    waystone.setOwner(user);
+                }
                 toLearn.add(hash);
                 ++learned;
             }
         }
         Text text;
         if (learned > 0) {
-            text = new TranslatableText(learned > 1 ? "waystones.learned.multiple" : "waystones.learned.single", learned);
+            if (learned > 1) {
+                text = new TranslatableText("waystones.learned.multiple", new TranslatableText("waystones.learned.multiple.arg_color").getString() + learned);
+            } else {
+                text = new TranslatableText("waystones.learned.single");
+            }
             ((PlayerEntityMixinAccess)user).discoverWaystones(toLearn);
             if (!user.isCreative()) {
                 stack.decrement(1);
@@ -104,7 +112,7 @@ public class WaystoneScroll extends Item {
             waystones = ClientStuff.getWaystoneHashes();
         }
         if (waystones != null) {
-            tooltip.add(new TranslatableText("waystones.scroll.tooltip", size));
+            tooltip.add(new TranslatableText("waystones.scroll.tooltip", new TranslatableText("waystones.scroll.tooltip.arg_color").getString() + size));
         }
     }
 

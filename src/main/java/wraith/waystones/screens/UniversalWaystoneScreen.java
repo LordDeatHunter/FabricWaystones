@@ -153,7 +153,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     private void renderWaystoneAmount(MatrixStack matrices, int x, int y) {
-        this.textRenderer.draw(matrices, new TranslatableText("waystones.gui.displayed_waystones", this.getDiscoveredCount()), x, y, 0x161616);
+        this.textRenderer.draw(matrices, new TranslatableText("waystones.gui.displayed_waystones", new TranslatableText("waystones.gui.displayed_waystones.arg_color").getString() + this.getDiscoveredCount()), x, y, 0x161616);
     }
 
     protected void renderButtons(MatrixStack matrices, int mouseX, int mouseY) {

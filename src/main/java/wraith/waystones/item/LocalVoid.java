@@ -6,6 +6,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
@@ -83,7 +84,7 @@ public class LocalVoid extends Item {
             tooltip.add(new TranslatableText("waystones.local_void.empty_tooltip"));
             return;
         }
-        tooltip.add(new TranslatableText("waystones.local_void.tooltip", name));
+        tooltip.add(new TranslatableText("waystones.local_void.tooltip", new TranslatableText("waystones.local_void.tooltip.arg_color").getString() + name));
     }
 
 }

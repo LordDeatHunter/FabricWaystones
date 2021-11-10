@@ -71,6 +71,10 @@ public final class Config {
     public boolean consumeInfiniteScroll() {
         return configData.getBoolean("consume_infinite_knowledge_scroll_on_use");
     }
+    
+    public boolean preventNonOwnersFromBreaking() {
+        return configData.getBoolean("prevent_non_owners_from_breaking_waystone");
+    }
 
     private NbtCompound getDefaults() {
         NbtCompound defaultConfig = new NbtCompound();
@@ -84,6 +88,7 @@ public final class Config {
         defaultConfig.putString("cost_item", "minecraft:ender_pearl");
         defaultConfig.putFloat("waystone_block_hardness", 4F);
         defaultConfig.putInt("waystone_block_required_mining_level", 1);
+        defaultConfig.putBoolean("prevent_non_owners_from_breaking_waystone", false);
 
         NbtCompound recipesTag = new NbtCompound();
 
@@ -114,6 +119,20 @@ public final class Config {
         itemMap.put("O", "minecraft:obsidian");
         itemMap.put("E", "minecraft:emerald");
         recipesTag.putString("stone_brick_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:stone_brick_waystone", 1).toString());
+
+        itemMap.clear();
+        itemMap.put("S", "minecraft:nether_bricks");
+        itemMap.put("A", "waystones:abyss_watcher");
+        itemMap.put("O", "minecraft:obsidian");
+        itemMap.put("E", "minecraft:emerald");
+        recipesTag.putString("nether_brick_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:nether_brick_waystone", 1).toString());
+
+        itemMap.clear();
+        itemMap.put("S", "minecraft:red_nether_bricks");
+        itemMap.put("A", "waystones:abyss_watcher");
+        itemMap.put("O", "minecraft:obsidian");
+        itemMap.put("E", "minecraft:emerald");
+        recipesTag.putString("red_nether_brick_waystone", Utils.createRecipe("SAS_SES_SOS", itemMap, "waystones:red_nether_brick_waystone", 1).toString());
 
         itemMap.clear();
         itemMap.put("A", "waystones:abyss_watcher");
@@ -230,6 +249,15 @@ public final class Config {
         }
         json.addProperty("waystone_block_required_mining_level", miningLevel);
 
+        boolean preventNonOwnersBreaking;
+        if (tag.contains("prevent_non_owners_from_breaking_waystone")) {
+            preventNonOwnersBreaking = tag.getBoolean("prevent_non_owners_from_breaking_waystone");
+        } else {
+            overwrite = true;
+            preventNonOwnersBreaking = defaults.getBoolean("prevent_non_owners_from_breaking_waystone");
+        }
+        json.addProperty("prevent_non_owners_from_breaking_waystone", preventNonOwnersBreaking);
+
         JsonObject recipesJson = new JsonObject();
         NbtCompound recipesTag = tag.getCompound("recipes");
         NbtCompound defaultRecipes = defaults.getCompound("recipes");
@@ -334,6 +362,15 @@ public final class Config {
             miningLevel = defaults.getFloat("waystone_block_required_mining_level");
         }
         tag.putFloat("waystone_block_required_mining_level", miningLevel);
+
+        boolean preventNonOwnersBreaking;
+        if (json.has("prevent_non_owners_from_breaking_waystone")) {
+            preventNonOwnersBreaking = json.get("prevent_non_owners_from_breaking_waystone").getAsBoolean();
+        } else {
+            overwrite = true;
+            preventNonOwnersBreaking = defaults.getBoolean("prevent_non_owners_from_breaking_waystone");
+        }
+        tag.putBoolean("prevent_non_owners_from_breaking_waystone", preventNonOwnersBreaking);
 
         JsonObject recipesJson = json.get("recipes").getAsJsonObject();
         NbtCompound recipesTag = new NbtCompound();

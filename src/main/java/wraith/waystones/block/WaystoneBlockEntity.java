@@ -29,15 +29,14 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraft.world.TeleportTarget;
 import org.jetbrains.annotations.Nullable;
-import wraith.waystones.util.Utils;
-import wraith.waystones.interfaces.WaystoneValue;
-import wraith.waystones.mixin.ServerPlayerEntityAccessor;
 import wraith.waystones.Waystones;
+import wraith.waystones.interfaces.WaystoneValue;
 import wraith.waystones.registries.BlockEntityRegistry;
 import wraith.waystones.registries.ItemRegistry;
 import wraith.waystones.screens.WaystoneScreenHandler;
+import wraith.waystones.util.Utils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -59,11 +58,23 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     public void setOwner(PlayerEntity player) {
         if (player == null) {
+            if (this.owner != null && this.world != null) {
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F);
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
+            }
             this.owner = null;
             this.ownerName = null;
         } else {
+            if (this.owner == null && world != null) {
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F);
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
+            }
             this.owner = player.getUuid();
             this.ownerName = player.getName().asString();
+        }
+        if (world != null && !world.isClient) {
+            world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, this.ownerName != null));
+            world.setBlockState(pos.up(), world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, this.ownerName != null));
         }
         markDirty();
     }
@@ -259,21 +270,24 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     public void tick() {
         ++tickDelta;
-        var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D, this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
-        if (closestPlayer != null) {
-            addParticle(closestPlayer);
-            double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
-            double z = closestPlayer.getZ() - this.getPos().getZ() - 0.5D;
-            float rotY = (float) ((float) Math.atan2(z, x) / Math.PI * 180 + 180);
-            moveOnTickR(rotY);
-        } else {
-            lookingRotR += 2;
+        if (getCachedState().get(WaystoneBlock.ACTIVE)) {
+            var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D, this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
+            if (closestPlayer != null) {
+                addParticle(closestPlayer);
+                double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
+                double z = closestPlayer.getZ() - this.getPos().getZ() - 0.5D;
+                float rotY = (float) ((float) Math.atan2(z, x) / Math.PI * 180 + 180);
+                moveOnTickR(rotY);
+            } else {
+                lookingRotR += 2;
+            }
+
+            lookingRotR = rotClamp(360, lookingRotR);
         }
 
         if (tickDelta >= 360) {
             tickDelta = 0;
         }
-        lookingRotR = rotClamp(360, lookingRotR);
     }
 
     @Override

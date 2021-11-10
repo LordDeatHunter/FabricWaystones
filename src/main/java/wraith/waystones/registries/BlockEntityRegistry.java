@@ -12,7 +12,9 @@ public final class BlockEntityRegistry {
             BlockRegistry.WAYSTONE,
             BlockRegistry.DESERT_WAYSTONE,
             BlockRegistry.RED_DESERT_WAYSTONE,
-            BlockRegistry.STONE_BRICK_WAYSTONE
+            BlockRegistry.STONE_BRICK_WAYSTONE,
+            BlockRegistry.NETHER_BRICK_WAYSTONE,
+            BlockRegistry.RED_NETHER_BRICK_WAYSTONE
     ).build(null);
 
     public static  void registerBlockEntities() {

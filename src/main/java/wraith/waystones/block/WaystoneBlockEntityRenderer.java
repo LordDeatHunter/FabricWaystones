@@ -27,8 +27,11 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
         matrices.multiply(Vec3f.NEGATIVE_Y.getDegreesQuaternion(entity.lookingRotR));
         matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90));
         //matrices.multiply(Vector3f.NEGATIVE_X.getDegreesQuaternion(entity.lookingRotH));
-        int lightAbove = WorldRenderer.getLightmapCoordinates(entity.getWorld(), entity.getPos().up());
-        MinecraftClient.getInstance().getItemRenderer().renderItem(stack, ModelTransformation.Mode.FIXED, lightAbove, overlay, matrices, vertexConsumers, (int) entity.getPos().asLong());
+        if (entity.getCachedState().get(WaystoneBlock.ACTIVE)) {
+            int lightAbove = WorldRenderer.getLightmapCoordinates(entity.getWorld(), entity.getPos().up());
+            MinecraftClient.getInstance().getItemRenderer().renderItem(stack, ModelTransformation.Mode.FIXED, lightAbove, overlay, matrices, vertexConsumers, (int) entity.getPos().asLong());
+        }
+
         matrices.pop();
     }
 

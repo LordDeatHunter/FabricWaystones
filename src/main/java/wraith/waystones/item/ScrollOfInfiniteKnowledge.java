@@ -4,6 +4,7 @@ import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
@@ -32,15 +33,23 @@ public class ScrollOfInfiniteKnowledge extends Item {
         }
         int learned = 0;
         HashSet<String> toLearn = new HashSet<>();
-        for (String waystone : Waystones.WAYSTONE_STORAGE.getAllHashes()) {
-            if (!((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(waystone)) {
-                toLearn.add(waystone);
+        for (String hash : Waystones.WAYSTONE_STORAGE.getAllHashes()) {
+            if (!((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(hash)) {
+                var waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+                if (waystone.getOwner() == null) {
+                    waystone.setOwner(user);
+                }
+                toLearn.add(hash);
                 ++learned;
             }
         }
         Text text;
         if (learned > 0) {
-            text = new TranslatableText(learned > 1 ? "waystones.learned.infinite.multiple" : "waystones.learned.infinite.single", learned);
+            if (learned > 1) {
+                text = new TranslatableText("waystones.learned.infinite.multiple", new TranslatableText("waystones.learned.infinite.multiple.arg_color").getString() + learned);
+            } else {
+                text = new TranslatableText("waystones.learned.infinite.single");
+            }
             ((PlayerEntityMixinAccess)user).discoverWaystones(toLearn);
             if (!user.isCreative() && Config.getInstance().consumeInfiniteScroll()) {
                 stack.decrement(1);
@@ -70,7 +79,7 @@ public class ScrollOfInfiniteKnowledge extends Item {
             count = ClientStuff.getWaystoneCount();
         }
         if (count != -1) {
-            tooltip.add(new TranslatableText("waystones.scroll.infinite_tooltip", count));
+            tooltip.add(new TranslatableText("waystones.scroll.infinite_tooltip", new TranslatableText("waystones.scroll.infinite_tooltip.arg_color").getString() + count));
         }
     }
 

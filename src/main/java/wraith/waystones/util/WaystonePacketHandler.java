@@ -24,8 +24,7 @@ public final class WaystonePacketHandler {
                 }
                 String hash = tag.getString("waystone_hash");
                 UUID owner = tag.getUuid("waystone_owner");
-                if (Waystones.WAYSTONE_STORAGE.containsHash(hash) && ((player.getUuid().equals(owner) &&
-                        Waystones.WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner)) || player.hasPermissionLevel(2))) {
+                if ((player.getUuid().equals(owner) || player.hasPermissionLevel(2))) {
                     Waystones.WAYSTONE_STORAGE.setOwner(hash, null);
                 }
             });
@@ -72,6 +71,9 @@ public final class WaystonePacketHandler {
                 var waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
                 if (waystone == null || waystone.isGlobal()) {
                     return;
+                }
+                if (player.getUuid().equals(waystone.getOwner())) {
+                    waystone.setOwner(null);
                 }
                 ((PlayerEntityMixinAccess) player).forgetWaystone(hash);
             });

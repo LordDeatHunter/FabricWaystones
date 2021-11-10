@@ -30,6 +30,11 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     private boolean viewDiscoveredWaystones = true;
     private boolean viewGlobalWaystones = true;
 
+    @SuppressWarnings("ConstantConditions")
+    private PlayerEntity _this() {
+        return (PlayerEntity) (Object) this;
+    }
+
     @Override
     public void discoverWaystone(WaystoneBlockEntity waystone) {
         discoveredWaystones.add(waystone.getHash());
@@ -55,12 +60,12 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Override
     public void syncData() {
-        if (((PlayerEntity)(Object)this).world.isClient) {
+        if (!(_this() instanceof ServerPlayerEntity serverPlayerEntity)) {
             return;
         }
         PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
         packet.writeNbt(toTagW(new NbtCompound()));
-        ServerPlayNetworking.send((ServerPlayerEntity)(Object)this, Utils.ID("sync_player"), packet);
+        ServerPlayNetworking.send(serverPlayerEntity, Utils.ID("sync_player"), packet);
     }
 
     @Override
@@ -135,7 +140,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void learnWaystones(PlayerEntity player, boolean overwrite) {
         discoveredWaystones.clear();
-        this.discoveredWaystones.addAll(((PlayerEntityMixinAccess)player).getDiscoveredWaystones());
+        this.discoveredWaystones.addAll(((PlayerEntityMixinAccess) player).getDiscoveredWaystones());
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
@@ -154,7 +159,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             HashSet<String> hashes = new HashSet<>();
             if (Waystones.WAYSTONE_STORAGE != null) {
                 hashes = Waystones.WAYSTONE_STORAGE.getAllHashes();
-            } else if (((PlayerEntity)(Object)this).world.isClient) {
+            } else if (_this().world.isClient) {
                 HashSet<String> tmpHashes = ClientStuff.getWaystoneHashes();
                 if (tmpHashes != null) {
                     hashes = tmpHashes;

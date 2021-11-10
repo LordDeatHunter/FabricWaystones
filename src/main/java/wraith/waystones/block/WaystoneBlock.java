@@ -21,7 +21,6 @@ import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -51,6 +50,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
     public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
+    public static final BooleanProperty ACTIVE = BooleanProperty.of("active");
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
     protected static final VoxelShape VOXEL_SHAPE_TOP;
@@ -58,7 +58,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     public WaystoneBlock(AbstractBlock.Settings settings) {
         super(settings);
-        setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, false));
+        setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, false).with(ACTIVE, false));
     }
 
     @Override
@@ -74,7 +74,28 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
-        stateManager.add(HALF, FACING, MOSSY, WATERLOGGED);
+        stateManager.add(HALF, FACING, MOSSY, WATERLOGGED, ACTIVE);
+    }
+
+    @Override
+    public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+        var bottomState = world.getBlockState(pos);
+        if (bottomState.getBlock() instanceof WaystoneBlock) {
+            BlockPos entityPos;
+            if (bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER) {
+                entityPos = pos;
+            } else {
+                entityPos = pos.down();
+            }
+            if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone &&
+                    Config.getInstance().preventNonOwnersFromBreaking() &&
+                    waystone.getOwner() != null &&
+                    !player.getUuid().equals(waystone.getOwner()) &&
+                    !player.hasPermissionLevel(2)) {
+                return 0;
+            }
+        }
+        return super.calcBlockBreakingDelta(state, player, world, pos);
     }
 
     @Override
@@ -98,7 +119,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         BlockPos topPos;
         BlockPos botPos;
-        BlockEntity entity;
         if (state.get(HALF) == DoubleBlockHalf.UPPER) {
             topPos = pos;
             botPos = pos.down();
@@ -107,33 +127,30 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             botPos = pos;
         }
 
-        entity = world.getBlockEntity(botPos);
-        if (entity instanceof WaystoneBlockEntity) {
+        if (world.getBlockEntity(botPos) instanceof WaystoneBlockEntity waystone) {
             if (!player.isCreative() && player.canHarvest(world.getBlockState(botPos)) && world instanceof ServerWorld) {
-                WaystoneBlockEntity waystoneBlockEntity = (WaystoneBlockEntity) entity;
                 if (!world.isClient) {
                     ItemStack itemStack = new ItemStack(state.getBlock().asItem());
-                    NbtCompound compoundTag = waystoneBlockEntity.writeNbt(new NbtCompound());
+                    NbtCompound compoundTag = waystone.writeNbt(new NbtCompound());
                     if (Config.getInstance().storeWaystoneNbt() && player.isSneaking() && !compoundTag.isEmpty()) {
                         itemStack.setSubNbt("BlockEntityTag", compoundTag);
                     }
                     ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D,(double) topPos.getZ() + 0.5D, itemStack);
-                    if (waystoneBlockEntity.getCachedState().get(MOSSY)) {
+                    if (waystone.getCachedState().get(MOSSY)) {
                         ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D,(double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
                     }
                 } else {
-                    waystoneBlockEntity.checkLootInteraction(player);
+                    waystone.checkLootInteraction(player);
                 }
             }
             if (Waystones.WAYSTONE_STORAGE != null) {
-                Waystones.WAYSTONE_STORAGE.removeWaystone((WaystoneBlockEntity) entity);
+                Waystones.WAYSTONE_STORAGE.removeWaystone(waystone);
             }
             world.removeBlockEntity(botPos);
         }
 
-        entity = world.getBlockEntity(topPos);
-        if (Waystones.WAYSTONE_STORAGE != null && entity instanceof WaystoneBlockEntity) {
-            Waystones.WAYSTONE_STORAGE.removeWaystone((WaystoneBlockEntity) entity);
+        if (Waystones.WAYSTONE_STORAGE != null && world.getBlockEntity(topPos) instanceof WaystoneBlockEntity waystone) {
+            Waystones.WAYSTONE_STORAGE.removeWaystone(waystone);
             world.removeBlockEntity(topPos);
         }
         world.removeBlock(topPos, false);
@@ -145,13 +162,16 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
+        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
+            super.onPlaced(world, pos, state, placer, itemStack);
+            return;
+        }
         var fluidState = world.getFluidState(pos.up());
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
         BlockEntity entity = world.getBlockEntity(pos);
-        if (placer instanceof ServerPlayerEntity && entity instanceof WaystoneBlockEntity) {
-            ((WaystoneBlockEntity) entity).setOwner((PlayerEntity) placer);
+        if (placer instanceof ServerPlayerEntity && entity instanceof WaystoneBlockEntity waystone) {
             if (Waystones.WAYSTONE_STORAGE != null) {
-                Waystones.WAYSTONE_STORAGE.addWaystone(((WaystoneBlockEntity) entity));
+                Waystones.WAYSTONE_STORAGE.addWaystone(waystone);
             }
         }
     }
@@ -164,12 +184,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (state.get(HALF) == DoubleBlockHalf.UPPER) {
             pos = pos.down();
         }
-        BlockEntity entity = world.getBlockEntity(pos);
-        if (entity instanceof WaystoneBlockEntity) {
-            return (WaystoneBlockEntity) entity;
-        } else {
-            return null;
-        }
+        return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
     }
 
     @Override
@@ -179,82 +194,80 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!world.isClient) {
-            Item heldItem = player.getMainHandStack().getItem();
-            BlockPos openPos = pos;
-            if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-                openPos = pos.down();
-            }
-
-            BlockState topState = world.getBlockState(openPos.up());
-            BlockState bottomState = world.getBlockState(openPos);
-            if (heldItem == Items.VINE) {
-                if (!topState.get(MOSSY)) {
-                    world.setBlockState(openPos.up(), topState.with(MOSSY, true));
-                    world.setBlockState(openPos, bottomState.with(MOSSY, true));
-                    player.getMainHandStack().decrement(1);
-                }
-                return ActionResult.PASS;
-            }
-
-            if (heldItem == Items.SHEARS) {
-                if (topState.get(MOSSY)) {
-                    world.setBlockState(openPos.up(), topState.with(MOSSY, false));
-                    world.setBlockState(openPos, bottomState.with(MOSSY, false));
-                    openPos = openPos.up(2);
-                    ItemScatterer.spawn(world, openPos.getX() + 0.5F, openPos.getY() + 0.5F, openPos.getZ() + 0.5F, new ItemStack(Items.VINE));
-                }
-                return ActionResult.PASS;
-            }
-
-            if (heldItem instanceof WaystoneScroll || heldItem instanceof LocalVoid) {
-                return ActionResult.PASS;
-            }
-
-            HashSet<String> discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
-
-            WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
-            if (blockEntity == null) {
-                return ActionResult.FAIL;
-            }
-
-            if (player.isSneaking() && (player.hasPermissionLevel(2) || (Config.getInstance().canOwnersRedeemPayments() && player.getUuid().equals(blockEntity.getOwner())))) {
-                if (blockEntity.hasStorage()) {
-                    ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
-                    blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
-                }
-            } else {
-                if (blockEntity.getOwner() == null) {
-                    blockEntity.setOwner(player);
-                }
-
-                if (!Waystones.WAYSTONE_STORAGE.containsHash(blockEntity.getHash())) {
-                    Waystones.WAYSTONE_STORAGE.addWaystone(blockEntity);
-                }
-
-                if (!discovered.contains(blockEntity.getHash())) {
-                    if (!blockEntity.isGlobal()) {
-                        player.sendMessage(new TranslatableText("waystones.discover_waystone", blockEntity.getWaystoneName()),false);
-                    }
-                    ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
-                }
-
-                var screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
-
-                if (screenHandlerFactory != null) {
-                    player.openHandledScreen(screenHandlerFactory);
-                }
-            }
-            blockEntity.markDirty();
+        if (world.isClient) {
+            return ActionResult.success(true);
         }
-        return ActionResult.success(world.isClient());
+        Item heldItem = player.getMainHandStack().getItem();
+        BlockPos openPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
+        BlockState topState = world.getBlockState(openPos.up());
+        BlockState bottomState = world.getBlockState(openPos);
+        if (heldItem == Items.VINE) {
+            if (!topState.get(MOSSY)) {
+                world.setBlockState(openPos.up(), topState.with(MOSSY, true));
+                world.setBlockState(openPos, bottomState.with(MOSSY, true));
+                player.getMainHandStack().decrement(1);
+            }
+            return ActionResult.PASS;
+        }
+
+        if (heldItem == Items.SHEARS) {
+            if (topState.get(MOSSY)) {
+                world.setBlockState(openPos.up(), topState.with(MOSSY, false));
+                world.setBlockState(openPos, bottomState.with(MOSSY, false));
+                var dropPos = openPos.up(2);
+                ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, new ItemStack(Items.VINE));
+            }
+            return ActionResult.PASS;
+        }
+
+        if (heldItem instanceof WaystoneScroll || heldItem instanceof LocalVoid) {
+            return ActionResult.PASS;
+        }
+
+        HashSet<String> discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
+
+        WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
+        if (blockEntity == null) {
+            return ActionResult.FAIL;
+        }
+
+        if (player.isSneaking() && (player.hasPermissionLevel(2) || (Config.getInstance().canOwnersRedeemPayments() && player.getUuid().equals(blockEntity.getOwner())))) {
+            if (blockEntity.hasStorage()) {
+                ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
+                blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
+            }
+        } else {
+            if (blockEntity.getOwner() == null) {
+                blockEntity.setOwner(player);
+            }
+
+            if (!Waystones.WAYSTONE_STORAGE.containsHash(blockEntity.getHash())) {
+                Waystones.WAYSTONE_STORAGE.addWaystone(blockEntity);
+            }
+
+            if (!discovered.contains(blockEntity.getHash())) {
+                if (!blockEntity.isGlobal()) {
+                    player.sendMessage(new TranslatableText("waystones.discover_waystone",
+                            new TranslatableText("waystones.discover_waystone.arg_color").getString() + blockEntity.getWaystoneName()),false);
+                }
+                ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
+            }
+
+            var screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
+
+            if (screenHandlerFactory != null) {
+                player.openHandledScreen(screenHandlerFactory);
+            }
+        }
+        blockEntity.markDirty();
+        return ActionResult.success(false);
     }
 
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         BlockPos newPos;
-        DoubleBlockHalf facing;
-        world.removeBlockEntity(pos);
+        DoubleBlockHalf verticalPosition;
+
         if (state.getBlock() != this) {
             super.onStateReplaced(state, world, pos, newState, moved);
             return;
@@ -262,28 +275,26 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
         if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
             newPos = pos.down();
-            facing = DoubleBlockHalf.LOWER;
+            verticalPosition = DoubleBlockHalf.LOWER;
         } else {
             newPos = pos.up();
-            facing = DoubleBlockHalf.UPPER;
+            verticalPosition = DoubleBlockHalf.UPPER;
         }
 
-        if (newState.isAir()) {
-            world.setBlockState(newPos, newState);
-            world.removeBlockEntity(newPos);
-        }
         if (!(newState.getBlock() instanceof WaystoneBlock)) {
             BlockPos testPos = pos;
             if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
                 testPos = pos.down();
             }
             BlockEntity entity = world.getBlockEntity(testPos);
-            if (entity instanceof WaystoneBlockEntity) {
-                Waystones.WAYSTONE_STORAGE.removeWaystone(((WaystoneBlockEntity) entity).getHash());
+            if (!world.isClient && entity instanceof WaystoneBlockEntity waystone) {
+                Waystones.WAYSTONE_STORAGE.removeWaystone((waystone).getHash());
             }
+            world.removeBlockEntity(newPos);
+            world.setBlockState(newPos, newState);
         } else {
-            var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER || facing == DoubleBlockHalf.LOWER;
-            world.setBlockState(newPos, newState.with(WaystoneBlock.HALF, facing).with(WATERLOGGED, fluid));
+            var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER && verticalPosition == DoubleBlockHalf.LOWER;
+            world.setBlockState(newPos, newState.with(WaystoneBlock.HALF, verticalPosition).with(WATERLOGGED, fluid));
         }
         super.onStateReplaced(state, world, pos, newState, moved);
     }
