@@ -5,6 +5,9 @@
   "item.waystones.red_desert_waystone": "Red Desert Waystone",
   "item.waystones.stone_brick_waystone": "Stone Brick Waystone",
   "item.waystones.nether_brick_waystone": "Nether Brick Waystone",
+  "item.waystones.end_stone_brick_waystone": "End Stone Brick Waystone",
+  "item.waystones.blackstone_brick_waystone": "Blackstone Brick Waystone",
+  "item.waystones.deepslate_brick_waystone": "Deepslate Brick Waystone",
   "item.waystones.red_nether_brick_waystone": "Red Nether Brick Waystone",
   "item.waystones.pocket_wormhole": "Pocket Wormhole",
   "item.waystones.local_void": "Local Void",
@@ -18,6 +21,9 @@
   "block.waystones.stone_brick_waystone": "Stone Brick Waystone",
   "block.waystones.nether_brick_waystone": "Nether Brick Waystone",
   "block.waystones.red_nether_brick_waystone": "Red Nether Brick Waystone",
+  "block.waystones.end_stone_brick_waystone": "End Stone Brick Waystone",
+  "block.waystones.blackstone_brick_waystone": "Blackstone Brick Waystone",
+  "block.waystones.deepslate_brick_waystone": "Deepslate Brick Waystone",
   "container.waystones.waystone": "Waystones",
   "container.waystones.pocket_wormhole": "Pocket Wormhole",
   "container.waystones.abyss_watcher": "Abyss Watcher",
@@ -82,5 +88,11 @@
   "waystones.cost.hunger": "Hunger",
   "waystones.cost.level": "Level(s)",
 
-  "itemGroup.waystones.waystones": "Waystones"
+  "itemGroup.waystones.waystones": "Waystones",
+
+  "waystones.debug.debugger_tooltip1": "§6[§e?§6] §3What are we testing today?",
+  "waystones.debug.debugger_tooltip2": "§6[§e?§6] §3What needs testing?",
+  "waystones.debug.debugger_tooltip3": "§6[§e?§6] §3Anything broken?",
+  "waystones.debug.debugger_tooltip4": "§6[§e?§6] §3Does something need fixing?"
+
 }

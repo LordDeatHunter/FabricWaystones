@@ -1,9 +1,6 @@
 package wraith.waystones.util;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
-import io.netty.util.internal.StringUtil;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -22,8 +19,6 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.feature.StructureFeature;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.mixin.SinglePoolElementAccessor;
@@ -32,7 +27,10 @@ import wraith.waystones.mixin.StructurePoolAccessor;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Utils {

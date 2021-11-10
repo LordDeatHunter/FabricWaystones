@@ -214,7 +214,9 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             if (!topState.get(MOSSY)) {
                 world.setBlockState(openPos.up(), topState.with(MOSSY, true));
                 world.setBlockState(openPos, bottomState.with(MOSSY, true));
-                player.getMainHandStack().decrement(1);
+                if (!player.isCreative()) {
+                    player.getMainHandStack().decrement(1);
+                }
             }
             return ActionResult.PASS;
         }

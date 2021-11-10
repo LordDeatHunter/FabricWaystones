@@ -17,6 +17,9 @@ public final class BlockRegistry {
     public static final Block RED_DESERT_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().breakByTool(FabricToolTags.PICKAXES, Config.getInstance().getMiningLevel()).strength(Config.getInstance().getHardness(), 3600000));
     public static final Block RED_NETHER_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().breakByTool(FabricToolTags.PICKAXES, Config.getInstance().getMiningLevel()).strength(Config.getInstance().getHardness(), 3600000));
     public static final Block NETHER_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().breakByTool(FabricToolTags.PICKAXES, Config.getInstance().getMiningLevel()).strength(Config.getInstance().getHardness(), 3600000));
+    public static final Block ENDSTONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().breakByTool(FabricToolTags.PICKAXES, Config.getInstance().getMiningLevel()).strength(Config.getInstance().getHardness(), 3600000));
+    public static final Block DEEPSLATE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().breakByTool(FabricToolTags.PICKAXES, Config.getInstance().getMiningLevel()).strength(Config.getInstance().getHardness(), 3600000));
+    public static final Block BLACKSTONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().breakByTool(FabricToolTags.PICKAXES, Config.getInstance().getMiningLevel()).strength(Config.getInstance().getHardness(), 3600000));
 
     public static void registerBlocks() {
         Registry.register(Registry.BLOCK, Utils.ID("waystone"), WAYSTONE);
@@ -25,6 +28,9 @@ public final class BlockRegistry {
         Registry.register(Registry.BLOCK, Utils.ID("red_desert_waystone"), RED_DESERT_WAYSTONE);
         Registry.register(Registry.BLOCK, Utils.ID("nether_brick_waystone"), NETHER_BRICK_WAYSTONE);
         Registry.register(Registry.BLOCK, Utils.ID("red_nether_brick_waystone"), RED_NETHER_BRICK_WAYSTONE);
+        Registry.register(Registry.BLOCK, Utils.ID("end_stone_brick_waystone"), ENDSTONE_BRICK_WAYSTONE);
+        Registry.register(Registry.BLOCK, Utils.ID("deepslate_brick_waystone"), DEEPSLATE_BRICK_WAYSTONE);
+        Registry.register(Registry.BLOCK, Utils.ID("blackstone_brick_waystone"), BLACKSTONE_BRICK_WAYSTONE);
     }
 
 }

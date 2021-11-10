@@ -31,6 +31,9 @@ public final class ItemRegistry {
         registerItem("stone_brick_waystone", new WaystoneItem(BlockRegistry.STONE_BRICK_WAYSTONE, new Item.Settings().group(CustomItemGroup.WAYSTONE_GROUP)));
         registerItem("nether_brick_waystone", new WaystoneItem(BlockRegistry.NETHER_BRICK_WAYSTONE, new Item.Settings().group(CustomItemGroup.WAYSTONE_GROUP)));
         registerItem("red_nether_brick_waystone", new WaystoneItem(BlockRegistry.RED_NETHER_BRICK_WAYSTONE, new Item.Settings().group(CustomItemGroup.WAYSTONE_GROUP)));
+        registerItem("end_stone_brick_waystone", new WaystoneItem(BlockRegistry.ENDSTONE_BRICK_WAYSTONE, new Item.Settings().group(CustomItemGroup.WAYSTONE_GROUP)));
+        registerItem("deepslate_brick_waystone", new WaystoneItem(BlockRegistry.DEEPSLATE_BRICK_WAYSTONE, new Item.Settings().group(CustomItemGroup.WAYSTONE_GROUP)));
+        registerItem("blackstone_brick_waystone", new WaystoneItem(BlockRegistry.BLACKSTONE_BRICK_WAYSTONE, new Item.Settings().group(CustomItemGroup.WAYSTONE_GROUP)));
         registerItem("pocket_wormhole", new PocketWormholeItem(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP).fireproof()));
         registerItem("abyss_watcher", new AbyssWatcherItem(new Item.Settings().maxCount(4).group(CustomItemGroup.WAYSTONE_GROUP).fireproof()));
         registerItem("waystone_scroll", new WaystoneScroll(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP)));

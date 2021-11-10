@@ -11,10 +11,13 @@ public final class BlockEntityRegistry {
     public static final BlockEntityType<WaystoneBlockEntity> WAYSTONE_BLOCK_ENTITY = FabricBlockEntityTypeBuilder.create(WaystoneBlockEntity::new,
             BlockRegistry.WAYSTONE,
             BlockRegistry.DESERT_WAYSTONE,
-            BlockRegistry.RED_DESERT_WAYSTONE,
             BlockRegistry.STONE_BRICK_WAYSTONE,
+            BlockRegistry.RED_DESERT_WAYSTONE,
+            BlockRegistry.RED_NETHER_BRICK_WAYSTONE,
             BlockRegistry.NETHER_BRICK_WAYSTONE,
-            BlockRegistry.RED_NETHER_BRICK_WAYSTONE
+            BlockRegistry.ENDSTONE_BRICK_WAYSTONE,
+            BlockRegistry.DEEPSLATE_BRICK_WAYSTONE,
+            BlockRegistry.BLACKSTONE_BRICK_WAYSTONE
     ).build(null);
 
     public static  void registerBlockEntities() {
