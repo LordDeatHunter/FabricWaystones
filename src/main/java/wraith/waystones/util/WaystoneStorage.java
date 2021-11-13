@@ -71,11 +71,11 @@ public class WaystoneStorage {
         WAYSTONES.clear();
 
         Set<String> globals = new HashSet<>();
-        for(NbtElement element : tag.getList("global_waystones", NbtElement.STRING_TYPE)) {
+        for(var element : tag.getList("global_waystones", NbtElement.STRING_TYPE)) {
             globals.add(element.asString());
         }
 
-        NbtList waystones = tag.getList("waystones", 10);
+        var waystones = tag.getList("waystones", NbtElement.COMPOUND_TYPE);
 
         for (int i = 0; i < waystones.size(); ++i) {
             NbtCompound waystoneTag = waystones.getCompound(i);

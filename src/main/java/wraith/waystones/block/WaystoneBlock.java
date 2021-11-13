@@ -250,6 +250,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         } else {
             if (blockEntity.getOwner() == null) {
                 blockEntity.setOwner(player);
+            } else {
+                blockEntity.updateActiveState();
             }
 
             if (!Waystones.WAYSTONE_STORAGE.containsHash(blockEntity.getHash())) {

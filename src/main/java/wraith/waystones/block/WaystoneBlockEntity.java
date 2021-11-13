@@ -72,11 +72,15 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             this.owner = player.getUuid();
             this.ownerName = player.getName().asString();
         }
-        if (world != null && !world.isClient) {
+        updateActiveState();
+        markDirty();
+    }
+
+    public void updateActiveState() {
+        if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (owner == null)) {
             world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, this.ownerName != null));
             world.setBlockState(pos.up(), world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, this.ownerName != null));
         }
-        markDirty();
     }
 
     public void createHash(World world, BlockPos pos) {
