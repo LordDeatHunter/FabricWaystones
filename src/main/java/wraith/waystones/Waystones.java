@@ -37,7 +37,7 @@ public class Waystones implements ModInitializer, DedicatedServerModInitializer 
 
     @Override
     public void onInitializeServer() {
-        if (FabricLoader.getInstance().isModLoaded("repurposed_structures")) {
+        if (FabricLoader.getInstance().isModLoaded("repurposed_structures") && Config.getInstance().generateInVillages()) {
             RepurposedStructuresCompat.init();
         }
     }

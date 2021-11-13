@@ -13,7 +13,8 @@ import java.util.UUID;
 
 public final class WaystonePacketHandler {
 
-    private WaystonePacketHandler() {}
+    private WaystonePacketHandler() {
+    }
 
     public static void registerPacketHandlers() {
         ServerPlayNetworking.registerGlobalReceiver(Utils.ID("remove_waystone_owner"), (server, player, networkHandler, data, sender) -> {
@@ -53,7 +54,7 @@ public final class WaystonePacketHandler {
             server.execute(() -> {
                 if (Waystones.WAYSTONE_STORAGE.containsHash(hash) &&
                         ((player.getUuid().equals(owner) &&
-                                Waystones.WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner)) ||
+                                owner.equals(Waystones.WAYSTONE_STORAGE.getWaystone(hash).getOwner())) ||
                                 player.hasPermissionLevel(2))) {
                     Waystones.WAYSTONE_STORAGE.renameWaystone(hash, name);
                 }
@@ -89,7 +90,7 @@ public final class WaystonePacketHandler {
                 UUID owner = tag.getUuid("waystone_owner");
                 if (Waystones.WAYSTONE_STORAGE.containsHash(hash) &&
                         ((player.getUuid().equals(owner) &&
-                                Waystones.WAYSTONE_STORAGE.getWaystone(hash).getOwner().equals(owner)) ||
+                                owner.equals(Waystones.WAYSTONE_STORAGE.getWaystone(hash).getOwner())) ||
                                 player.hasPermissionLevel(2))) {
                     Waystones.WAYSTONE_STORAGE.toggleGlobal(hash);
                 }

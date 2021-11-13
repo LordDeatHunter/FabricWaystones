@@ -32,7 +32,7 @@ public class WaystonesClient implements ClientModInitializer {
         registerPacketHandlers();
         registerEvents();
 
-        if (FabricLoader.getInstance().isModLoaded("repurposed_structures")) {
+        if (FabricLoader.getInstance().isModLoaded("repurposed_structures") && Config.getInstance().generateInVillages()) {
             RepurposedStructuresCompat.init();
         }
     }

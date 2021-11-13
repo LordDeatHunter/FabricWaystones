@@ -74,7 +74,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                     return;
                 }
                 page = Page.WAYSTONES;
-                backgroundHeight = 140;
+                backgroundHeight = 176;
                 ((UniversalWaystoneScreenHandler)handler).updateWaystones(inventory.player);
             }
             @Override
