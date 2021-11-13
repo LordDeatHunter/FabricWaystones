@@ -61,8 +61,6 @@ public class WaystoneDebugger extends Item {
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
         tooltip.add(new TranslatableText("waystones.debug.debugger_tooltip" + TOOLTIP_MESSAGE));
-        tooltip.add(new TranslatableText("waystones.debug.debugger_tooltip" + TOOLTIP_MESSAGE));
-        tooltip.add(new TranslatableText("waystones.debug.debugger_tooltip" + TOOLTIP_MESSAGE));
     }
 
 }
