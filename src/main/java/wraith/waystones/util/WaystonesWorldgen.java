@@ -32,8 +32,10 @@ public final class WaystonesWorldgen {
     }
 
     public static void registerVillage(MinecraftServer server, Identifier village, Identifier waystone) {
-        Waystones.LOGGER.info("Adding waystone " + waystone.toString() + " to village " + village.toString());
-        Utils.addToStructurePool(server, village, waystone, 5);
+        if (Config.getInstance().generateInVillages()) {
+            Waystones.LOGGER.info("Adding waystone " + waystone.toString() + " to village " + village.toString());
+            Utils.addToStructurePool(server, village, waystone, 5);
+        }
     }
 
     public static void registerVanillaVillageWorldgen(MinecraftServer server) {
