@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import wraith.waystones.client.ClientStuff;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.util.Utils;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlockEntity;

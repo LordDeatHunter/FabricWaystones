@@ -20,9 +20,11 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.feature.StructureFeature;
 import wraith.waystones.Waystones;
+import wraith.waystones.access.StructurePiecesListAccess;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.mixin.SinglePoolElementAccessor;
 import wraith.waystones.mixin.StructurePoolAccessor;
+import wraith.waystones.mixin.StructureStartAccessor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -36,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Utils {
 
     public static final Random random = new Random();
+
     public static int getRandomIntInRange(int min, int max) {
         return random.nextInt(max - min + 1) + min;
     }
@@ -78,12 +81,12 @@ public class Utils {
         }
         var pool = poolGetter.get().getValue();
 
-        var pieceList = ((StructurePoolAccessor)pool).getElements();
+        var pieceList = ((StructurePoolAccessor) pool).getElements();
         var piece = StructurePoolElement.ofSingle(waystone.toString()).apply(StructurePool.Projection.RIGID);
 
         var list = new ArrayList<>(((StructurePoolAccessor) pool).getElementCounts());
         list.add(Pair.of(piece, weight));
-        ((StructurePoolAccessor)pool).setElementCounts(list);
+        ((StructurePoolAccessor) pool).setElementCounts(list);
 
         for (int i = 0; i < weight; ++i) {
             pieceList.add(piece);
@@ -91,19 +94,14 @@ public class Utils {
     }
 
     //Values from https://minecraft.gamepedia.com/Experience
-    public static long determineLevelXP(final PlayerEntity player)
-    {
+    public static long determineLevelXP(final PlayerEntity player) {
         int level = player.experienceLevel;
         long total = player.totalExperience;
-        if(level <= 16)
-        {
+        if (level <= 16) {
             total += (long) (Math.pow(level, 2) + 6L * level);
-        }
-        else if(level <= 31)
-        {
+        } else if (level <= 31) {
             total += (long) (2.5 * Math.pow(level, 2) - 40.5 * level + 360);
-        }
-        else {
+        } else {
             total += (long) (4.5 * Math.pow(level, 2) - 162.5 * level + 2220);
         }
         return total;
@@ -112,10 +110,10 @@ public class Utils {
     public static boolean canTeleport(PlayerEntity player, String hash) {
         String cost = Config.getInstance().teleportType();
         int amount = Config.getInstance().teleportCost();
-        if(player.isCreative()) {
+        if (player.isCreative()) {
             return true;
         }
-        switch(cost) {
+        switch (cost) {
             case "hp":
             case "health":
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
@@ -135,7 +133,7 @@ public class Utils {
             case "xp":
             case "experience":
                 long total = determineLevelXP(player);
-                if(total < amount) {
+                if (total < amount) {
                     return false;
                 }
                 player.addExperience(-amount);
@@ -178,23 +176,23 @@ public class Utils {
             default:
                 return true;
         }
-        
+
     }
 
     private static boolean containsItem(PlayerInventory inventory, Item item, int maxAmount) {
         int amount = 0;
         for (ItemStack stack : inventory.main) {
-            if(stack.getItem().equals(item)) {
+            if (stack.getItem().equals(item)) {
                 amount += stack.getCount();
             }
         }
         for (ItemStack stack : inventory.offHand) {
-            if(stack.getItem().equals(item)) {
+            if (stack.getItem().equals(item)) {
                 amount += stack.getCount();
             }
         }
         for (ItemStack stack : inventory.armor) {
-            if(stack.getItem().equals(item)) {
+            if (stack.getItem().equals(item)) {
                 amount += stack.getCount();
             }
         }
@@ -203,7 +201,7 @@ public class Utils {
 
     private static void removeItem(PlayerInventory inventory, Item item, int totalAmount) {
         for (ItemStack stack : inventory.main) {
-            if(stack.getItem().equals(item)) {
+            if (stack.getItem().equals(item)) {
                 int amount = stack.getCount();
                 stack.decrement(totalAmount);
                 totalAmount -= amount;
@@ -213,7 +211,7 @@ public class Utils {
             }
         }
         for (ItemStack stack : inventory.offHand) {
-            if(stack.getItem().equals(item)) {
+            if (stack.getItem().equals(item)) {
                 int amount = stack.getCount();
                 stack.decrement(totalAmount);
                 totalAmount -= amount;
@@ -223,7 +221,7 @@ public class Utils {
             }
         }
         for (ItemStack stack : inventory.armor) {
-            if(stack.getItem().equals(item)) {
+            if (stack.getItem().equals(item)) {
                 int amount = stack.getCount();
                 stack.decrement(totalAmount);
                 totalAmount -= amount;
@@ -251,22 +249,23 @@ public class Utils {
         for (int i = 0; i < StructureFeature.LAND_MODIFYING_STRUCTURES.size(); ++i) {
             var structureFeature = StructureFeature.LAND_MODIFYING_STRUCTURES.get(i);
             var waystones = new AtomicInteger(0);
-            accessor.getStructuresWithChildren(ChunkSectionPos.from(chunkPos, 0), structureFeature).forEach((structures) -> {
-                int pre = structures.getChildren().size();
+            accessor.getStructureStarts(ChunkSectionPos.from(chunkPos, 0), structureFeature).forEach((structures) -> {
+                var oldStructurePieces = new ArrayList<>(structures.getChildren());
                 ArrayList<Integer> toRemove = new ArrayList<>();
-                for (int j = 0; j < pre; ++j) {
-                    StructurePiece structure = structures.getChildren().get(j);
+                for (int j = 0; j < oldStructurePieces.size(); ++j) {
+                    StructurePiece structure = oldStructurePieces.get(j);
                     if (structure instanceof PoolStructurePiece poolStructurePiece &&
-                        ((PoolStructurePiece) structure).getPoolElement() instanceof SinglePoolElement &&
-                        WaystonesWorldgen.WAYSTONE_STRUCTURES.contains(((SinglePoolElementAccessor)(poolStructurePiece).getPoolElement()).getLocation().left().get()) &&
-                        waystones.getAndIncrement() > 0) {
+                            ((PoolStructurePiece) structure).getPoolElement() instanceof SinglePoolElement &&
+                            WaystonesWorldgen.WAYSTONE_STRUCTURES.contains(((SinglePoolElementAccessor) (poolStructurePiece).getPoolElement()).getLocation().left().get()) &&
+                            waystones.getAndIncrement() > 0) {
                         toRemove.add(j);
                     }
                 }
                 toRemove.sort(Collections.reverseOrder());
-                for(int remove : toRemove) {
-                    structures.getChildren().remove(remove);
+                for (int remove : toRemove) {
+                    oldStructurePieces.remove(remove);
                 }
+                ((StructurePiecesListAccess) (Object) (((StructureStartAccessor) (Object) structures).getChildren())).setPieces(oldStructurePieces);
             });
         }
         return accessor;

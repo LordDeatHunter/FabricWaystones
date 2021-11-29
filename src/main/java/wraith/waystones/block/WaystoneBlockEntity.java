@@ -1,9 +1,7 @@
 package wraith.waystones.block;
 
-import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -31,18 +29,19 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
-import wraith.waystones.interfaces.WaystoneValue;
+import wraith.waystones.access.WaystoneValue;
 import wraith.waystones.item.AbyssWatcherItem;
 import wraith.waystones.registries.BlockEntityRegistry;
-import wraith.waystones.registries.ItemRegistry;
 import wraith.waystones.screens.WaystoneScreenHandler;
 import wraith.waystones.util.Utils;
 
 import java.math.BigInteger;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
-public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable, WaystoneValue {
+public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, WaystoneValue {
 
     private String name = "";
     private String hash;
@@ -124,20 +123,28 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public void readNbt(NbtCompound tag) {
-        super.readNbt(tag);
-        this.name = tag.contains("waystone_name") ? tag.getString("waystone_name") : "";
-        this.isGlobal = tag.contains("waystone_is_global") && tag.getBoolean("waystone_is_global");
-        this.owner = tag.contains("waystone_owner") ? tag.getUuid("waystone_owner") : null;
-        this.ownerName = tag.contains("waystone_owner_name") ? tag.getString("waystone_owner_name") : null;
-        this.inventory = DefaultedList.ofSize(tag.getInt("inventory_size"), ItemStack.EMPTY);
-        Inventories.readNbt(tag, inventory);
+    public void readNbt(NbtCompound nbt) {
+        super.readNbt(nbt);
+        if (nbt.contains("waystone_name")) {
+            this.name = nbt.getString("waystone_name");
+        }
+        if (nbt.contains("waystone_is_global")) {
+            this.isGlobal = nbt.getBoolean("waystone_is_global");
+        }
+        if (nbt.contains("waystone_owner")) {
+            this.owner = nbt.getUuid("waystone_owner");
+        }
+        if (nbt.contains("waystone_owner_name")) {
+            this.ownerName = nbt.getString("waystone_owner_name");
+        }
+        this.inventory = DefaultedList.ofSize(nbt.getInt("inventory_size"), ItemStack.EMPTY);
+        Inventories.readNbt(nbt, inventory);
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound tag) {
-        super.writeNbt(tag);
-        return createTag(tag);
+    protected void writeNbt(NbtCompound nbt) {
+        super.writeNbt(nbt);
+        createTag(nbt);
     }
 
     private NbtCompound createTag(NbtCompound tag) {
@@ -162,8 +169,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     public void markDirty() {
         super.markDirty();
-        if (world != null && !world.isClient) {
-            sync();
+        if (world != null && world instanceof ServerWorld serverWorld) {
+            serverWorld.getChunkManager().markForUpdate(pos);
         }
     }
 
@@ -181,16 +188,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         NbtCompound tag = createTag(new NbtCompound());
         tag.putString("waystone_hash", this.hash);
         packetByteBuf.writeNbt(tag);
-    }
-
-    @Override
-    public void fromClientTag(NbtCompound tag) {
-        readNbt(tag);
-    }
-
-    @Override
-    public NbtCompound toClientTag(NbtCompound tag) {
-        return writeNbt(tag);
     }
 
     public float lookingRotR = 0;
@@ -452,7 +449,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return false;
     }
 
-    public static <T extends BlockEntity> void ticker(World world, BlockPos blockPos, BlockState blockState, WaystoneBlockEntity waystone) {
+    public static void ticker(World world, BlockPos blockPos, BlockState blockState, WaystoneBlockEntity waystone) {
         waystone.tick();
     }
 

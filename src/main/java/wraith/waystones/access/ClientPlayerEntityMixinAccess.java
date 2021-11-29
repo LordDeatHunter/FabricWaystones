@@ -1,4 +1,4 @@
-package wraith.waystones.interfaces;
+package wraith.waystones.access;
 
 import java.util.ArrayList;
 

@@ -36,7 +36,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.item.LocalVoid;
 import wraith.waystones.item.WaystoneDebugger;
 import wraith.waystones.item.WaystoneScroll;
@@ -140,7 +140,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             if (!player.isCreative() && player.canHarvest(world.getBlockState(botPos)) && world instanceof ServerWorld) {
                 if (!world.isClient) {
                     ItemStack itemStack = new ItemStack(state.getBlock().asItem());
-                    NbtCompound compoundTag = waystone.writeNbt(new NbtCompound());
+                    var compoundTag = new NbtCompound();
+                    waystone.writeNbt(compoundTag);
                     if (Config.getInstance().storeWaystoneNbt() && player.isSneaking() && !compoundTag.isEmpty()) {
                         itemStack.setSubNbt("BlockEntityTag", compoundTag);
                     }
@@ -318,7 +319,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
         if (state.get(WATERLOGGED)) {
-            world.getFluidTickScheduler().schedule(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+            world.createAndScheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
         }
         return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }

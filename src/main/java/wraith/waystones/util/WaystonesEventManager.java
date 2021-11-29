@@ -6,14 +6,12 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import wraith.waystones.Waystones;
-import wraith.waystones.compat.RepurposedStructuresCompat;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.access.PlayerEntityMixinAccess;
 
 public class WaystonesEventManager {
 
@@ -37,12 +35,7 @@ public class WaystonesEventManager {
             Waystones.WAYSTONE_STORAGE.sendCompatData(handler.player);
         });
 
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
-            WaystonesWorldgen.registerVanillaVillageWorldgen(server);
-            if (FabricLoader.getInstance().isModLoaded("repurposed_structures")) {
-                RepurposedStructuresCompat.registerRSVillages(server);
-            }
-        });
+        ServerLifecycleEvents.SERVER_STARTING.register(WaystonesWorldgen::registerVanillaVillageWorldgen);
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).syncData());
 

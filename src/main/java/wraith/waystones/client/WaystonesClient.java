@@ -5,17 +5,15 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.nbt.NbtCompound;
-import wraith.waystones.compat.RepurposedStructuresCompat;
-import wraith.waystones.util.Config;
-import wraith.waystones.util.Utils;
 import wraith.waystones.Waystones;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.registries.CustomBlockEntityRendererRegistry;
 import wraith.waystones.registries.CustomScreenRegistry;
 import wraith.waystones.registries.WaystonesModelProviderRegistry;
 import wraith.waystones.screens.UniversalWaystoneScreenHandler;
+import wraith.waystones.util.Config;
+import wraith.waystones.util.Utils;
 
 import java.util.HashSet;
 
@@ -31,10 +29,6 @@ public class WaystonesClient implements ClientModInitializer {
         WaystonesModelProviderRegistry.register();
         registerPacketHandlers();
         registerEvents();
-
-        if (FabricLoader.getInstance().isModLoaded("repurposed_structures") && Config.getInstance().generateInVillages()) {
-            RepurposedStructuresCompat.init();
-        }
     }
 
     private void registerPacketHandlers() {

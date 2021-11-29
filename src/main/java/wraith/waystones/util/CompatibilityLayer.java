@@ -10,7 +10,7 @@ import net.minecraft.world.PersistentState;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.mixin.MinecraftServerAccessor;
 
 import java.io.File;
@@ -42,7 +42,7 @@ public class CompatibilityLayer {
             };
         }, OLD_ID);
 
-        File worldDirectory = ((MinecraftServerAccessor) SERVER).getSession().getWorldDirectory(SERVER.getOverworld().getRegistryKey());
+        File worldDirectory = ((MinecraftServerAccessor) SERVER).getSession().getWorldDirectory(SERVER.getOverworld().getRegistryKey()).toFile();
         File file = new File(worldDirectory, "data/" + OLD_ID + ".dat");
         if (file.exists()) {
             file.renameTo(new File(worldDirectory, "data/old_id_converted.dat"));

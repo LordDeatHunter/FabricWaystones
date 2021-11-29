@@ -10,9 +10,10 @@
     "PlayerEntityMixin",
     "ServerPlayerEntityAccessor",
     "ServerPlayerEntityMixin",
-    "SimpleRegistryAccessor",
     "SinglePoolElementAccessor",
-    "StructurePoolAccessor"
+    "StructurePiecesListMixin",
+    "StructurePoolAccessor",
+    "StructureStartAccessor"
   ],
   "client": [
     "ClientPlayerEntityAccessor",

@@ -16,8 +16,8 @@ import net.minecraft.world.World;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
-import wraith.waystones.interfaces.WaystoneValue;
+import wraith.waystones.access.PlayerEntityMixinAccess;
+import wraith.waystones.access.WaystoneValue;
 import wraith.waystones.mixin.MinecraftServerAccessor;
 
 import java.io.File;
@@ -37,8 +37,8 @@ public class WaystoneStorage {
     public WaystoneStorage(MinecraftServer server) {
         CompatibilityLayer compatLoading = new CompatibilityLayer(this, server);
         this.server = server;
-        File worldDirectory = ((MinecraftServerAccessor) server).getSession().getWorldDirectory(server.getOverworld().getRegistryKey());
-        File file = new File(worldDirectory, "data/waystones:waystones.dat");
+        var worldDirectory = ((MinecraftServerAccessor) server).getSession().getWorldDirectory(server.getOverworld().getRegistryKey()).toFile();
+        var file = new File(worldDirectory, "data/waystones:waystones.dat");
         if (file.exists()) {
             file.renameTo(new File(worldDirectory, "data/" + ID + ".dat"));
         }

@@ -15,13 +15,12 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
-import wraith.waystones.util.Utils;
 import wraith.waystones.client.WaystonesClient;
+import wraith.waystones.access.PlayerEntityMixinAccess;
+import wraith.waystones.util.Utils;
 
 import java.util.UUID;
 

@@ -12,7 +12,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.client.ClientStuff;
-import wraith.waystones.interfaces.PlayerEntityMixinAccess;
+import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.util.Config;
 
 import java.util.HashSet;
