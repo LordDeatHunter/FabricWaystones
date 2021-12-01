@@ -23,7 +23,7 @@ dependencies {
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modCompileOnly 'curse.maven:repurposed-structures-fabric-391366:3539927'
+	modCompileOnly 'curse.maven:repurposed-structures-fabric-391366:3542863'
 }
 
 loom {
