@@ -43,6 +43,7 @@
             },
             {
               "function": "minecraft:set_contents",
+              "type": "waystones:waystone",
               "entries": [
                 {
                   "type": "minecraft:dynamic",
