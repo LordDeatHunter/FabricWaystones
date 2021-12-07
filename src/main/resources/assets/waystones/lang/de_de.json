@@ -50,8 +50,6 @@
   "waystones.learned.infinite.none": "§6Du weißt bereits alles was zu wissen ist!",
 
   "waystones.discover_waystone": "§b%1$s wurde entdeckt!",
-  "waystones.search": "",
-  "waystones.rename": "",
 
   "waystones.config.global": "Globale Sichtbarkeit umschalten",
   "waystones.config.view_discovered": "Entdeckte Wegsteine anzeigen",

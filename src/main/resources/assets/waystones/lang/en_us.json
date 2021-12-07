@@ -71,8 +71,6 @@
 
   "waystones.discover_waystone": "§6【%s§6】§3has been discovered!",
   "waystones.discover_waystone.arg_color": "§b",
-  "waystones.search": "",
-  "waystones.rename": "",
 
   "waystones.config.global": "Toggle global waystone",
   "waystones.config.view_discovered": "View discovered waystones",

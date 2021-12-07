@@ -50,8 +50,6 @@
   "waystones.learned.infinite.none": "§6你已发现所有现存的传送石碑！",
 
   "waystones.discover_waystone": "§b%1$s 已被发现！",
-  "waystones.search": "",
-  "waystones.rename": "",
 
   "waystones.config.global": "切换全局传送石碑",
   "waystones.config.view_discovered": "查看已发现的传送石碑",

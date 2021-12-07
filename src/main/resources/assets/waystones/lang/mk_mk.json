@@ -52,8 +52,6 @@
   "waystones.learned.infinite.none": "§6Веќе знаете се што треба да знаете!",
 
   "waystones.discover_waystone": "§b%1$s е откриен!",
-  "waystones.search": "",
-  "waystones.rename": "",
 
   "waystones.config.global": "Смени глобалност на патниот камен",
   "waystones.config.view_discovered": "Прикажи откриени патни камења",

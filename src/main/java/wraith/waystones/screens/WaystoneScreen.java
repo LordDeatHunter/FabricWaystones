@@ -15,11 +15,12 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
-import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.access.PlayerEntityMixinAccess;
+import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.util.Utils;
 
 import java.util.UUID;
@@ -262,7 +263,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
     protected void init() {
         super.init();
 
-        this.nameField = new TextFieldWidget(this.textRenderer, this.x + 28, this.y + 106, 93, 10, new TranslatableText("waystone.rename")) {
+        this.nameField = new TextFieldWidget(this.textRenderer, this.x + 28, this.y + 106, 93, 10, new LiteralText("")) {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
                 boolean bl = mouseX >= (double)this.x && mouseX < (double)(this.x + this.width) && mouseY >= (double)this.y && mouseY < (double)(this.y + this.height);

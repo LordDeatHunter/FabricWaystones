@@ -70,8 +70,6 @@
 
   "waystones.discover_waystone": "§6【%s§6】§3был обнаружен!",
   "waystones.discover_waystone.arg_color": "§b",
-  "waystones.search": "",
-  "waystones.rename": "",
 
   "waystones.config.global": "Глобальные настройки путевых камней",
   "waystones.config.view_discovered": "Обнаруженные путевые камни",
