@@ -13,6 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 
+import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
@@ -259,6 +260,7 @@ public class WaystoneStorage {
         }
     }
 
+    @Nullable
     public WaystoneBlockEntity getWaystone(String hash) {
         WaystoneValue value = WAYSTONES.getOrDefault(hash, null);
         return value != null ? value.getEntity() : null;

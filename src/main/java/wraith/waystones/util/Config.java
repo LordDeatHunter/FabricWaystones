@@ -6,6 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 
 import java.io.File;
@@ -39,6 +40,7 @@ public final class Config {
         return configData.getBoolean("can_owners_redeem_payments");
     }
 
+    @Nullable
     public Identifier teleportCostItem() {
         if ("item".equals(configData.getString("cost_type"))) {
             String[] item = configData.getString("cost_item").split(":");

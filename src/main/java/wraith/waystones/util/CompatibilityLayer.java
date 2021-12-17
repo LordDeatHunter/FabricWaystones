@@ -7,6 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
+import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
@@ -140,6 +141,7 @@ public class CompatibilityLayer {
         return tag;
     }
 
+    @Nullable
     private ServerWorld getWorld(String world) {
         if (SERVER == null) {
             return null;

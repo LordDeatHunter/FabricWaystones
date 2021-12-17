@@ -3,6 +3,7 @@ package wraith.waystones.client;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.sound.SoundEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 
@@ -19,6 +20,7 @@ public final class ClientStuff {
         return -1;
     }
 
+    @Nullable
     public static HashSet<String> getWaystoneHashes() {
         if (WaystonesClient.WAYSTONE_STORAGE != null) {
             return WaystonesClient.WAYSTONE_STORAGE.getAllHashes();

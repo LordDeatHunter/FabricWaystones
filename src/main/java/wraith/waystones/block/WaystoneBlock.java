@@ -99,6 +99,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         return super.calcBlockBreakingDelta(state, player, world, pos);
     }
 
+    @Nullable
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         BlockPos blockPos = ctx.getBlockPos();
@@ -186,6 +187,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         }
     }
 
+    @Nullable
     public static WaystoneBlockEntity getEntity(World world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
         if (!(state.getBlock() instanceof WaystoneBlock)) {
