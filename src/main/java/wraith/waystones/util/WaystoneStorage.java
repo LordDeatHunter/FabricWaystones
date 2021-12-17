@@ -98,7 +98,8 @@ public class WaystoneStorage {
          */
         final String name;
         final BlockPos pos;
-        final String hash, dimension;
+        final String hash;
+        final String dimension;
         final boolean isGlobal;
         WaystoneBlockEntity entity;
         World world;
@@ -118,7 +119,7 @@ public class WaystoneStorage {
                     if(WaystoneBlock.getDimensionName(world).equals(dimension)) {
                         WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, pos);
                         if(entity != null) {
-                            WAYSTONES.put(hash, entity); // should allow this instance to be GCed
+                            tryAddWaystone(entity); // should allow this instance to be GCed
                             this.entity = entity;
                             this.world = world;
                         }
@@ -182,16 +183,25 @@ public class WaystoneStorage {
         return WAYSTONES.containsValue(waystone);
     }
 
-    public void addWaystone(WaystoneBlockEntity waystone) {
+    public void tryAddWaystone(WaystoneBlockEntity waystone) {
+        if (waystone == null || WAYSTONES.containsValue(waystone)) {
+            return;
+        }
         WAYSTONES.put(waystone.getHash(), waystone);
         loadOrSaveWaystones(true);
     }
 
     public void addWaystones(HashSet<WaystoneBlockEntity> waystones) {
+        var added = false;
         for (WaystoneBlockEntity waystone : waystones) {
-            WAYSTONES.put(waystone.getHash(), waystone);
+            if (waystone != null) {
+                added = true;
+                tryAddWaystone(waystone);
+            }
         }
-        loadOrSaveWaystones(true);
+        if (added) {
+            loadOrSaveWaystones(true);
+        }
     }
 
     public void loadOrSaveWaystones(boolean save) {

@@ -181,9 +181,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
         BlockEntity entity = world.getBlockEntity(pos);
         if (placer instanceof ServerPlayerEntity && entity instanceof WaystoneBlockEntity waystone) {
-            if (Waystones.WAYSTONE_STORAGE != null) {
-                Waystones.WAYSTONE_STORAGE.addWaystone(waystone);
-            }
+            Waystones.WAYSTONE_STORAGE.tryAddWaystone(waystone);
         }
     }
 
@@ -256,11 +254,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             } else {
                 blockEntity.updateActiveState();
             }
-
-            if (!Waystones.WAYSTONE_STORAGE.containsHash(blockEntity.getHash())) {
-                Waystones.WAYSTONE_STORAGE.addWaystone(blockEntity);
-            }
-
+            Waystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
             if (!discovered.contains(blockEntity.getHash())) {
                 if (!blockEntity.isGlobal()) {
                     player.sendMessage(new TranslatableText("waystones.discover_waystone",
