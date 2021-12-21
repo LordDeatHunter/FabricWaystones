@@ -19,6 +19,7 @@ import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.client.WaystonesClient;
+import wraith.waystones.util.Config;
 
 import java.util.List;
 
@@ -35,23 +36,21 @@ public class LocalVoidItem extends Item {
         if (tag == null || !tag.contains("waystone")) {
             return TypedActionResult.fail(stack);
         }
-        String hash = tag.getString("waystone");
-        if (Waystones.WAYSTONE_STORAGE != null) {
-            WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
-            if (waystone == null) {
-                stack.setNbt(null);
-            } else {
-                if (!user.isCreative()) {
+        if (user.isSneaking()) {
+            stack.removeSubNbt("waystone");
+        } else {
+            String hash = tag.getString("waystone");
+            if (Waystones.WAYSTONE_STORAGE != null) {
+                WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+                if (waystone != null && waystone.teleportPlayer(user) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
                     stack.decrement(1);
                 }
-                waystone.teleportPlayer(user);
             }
         }
         if (stack.isEmpty()) {
             user.setStackInHand(hand, ItemStack.EMPTY);
         }
-        stack = user.getStackInHand(hand);
-        return TypedActionResult.success(stack, world.isClient());
+        return TypedActionResult.success(user.getStackInHand(hand), world.isClient());
     }
 
     @Override

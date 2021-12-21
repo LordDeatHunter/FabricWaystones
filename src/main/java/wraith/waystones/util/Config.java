@@ -77,7 +77,11 @@ public final class Config {
     public boolean consumeInfiniteScroll() {
         return configData.getBoolean("consume_infinite_knowledge_scroll_on_use");
     }
-    
+
+    public boolean consumeLocalVoid() {
+        return configData.getBoolean("consume_local_void_on_use");
+    }
+
     public boolean preventNonOwnersFromBreaking() {
         return configData.getBoolean("prevent_non_owners_from_breaking_waystone");
     }
@@ -202,6 +206,7 @@ public final class Config {
 
         defaultConfig.putBoolean("generate_in_villages", true);
         defaultConfig.putBoolean("consume_infinite_knowledge_scroll_on_use", false);
+        defaultConfig.putBoolean("consume_local_void_on_use", true);
         defaultConfig.putBoolean("can_owners_redeem_payments", false);
         defaultConfig.putBoolean("store_waystone_data_on_sneak_break", true);
         defaultConfig.putInt("cost_amount", 1);
@@ -230,6 +235,7 @@ public final class Config {
 
         json.addProperty("generate_in_villages", getBooleanOrDefault(tag, "generate_in_villages", defaults));
         json.addProperty("consume_infinite_knowledge_scroll_on_use", getBooleanOrDefault(tag, "consume_infinite_knowledge_scroll_on_use", defaults));
+        json.addProperty("consume_local_void_on_use", getBooleanOrDefault(tag, "consume_local_void_on_use", defaults));
         json.addProperty("store_waystone_data_on_sneak_break", getBooleanOrDefault(tag, "store_waystone_data_on_sneak_break", defaults));
         json.addProperty("can_owners_redeem_payments", getBooleanOrDefault(tag, "can_owners_redeem_payments", defaults));
         json.addProperty("cost_amount", getIntOrDefault(tag, "cost_amount", defaults));
@@ -261,6 +267,7 @@ public final class Config {
 
         tag.putBoolean("generate_in_villages", getBooleanOrDefault(json, "generate_in_villages", defaults));
         tag.putBoolean("consume_infinite_knowledge_scroll_on_use", getBooleanOrDefault(json, "consume_infinite_knowledge_scroll_on_use", defaults));
+        tag.putBoolean("consume_local_void_on_use", getBooleanOrDefault(json, "consume_local_void_on_use", defaults));
         tag.putBoolean("store_waystone_data_on_sneak_break", getBooleanOrDefault(json, "store_waystone_data_on_sneak_break", defaults));
         tag.putBoolean("can_owners_redeem_payments", getBooleanOrDefault(json, "can_owners_redeem_payments", defaults));
         tag.putInt("cost_amount", getIntOrDefault(json, "cost_amount", defaults));
