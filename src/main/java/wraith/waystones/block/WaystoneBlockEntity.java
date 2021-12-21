@@ -1,12 +1,12 @@
 package wraith.waystones.block;
 
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
+import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -28,19 +28,18 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.interfaces.WaystoneValue;
 import wraith.waystones.item.AbyssWatcherItem;
 import wraith.waystones.registries.BlockEntityRegistry;
-import wraith.waystones.registries.ItemRegistry;
 import wraith.waystones.screens.WaystoneScreenHandler;
 import wraith.waystones.util.Utils;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, BlockEntityClientSerializable, WaystoneValue {
 
@@ -305,6 +304,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return player.squaredDistanceTo((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
     }
 
+
     public void teleportPlayer(PlayerEntity player, boolean isAbyssWatcher) {
         if (!(player instanceof ServerPlayerEntity playerEntity)) {
             return;
@@ -338,33 +338,38 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         final float fX = x;
         final float fZ = z;
         final float fYaw = yaw;
-        final List<StatusEffectInstance> effects = new ArrayList<>(playerEntity.getStatusEffects());
         if (playerEntity.getServer() == null) {
             return;
         }
-
-        playerEntity.getServer().execute(() -> {
-            player.getEntityWorld().sendEntityStatus(player, (byte) 46);
-            playerEntity.teleport((ServerWorld) world, pos.getX() + fX, pos.getY(), pos.getZ() + fZ, fYaw, 0);
-            playerEntity.onTeleportationDone();
-            playerEntity.addExperience(0);
-            if (isAbyssWatcher && playerEntity.getMainHandStack().getItem() instanceof AbyssWatcherItem) {
-                if (!playerEntity.isCreative()) {
-                    player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
-                    player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
-                    playerEntity.getMainHandStack().decrement(1);
-                    player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
-                }
+        TeleportTarget target = new TeleportTarget(
+                new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
+                new Vec3d(0 ,0, 0),
+                fYaw,
+                0
+        );
+        doTeleport(playerEntity, (ServerWorld) world, target);
+        if (isAbyssWatcher && playerEntity.getMainHandStack().getItem() instanceof AbyssWatcherItem) {
+            if (!playerEntity.isCreative()) {
+                player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
+                player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
+                playerEntity.getMainHandStack().decrement(1);
+                player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
             }
+        }
+    }
 
-            float absorption = playerEntity.getAbsorptionAmount();
-            for (StatusEffectInstance effect : effects) {
-                playerEntity.addStatusEffect(effect);
-            }
-            playerEntity.setAbsorptionAmount(absorption);
-            player.getEntityWorld().sendEntityStatus(player, (byte) 46);
-        });
-
+    private void doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target) {
+        if (player.world.getRegistryKey().equals(world.getRegistryKey())) {
+            player.networkHandler.requestTeleport(
+                    target.position.getX(),
+                    target.position.getY(),
+                    target.position.getZ(),
+                    target.yaw,
+                    target.pitch
+            );
+        } else {
+            FabricDimensions.teleport(player, world, target);
+        }
     }
 
     public void setName(String name) {
