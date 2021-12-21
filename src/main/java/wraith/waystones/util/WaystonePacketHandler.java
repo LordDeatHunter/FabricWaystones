@@ -2,13 +2,10 @@ package wraith.waystones.util;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import wraith.waystones.Waystones;
-import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.access.PlayerEntityMixinAccess;
+import wraith.waystones.block.WaystoneBlock;
 
 import java.util.UUID;
 
@@ -130,15 +127,8 @@ public final class WaystonePacketHandler {
                 if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos()).getBlock() instanceof WaystoneBlock)) {
                     Waystones.WAYSTONE_STORAGE.removeWaystone(hash);
                     waystone.getWorld().removeBlockEntity(waystone.getPos());
-                } else if (waystone.teleportPlayer(player, true)) {
-                    BlockPos playerPos = player.getBlockPos();
-
-                    player.world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
-
-                    BlockPos waystonePos = waystone.getPos();
-                    if (!waystonePos.isWithinDistance(playerPos, 6)) {
-                        player.world.playSound(null, waystonePos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
-                    }
+                } else {
+                    waystone.teleportPlayer(player, true);
                 }
             });
         });

@@ -419,6 +419,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         } else {
             FabricDimensions.teleport(player, world, target);
         }
+        BlockPos playerPos = player.getBlockPos();
+        player.world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+
+        if (!pos.isWithinDistance(playerPos, 6) || player.world.getRegistryKey().equals(world.getRegistryKey())) {
+            world.playSound(null, pos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        }
         return true;
     }
 
