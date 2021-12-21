@@ -1,4 +1,4 @@
-package wraith.waystones.screens;
+package wraith.waystones.screen;
 
 public class ToggleableButton extends Button {
 

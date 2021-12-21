@@ -17,11 +17,11 @@ import wraith.waystones.util.Utils;
 
 import java.util.List;
 
-public class WaystoneDebugger extends Item {
+public class WaystoneDebuggerItem extends Item {
 
     private static final int TOOLTIP_MESSAGE = Utils.getRandomIntInRange(1, 4);
 
-    public WaystoneDebugger(Settings settings) {
+    public WaystoneDebuggerItem(Settings settings) {
         super(settings);
     }
 

@@ -21,6 +21,8 @@ import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.TextColor;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -37,10 +39,10 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
-import wraith.waystones.item.LocalVoid;
-import wraith.waystones.item.WaystoneDebugger;
-import wraith.waystones.item.WaystoneScroll;
-import wraith.waystones.registries.BlockEntityRegistry;
+import wraith.waystones.item.LocalVoidItem;
+import wraith.waystones.item.WaystoneDebuggerItem;
+import wraith.waystones.item.WaystoneScrollItem;
+import wraith.waystones.registry.BlockEntityRegistry;
 import wraith.waystones.util.Config;
 
 import java.util.HashSet;
@@ -207,21 +209,20 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (world.isClient) {
             return ActionResult.success(true);
         }
-        Item heldItem = player.getMainHandStack().getItem();
         BlockPos openPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
         BlockState topState = world.getBlockState(openPos.up());
         BlockState bottomState = world.getBlockState(openPos);
+        Item heldItem = player.getStackInHand(hand).getItem();
         if (heldItem == Items.VINE) {
             if (!topState.get(MOSSY)) {
                 world.setBlockState(openPos.up(), topState.with(MOSSY, true));
                 world.setBlockState(openPos, bottomState.with(MOSSY, true));
                 if (!player.isCreative()) {
-                    player.getMainHandStack().decrement(1);
+                    player.getStackInHand(hand).decrement(1);
                 }
             }
             return ActionResult.PASS;
         }
-
         if (heldItem == Items.SHEARS) {
             if (topState.get(MOSSY)) {
                 world.setBlockState(openPos.up(), topState.with(MOSSY, false));
@@ -231,8 +232,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             }
             return ActionResult.PASS;
         }
-
-        if (heldItem instanceof WaystoneScroll || heldItem instanceof LocalVoid || heldItem instanceof WaystoneDebugger) {
+        if (heldItem instanceof WaystoneScrollItem || heldItem instanceof LocalVoidItem || heldItem instanceof WaystoneDebuggerItem) {
             return ActionResult.PASS;
         }
 
@@ -257,8 +257,12 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             Waystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
             if (!discovered.contains(blockEntity.getHash())) {
                 if (!blockEntity.isGlobal()) {
-                    player.sendMessage(new TranslatableText("waystones.discover_waystone",
-                            new TranslatableText("waystones.discover_waystone.arg_color").append(blockEntity.getWaystoneName())), false);
+                    player.sendMessage(new TranslatableText(
+                            "waystones.discover_waystone",
+                            new LiteralText(blockEntity.getWaystoneName()).styled(style ->
+                                    style.withColor(TextColor.parse(new TranslatableText("waystones.discover_waystone.arg_color").getString()))
+                            )
+                    ), false);
                 }
                 ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
             }

@@ -8,10 +8,10 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.nbt.NbtCompound;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
-import wraith.waystones.registries.CustomBlockEntityRendererRegistry;
-import wraith.waystones.registries.CustomScreenRegistry;
-import wraith.waystones.registries.WaystonesModelProviderRegistry;
-import wraith.waystones.screens.UniversalWaystoneScreenHandler;
+import wraith.waystones.registry.CustomBlockEntityRendererRegistry;
+import wraith.waystones.registry.CustomScreenRegistry;
+import wraith.waystones.registry.WaystonesModelProviderRegistry;
+import wraith.waystones.screen.UniversalWaystoneScreenHandler;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.Utils;
 

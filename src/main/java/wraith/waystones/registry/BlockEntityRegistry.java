@@ -1,4 +1,4 @@
-package wraith.waystones.registries;
+package wraith.waystones.registry;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.entity.BlockEntityType;

@@ -3,7 +3,7 @@ package wraith.waystones;
 import net.fabricmc.api.ModInitializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import wraith.waystones.registries.*;
+import wraith.waystones.registry.*;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.WaystonePacketHandler;
 import wraith.waystones.util.WaystoneStorage;

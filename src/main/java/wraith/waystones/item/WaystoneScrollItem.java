@@ -8,7 +8,9 @@ import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -23,9 +25,9 @@ import wraith.waystones.block.WaystoneBlock;
 import java.util.HashSet;
 import java.util.List;
 
-public class WaystoneScroll extends Item {
+public class WaystoneScrollItem extends Item {
 
-    public WaystoneScroll(Settings settings) {
+    public WaystoneScrollItem(Settings settings) {
         super(settings);
     }
 
@@ -57,7 +59,7 @@ public class WaystoneScroll extends Item {
             } else {
                 text = new TranslatableText("waystones.learned.single");
             }
-            ((PlayerEntityMixinAccess)user).discoverWaystones(toLearn);
+            ((PlayerEntityMixinAccess) user).discoverWaystones(toLearn);
             if (!user.isCreative()) {
                 stack.decrement(1);
             }
@@ -79,7 +81,7 @@ public class WaystoneScroll extends Item {
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
         if (context.getWorld().getBlockState(context.getBlockPos()).getBlock() instanceof WaystoneBlock && context.getPlayer() != null) {
-            HashSet<String> discovered = ((PlayerEntityMixinAccess)context.getPlayer()).getDiscoveredWaystones();
+            HashSet<String> discovered = ((PlayerEntityMixinAccess) context.getPlayer()).getDiscoveredWaystones();
 
             ItemStack stack = context.getStack();
 
@@ -112,7 +114,12 @@ public class WaystoneScroll extends Item {
             waystones = ClientStuff.getWaystoneHashes();
         }
         if (waystones != null) {
-            tooltip.add(new TranslatableText("waystones.scroll.tooltip", new TranslatableText("waystones.scroll.tooltip.arg_color").append(String.valueOf(size))));
+            tooltip.add(new TranslatableText(
+                    "waystones.scroll.tooltip",
+                    new LiteralText(String.valueOf(size)).styled(style ->
+                            style.withColor(TextColor.parse(new TranslatableText("waystones.scroll.tooltip.arg_color").getString()))
+                    )
+            ));
         }
     }
 

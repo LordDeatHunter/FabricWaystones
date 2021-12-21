@@ -1,8 +1,8 @@
-package wraith.waystones.screens;
+package wraith.waystones.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -25,9 +25,9 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
-import wraith.waystones.util.Config;
-import wraith.waystones.util.Utils;
 import wraith.waystones.client.WaystonesClient;
+import wraith.waystones.util.Config;
+import wraith.waystones.util.WaystonePacketHandler;
 
 import java.util.ArrayList;
 
@@ -329,9 +329,9 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 NbtCompound tag = new NbtCompound();
                 tag.putInt("sync_id", handler.syncId);
                 tag.putInt("clicked_slot", l * 2 + 1);
-                PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeNbt(tag);
+                PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
 
-                ClientPlayNetworking.send(Utils.ID("waystone_gui_slot_click"), packet);
+                ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
 
                 return true;
             }
@@ -341,9 +341,9 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 NbtCompound tag = new NbtCompound();
                 tag.putInt("sync_id", handler.syncId);
                 tag.putInt("clicked_slot", l * 2);
-                PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeNbt(tag);
+                PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
 
-                ClientPlayNetworking.send(Utils.ID("waystone_gui_slot_click"), packet);
+                ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
                 return true;
             }
         }

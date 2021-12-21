@@ -11,7 +11,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import wraith.waystones.Waystones;
-import wraith.waystones.screens.AbyssScreenHandler;
+import wraith.waystones.screen.AbyssScreenHandler;
 
 public class AbyssWatcherItem extends Item {
 
@@ -24,7 +24,7 @@ public class AbyssWatcherItem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         user.openHandledScreen(createScreenHandlerFactory());
-        return TypedActionResult.consume(user.getMainHandStack());
+        return TypedActionResult.consume(user.getStackInHand(hand));
     }
 
     public NamedScreenHandlerFactory createScreenHandlerFactory() {

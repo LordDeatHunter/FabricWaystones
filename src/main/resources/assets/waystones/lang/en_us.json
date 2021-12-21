@@ -34,19 +34,19 @@
   "waystones.gui.starts_with": "Search at: Start of name.",
 
   "waystones.waystone_tooltip.name": "§6[§eStored name§6] §3%s",
-  "waystones.waystone_tooltip.name.arg_color": "§3",
+  "waystones.waystone_tooltip.name.arg_color": "#00AAAA",
   "waystones.waystone_tooltip.global": "§6[§eGlobal§6]",
   "waystones.waystone_tooltip.global_on": "§3ON",
   "waystones.waystone_tooltip.global_off": "§3OFF",
 
   "waystones.scroll.tooltip": "§6Stored waystones: %s",
-  "waystones.scroll.tooltip.arg_color": "",
+  "waystones.scroll.tooltip.arg_color": "#FFFF55",
   "waystones.scroll.infinite": "§6Discover everything there is to discover.",
   "waystones.scroll.infinite_tooltip": "§6Existing waystones: %s",
-  "waystones.scroll.infinite_tooltip.arg_color": "",
+  "waystones.scroll.infinite_tooltip.arg_color": "#FFFF55",
 
   "waystones.local_void.tooltip": "§6Bound to: %s",
-  "waystones.local_void.tooltip.arg_color": "§e",
+  "waystones.local_void.tooltip.arg_color": "#FFFF55",
   "waystones.local_void.empty_tooltip": "§3Unbound.",
 
   "waystones.config.tooltip.revoke_ownership": "Revoke ownership.",
@@ -70,7 +70,7 @@
   "waystones.learned.infinite.none": "§6You already know everything there is to know!",
 
   "waystones.discover_waystone": "§6【%s§6】§3has been discovered!",
-  "waystones.discover_waystone.arg_color": "§b",
+  "waystones.discover_waystone.arg_color": "#55FFFF",
 
   "waystones.config.global": "Toggle global waystone",
   "waystones.config.view_discovered": "View discovered waystones",
@@ -85,6 +85,9 @@
   "waystones.cost.health": "Half-Hearts",
   "waystones.cost.hunger": "Hunger",
   "waystones.cost.level": "Level(s)",
+
+  "waystones.no_teleport_message.cooldown": "§4You must rest for %s §4more seconds.",
+  "waystones.no_teleport_message.cooldown.arg_color": "#FF5555",
 
   "itemGroup.waystones.waystones": "Waystones",
 

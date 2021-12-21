@@ -4,7 +4,6 @@ import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -19,18 +18,30 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
+import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.access.WaystoneValue;
 import wraith.waystones.item.AbyssWatcherItem;
-import wraith.waystones.registries.BlockEntityRegistry;
-import wraith.waystones.screens.WaystoneScreenHandler;
+import wraith.waystones.item.LocalVoidItem;
+import wraith.waystones.registry.BlockEntityRegistry;
+import wraith.waystones.screen.AbyssScreenHandler;
+import wraith.waystones.screen.PocketWormholeScreenHandler;
+import wraith.waystones.screen.WaystoneScreenHandler;
+import wraith.waystones.util.Config;
+import wraith.waystones.util.TeleportSources;
 import wraith.waystones.util.Utils;
 
 import java.math.BigInteger;
@@ -299,9 +310,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return player.squaredDistanceTo((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
     }
 
-    public void teleportPlayer(PlayerEntity player, boolean isAbyssWatcher) {
+    public boolean teleportPlayer(PlayerEntity player) {
         if (!(player instanceof ServerPlayerEntity playerEntity)) {
-            return;
+            return false;
         }
         Direction facing = getCachedState().get(WaystoneBlock.FACING);
         float x = 0;
@@ -333,37 +344,82 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         final float fZ = z;
         final float fYaw = yaw;
         if (playerEntity.getServer() == null) {
-            return;
+            return false;
         }
         TeleportTarget target = new TeleportTarget(
-            new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
-            new Vec3d(0 ,0, 0),
-            fYaw,
-            0
+                new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
+                new Vec3d(0, 0, 0),
+                fYaw,
+                0
         );
-        doTeleport(playerEntity, (ServerWorld) world, target);
-        if (isAbyssWatcher && playerEntity.getMainHandStack().getItem() instanceof AbyssWatcherItem) {
-            if (!playerEntity.isCreative()) {
-                player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
-                player.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND);
-                playerEntity.getMainHandStack().decrement(1);
-                player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
+        TeleportSources source = null;
+        if (playerEntity.currentScreenHandler instanceof AbyssScreenHandler) {
+            source = TeleportSources.ABYSS_WATCHER;
+        } else if (playerEntity.currentScreenHandler instanceof PocketWormholeScreenHandler) {
+            source = TeleportSources.POCKET_WORMHOLE;
+        } else if (playerEntity.currentScreenHandler instanceof WaystoneScreenHandler) {
+            source = TeleportSources.WAYSTONE;
+        } else {
+            for (var hand : Hand.values()) {
+                if (playerEntity.getStackInHand(hand).getItem() instanceof LocalVoidItem) {
+                    source = TeleportSources.LOCAL_VOID;
+                    break;
+                }
             }
         }
+        if (source == null) {
+            return false;
+        }
+        var teleported = doTeleport(playerEntity, (ServerWorld) world, target, source);
+        if (!teleported) {
+            return false;
+        }
+        if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
+            for (var hand : Hand.values()) {
+                if (playerEntity.getStackInHand(hand).getItem() instanceof AbyssWatcherItem) {
+                    player.sendToolBreakStatus(hand);
+                    playerEntity.getStackInHand(hand).decrement(1);
+                    player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
+                }
+            }
+        }
+        return true;
     }
 
-    private void doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target) {
+    private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target, TeleportSources source) {
+        var playerAccess = (PlayerEntityMixinAccess) player;
+        var cooldown = playerAccess.getTeleportCooldown();
+        if (cooldown > 0) {
+            var cooldownSeconds = Utils.df.format(cooldown / 20F);
+            player.sendMessage(new TranslatableText(
+                    "waystones.no_teleport_message.cooldown",
+                    new LiteralText(cooldownSeconds).styled(style ->
+                            style.withColor(TextColor.parse(new TranslatableText("waystones.no_teleport_message.cooldown.arg_color").getString()))
+                    )
+            ), false);
+            return false;
+        }
+        if (!Utils.canTeleport(player, hash, true)) {
+            return false;
+        }
+        playerAccess.setTeleportCooldown(switch (source) {
+            case WAYSTONE -> Config.getInstance().getCooldownFromWaystone();
+            case ABYSS_WATCHER -> Config.getInstance().getCooldownFromAbyssWatcher();
+            case LOCAL_VOID -> Config.getInstance().getCooldownFromLocalVoid();
+            case POCKET_WORMHOLE -> Config.getInstance().getCooldownFromPocketWormhole();
+        });
         if (player.world.getRegistryKey().equals(world.getRegistryKey())) {
             player.networkHandler.requestTeleport(
-                target.position.getX(),
-                target.position.getY(),
-                target.position.getZ(),
-                target.yaw,
-                target.pitch
+                    target.position.getX(),
+                    target.position.getY(),
+                    target.position.getZ(),
+                    target.yaw,
+                    target.pitch
             );
         } else {
             FabricDimensions.teleport(player, world, target);
         }
+        return true;
     }
 
     public void setName(String name) {

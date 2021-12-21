@@ -1,9 +1,9 @@
 package wraith.waystones.util;
 
-import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
@@ -27,7 +27,7 @@ public class WaystonesEventManager {
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+            PacketByteBuf data = PacketByteBufs.create();
             data.writeNbt(Config.getInstance().toNbtCompound());
             ServerPlayNetworking.send(handler.player, Utils.ID("waystone_config_update"), data);
 
@@ -44,7 +44,7 @@ public class WaystonesEventManager {
                         .requires(source -> source.hasPermissionLevel(1))
                         .executes(context -> {
                             Config.getInstance().loadConfig();
-                            PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+                            PacketByteBuf data = PacketByteBufs.create();
                             data.writeNbt(Config.getInstance().toNbtCompound());
                             for (ServerPlayerEntity player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
                                 ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);

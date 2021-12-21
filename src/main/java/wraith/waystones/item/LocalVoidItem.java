@@ -8,6 +8,7 @@ import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -15,15 +16,15 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
-import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.client.WaystonesClient;
 
 import java.util.List;
 
-public class LocalVoid extends Item {
+public class LocalVoidItem extends Item {
 
-    public LocalVoid(Settings settings) {
+    public LocalVoidItem(Settings settings) {
         super(settings);
     }
 
@@ -43,7 +44,7 @@ public class LocalVoid extends Item {
                 if (!user.isCreative()) {
                     stack.decrement(1);
                 }
-                waystone.teleportPlayer(user, false);
+                waystone.teleportPlayer(user);
             }
         }
         if (stack.isEmpty()) {
@@ -84,7 +85,12 @@ public class LocalVoid extends Item {
             tooltip.add(new TranslatableText("waystones.local_void.empty_tooltip"));
             return;
         }
-        tooltip.add(new TranslatableText("waystones.local_void.tooltip", new TranslatableText("waystones.local_void.tooltip.arg_color").append(name)));
+        tooltip.add(new TranslatableText(
+                "waystones.local_void.tooltip",
+                new LiteralText(name).styled(style ->
+                        style.withColor(TextColor.parse(new TranslatableText("waystones.local_void.tooltip.arg_color").getString()))
+                )
+        ));
     }
 
 }

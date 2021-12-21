@@ -1,8 +1,8 @@
-package wraith.waystones.screens;
+package wraith.waystones.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -22,6 +22,7 @@ import net.minecraft.util.Identifier;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.util.Utils;
+import wraith.waystones.util.WaystonePacketHandler;
 
 import java.util.UUID;
 
@@ -196,9 +197,9 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 super.onClick();
                 ((PlayerEntityMixinAccess)inventory.player).toggleViewDiscoveredWaystones();
                 ((UniversalWaystoneScreenHandler)handler).updateWaystones(inventory.player);
-                PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
+                PacketByteBuf packet = PacketByteBufs.create();
                 packet.writeNbt(((PlayerEntityMixinAccess)inventory.player).toTagW(new NbtCompound()));
-                ClientPlayNetworking.send(Utils.ID("sync_player_from_client"), packet);
+                ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
             }
             @Override
             public boolean isVisible() {
@@ -223,9 +224,9 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 super.onClick();
                 ((PlayerEntityMixinAccess)inventory.player).toggleViewGlobalWaystones();
                 ((UniversalWaystoneScreenHandler)handler).updateWaystones(inventory.player);
-                PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
+                PacketByteBuf packet = PacketByteBufs.create();
                 packet.writeNbt(((PlayerEntityMixinAccess)inventory.player).toTagW(new NbtCompound()));
-                ClientPlayNetworking.send(Utils.ID("sync_player_from_client"), packet);
+                ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
             }
             @Override
             public boolean isVisible() {
@@ -238,13 +239,13 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
             @Override
             public void onClick() {
                 super.onClick();
-                PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
+                PacketByteBuf packet = PacketByteBufs.create();
                 NbtCompound tag = new NbtCompound();
                 tag.putString("waystone_hash", ((WaystoneScreenHandler)handler).getWaystone());
                 UUID owner = ((WaystoneScreenHandler)handler).getOwner();
                 tag.putUuid("waystone_owner", owner);
                 packet.writeNbt(tag);
-                ClientPlayNetworking.send(Utils.ID("remove_waystone_owner"), packet);
+                ClientPlayNetworking.send(WaystonePacketHandler.REMOVE_WAYSTONE_OWNER, packet);
                 ((WaystoneScreenHandler)handler).removeOwner();
             }
             @Override
@@ -443,9 +444,9 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 NbtCompound tag = new NbtCompound();
                 tag.putInt("sync_id", handler.syncId);
                 tag.putInt("clicked_slot", l * 2 + 1);
-                PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeNbt(tag);
+                PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
 
-                ClientPlayNetworking.send(Utils.ID("waystone_gui_slot_click"), packet);
+                ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
 
                 return true;
             }
@@ -458,9 +459,9 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 NbtCompound tag = new NbtCompound();
                 tag.putInt("sync_id", handler.syncId);
                 tag.putInt("clicked_slot", l * 2);
-                PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer()).writeNbt(tag);
+                PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
 
-                ClientPlayNetworking.send(Utils.ID("waystone_gui_slot_click"), packet);
+                ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
                 return true;
             }
         }
@@ -540,7 +541,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         }
         ((WaystoneScreenHandler)handler).setName(name);
 
-        PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+        PacketByteBuf data = PacketByteBufs.create();
 
         NbtCompound tag = new NbtCompound();
         tag.putString("waystone_name", name);
@@ -550,7 +551,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         }
         data.writeNbt(tag);
 
-        ClientPlayNetworking.send(Utils.ID("rename_waystone"), data);
+        ClientPlayNetworking.send(WaystonePacketHandler.RENAME_WAYSTONE, data);
     }
 
 }

@@ -1,12 +1,12 @@
-package wraith.waystones.registries;
+package wraith.waystones.registry;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.object.builder.v1.client.model.FabricModelPredicateProviderRegistry;
 import net.minecraft.nbt.NbtCompound;
 import wraith.waystones.util.Utils;
-import wraith.waystones.item.LocalVoid;
-import wraith.waystones.item.WaystoneScroll;
+import wraith.waystones.item.LocalVoidItem;
+import wraith.waystones.item.WaystoneScrollItem;
 
 @Environment(EnvType.CLIENT)
 public final class WaystonesModelProviderRegistry {
@@ -17,10 +17,10 @@ public final class WaystonesModelProviderRegistry {
                     if (stack.isEmpty()) {
                         return 0f;
                     }
-                    if (stack.getItem() instanceof WaystoneScroll) {
+                    if (stack.getItem() instanceof WaystoneScrollItem) {
                         NbtCompound tag = stack.getNbt();
                         return tag == null || !tag.contains("waystones") || tag.getList("waystones", 8).isEmpty() ? 0 : 1;
-                    } else if (stack.getItem() instanceof LocalVoid) {
+                    } else if (stack.getItem() instanceof LocalVoidItem) {
                         NbtCompound tag = stack.getNbt();
                         return tag == null || !tag.contains("waystone") ? 0 : 1;
                     }

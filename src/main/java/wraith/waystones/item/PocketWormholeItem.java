@@ -11,7 +11,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import wraith.waystones.Waystones;
-import wraith.waystones.screens.PocketWormholeScreenHandler;
+import wraith.waystones.screen.PocketWormholeScreenHandler;
 
 public class PocketWormholeItem extends Item {
 
@@ -24,7 +24,7 @@ public class PocketWormholeItem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         user.openHandledScreen(createScreenHandlerFactory());
-        return TypedActionResult.success(user.getStackInHand(hand), world.isClient());
+        return TypedActionResult.consume(user.getStackInHand(hand));
     }
 
     public NamedScreenHandlerFactory createScreenHandlerFactory() {

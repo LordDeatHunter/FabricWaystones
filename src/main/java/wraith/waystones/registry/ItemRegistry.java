@@ -1,4 +1,4 @@
-package wraith.waystones.registries;
+package wraith.waystones.registry;
 
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.item.Item;
@@ -36,10 +36,10 @@ public final class ItemRegistry {
         registerItem("blackstone_brick_waystone", new WaystoneItem(BlockRegistry.BLACKSTONE_BRICK_WAYSTONE, new Item.Settings().group(CustomItemGroup.WAYSTONE_GROUP)));
         registerItem("pocket_wormhole", new PocketWormholeItem(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP).fireproof()));
         registerItem("abyss_watcher", new AbyssWatcherItem(new Item.Settings().maxCount(4).group(CustomItemGroup.WAYSTONE_GROUP).fireproof()));
-        registerItem("waystone_scroll", new WaystoneScroll(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP)));
-        registerItem("local_void", new LocalVoid(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP)));
-        registerItem("scroll_of_infinite_knowledge", new ScrollOfInfiniteKnowledge(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP).fireproof()));
-        registerItem("waystone_debugger", new WaystoneDebugger(new FabricItemSettings().maxCount(1).fireproof().rarity(Rarity.EPIC)));
+        registerItem("waystone_scroll", new WaystoneScrollItem(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP)));
+        registerItem("local_void", new LocalVoidItem(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP)));
+        registerItem("scroll_of_infinite_knowledge", new ScrollOfInfiniteKnowledgeItem(new Item.Settings().maxCount(1).group(CustomItemGroup.WAYSTONE_GROUP).fireproof()));
+        registerItem("waystone_debugger", new WaystoneDebuggerItem(new FabricItemSettings().maxCount(1).fireproof().rarity(Rarity.EPIC)));
     }
 
     public static Item get(String id) {

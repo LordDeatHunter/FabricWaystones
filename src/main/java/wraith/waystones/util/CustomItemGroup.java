@@ -3,7 +3,7 @@ package wraith.waystones.util;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import wraith.waystones.registries.BlockRegistry;
+import wraith.waystones.registry.BlockRegistry;
 
 public class CustomItemGroup {
 

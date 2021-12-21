@@ -21,6 +21,7 @@ public final class Config {
     public NbtCompound configData;
     private final Logger LOGGER = Waystones.LOGGER;
     private static final String CONFIG_FILE = "config/waystones/config.json";
+    private int difference = 0;
 
     private Config() {
     }
@@ -81,6 +82,121 @@ public final class Config {
         return configData.getBoolean("prevent_non_owners_from_breaking_waystone");
     }
 
+    public int getCooldownWhenHurt() {
+        return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_when_hurt");
+    }
+    public int getCooldownFromAbyssWatcher() {
+        return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_abyss_watcher");
+    }
+    public int getCooldownFromPocketWormhole() {
+        return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_pocket_wormhole");
+    }
+    public int getCooldownFromLocalVoid() {
+        return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_local_void");
+    }
+    public int getCooldownFromWaystone() {
+        return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_waystone");
+    }
+
+    public int getIntOrDefault(NbtCompound getFrom, String key, NbtCompound defaults) {
+        if (getFrom.contains(key)) {
+            return getFrom.getInt(key);
+        } else {
+            ++difference;
+            return defaults.getInt(key);
+        }
+    }
+
+    public boolean getBooleanOrDefault(NbtCompound getFrom, String key, NbtCompound defaults) {
+        if (getFrom.contains(key)) {
+            return getFrom.getBoolean(key);
+        } else {
+            ++difference;
+            return defaults.getBoolean(key);
+        }
+    }
+
+    private String getStringOrDefault(NbtCompound getFrom, String key, NbtCompound defaults) {
+        if (getFrom.contains(key)) {
+            return getFrom.getString(key);
+        } else {
+            ++difference;
+            return defaults.getString(key);
+        }
+    }
+
+    private NbtCompound getCompoundOrDefault(NbtCompound getFrom, String key, NbtCompound defaults) {
+        if (getFrom.contains(key)) {
+            return getFrom.getCompound(key);
+        } else {
+            ++difference;
+            return defaults.getCompound(key);
+        }
+    }
+
+    private double getDoubleOrDefault(NbtCompound getFrom, String key, NbtCompound defaults) {
+        if (getFrom.contains(key)) {
+            return getFrom.getDouble(key);
+        } else {
+            ++difference;
+            return defaults.getDouble(key);
+        }
+    }
+
+    private float getFloatOrDefault(NbtCompound getFrom, String key, NbtCompound defaults) {
+        if (getFrom.contains(key)) {
+            return getFrom.getFloat(key);
+        } else {
+            ++difference;
+            return defaults.getFloat(key);
+        }
+    }
+
+    public int getIntOrDefault(JsonObject getFrom, String key, NbtCompound defaults) {
+        if (getFrom.has(key)) {
+            return getFrom.get(key).getAsInt();
+        } else {
+            ++difference;
+            return defaults.getInt(key);
+        }
+    }
+
+    public boolean getBooleanOrDefault(JsonObject getFrom, String key, NbtCompound defaults) {
+        if (getFrom.has(key)) {
+            return getFrom.get(key).getAsBoolean();
+        } else {
+            ++difference;
+            return defaults.getBoolean(key);
+        }
+    }
+
+    private String getStringOrDefault(JsonObject getFrom, String key, NbtCompound defaults) {
+        if (getFrom.has(key)) {
+            return getFrom.get(key).getAsString();
+        } else {
+            ++difference;
+            return defaults.getString(key);
+        }
+    }
+
+    private double getDoubleOrDefault(JsonObject getFrom, String key, NbtCompound defaults) {
+        if (getFrom.has(key)) {
+            return getFrom.get(key).getAsDouble();
+        } else {
+            ++difference;
+            return defaults.getDouble(key);
+        }
+    }
+
+    private float getFloatOrDefault(JsonObject getFrom, String key, NbtCompound defaults) {
+        if (getFrom.has(key)) {
+            return getFrom.get(key).getAsFloat();
+        } else {
+            ++difference;
+            return defaults.getFloat(key);
+        }
+    }
+
     private NbtCompound getDefaults() {
         NbtCompound defaultConfig = new NbtCompound();
 
@@ -96,223 +212,82 @@ public final class Config {
         defaultConfig.putBoolean("prevent_non_owners_from_breaking_waystone", false);
         defaultConfig.putBoolean("can_players_toggle_global_mode", true);
 
+        NbtCompound cooldown = new NbtCompound();
+        cooldown.putInt("cooldown_ticks_when_hurt", 0);
+        cooldown.putInt("cooldown_ticks_from_abyss_watcher", 0);
+        cooldown.putInt("cooldown_ticks_from_pocket_wormhole", 0);
+        cooldown.putInt("cooldown_ticks_from_local_void", 0);
+        cooldown.putInt("cooldown_ticks_from_waystone", 0);
+        defaultConfig.put("teleportation_cooldown", cooldown);
+
         return defaultConfig;
     }
 
     private JsonObject toJson(NbtCompound tag) {
-        boolean overwrite = false;
         JsonObject json = new JsonObject();
 
         NbtCompound defaults = getDefaults();
 
-        boolean generateInVillages;
-        if (tag.contains("generate_in_villages")) {
-            generateInVillages = tag.getBoolean("generate_in_villages");
-        } else {
-            overwrite = true;
-            generateInVillages = defaults.getBoolean("generate_in_villages");
-        }
-        json.addProperty("generate_in_villages", generateInVillages);
+        json.addProperty("generate_in_villages", getBooleanOrDefault(tag, "generate_in_villages", defaults));
+        json.addProperty("consume_infinite_knowledge_scroll_on_use", getBooleanOrDefault(tag, "consume_infinite_knowledge_scroll_on_use", defaults));
+        json.addProperty("store_waystone_data_on_sneak_break", getBooleanOrDefault(tag, "store_waystone_data_on_sneak_break", defaults));
+        json.addProperty("can_owners_redeem_payments", getBooleanOrDefault(tag, "can_owners_redeem_payments", defaults));
+        json.addProperty("cost_amount", getIntOrDefault(tag, "cost_amount", defaults));
+        json.addProperty("cost_type", getStringOrDefault(tag, "cost_type", defaults));
+        json.addProperty("cost_item", getStringOrDefault(tag, "cost_item", defaults));
+        json.addProperty("waystone_block_hardness", getFloatOrDefault(tag, "waystone_block_hardness", defaults));
+        json.addProperty("waystone_block_required_mining_level", getIntOrDefault(tag, "waystone_block_required_mining_level", defaults));
+        json.addProperty("prevent_non_owners_from_breaking_waystone", getBooleanOrDefault(tag, "prevent_non_owners_from_breaking_waystone", defaults));
+        json.addProperty("can_players_toggle_global_mode", getBooleanOrDefault(tag, "can_players_toggle_global_mode", defaults));
 
-        boolean consumeInfiniteScroll;
-        if (tag.contains("consume_infinite_knowledge_scroll_on_use")) {
-            consumeInfiniteScroll = tag.getBoolean("consume_infinite_knowledge_scroll_on_use");
-        } else {
-            overwrite = true;
-            consumeInfiniteScroll = defaults.getBoolean("consume_infinite_knowledge_scroll_on_use");
-        }
-        json.addProperty("consume_infinite_knowledge_scroll_on_use", consumeInfiniteScroll);
+        JsonObject cooldownsJson = new JsonObject();
+        NbtCompound cooldownsTag = getCompoundOrDefault(tag, "teleportation_cooldown", defaults);
+        cooldownsJson.addProperty("cooldown_ticks_when_hurt", getIntOrDefault(cooldownsTag, "cooldown_ticks_when_hurt", defaults));
+        cooldownsJson.addProperty("cooldown_ticks_from_abyss_watcher", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_abyss_watcher", defaults));
+        cooldownsJson.addProperty("cooldown_ticks_from_pocket_wormhole", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_pocket_wormhole", defaults));
+        cooldownsJson.addProperty("cooldown_ticks_from_local_void", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_local_void", defaults));
+        cooldownsJson.addProperty("cooldown_ticks_from_waystone", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_waystone", defaults));
+        json.add("teleportation_cooldown", cooldownsJson);
 
-        boolean storeWaystoneDataOnBreak;
-        if (tag.contains("store_waystone_data_on_sneak_break")) {
-            storeWaystoneDataOnBreak = tag.getBoolean("store_waystone_data_on_sneak_break");
-        } else {
-            overwrite = true;
-            storeWaystoneDataOnBreak = defaults.getBoolean("store_waystone_data_on_sneak_break");
-        }
-        json.addProperty("store_waystone_data_on_sneak_break", storeWaystoneDataOnBreak);
-
-        boolean canOnwersRedeem;
-        if (tag.contains("can_owners_redeem_payments")) {
-            canOnwersRedeem = tag.getBoolean("can_owners_redeem_payments");
-        } else {
-            overwrite = true;
-            canOnwersRedeem = defaults.getBoolean("can_owners_redeem_payments");
-        }
-        json.addProperty("can_owners_redeem_payments", canOnwersRedeem);
-
-        int costAmount;
-        if (tag.contains("cost_amount")) {
-            costAmount = tag.getInt("cost_amount");
-        } else {
-            overwrite = true;
-            costAmount = defaults.getInt("cost_amount");
-        }
-        json.addProperty("cost_amount", costAmount);
-
-        String costType;
-        if (tag.contains("cost_type")) {
-            costType = tag.getString("cost_type").toLowerCase();
-        } else {
-            overwrite = true;
-            costType = defaults.getString("cost_type");
-        }
-        json.addProperty("cost_type", costType);
-
-        String costItem;
-        if (tag.contains("cost_item")) {
-            costItem = tag.getString("cost_item").toLowerCase();
-        } else {
-            overwrite = true;
-            costItem = defaults.getString("cost_item");
-        }
-        json.addProperty("cost_item", costItem);
-
-        int blockHardness;
-        if (tag.contains("waystone_block_hardness")) {
-            blockHardness = tag.getInt("waystone_block_hardness");
-        } else {
-            overwrite = true;
-            blockHardness = defaults.getInt("waystone_block_hardness");
-        }
-        json.addProperty("waystone_block_hardness", blockHardness);
-
-        float miningLevel;
-        if (tag.contains("waystone_block_required_mining_level")) {
-            miningLevel = tag.getFloat("waystone_block_required_mining_level");
-        } else {
-            overwrite = true;
-            miningLevel = defaults.getFloat("waystone_block_required_mining_level");
-        }
-        json.addProperty("waystone_block_required_mining_level", miningLevel);
-
-        boolean preventNonOwnersBreaking;
-        if (tag.contains("prevent_non_owners_from_breaking_waystone")) {
-            preventNonOwnersBreaking = tag.getBoolean("prevent_non_owners_from_breaking_waystone");
-        } else {
-            overwrite = true;
-            preventNonOwnersBreaking = defaults.getBoolean("prevent_non_owners_from_breaking_waystone");
-        }
-        json.addProperty("prevent_non_owners_from_breaking_waystone", preventNonOwnersBreaking);
-
-        boolean canPlayersToggleGlobalMode;
-        if (tag.contains("can_players_toggle_global_mode")) {
-            canPlayersToggleGlobalMode = tag.getBoolean("can_players_toggle_global_mode");
-        } else {
-            overwrite = true;
-            canPlayersToggleGlobalMode = defaults.getBoolean("can_players_toggle_global_mode");
-        }
-        json.addProperty("can_players_toggle_global_mode", canPlayersToggleGlobalMode);
-
-        createFile(json, overwrite);
+        createFile(json, difference > 0);
+        difference = 0;
         return json;
     }
 
     private NbtCompound toNbtCompound(JsonObject json) {
-        boolean overwrite = false;
         NbtCompound tag = new NbtCompound();
 
         NbtCompound defaults = getDefaults();
 
-        boolean generateInVillages;
-        if (json.has("generate_in_villages")) {
-            generateInVillages = json.get("generate_in_villages").getAsBoolean();
-        } else {
-            overwrite = true;
-            generateInVillages = defaults.getBoolean("generate_in_villages");
-        }
-        tag.putBoolean("generate_in_villages", generateInVillages);
+        tag.putBoolean("generate_in_villages", getBooleanOrDefault(json, "generate_in_villages", defaults));
+        tag.putBoolean("consume_infinite_knowledge_scroll_on_use", getBooleanOrDefault(json, "consume_infinite_knowledge_scroll_on_use", defaults));
+        tag.putBoolean("store_waystone_data_on_sneak_break", getBooleanOrDefault(json, "store_waystone_data_on_sneak_break", defaults));
+        tag.putBoolean("can_owners_redeem_payments", getBooleanOrDefault(json, "can_owners_redeem_payments", defaults));
+        tag.putInt("cost_amount", getIntOrDefault(json, "cost_amount", defaults));
+        tag.putString("cost_type", getStringOrDefault(json, "cost_type", defaults));
+        tag.putString("cost_item", getStringOrDefault(json, "cost_item", defaults));
+        tag.putFloat("waystone_block_hardness", getFloatOrDefault(json, "waystone_block_hardness", defaults));
+        tag.putInt("waystone_block_required_mining_level", getIntOrDefault(json, "waystone_block_required_mining_level", defaults));
+        tag.putBoolean("prevent_non_owners_from_breaking_waystone", getBooleanOrDefault(json, "prevent_non_owners_from_breaking_waystone", defaults));
+        tag.putBoolean("can_players_toggle_global_mode", getBooleanOrDefault(json, "can_players_toggle_global_mode", defaults));
 
-        boolean consumeInfiniteScroll;
-        if (json.has("consume_infinite_knowledge_scroll_on_use")) {
-            consumeInfiniteScroll = json.get("consume_infinite_knowledge_scroll_on_use").getAsBoolean();
+        NbtCompound cooldowns = new NbtCompound();
+        if (json.has("teleportation_cooldown")) {
+            var cooldownsJson = json.get("teleportation_cooldown").getAsJsonObject();
+            var defaultCooldowns = defaults.getCompound("teleportation_cooldown");
+            cooldowns.putInt("cooldown_ticks_when_hurt", getIntOrDefault(cooldownsJson, "cooldown_ticks_when_hurt", defaultCooldowns));
+            cooldowns.putInt("cooldown_ticks_from_abyss_watcher", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_abyss_watcher", defaultCooldowns));
+            cooldowns.putInt("cooldown_ticks_from_pocket_wormhole", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_pocket_wormhole", defaultCooldowns));
+            cooldowns.putInt("cooldown_ticks_from_local_void", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_local_void", defaultCooldowns));
+            cooldowns.putInt("cooldown_ticks_from_waystone", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_waystone", defaultCooldowns));
         } else {
-            overwrite = true;
-            consumeInfiniteScroll = defaults.getBoolean("consume_infinite_knowledge_scroll_on_use");
+            ++difference;
+            cooldowns = defaults.getCompound("teleportation_cooldown");
         }
-        tag.putBoolean("consume_infinite_knowledge_scroll_on_use", consumeInfiniteScroll);
+        tag.put("teleportation_cooldown", cooldowns);
 
-        boolean storeWaystoneDataOnBreak;
-        if (json.has("store_waystone_data_on_sneak_break")) {
-            storeWaystoneDataOnBreak = json.get("store_waystone_data_on_sneak_break").getAsBoolean();
-        } else {
-            overwrite = true;
-            storeWaystoneDataOnBreak = defaults.getBoolean("store_waystone_data_on_sneak_break");
-        }
-        tag.putBoolean("store_waystone_data_on_sneak_break", storeWaystoneDataOnBreak);
-
-        boolean canOnwersRedeem;
-        if (json.has("can_owners_redeem_payments")) {
-            canOnwersRedeem = json.get("can_owners_redeem_payments").getAsBoolean();
-        } else {
-            overwrite = true;
-            canOnwersRedeem = defaults.getBoolean("can_owners_redeem_payments");
-        }
-        tag.putBoolean("can_owners_redeem_payments", canOnwersRedeem);
-
-        int costAmount;
-        if (json.has("cost_amount")) {
-            costAmount = json.get("cost_amount").getAsInt();
-        } else {
-            overwrite = true;
-            costAmount = defaults.getInt("cost_amount");
-        }
-        tag.putInt("cost_amount", costAmount);
-
-        String costItem;
-        if (json.has("cost_item")) {
-            costItem = json.get("cost_item").getAsString();
-        } else {
-            overwrite = true;
-            costItem = defaults.getString("cost_item");
-        }
-        tag.putString("cost_item", costItem);
-
-        String costType;
-        if (json.has("cost_type")) {
-            costType = json.get("cost_type").getAsString();
-        } else {
-            overwrite = true;
-            costType = defaults.getString("cost_type");
-        }
-        tag.putString("cost_type", costType);
-
-        int blockHardness;
-        if (json.has("waystone_block_hardness")) {
-            blockHardness = json.get("waystone_block_hardness").getAsInt();
-        } else {
-            overwrite = true;
-            blockHardness = defaults.getInt("waystone_block_hardness");
-        }
-        tag.putInt("waystone_block_hardness", blockHardness);
-
-        float miningLevel;
-        if (json.has("waystone_block_required_mining_level")) {
-            miningLevel = json.get("waystone_block_required_mining_level").getAsFloat();
-        } else {
-            overwrite = true;
-            miningLevel = defaults.getFloat("waystone_block_required_mining_level");
-        }
-        tag.putFloat("waystone_block_required_mining_level", miningLevel);
-
-        boolean preventNonOwnersBreaking;
-        if (json.has("prevent_non_owners_from_breaking_waystone")) {
-            preventNonOwnersBreaking = json.get("prevent_non_owners_from_breaking_waystone").getAsBoolean();
-        } else {
-            overwrite = true;
-            preventNonOwnersBreaking = defaults.getBoolean("prevent_non_owners_from_breaking_waystone");
-        }
-        tag.putBoolean("prevent_non_owners_from_breaking_waystone", preventNonOwnersBreaking);
-
-        boolean canPlayersToggleGlobalMode;
-        if (json.has("can_players_toggle_global_mode")) {
-            canPlayersToggleGlobalMode = json.get("can_players_toggle_global_mode").getAsBoolean();
-        } else {
-            overwrite = true;
-            canPlayersToggleGlobalMode = defaults.getBoolean("can_players_toggle_global_mode");
-        }
-
-        createFile(toJson(tag), overwrite);
+        createFile(toJson(tag), difference > 0);
+        difference = 0;
         return tag;
     }
 

@@ -26,5 +26,7 @@ public interface PlayerEntityMixinAccess extends PlayerAccess {
     boolean hasDiscoveredWaystone(String hash);
     void discoverWaystones(HashSet<String> toLearn);
     void forgetWaystones(HashSet<String> toForget);
+    void setTeleportCooldown(int cooldown);
+    int getTeleportCooldown();
 
 }

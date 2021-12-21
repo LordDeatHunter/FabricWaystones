@@ -1,4 +1,4 @@
-package wraith.waystones.registries;
+package wraith.waystones.registry;
 
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;

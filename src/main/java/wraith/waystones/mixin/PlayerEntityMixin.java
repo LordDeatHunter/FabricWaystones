@@ -1,7 +1,8 @@
 package wraith.waystones.mixin;
 
-import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -13,11 +14,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import wraith.waystones.client.ClientStuff;
-import wraith.waystones.access.PlayerEntityMixinAccess;
-import wraith.waystones.util.Utils;
 import wraith.waystones.Waystones;
+import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.client.ClientStuff;
+import wraith.waystones.util.Config;
+import wraith.waystones.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,10 +31,38 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     private final HashSet<String> discoveredWaystones = new HashSet<>();
     private boolean viewDiscoveredWaystones = true;
     private boolean viewGlobalWaystones = true;
+    private int teleportCooldown = 0;
 
-    @SuppressWarnings("ConstantConditions")
     private PlayerEntity _this() {
         return (PlayerEntity) (Object) this;
+    }
+
+    @Inject(method = "tick", at = @At("RETURN"))
+    public void tick(CallbackInfo ci) {
+        if (teleportCooldown <= 0) {
+            return;
+        }
+        teleportCooldown = Math.max(0, teleportCooldown - 1);
+    }
+
+    @Inject(method = "applyDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;applyArmorToDamage(Lnet/minecraft/entity/damage/DamageSource;F)F"))
+    public void applyDamage(DamageSource source, float amount, CallbackInfo ci) {
+        if (source == DamageSource.OUT_OF_WORLD) {
+            return;
+        }
+        setTeleportCooldown(Config.getInstance().getCooldownWhenHurt());
+    }
+
+    @Override
+    public void setTeleportCooldown(int cooldown) {
+        if (cooldown > 0) {
+            this.teleportCooldown = cooldown;
+        }
+    }
+
+    @Override
+    public int getTeleportCooldown() {
+        return teleportCooldown;
     }
 
     @Override
@@ -63,7 +93,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (!(_this() instanceof ServerPlayerEntity serverPlayerEntity)) {
             return;
         }
-        PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
+        PacketByteBuf packet = PacketByteBufs.create();
         packet.writeNbt(toTagW(new NbtCompound()));
         ServerPlayNetworking.send(serverPlayerEntity, Utils.ID("sync_player"), packet);
     }

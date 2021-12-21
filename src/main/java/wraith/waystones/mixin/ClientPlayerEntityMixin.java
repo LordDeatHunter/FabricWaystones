@@ -1,14 +1,13 @@
 package wraith.waystones.mixin;
 
-import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.network.PacketByteBuf;
 import org.spongepowered.asm.mixin.Mixin;
 import wraith.waystones.access.ClientPlayerEntityMixinAccess;
 import wraith.waystones.access.PlayerEntityMixinAccess;
-import wraith.waystones.util.Utils;
 import wraith.waystones.client.WaystonesClient;
+import wraith.waystones.util.WaystonePacketHandler;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,7 +18,7 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
 
     @Override
     public void requestSync() {
-        ClientPlayNetworking.send(Utils.ID("request_player_waystone_update"), new PacketByteBuf(Unpooled.buffer()));
+        ClientPlayNetworking.send(WaystonePacketHandler.REQUEST_PLAYER_SYNC, PacketByteBufs.create());
     }
 
     @Override

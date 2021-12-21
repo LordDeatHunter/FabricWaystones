@@ -4,7 +4,9 @@ import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -18,9 +20,9 @@ import wraith.waystones.util.Config;
 import java.util.HashSet;
 import java.util.List;
 
-public class ScrollOfInfiniteKnowledge extends Item {
+public class ScrollOfInfiniteKnowledgeItem extends Item {
 
-    public ScrollOfInfiniteKnowledge(Settings settings) {
+    public ScrollOfInfiniteKnowledgeItem(Settings settings) {
         super(settings);
     }
 
@@ -78,7 +80,12 @@ public class ScrollOfInfiniteKnowledge extends Item {
             count = ClientStuff.getWaystoneCount();
         }
         if (count != -1) {
-            tooltip.add(new TranslatableText("waystones.scroll.infinite_tooltip", new TranslatableText("waystones.scroll.infinite_tooltip.arg_color").append(String.valueOf(count))));
+            tooltip.add(new TranslatableText(
+                    "waystones.scroll.infinite_tooltip",
+                    new LiteralText(String.valueOf(count)).styled(style ->
+                            style.withColor(TextColor.parse(new TranslatableText("waystones.scroll.infinite_tooltip.arg_color").getString()))
+                    )
+            ));
         }
     }
 

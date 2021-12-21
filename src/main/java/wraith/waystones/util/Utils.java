@@ -29,15 +29,19 @@ import wraith.waystones.mixin.StructureStartAccessor;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Utils {
+public final class Utils {
+
+    private Utils() {}
 
     public static final Random random = new Random();
+    public static final DecimalFormat df = new DecimalFormat("#.##");
 
     public static int getRandomIntInRange(int min, int max) {
         return random.nextInt(max - min + 1) + min;
@@ -107,7 +111,7 @@ public class Utils {
         return total;
     }
 
-    public static boolean canTeleport(PlayerEntity player, String hash) {
+    public static boolean canTeleport(PlayerEntity player, String hash, boolean takeCost) {
         String cost = Config.getInstance().teleportType();
         int amount = Config.getInstance().teleportCost();
         if (player.isCreative()) {
@@ -119,7 +123,9 @@ public class Utils {
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
                     return false;
                 }
-                player.damage(DamageSource.OUT_OF_WORLD, amount);
+                if (takeCost) {
+                    player.damage(DamageSource.OUT_OF_WORLD, amount);
+                }
                 return true;
             case "hunger":
             case "saturation":
@@ -128,7 +134,9 @@ public class Utils {
                 if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustion() / 4F <= amount) {
                     return false;
                 }
-                hungerManager.addExhaustion(4 * amount);
+                if (takeCost) {
+                    hungerManager.addExhaustion(4 * amount);
+                }
                 return true;
             case "xp":
             case "experience":
@@ -136,13 +144,17 @@ public class Utils {
                 if (total < amount) {
                     return false;
                 }
-                player.addExperience(-amount);
+                if (takeCost) {
+                    player.addExperience(-amount);
+                }
                 return true;
             case "level":
                 if (player.experienceLevel < amount) {
                     return false;
                 }
-                player.experienceLevel -= amount;
+                if (takeCost) {
+                    player.experienceLevel -= amount;
+                }
                 return true;
             case "item":
                 Identifier itemId = Config.getInstance().teleportCostItem();
@@ -150,28 +162,30 @@ public class Utils {
                 if (!containsItem(player.getInventory(), item, amount)) {
                     return false;
                 }
-                removeItem(player.getInventory(), Registry.ITEM.get(itemId), amount);
+                if (takeCost) {
+                    removeItem(player.getInventory(), Registry.ITEM.get(itemId), amount);
 
-                if (player.world.isClient || Waystones.WAYSTONE_STORAGE == null) {
-                    return true;
-                }
-                WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
-                if (waystone == null) {
-                    return true;
-                }
-                ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.getInventory());
-                boolean found = false;
-                for (ItemStack stack : oldInventory) {
-                    if (stack.getItem() == item) {
-                        stack.increment(amount);
-                        found = true;
-                        break;
+                    if (player.world.isClient || Waystones.WAYSTONE_STORAGE == null) {
+                        return true;
                     }
+                    WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+                    if (waystone == null) {
+                        return true;
+                    }
+                    ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.getInventory());
+                    boolean found = false;
+                    for (ItemStack stack : oldInventory) {
+                        if (stack.getItem() == item) {
+                            stack.increment(amount);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        oldInventory.add(new ItemStack(Registry.ITEM.get(itemId), amount));
+                    }
+                    waystone.setInventory(oldInventory);
                 }
-                if (!found) {
-                    oldInventory.add(new ItemStack(Registry.ITEM.get(itemId), amount));
-                }
-                waystone.setInventory(oldInventory);
                 return true;
             default:
                 return true;

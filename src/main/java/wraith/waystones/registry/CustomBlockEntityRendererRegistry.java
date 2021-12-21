@@ -1,4 +1,4 @@
-package wraith.waystones.registries;
+package wraith.waystones.registry;
 
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import wraith.waystones.block.WaystoneBlockEntityRenderer;

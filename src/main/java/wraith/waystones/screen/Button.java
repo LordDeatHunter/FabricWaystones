@@ -1,4 +1,4 @@
-package wraith.waystones.screens;
+package wraith.waystones.screen;
 
 import net.minecraft.text.Text;
 

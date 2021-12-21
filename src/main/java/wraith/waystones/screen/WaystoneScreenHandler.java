@@ -1,15 +1,15 @@
-package wraith.waystones.screens;
+package wraith.waystones.screen;
 
-import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.client.WaystonesClient;
-import wraith.waystones.registries.CustomScreenHandlerRegistry;
-import wraith.waystones.util.Utils;
+import wraith.waystones.registry.CustomScreenHandlerRegistry;
+import wraith.waystones.util.WaystonePacketHandler;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -83,14 +83,14 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
         if (!isClient) {
             return;
         }
-        PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
+        PacketByteBuf packet = PacketByteBufs.create();
         NbtCompound tag = new NbtCompound();
         tag.putString("waystone_hash", this.hash);
         if (this.owner != null) {
             tag.putUuid("waystone_owner", this.owner);
         }
         packet.writeNbt(tag);
-        ClientPlayNetworking.send(Utils.ID("toggle_global_waystone"), packet);
+        ClientPlayNetworking.send(WaystonePacketHandler.TOGGLE_GLOBAL_WAYSTONE, packet);
         this.isGlobal = !this.isGlobal;
     }
 

@@ -1,7 +1,7 @@
-package wraith.waystones.screens;
+package wraith.waystones.screen;
 
-import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -12,16 +12,15 @@ import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import wraith.waystones.client.ClientStuff;
-import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.access.PlayerAccess;
 import wraith.waystones.access.PlayerEntityMixinAccess;
+import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.mixin.ClientPlayerEntityAccessor;
 import wraith.waystones.mixin.ServerPlayerEntityAccessor;
 import wraith.waystones.util.Utils;
+import wraith.waystones.util.WaystonePacketHandler;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -84,7 +83,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
             return false;
         }
 
-        PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+        PacketByteBuf data = PacketByteBufs.create();
         NbtCompound tag = new NbtCompound();
         tag.putString("waystone_hash", waystone);
         data.writeNbt(tag);
@@ -92,13 +91,12 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         if (id % 2 != 0) {
             this.sortedWaystones.remove(waystone);
             this.filteredWaystones.remove(waystone);
-            ClientPlayNetworking.send(Utils.ID("forget_waystone"), data);
+            ClientPlayNetworking.send(WaystonePacketHandler.FORGET_WAYSTONE, data);
             onForget(waystone);
         }
         else {
-            if (Utils.canTeleport(player, waystone)) {
-                ClientPlayNetworking.send(Utils.ID("teleport_to_waystone"), data);
-                playSounds();
+            if (Utils.canTeleport(player, waystone, false)) {
+                ClientPlayNetworking.send(WaystonePacketHandler.TELEPORT_TO_WAYSTONE, data);
             }
             closeScreen();
         }
@@ -123,13 +121,6 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         setCursorStack(ItemStack.EMPTY);
         player.currentScreenHandler = player.playerScreenHandler;
         MinecraftClient.getInstance().setScreen(null);
-    }
-
-    protected void playSounds() {
-        if (!player.world.isClient) {
-            return;
-        }
-        ClientStuff.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F);
     }
 
     public abstract void onForget(String waystone);

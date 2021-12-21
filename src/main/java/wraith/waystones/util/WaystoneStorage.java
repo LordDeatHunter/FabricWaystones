@@ -1,10 +1,13 @@
 package wraith.waystones.util;
 
-import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,13 +15,12 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
-
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
-import wraith.waystones.block.WaystoneBlock;
-import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.access.WaystoneValue;
+import wraith.waystones.block.WaystoneBlock;
+import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.mixin.MinecraftServerAccessor;
 
 import java.io.File;
@@ -234,7 +236,7 @@ public class WaystoneStorage {
     }
 
     public void sendToPlayer(ServerPlayerEntity player) {
-        PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+        PacketByteBuf data = PacketByteBufs.create();
         data.writeNbt(toTag(new NbtCompound()));
         ServerPlayNetworking.send(player, Utils.ID("waystone_packet"), data);
     }
