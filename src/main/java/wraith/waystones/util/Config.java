@@ -40,6 +40,10 @@ public final class Config {
         return configData.getBoolean("can_owners_redeem_payments");
     }
 
+    public boolean canPlayersToggleGlobal() {
+        return configData.getBoolean("can_players_toggle_global_mode");
+    }
+
     @Nullable
     public Identifier teleportCostItem() {
         if ("item".equals(configData.getString("cost_type"))) {
@@ -90,6 +94,7 @@ public final class Config {
         defaultConfig.putFloat("waystone_block_hardness", 4F);
         defaultConfig.putInt("waystone_block_required_mining_level", 1);
         defaultConfig.putBoolean("prevent_non_owners_from_breaking_waystone", false);
+        defaultConfig.putBoolean("can_players_toggle_global_mode", true);
 
         return defaultConfig;
     }
@@ -190,6 +195,15 @@ public final class Config {
         }
         json.addProperty("prevent_non_owners_from_breaking_waystone", preventNonOwnersBreaking);
 
+        boolean canPlayersToggleGlobalMode;
+        if (tag.contains("can_players_toggle_global_mode")) {
+            canPlayersToggleGlobalMode = tag.getBoolean("can_players_toggle_global_mode");
+        } else {
+            overwrite = true;
+            canPlayersToggleGlobalMode = defaults.getBoolean("can_players_toggle_global_mode");
+        }
+        json.addProperty("can_players_toggle_global_mode", canPlayersToggleGlobalMode);
+
         createFile(json, overwrite);
         return json;
     }
@@ -289,6 +303,14 @@ public final class Config {
             preventNonOwnersBreaking = defaults.getBoolean("prevent_non_owners_from_breaking_waystone");
         }
         tag.putBoolean("prevent_non_owners_from_breaking_waystone", preventNonOwnersBreaking);
+
+        boolean canPlayersToggleGlobalMode;
+        if (json.has("can_players_toggle_global_mode")) {
+            canPlayersToggleGlobalMode = json.get("can_players_toggle_global_mode").getAsBoolean();
+        } else {
+            overwrite = true;
+            canPlayersToggleGlobalMode = defaults.getBoolean("can_players_toggle_global_mode");
+        }
 
         createFile(toJson(tag), overwrite);
         return tag;

@@ -85,6 +85,9 @@ public final class WaystonePacketHandler {
             if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
                 return;
             }
+            if (!Config.getInstance().canPlayersToggleGlobal() && !player.hasPermissionLevel(2)) {
+                return;
+            }
             server.execute(() -> {
                 String hash = tag.getString("waystone_hash");
                 UUID owner = tag.getUuid("waystone_owner");
