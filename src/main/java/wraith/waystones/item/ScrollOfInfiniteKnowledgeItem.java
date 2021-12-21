@@ -47,7 +47,12 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         Text text;
         if (learned > 0) {
             if (learned > 1) {
-                text = new TranslatableText("waystones.learned.infinite.multiple", new TranslatableText("waystones.learned.infinite.multiple.arg_color").append(String.valueOf(learned)));
+                text = new TranslatableText(
+                        "waystones.learned.infinite.multiple",
+                        new LiteralText(String.valueOf(learned)).styled(style ->
+                                style.withColor(TextColor.parse(new TranslatableText("waystones.learned.infinite.multiple.arg_color").getString()))
+                        )
+                );
             } else {
                 text = new TranslatableText("waystones.learned.infinite.single");
             }

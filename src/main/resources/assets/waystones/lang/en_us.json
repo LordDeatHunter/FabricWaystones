@@ -29,7 +29,6 @@
   "container.waystones.abyss_watcher": "Abyss Watcher",
 
   "waystones.gui.displayed_waystones": "Displayed waystones: %s",
-  "waystones.gui.displayed_waystones.arg_color": "",
   "waystones.gui.contains": "Search at: Anywhere in name.",
   "waystones.gui.starts_with": "Search at: Start of name.",
 
@@ -61,12 +60,12 @@
 
   "waystones.learned.single": "§3Learned one new waystone!",
   "waystones.learned.multiple": "§3Learned %s §3new waystones!",
-  "waystones.learned.multiple.arg_color": "§b",
+  "waystones.learned.multiple.arg_color": "#55FFFF",
   "waystones.learned.none": "§3No new waystones learned!",
 
   "waystones.learned.infinite.single": "§3Learned one waystone!",
   "waystones.learned.infinite.multiple": "§3Learned %s §3waystones!",
-  "waystones.learned.infinite.multiple.arg_color": "§b",
+  "waystones.learned.infinite.multiple.arg_color": "#55FFFF",
   "waystones.learned.infinite.none": "§6You already know everything there is to know!",
 
   "waystones.discover_waystone": "§6【%s§6】§3has been discovered!",
@@ -76,7 +75,6 @@
   "waystones.config.view_discovered": "View discovered waystones",
   "waystones.config.view_global": "View global waystones",
   "waystones.config.owner": "Owned by %s",
-  "waystones.config.owner.arg_color": "",
   "waystones.config.no_owner": "No one",
 
   "waystones.cost.item": "Total",

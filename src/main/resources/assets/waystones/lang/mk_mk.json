@@ -17,20 +17,20 @@
   "container.waystones.pocket_wormhole": "Джебна црвоточина",
   "container.waystones.abyss_watcher": "Набљудувач на бездната",
 
-  "waystones.gui.displayed_waystones": "Прикажани патни камења: %1$s",
+  "waystones.gui.displayed_waystones": "Прикажани патни камења: %s",
   "waystones.gui.contains": "Барај во: Било каде во името.",
   "waystones.gui.starts_with": "Барај во: Почетокот на името.",
 
-  "waystones.waystone_tooltip.name": "§6[§eЗачувано име§6] §3%1$s",
+  "waystones.waystone_tooltip.name": "§6[§eЗачувано име§6] §3%s",
   "waystones.waystone_tooltip.global": "§6[§eГлобален§6]",
   "waystones.waystone_tooltip.global_on": "§3ВКЛУЧЕНО",
   "waystones.waystone_tooltip.global_off": "§3ИСКЛУЧЕНО",
 
-  "waystones.scroll.tooltip": "§6Зачувани патни камења: %1$s",
+  "waystones.scroll.tooltip": "§6Зачувани патни камења: %s",
   "waystones.scroll.infinite": "§6Откриј се што има за откривање.",
-  "waystones.scroll.infinite_tooltip": "§6Постоечки патни камења: %1$s",
+  "waystones.scroll.infinite_tooltip": "§6Постоечки патни камења: %s",
 
-  "waystones.local_void.tooltip": "§6Приврзано со: %1$s",
+  "waystones.local_void.tooltip": "§6Приврзано со: %s",
   "waystones.local_void.empty_tooltip": "§3Не приврзано.",
 
   "waystones.config.tooltip.revoke_ownership": "Откажи сопственост.",
@@ -44,19 +44,19 @@
   "waystones.config.tooltip.config": "Отвори го менито за подесување.",
 
   "waystones.learned.single": "Откриен е нов патен камен!",
-  "waystones.learned.multiple": "§bОткриени се %1$s нови патни камења!",
+  "waystones.learned.multiple": "§bОткриени се %s нови патни камења!",
   "waystones.learned.none": "§bНе се откриени нови патни камења!",
 
   "waystones.learned.infinite.single": "§bОткриен е нов патен камен!",
-  "waystones.learned.infinite.multiple": "§bОткриени се %1 патни камења!",
+  "waystones.learned.infinite.multiple": "§bОткриени се %s патни камења!",
   "waystones.learned.infinite.none": "§6Веќе знаете се што треба да знаете!",
 
-  "waystones.discover_waystone": "§b%1$s е откриен!",
+  "waystones.discover_waystone": "§b%s е откриен!",
 
   "waystones.config.global": "Смени глобалност на патниот камен",
   "waystones.config.view_discovered": "Прикажи откриени патни камења",
   "waystones.config.view_global": "Прикажи глобални патни камења",
-  "waystones.config.owner": "Во сопственост на %1$s",
+  "waystones.config.owner": "Во сопственост на %s",
   "waystones.config.no_owner": "Никој",
 
   "waystones.cost.item": "Вкупно",

@@ -15,20 +15,20 @@
   "container.waystones.pocket_wormhole": "Tragbares Wurmloch",
   "container.waystones.abyss_watcher": "Auge des Abgrunds",
 
-  "waystones.gui.displayed_waystones": "Angezeigte Wegsteine: %1$s",
+  "waystones.gui.displayed_waystones": "Angezeigte Wegsteine: %s",
   "waystones.gui.contains": "Suchen in: Ganzer Name.",
   "waystones.gui.starts_with": "Suchen in: Anfang des Namens.",
 
-  "waystones.waystone_tooltip.name": "§6[§eGemerkter Name§6] §3%1$s",
+  "waystones.waystone_tooltip.name": "§6[§eGemerkter Name§6] §3%s",
   "waystones.waystone_tooltip.global": "§6[§eGlobal§6]",
   "waystones.waystone_tooltip.global_on": "§3AN",
   "waystones.waystone_tooltip.global_off": "§3AUS",
 
-  "waystones.scroll.tooltip": "§6Enhaltene Wegsteine: %1$s",
+  "waystones.scroll.tooltip": "§6Enhaltene Wegsteine: %s",
   "waystones.scroll.infinite": "Erlerne alles was zu erlernen ist.",
   "waystones.scroll.infinite_tooltip": "Vorhandene Wegsteine:",
 
-  "waystones.local_void.tooltip": "§6Gebunden an: %1$s",
+  "waystones.local_void.tooltip": "§6Gebunden an: %s",
   "waystones.local_void.empty_tooltip": "§3Ungebunden.",
 
   "waystones.config.tooltip.revoke_ownership": "Besitzer entfernen.",
@@ -42,19 +42,19 @@
   "waystones.config.tooltip.config": "Einstellungen öffnen.",
 
   "waystones.learned.single": "Einen neuen Wegstein erlernt!",
-  "waystones.learned.multiple": "§b%1$s neue Wegsteine erlernt!",
+  "waystones.learned.multiple": "§b%s neue Wegsteine erlernt!",
   "waystones.learned.none": "§bKeine neuen Wegsteine erlernt!",
 
   "waystones.learned.infinite.single": "§bEinen Wegstein erlernt!",
-  "waystones.learned.infinite.multiple": "§6%1$s Wegsteine erlernt!",
+  "waystones.learned.infinite.multiple": "§6%s Wegsteine erlernt!",
   "waystones.learned.infinite.none": "§6Du weißt bereits alles was zu wissen ist!",
 
-  "waystones.discover_waystone": "§b%1$s wurde entdeckt!",
+  "waystones.discover_waystone": "§b%s wurde entdeckt!",
 
   "waystones.config.global": "Globale Sichtbarkeit umschalten",
   "waystones.config.view_discovered": "Entdeckte Wegsteine anzeigen",
   "waystones.config.view_global": "Globale Wegsteine anzeigen",
-  "waystones.config.owner": "Besitzer %1$s",
+  "waystones.config.owner": "Besitzer %s",
   "waystones.config.no_owner": "Kein Besitzer",
 
   "waystones.cost.item": "Ingesamt",

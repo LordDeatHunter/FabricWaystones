@@ -29,7 +29,6 @@
   "container.waystones.abyss_watcher": "Наблюдатель бездны",
 
   "waystones.gui.displayed_waystones": "Отображаемые путеводные камни: %s",
-  "waystones.gui.displayed_waystones.arg_color": "",
   "waystones.gui.contains": "Поиск по адресу: В любом месте по названию.",
   "waystones.gui.starts_with": "Поиск по адресу: Начало имени.",
 
@@ -60,12 +59,12 @@
 
   "waystones.learned.single": "§3Выучил один новый путевой камень!",
   "waystones.learned.multiple": "§3Изученный %s §3 новые путевые камни!",
-  "waystones.learned.multiple.arg_color": "§b",
+  "waystones.learned.multiple.arg_color": "#55FFFF",
   "waystones.learned.none": "§3Никаких новых путеводных камней не изучено!",
 
   "waystones.learned.infinite.single": "§3Выучил один путевой камень!",
   "waystones.learned.infinite.multiple": "§3Изученный %s §3 путевые камни!",
-  "waystones.learned.infinite.multiple.arg_color": "§b",
+  "waystones.learned.infinite.multiple.arg_color": "#55FFFF",
   "waystones.learned.infinite.none": "§6Вы уже знаете все, что нужно знать!",
 
   "waystones.discover_waystone": "§6【%s§6】§3был обнаружен!",
@@ -75,7 +74,6 @@
   "waystones.config.view_discovered": "Обнаруженные путевые камни",
   "waystones.config.view_global": "Глобальные путевые камни",
   "waystones.config.owner": "Связан с %s",
-  "waystones.config.owner.arg_color": "",
   "waystones.config.no_owner": "Никто",
 
   "waystones.cost.item": "Сумма",
