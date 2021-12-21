@@ -310,7 +310,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return player.squaredDistanceTo((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
     }
 
-    public boolean teleportPlayer(PlayerEntity player) {
+    public boolean teleportPlayer(PlayerEntity player, boolean takeCost) {
         if (!(player instanceof ServerPlayerEntity playerEntity)) {
             return false;
         }
@@ -370,7 +370,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (source == null) {
             return false;
         }
-        var teleported = doTeleport(playerEntity, (ServerWorld) world, target, source);
+        var teleported = doTeleport(playerEntity, (ServerWorld) world, target, source, takeCost);
         if (!teleported) {
             return false;
         }
@@ -386,7 +386,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return true;
     }
 
-    private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target, TeleportSources source) {
+    private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target, TeleportSources source, boolean takeCost) {
         var playerAccess = (PlayerEntityMixinAccess) player;
         var cooldown = playerAccess.getTeleportCooldown();
         if (cooldown > 0) {
@@ -399,7 +399,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             ), false);
             return false;
         }
-        if (!Utils.canTeleport(player, hash, true)) {
+        if ((source != TeleportSources.LOCAL_VOID || !Config.getInstance().areLocalVoidsFree()) && !Utils.canTeleport(player, hash, takeCost)) {
             return false;
         }
         playerAccess.setTeleportCooldown(switch (source) {

@@ -130,7 +130,7 @@ public final class WaystonePacketHandler {
                 if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos()).getBlock() instanceof WaystoneBlock)) {
                     Waystones.WAYSTONE_STORAGE.removeWaystone(hash);
                     waystone.getWorld().removeBlockEntity(waystone.getPos());
-                } else if (waystone.teleportPlayer(player)) {
+                } else if (waystone.teleportPlayer(player, true)) {
                     BlockPos playerPos = player.getBlockPos();
 
                     player.world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);

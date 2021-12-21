@@ -42,7 +42,7 @@ public class LocalVoidItem extends Item {
             String hash = tag.getString("waystone");
             if (Waystones.WAYSTONE_STORAGE != null) {
                 WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
-                if (waystone != null && waystone.teleportPlayer(user) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
+                if (waystone != null && waystone.teleportPlayer(user, !Config.getInstance().areLocalVoidsFree()) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
                     stack.decrement(1);
                 }
             }
