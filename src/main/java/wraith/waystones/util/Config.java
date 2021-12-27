@@ -358,7 +358,6 @@ public final class Config {
         }
         file.setReadable(true);
         file.setWritable(true);
-        file.setExecutable(true);
         if (contents == null) {
             return;
         }
