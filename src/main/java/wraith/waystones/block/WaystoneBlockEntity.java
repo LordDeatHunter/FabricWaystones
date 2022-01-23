@@ -408,22 +408,13 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             case LOCAL_VOID -> Config.getInstance().getCooldownFromLocalVoid();
             case POCKET_WORMHOLE -> Config.getInstance().getCooldownFromPocketWormhole();
         });
-        if (player.world.getRegistryKey().equals(world.getRegistryKey())) {
-            player.networkHandler.requestTeleport(
-                    target.position.getX(),
-                    target.position.getY(),
-                    target.position.getZ(),
-                    target.yaw,
-                    target.pitch
-            );
-        } else {
-            FabricDimensions.teleport(player, world, target);
-        }
+        var oldPos = player.getBlockPos();
+        player.world.playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        FabricDimensions.teleport(player, world, target);
         BlockPos playerPos = player.getBlockPos();
-        player.world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
 
-        if (!pos.isWithinDistance(playerPos, 6) || player.world.getRegistryKey().equals(world.getRegistryKey())) {
-            world.playSound(null, pos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        if (!oldPos.isWithinDistance(playerPos, 6) || !player.world.getRegistryKey().equals(world.getRegistryKey())) {
+            world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         }
         return true;
     }
