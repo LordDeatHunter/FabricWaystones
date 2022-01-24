@@ -1,5 +1,6 @@
 package wraith.waystones.registry;
 
+import eu.pb4.polymer.api.block.PolymerBlockUtils;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.util.registry.Registry;
@@ -22,6 +23,7 @@ public final class BlockEntityRegistry {
 
     public static  void registerBlockEntities() {
         Registry.register(Registry.BLOCK_ENTITY_TYPE, Utils.ID("waystone"), WAYSTONE_BLOCK_ENTITY);
+        PolymerBlockUtils.registerBlockEntity(WAYSTONE_BLOCK_ENTITY);
     }
 
 }

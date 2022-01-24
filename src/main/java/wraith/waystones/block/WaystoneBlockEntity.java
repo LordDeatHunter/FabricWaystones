@@ -1,5 +1,9 @@
 package wraith.waystones.block;
 
+import eu.pb4.holograms.api.elements.SpacingHologramElement;
+import eu.pb4.holograms.api.holograms.WorldHologram;
+import eu.pb4.polymer.api.utils.PolymerObject;
+import eu.pb4.sgui.virtual.VirtualScreenHandlerInterface;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
@@ -34,12 +38,11 @@ import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.access.WaystoneValue;
+import wraith.waystones.gui.UniversalWaystoneGui;
 import wraith.waystones.item.AbyssWatcherItem;
 import wraith.waystones.item.LocalVoidItem;
 import wraith.waystones.registry.BlockEntityRegistry;
-import wraith.waystones.screen.AbyssScreenHandler;
-import wraith.waystones.screen.PocketWormholeScreenHandler;
-import wraith.waystones.screen.WaystoneScreenHandler;
+import wraith.waystones.registry.ItemRegistry;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.TeleportSources;
 import wraith.waystones.util.Utils;
@@ -49,7 +52,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
 
-public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, WaystoneValue {
+public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, WaystoneValue, PolymerObject {
 
     private String name = "";
     private String hash;
@@ -57,6 +60,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private UUID owner = null;
     private String ownerName = null;
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
+
+    private WorldHologram hologram;
 
     public WaystoneBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, pos, state);
@@ -111,16 +116,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new WaystoneScreenHandler(syncId, this, player);
-    }
-
-    @Override
-    protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
-        return createMenu(syncId, playerInventory, playerInventory.player);
-    }
-
-    @Override
     public Text getDisplayName() {
         return new TranslatableText("container." + Waystones.MOD_ID + ".waystone");
     }
@@ -128,6 +123,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     protected Text getContainerName() {
         return getDisplayName();
+    }
+
+    @Override
+    protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
+        return null;
     }
 
     @Override
@@ -191,13 +191,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         markDirty();
     }
 
-    @Override
-    public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf packetByteBuf) {
-        NbtCompound tag = createTag(new NbtCompound());
-        tag.putString("waystone_hash", this.hash);
-        packetByteBuf.writeNbt(tag);
-    }
-
     public float lookingRotR = 0;
     private float turningSpeedR = 2;
 
@@ -238,9 +231,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     private void addParticle(PlayerEntity player) {
-        if (world == null) {
-            return;
-        }
         Random r = world.getRandom();
         Vec3d playerPos = player.getPos();
         ParticleEffect p = (r.nextInt(10) > 7) ? ParticleTypes.ENCHANT : ParticleTypes.PORTAL;
@@ -253,23 +243,27 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         int rd = r.nextInt(10);
         if (rd > 5) {
             if (p == ParticleTypes.ENCHANT) {
-                this.world.addParticle(p, playerPos.x, playerPos.y + 1.5D, playerPos.z,
+                ((ServerWorld) this.world).spawnParticles(p, playerPos.x, playerPos.y + 1.5D, playerPos.z, 0,
                         (getPos().getX() + 0.5D - playerPos.x), (y - 1.25D - playerPos.y),
-                        (getPos().getZ() + 0.5D - playerPos.z));
+                        (getPos().getZ() + 0.5D - playerPos.z), 1);
             } else {
-                this.world.addParticle(p, this.getPos().getX() + 0.5D, y + 0.8D, this.getPos().getZ() + 0.5D,
+                ((ServerWorld) this.world).spawnParticles(p, this.getPos().getX() + 0.5D, y + 0.6D, this.getPos().getZ() + 0.5D, 0,
                         (playerPos.x - getPos().getX()) - r.nextDouble(),
                         (playerPos.y - getPos().getY() - 0.5D) - r.nextDouble() * 0.5D,
-                        (playerPos.z - getPos().getZ()) - r.nextDouble());
+                        (playerPos.z - getPos().getZ()) - r.nextDouble(), 1);
             }
         }
         if (rd > 8) {
-            this.world.addParticle(p, y + 0.5D, this.getPos().getY() + 0.8D, this.getPos().getZ() + 0.5D,
-                    r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D, r.nextDouble() * k);
+            ((ServerWorld) this.world).spawnParticles(p, y + 0.5D, this.getPos().getY() + 0.8D, this.getPos().getZ() + 0.5D, 0,
+                    r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D, r.nextDouble() * k, 1);
         }
     }
 
     public void tick() {
+        if (!(this.world instanceof ServerWorld)) {
+            return;
+        }
+
         ++tickDelta;
         if (getCachedState().get(WaystoneBlock.ACTIVE)) {
             var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D, this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
@@ -284,6 +278,18 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             }
 
             lookingRotR = rotClamp(360, lookingRotR);
+
+
+            if (this.hologram == null) {
+                this.hologram = new WorldHologram((ServerWorld) this.world, Vec3d.ofCenter(this.pos));
+                this.hologram.addText(new LiteralText(this.getWaystoneName()), true);
+                this.hologram.addItemStack(new ItemStack(ItemRegistry.get("abyss_watcher")), true);
+                this.hologram.addElement(new SpacingHologramElement(1));
+                this.hologram.show();
+            }
+        } else if (this.hologram != null) {
+            this.hologram.hide();
+            this.hologram = null;
         }
 
         if (tickDelta >= 360) {
@@ -353,12 +359,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 0
         );
         TeleportSources source = null;
-        if (playerEntity.currentScreenHandler instanceof AbyssScreenHandler) {
-            source = TeleportSources.ABYSS_WATCHER;
-        } else if (playerEntity.currentScreenHandler instanceof PocketWormholeScreenHandler) {
-            source = TeleportSources.POCKET_WORMHOLE;
-        } else if (playerEntity.currentScreenHandler instanceof WaystoneScreenHandler) {
-            source = TeleportSources.WAYSTONE;
+        if (playerEntity.currentScreenHandler instanceof VirtualScreenHandlerInterface vs && vs.getGui() instanceof UniversalWaystoneGui gui) {
+            source = gui.getSource();
         } else {
             for (var hand : Hand.values()) {
                 if (playerEntity.getStackInHand(hand).getItem() instanceof LocalVoidItem) {
@@ -421,6 +423,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     public void setName(String name) {
         this.name = name;
+        if (this.hologram != null) {
+            this.hologram.setText(0, new LiteralText(this.getWaystoneName()), true);
+        }
         markDirty();
     }
 
@@ -508,4 +513,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         waystone.tick();
     }
 
+    @Override
+    public void markRemoved() {
+        if (this.hologram != null) {
+            this.hologram.hide();
+        }
+        super.markRemoved();
+    }
 }

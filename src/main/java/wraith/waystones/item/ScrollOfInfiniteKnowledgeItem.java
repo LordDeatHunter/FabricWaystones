@@ -1,9 +1,13 @@
 package wraith.waystones.item;
 
+import eu.pb4.polymer.api.item.PolymerItem;
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
@@ -13,14 +17,13 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
-import wraith.waystones.client.ClientStuff;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.util.Config;
 
 import java.util.HashSet;
 import java.util.List;
 
-public class ScrollOfInfiniteKnowledgeItem extends Item {
+public class ScrollOfInfiniteKnowledgeItem extends Item implements PolymerItem {
 
     public ScrollOfInfiniteKnowledgeItem(Settings settings) {
         super(settings);
@@ -81,8 +84,6 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         int count = -1;
         if (Waystones.WAYSTONE_STORAGE != null) {
             count = Waystones.WAYSTONE_STORAGE.getCount();
-        } else if (world != null && world.isClient) {
-            count = ClientStuff.getWaystoneCount();
         }
         if (count != -1) {
             tooltip.add(new TranslatableText(
@@ -94,5 +95,15 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         }
     }
 
+    @Override
+    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+        return Items.BOOK;
+    }
 
+    @Override
+    public ItemStack getPolymerItemStack(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+        var stack = PolymerItem.super.getPolymerItemStack(itemStack, player);
+        stack.addEnchantment(Enchantments.LURE, 2);
+        return stack;
+    }
 }

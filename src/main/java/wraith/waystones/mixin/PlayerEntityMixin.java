@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.block.WaystoneBlockEntity;
-import wraith.waystones.client.ClientStuff;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.Utils;
 
@@ -189,11 +188,6 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             HashSet<String> hashes = new HashSet<>();
             if (Waystones.WAYSTONE_STORAGE != null) {
                 hashes = Waystones.WAYSTONE_STORAGE.getAllHashes();
-            } else if (_this().world.isClient) {
-                HashSet<String> tmpHashes = ClientStuff.getWaystoneHashes();
-                if (tmpHashes != null) {
-                    hashes = tmpHashes;
-                }
             }
             NbtList waystones = tag.getList("discovered_waystones", 8);
             for (NbtElement waystone : waystones) {

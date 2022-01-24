@@ -1,19 +1,23 @@
 package wraith.waystones.item;
 
+import eu.pb4.polymer.api.item.PolymerItem;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
+import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
-import wraith.waystones.screen.PocketWormholeScreenHandler;
+import wraith.waystones.gui.UniversalWaystoneGui;
+import wraith.waystones.util.TeleportSources;
 
-public class PocketWormholeItem extends Item {
+public class PocketWormholeItem extends Item implements PolymerItem {
 
     private static final Text TITLE = new TranslatableText("container." + Waystones.MOD_ID + ".pocket_wormhole");
 
@@ -23,12 +27,21 @@ public class PocketWormholeItem extends Item {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        user.openHandledScreen(createScreenHandlerFactory());
+        if (user instanceof ServerPlayerEntity serverPlayerEntity) {
+            UniversalWaystoneGui.open(serverPlayerEntity, TITLE, TeleportSources.POCKET_WORMHOLE);
+        }
         return TypedActionResult.consume(user.getStackInHand(hand));
     }
 
-    public NamedScreenHandlerFactory createScreenHandlerFactory() {
-        return new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity) -> new PocketWormholeScreenHandler(i, playerInventory), TITLE);
+    @Override
+    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+        return Items.ENDER_PEARL;
     }
 
+    @Override
+    public ItemStack getPolymerItemStack(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+        var stack = PolymerItem.super.getPolymerItemStack(itemStack, player);
+        stack.addEnchantment(Enchantments.LURE, 2);
+        return stack;
+    }
 }

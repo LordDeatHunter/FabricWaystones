@@ -7,11 +7,12 @@ sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 archivesBaseName = project.archives_base_name
-version = project.mod_version
+version = project.mod_version + "-polymerport." + project.sub_version
 group = project.maven_group
 
 repositories {
 	maven { url = "https://www.cursemaven.com" }
+	maven { url = "https://maven.nucleoid.xyz" }
 }
 
 dependencies {
@@ -24,6 +25,11 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	modCompileOnly 'curse.maven:repurposed-structures-fabric-391366:3542863'
+
+	modImplementation include("eu.pb4:sgui:1.0.0-rc6+1.18-pre5")
+	modImplementation include("eu.pb4:hologram-api:0.2.1+1.18-pre5")
+	modImplementation include("eu.pb4:polymer:0.2.0-beta.19+1.18.1")
+	modImplementation include("fr.catcore:server-translations-api:1.4.8+1.18-pre1")
 }
 
 loom {

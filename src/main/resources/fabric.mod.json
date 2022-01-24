@@ -2,15 +2,18 @@
   "schemaVersion": 1,
   "id": "waystones",
   "version": "${version}",
-  "name": "Waystones",
+  "name": "Waystones (Polymer Port)",
   "description": "A better way of transport!",
   "authors": [
     "LordDeatHunter"
   ],
+  "contributors": [
+    "Patbox (Polymer Port)"
+  ],
   "contact": {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/fabric-waystones",
-    "sources": "https://github.com/LordDeatHunter/FabricWaystones",
-    "issues": "https://github.com/LordDeatHunter/FabricWaystones/issues"
+    "sources": "https://github.com/PolymerPorts/FabricWaystones",
+    "issues": "https://github.com/PolymerPorts/FabricWaystones/issues"
   },
   "license": "MIT License",
   "icon": "assets/waystones/WaystoneIcon.png",
@@ -18,9 +21,6 @@
   "entrypoints": {
     "main": [
       "wraith.waystones.Waystones"
-    ],
-    "client": [
-      "wraith.waystones.client.WaystonesClient"
     ]
   },
   "mixins": [

@@ -1,5 +1,6 @@
 package wraith.waystones.block;
 
+import eu.pb4.polymer.api.block.PolymerBlock;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -22,6 +23,7 @@ import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
@@ -39,16 +41,18 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
+import wraith.waystones.gui.UniversalWaystoneGui;
 import wraith.waystones.item.LocalVoidItem;
 import wraith.waystones.item.WaystoneDebuggerItem;
 import wraith.waystones.item.WaystoneScrollItem;
 import wraith.waystones.registry.BlockEntityRegistry;
 import wraith.waystones.util.Config;
+import wraith.waystones.util.TeleportSources;
 
 import java.util.HashSet;
 
 @SuppressWarnings("deprecation")
-public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
+public class WaystoneBlock extends BlockWithEntity implements Waterloggable, PolymerBlock {
 
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
@@ -58,10 +62,12 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     protected static final VoxelShape VOXEL_SHAPE_TOP;
     protected static final VoxelShape VOXEL_SHAPE_BOTTOM;
+    private final WaystoneStyle style;
 
-    public WaystoneBlock(AbstractBlock.Settings settings) {
+    public WaystoneBlock(WaystoneStyle style, AbstractBlock.Settings settings) {
         super(settings);
         setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, false).with(ACTIVE, false));
+        this.style = style;
     }
 
     @Override
@@ -267,10 +273,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
             }
 
-            var screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
-
-            if (screenHandlerFactory != null) {
-                player.openHandledScreen(screenHandlerFactory);
+            if (player instanceof ServerPlayerEntity serverPlayerEntity) {
+                UniversalWaystoneGui.open(serverPlayerEntity, blockEntity);
             }
         }
         blockEntity.markDirty();
@@ -350,4 +354,19 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1).simplify();
     }
 
+    @Override
+    public Block getPolymerBlock(BlockState state) {
+        return this.style.lower().getBlock();
+    }
+
+    @Override
+    public BlockState getPolymerBlockState(BlockState state) {
+        return state.get(HALF) == DoubleBlockHalf.LOWER
+                ? state.get(WATERLOGGED) ? this.style.lowerWater() : this.style.lower()
+                : state.get(WATERLOGGED) ? this.style.upperWater() : this.style.upper();
+    }
+
+    public WaystoneStyle getStyle() {
+        return this.style;
+    }
 }

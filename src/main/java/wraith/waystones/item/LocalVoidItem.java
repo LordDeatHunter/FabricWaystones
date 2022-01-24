@@ -1,11 +1,15 @@
 package wraith.waystones.item;
 
+import eu.pb4.polymer.api.item.PolymerItem;
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
@@ -18,12 +22,11 @@ import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
-import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.util.Config;
 
 import java.util.List;
 
-public class LocalVoidItem extends Item {
+public class LocalVoidItem extends Item implements PolymerItem {
 
     public LocalVoidItem(Settings settings) {
         super(settings);
@@ -75,7 +78,7 @@ public class LocalVoidItem extends Item {
         if (tag == null || !tag.contains("waystone")) {
             invalid = true;
         } else {
-            name = WaystonesClient.WAYSTONE_STORAGE.getName(tag.getString("waystone"));
+            name = Waystones.WAYSTONE_STORAGE.getWaystone(tag.getString("waystone")).getWaystoneName();
             if (name == null) {
                 invalid = true;
             }
@@ -92,4 +95,16 @@ public class LocalVoidItem extends Item {
         ));
     }
 
+
+    @Override
+    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+        return Items.ENDERMAN_SPAWN_EGG;
+    }
+
+    @Override
+    public ItemStack getPolymerItemStack(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+        var stack = PolymerItem.super.getPolymerItemStack(itemStack, player);
+        stack.addEnchantment(Enchantments.LURE, 2);
+        return stack;
+    }
 }
