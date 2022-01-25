@@ -58,24 +58,44 @@ public class UniversalWaystoneGui extends PagedGui {
     }
 
     public static void open(ServerPlayerEntity user, WaystoneBlockEntity waystone) {
-        var ui = new UniversalWaystoneGui(user, new LiteralText(waystone.getWaystoneName()), TeleportSources.WAYSTONE,
-                t -> !waystone.isRemoved() && ((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(waystone),
-                (gui) -> {}
-        ) {
-            @Override
-            protected DisplayElement getNavElement(int id) {
-                return switch (id) {
-                    case 1 -> DisplayElement.previousPage(this);
-                    case 3 -> DisplayElement.nextPage(this);
-                    case 5 -> getCost();
-                    case 7 -> DisplayElement.of(
-                            new GuiElementBuilder(Items.REDSTONE)
-                            .setName(new TranslatableText("waystones.config.tooltip.config"))
-                    );
-                    default -> DisplayElement.filler();
-                };
-            }
-        };
+        UniversalWaystoneGui ui;
+
+        if (user.getUuid().equals(waystone.getOwner()) || user.hasPermissionLevel(2)) {
+            ui = new UniversalWaystoneGui(user, new LiteralText(waystone.getWaystoneName()), TeleportSources.WAYSTONE,
+                    t -> !waystone.isRemoved() && ((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(waystone),
+                    (gui) -> {}
+            ) {
+                @Override
+                protected boolean canTeleport(String hash) {
+                    return !waystone.getHash().equals(hash);
+                }
+
+                @Override
+                protected DisplayElement getNavElement(int id) {
+                    return switch (id) {
+                        case 1 -> DisplayElement.previousPage(this);
+                        case 3 -> DisplayElement.nextPage(this);
+                        case 5 -> getCost();
+                        case 7 -> DisplayElement.of(
+                                new GuiElementBuilder(Items.REDSTONE)
+                                        .setName(new TranslatableText("waystones.config.tooltip.config"))
+                                        .setCallback((x, y, z) -> WaystoneSettingsGui.open(user, waystone))
+                        );
+                        default -> DisplayElement.filler();
+                    };
+                }
+            };
+        } else {
+            ui = new UniversalWaystoneGui(user, new LiteralText(waystone.getWaystoneName()), TeleportSources.WAYSTONE,
+                    t -> !waystone.isRemoved() && ((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(waystone),
+                    (gui) -> {}
+            ) {
+                @Override
+                protected boolean canTeleport(String hash) {
+                    return !waystone.getHash().equals(hash);
+                }
+            };
+        }
 
         ui.updateDisplay();
         ui.open();
@@ -91,6 +111,10 @@ public class UniversalWaystoneGui extends PagedGui {
         if (!this.keepOpen.test(this)) {
             this.close();
         }
+    }
+
+    protected boolean canTeleport(String hash) {
+        return true;
     }
 
     @Override
@@ -155,7 +179,7 @@ public class UniversalWaystoneGui extends PagedGui {
                 Waystones.WAYSTONE_STORAGE.removeWaystone(hash);
                 waystone.getWorld().removeBlockEntity(waystone.getPos());
             } else {
-                if (Utils.canTeleport(player,  hash, false)) {
+                if (Utils.canTeleport(player,  hash, false) && this.canTeleport(hash)) {
                     this.teleported = waystone.teleportPlayer(player, true);
                     this.close();
                 }

@@ -1,7 +1,11 @@
 plugins {
 	id 'fabric-loom' version '0.10-SNAPSHOT'
 	id 'maven-publish'
+	id "com.modrinth.minotaur" version "1.2.1"
+	id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
+import com.modrinth.minotaur.TaskModrinthUpload
+import com.modrinth.minotaur.request.VersionType
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
@@ -67,4 +71,45 @@ publishing {
 	}
 	repositories {
 	}
+}
+
+
+/*curseforge {
+	if (System.getenv("CURSEFORGE")) {
+		apiKey = System.getenv("CURSEFORGE")
+
+		project {
+			id = "572651"
+			releaseType = "release"
+			changelog = System.getenv("CHANGELOG")
+			changelogType = "markdown"
+			addGameVersion ((String) project.minecraft_version)
+			addGameVersion "Fabric"
+			mainArtifact(remapJar)
+
+			afterEvaluate {
+				uploadTask.dependsOn("remapJar")
+			}
+		}
+	}
+
+	options {
+		forgeGradleIntegration = false
+	}
+}*/
+
+task publishModrinth (type: TaskModrinthUpload){
+	onlyIf {
+		System.getenv("MODRINTH")
+	}
+
+	token = System.getenv("MODRINTH")
+	projectId = 'j5niDupl'
+	versionNumber = version
+	versionType = VersionType.RELEASE
+	changelog = System.getenv("CHANGELOG")
+	// On fabric, use 'remapJar' instead of 'jar'
+	uploadFile = remapJar
+	addGameVersion((String) project.minecraft_version)
+	addLoader('fabric')
 }

@@ -92,6 +92,8 @@
   "waystones.debug.debugger_tooltip1": "§6[§e?§6] §3What are we testing today?",
   "waystones.debug.debugger_tooltip2": "§6[§e?§6] §3What needs testing?",
   "waystones.debug.debugger_tooltip3": "§6[§e?§6] §3Anything broken?",
-  "waystones.debug.debugger_tooltip4": "§6[§e?§6] §3Does something need fixing?"
+  "waystones.debug.debugger_tooltip4": "§6[§e?§6] §3Does something need fixing?",
 
+  "polyport.waystones.settings": "Waystone Settings",
+  "polyport.waystones.rename": "Rename Waystone"
 }
