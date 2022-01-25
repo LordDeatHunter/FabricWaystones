@@ -2,7 +2,7 @@ plugins {
 	id 'fabric-loom' version '0.10-SNAPSHOT'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "1.2.1"
-	id 'com.matthewprenger.cursegradle' version '1.4.0'
+	//id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
 import com.modrinth.minotaur.TaskModrinthUpload
 import com.modrinth.minotaur.request.VersionType
@@ -104,7 +104,7 @@ task publishModrinth (type: TaskModrinthUpload){
 	}
 
 	token = System.getenv("MODRINTH")
-	projectId = 'j5niDupl'
+	projectId = 'gU9Ao8K2'
 	versionNumber = version
 	versionType = VersionType.RELEASE
 	changelog = System.getenv("CHANGELOG")
