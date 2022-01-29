@@ -3,6 +3,7 @@ package wraith.waystones.gui;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -11,7 +12,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
@@ -66,8 +66,8 @@ public class UniversalWaystoneGui extends PagedGui {
                     (gui) -> {}
             ) {
                 @Override
-                protected boolean canTeleport(String hash) {
-                    return !waystone.getHash().equals(hash);
+                protected boolean isSelf(String hash) {
+                    return waystone.getHash().equals(hash);
                 }
 
                 @Override
@@ -79,7 +79,10 @@ public class UniversalWaystoneGui extends PagedGui {
                         case 7 -> DisplayElement.of(
                                 new GuiElementBuilder(Items.REDSTONE)
                                         .setName(new TranslatableText("waystones.config.tooltip.config"))
-                                        .setCallback((x, y, z) -> WaystoneSettingsGui.open(user, waystone))
+                                        .setCallback((x, y, z) -> {
+                                            playClickSound(this.player);
+                                            WaystoneSettingsGui.open(user, waystone);
+                                        })
                         );
                         default -> DisplayElement.filler();
                     };
@@ -91,8 +94,8 @@ public class UniversalWaystoneGui extends PagedGui {
                     (gui) -> {}
             ) {
                 @Override
-                protected boolean canTeleport(String hash) {
-                    return !waystone.getHash().equals(hash);
+                protected boolean isSelf(String hash) {
+                    return waystone.getHash().equals(hash);
                 }
             };
         }
@@ -113,8 +116,8 @@ public class UniversalWaystoneGui extends PagedGui {
         }
     }
 
-    protected boolean canTeleport(String hash) {
-        return true;
+    protected boolean isSelf(String hash) {
+        return false;
     }
 
     @Override
@@ -149,12 +152,16 @@ public class UniversalWaystoneGui extends PagedGui {
             var hash = this.sortedWaystones.get(id);
             var tmpWaystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
 
+            var builder =  new GuiElementBuilder(tmpWaystone.isGlobal() ? Items.ENDER_EYE : Items.ENDER_PEARL)
+                    .setName(new LiteralText(tmpWaystone.getWaystoneName()))
+                    .hideFlags()
+                    .setCallback((x, y, z) -> this.handleSelection(x, y, z, hash));
 
-            return DisplayElement.of(
-                    new GuiElementBuilder(tmpWaystone.isGlobal() ? Items.ENDER_EYE : Items.ENDER_PEARL)
-                            .setName(new LiteralText(tmpWaystone.getWaystoneName()))
-                            .setCallback((x, y, z) -> this.handleSelection(x, y, z, hash))
-            );
+            if (this.isSelf(hash)) {
+                builder.enchant(Enchantments.LURE, 1);
+            }
+
+            return DisplayElement.of(builder);
         }
 
         return DisplayElement.empty();
@@ -173,13 +180,15 @@ public class UniversalWaystoneGui extends PagedGui {
                 waystone.setOwner(null);
             }
             ((PlayerEntityMixinAccess) player).forgetWaystone(hash);
+            playClickSound(this.player);
             this.updateDisplay();
         } else if (type.isLeft) {
             if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos()).getBlock() instanceof WaystoneBlock)) {
                 Waystones.WAYSTONE_STORAGE.removeWaystone(hash);
                 waystone.getWorld().removeBlockEntity(waystone.getPos());
             } else {
-                if (Utils.canTeleport(player,  hash, false) && this.canTeleport(hash)) {
+                if (Utils.canTeleport(player,  hash, false) && !this.isSelf(hash)) {
+                    playClickSound(this.player);
                     this.teleported = waystone.teleportPlayer(player, true);
                     this.close();
                 }
@@ -226,13 +235,15 @@ public class UniversalWaystoneGui extends PagedGui {
                     type = "level";
                     break;
                 case "item":
-                    return DisplayElement.of(new GuiElement(new ItemStack(Registry.ITEM.get(Config.getInstance().teleportCostItem()), amount), GuiElement.EMPTY_CALLBACK));
+                    item = Registry.ITEM.get(Config.getInstance().teleportCostItem());
+                    type = "item";
+                    break;
                 default:
                     return DisplayElement.filler();
             }
 
             return DisplayElement.of(new GuiElementBuilder(item)
-                    .setName(new TranslatableText("waystones.cost." + type))
+                    .setName(new TranslatableText("polyport.waystones.cost", amount, type.equals("item") ? item.getName() : new TranslatableText("waystones.cost." + type)) )
                     .setCount(amount));
     }
 }

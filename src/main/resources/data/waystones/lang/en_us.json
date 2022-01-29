@@ -95,5 +95,6 @@
   "waystones.debug.debugger_tooltip4": "§6[§e?§6] §3Does something need fixing?",
 
   "polyport.waystones.settings": "Waystone Settings",
-  "polyport.waystones.rename": "Rename Waystone"
+  "polyport.waystones.rename": "Rename Waystone",
+  "polyport.waystones.cost": "Cost: %s × %s"
 }
