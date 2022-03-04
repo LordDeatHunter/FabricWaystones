@@ -10,6 +10,7 @@ public class AbyssScreenHandler extends UniversalWaystoneScreenHandler {
 
     public AbyssScreenHandler(int syncId, PlayerInventory inventory) {
         super(CustomScreenHandlerRegistry.ABYSS_SCREEN_HANDLER, syncId, inventory.player);
+        updateWaystones(player);
     }
 
     @Override

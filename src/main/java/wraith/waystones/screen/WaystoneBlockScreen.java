@@ -19,21 +19,21 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
+import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
-import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.util.Utils;
 import wraith.waystones.util.WaystonePacketHandler;
 
 import java.util.UUID;
 
-public class WaystoneScreen extends UniversalWaystoneScreen {
+public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
     private static final Identifier TEXTURE = Utils.ID("textures/gui/waystone.png");
     private static final Identifier CONFIG_TEXTURE = Utils.ID("textures/gui/waystone_config.png");
 
     private TextFieldWidget nameField;
 
-    private Button configPage = new Button(156, -17, 18, 18, 207, 0) {
+    private final Button configPage = new Button(156, -17, 18, 18, 207, 0) {
         @Override
         public void onClick() {
             if (!isVisible()) {
@@ -45,6 +45,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 button.setup();
             }
         }
+
         @Override
         public boolean isVisible() {
             return page == Page.WAYSTONES;
@@ -63,7 +64,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         CONFIG
     }
 
-    public WaystoneScreen(ScreenHandler handler, PlayerInventory inventory, Text title) {
+    public WaystoneBlockScreen(ScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, TEXTURE, title);
 
         buttons.add(configPage);
@@ -76,8 +77,9 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 }
                 page = Page.WAYSTONES;
                 backgroundHeight = 176;
-                ((UniversalWaystoneScreenHandler)handler).updateWaystones(inventory.player);
+                ((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
             }
+
             @Override
             public boolean isVisible() {
                 return page == Page.CONFIG;
@@ -99,6 +101,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 super.onClick();
                 nameField.setText("");
             }
+
             @Override
             public boolean isVisible() {
                 return canEdit() && page == Page.CONFIG;
@@ -115,11 +118,12 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
             @Override
             public void setup() {
                 this.tooltip = new TranslatableText("waystones.config.tooltip.set_name");
-                boolean settable = !((WaystoneScreenHandler)handler).getName().equals(nameField.getText());
+                boolean settable = !((WaystoneBlockScreenHandler) handler).getName().equals(nameField.getText());
                 if (toggled == settable) {
                     toggle();
                 }
             }
+
             @Override
             public boolean isVisible() {
                 return canEdit() && page == Page.CONFIG;
@@ -131,7 +135,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                     return;
                 }
                 rename();
-                boolean settable = !((WaystoneScreenHandler)handler).getName().equals(nameField.getText());
+                boolean settable = !((WaystoneBlockScreenHandler) handler).getName().equals(nameField.getText());
                 if (toggled == settable) {
                     toggle();
                 }
@@ -149,10 +153,12 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 super.onClick();
                 nameField.setText(Utils.generateWaystoneName(""));
             }
+
             @Override
             public boolean isVisible() {
                 return canEdit() && page == Page.CONFIG;
             }
+
             @Override
             public void setup() {
                 this.tooltip = new TranslatableText("waystones.config.tooltip.randomize_name");
@@ -164,17 +170,19 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
             @Override
             public void setup() {
-                this.toggled = ((WaystoneScreenHandler)handler).isGlobal();
+                this.toggled = ((WaystoneBlockScreenHandler) handler).isGlobal();
                 this.tooltip = new TranslatableText("waystones.config.tooltip.toggle_is_global");
             }
+
             @Override
             public void onClick() {
                 if (!isVisible()) {
                     return;
                 }
                 super.onClick();
-                ((WaystoneScreenHandler)handler).toggleGlobal();
+                ((WaystoneBlockScreenHandler) handler).toggleGlobal();
             }
+
             @Override
             public boolean isVisible() {
                 return canEdit() && page == Page.CONFIG;
@@ -185,7 +193,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         buttons.add(new ToggleableButton(8, 11, 13, 13, 177, 54, 190, 54) {
             @Override
             public void setup() {
-                this.toggled = ((PlayerEntityMixinAccess)inventory.player).shouldViewDiscoveredWaystones();
+                this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewDiscoveredWaystones();
                 this.tooltip = new TranslatableText("waystones.config.tooltip.toggle_discovered_view");
             }
 
@@ -195,12 +203,13 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                     return;
                 }
                 super.onClick();
-                ((PlayerEntityMixinAccess)inventory.player).toggleViewDiscoveredWaystones();
-                ((UniversalWaystoneScreenHandler)handler).updateWaystones(inventory.player);
+                ((PlayerEntityMixinAccess) inventory.player).toggleViewDiscoveredWaystones();
+                ((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
                 PacketByteBuf packet = PacketByteBufs.create();
-                packet.writeNbt(((PlayerEntityMixinAccess)inventory.player).toTagW(new NbtCompound()));
+                packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
                 ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
             }
+
             @Override
             public boolean isVisible() {
                 return page == Page.CONFIG;
@@ -213,7 +222,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
             @Override
             public void setup() {
                 this.tooltip = new TranslatableText("waystones.config.tooltip.toggle_global_view");
-                this.toggled = ((PlayerEntityMixinAccess)inventory.player).shouldViewGlobalWaystones();
+                this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewGlobalWaystones();
             }
 
             @Override
@@ -222,12 +231,13 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                     return;
                 }
                 super.onClick();
-                ((PlayerEntityMixinAccess)inventory.player).toggleViewGlobalWaystones();
-                ((UniversalWaystoneScreenHandler)handler).updateWaystones(inventory.player);
+                ((PlayerEntityMixinAccess) inventory.player).toggleViewGlobalWaystones();
+                ((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
                 PacketByteBuf packet = PacketByteBufs.create();
-                packet.writeNbt(((PlayerEntityMixinAccess)inventory.player).toTagW(new NbtCompound()));
+                packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
                 ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
             }
+
             @Override
             public boolean isVisible() {
                 return page == Page.CONFIG;
@@ -241,16 +251,17 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
                 super.onClick();
                 PacketByteBuf packet = PacketByteBufs.create();
                 NbtCompound tag = new NbtCompound();
-                tag.putString("waystone_hash", ((WaystoneScreenHandler)handler).getWaystone());
-                UUID owner = ((WaystoneScreenHandler)handler).getOwner();
+                tag.putString("waystone_hash", ((WaystoneBlockScreenHandler) handler).getWaystone());
+                UUID owner = ((WaystoneBlockScreenHandler) handler).getOwner();
                 tag.putUuid("waystone_owner", owner);
                 packet.writeNbt(tag);
                 ClientPlayNetworking.send(WaystonePacketHandler.REMOVE_WAYSTONE_OWNER, packet);
-                ((WaystoneScreenHandler)handler).removeOwner();
+                ((WaystoneBlockScreenHandler) handler).removeOwner();
             }
+
             @Override
             public boolean isVisible() {
-                return canEdit() && page == Page.CONFIG && ((WaystoneScreenHandler)handler).hasOwner();
+                return canEdit() && page == Page.CONFIG && ((WaystoneBlockScreenHandler) handler).hasOwner();
             }
 
             @Override
@@ -267,16 +278,18 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         this.nameField = new TextFieldWidget(this.textRenderer, this.x + 28, this.y + 106, 93, 10, new LiteralText("")) {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
-                boolean bl = mouseX >= (double)this.x && mouseX < (double)(this.x + this.width) && mouseY >= (double)this.y && mouseY < (double)(this.y + this.height);
+                boolean bl = mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
                 if (bl && button == 1) {
                     this.setText("");
                 }
                 return super.mouseClicked(mouseX, mouseY, button);
             }
+
             @Override
             public boolean isVisible() {
                 return canEdit() && page == Page.CONFIG;
             }
+
             @Override
             public boolean changeFocus(boolean lookForwards) {
                 return isVisible() && super.changeFocus(lookForwards);
@@ -284,18 +297,18 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
             @Override
             public boolean isMouseOver(double mouseX, double mouseY) {
-                return isVisible() && mouseX >= (double)this.x && mouseX < (double)(this.x + this.width) && mouseY >= (double)this.y && mouseY < (double)(this.y + this.height);
+                return isVisible() && mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
             }
         };
         this.nameField.setMaxLength(16);
         this.nameField.setEditableColor(0xFFFFFF);
         this.nameField.setDrawsBackground(false);
         this.nameField.setFocusUnlocked(true);
-        String waystone = WaystonesClient.WAYSTONE_STORAGE.getName(((WaystoneScreenHandler)handler).getWaystone());
+        String waystone = Waystones.WAYSTONE_STORAGE.getName(((WaystoneBlockScreenHandler) handler).getWaystone());
         this.nameField.setText(waystone == null ? "" : waystone);
         this.nameField.setChangedListener((s) -> {
-            boolean settable = !((WaystoneScreenHandler)handler).getName().equals(s);
-            ToggleableButton button = ((ToggleableButton)buttons.get(4));
+            boolean settable = !((WaystoneBlockScreenHandler) handler).getName().equals(s);
+            ToggleableButton button = ((ToggleableButton) buttons.get(4));
             if (button.isToggled() == settable) {
                 button.toggle();
             }
@@ -309,7 +322,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
     }
 
     private boolean canEdit() {
-        return ((WaystoneScreenHandler)handler).isOwner(inventory.player) || inventory.player.hasPermissionLevel(2);
+        return ((WaystoneBlockScreenHandler) handler).isOwner(inventory.player) || inventory.player.hasPermissionLevel(2);
     }
 
     @Override
@@ -389,7 +402,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
             }
             renderButtons(matrices, mouseX, mouseY);
             renderButtonText(matrices);
-            String owner = ((WaystoneScreenHandler) handler).getOwnerName();
+            String owner = ((WaystoneBlockScreenHandler) handler).getOwnerName();
             if (owner == null || "".equals(owner)) {
                 owner = new TranslatableText("waystones.config.no_owner").getString();
             }
@@ -403,11 +416,11 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
     @Override
     protected void renderWaystoneBackground(MatrixStack matrixStack, int mouseX, int mouseY, int x, int y, int m) {
-        for(int n = this.scrollOffset; n < m && n < getDiscoveredCount(); ++n) {
+        for (int n = this.scrollOffset; n < m && n < getDiscoveredCount(); ++n) {
             int o = n - this.scrollOffset;
             int r = y + o * 18 + 2;
             int s = this.backgroundHeight;
-            if (((WaystoneScreenHandler)handler).getWaystone().equals(getDiscoveredWaystones().get(n))) {
+            if (((WaystoneBlockScreenHandler) handler).getWaystone().equals(getDiscoveredWaystones().get(n))) {
                 s += 18;
             } else if (mouseX >= x && mouseY >= r && mouseX < x + 101 && mouseY < r + 18) {
                 if (mouseClicked) {
@@ -429,13 +442,13 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
         int k = this.scrollOffset + 5;
 
         int n = getDiscoveredCount();
-        for(int l = this.scrollOffset; l < k && l < n; ++l) {
+        for (int l = this.scrollOffset; l < k && l < n; ++l) {
             int m = l - this.scrollOffset;
-            double x1 = mouseX - (double)(i1);
-            double y1 = mouseY - (double)(j1 + m * 18);
+            double x1 = mouseX - (double) (i1);
+            double y1 = mouseY - (double) (j1 + m * 18);
 
-            double x2 = mouseX - (double)(i2);
-            double y2 = mouseY - (double)(j2 + m * 18);
+            double x2 = mouseX - (double) (i2);
+            double y2 = mouseY - (double) (j2 + m * 18);
             if (m < n && x1 >= 0.0D && y1 >= 0.0D && x1 < 8 && y1 < 8 && (this.handler).onButtonClick(this.client.player, l * 2 + 1)) {
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_ANVIL_BREAK, 1.0F));
@@ -450,7 +463,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
                 return true;
             }
-            if (((WaystoneScreenHandler)handler).getWaystone().equals(getDiscoveredWaystones().get(l))) {
+            if (((WaystoneBlockScreenHandler) handler).getWaystone().equals(getDiscoveredWaystones().get(l))) {
                 continue;
             }
             if (x2 >= 0.0D && y2 >= 0.0D && x2 < 101.0D && y2 < 18.0D && (this.handler).onButtonClick(this.client.player, l * 2)) {
@@ -468,7 +481,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
         int i3 = this.x + 141;
         int j3 = this.y + 40;
-        if (mouseX >= (double)i3 && mouseX < (double)(i3 + 11) && mouseY >= (double)j3 && mouseY < (double)(j3 + 90)) {
+        if (mouseX >= (double) i3 && mouseX < (double) (i3 + 11) && mouseY >= (double) j3 && mouseY < (double) (j3 + 90)) {
             this.mouseClicked = true;
         }
         return false;
@@ -482,7 +495,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
     @Override
     protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
         if (page == Page.WAYSTONES) {
-            this.textRenderer.draw(matrices, ((WaystoneScreenHandler)handler).getName(), this.titleX, this.titleY, 4210752);
+            this.textRenderer.draw(matrices, ((WaystoneBlockScreenHandler) handler).getName(), this.titleX, this.titleY, 4210752);
         }
     }
 
@@ -497,7 +510,7 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (page == Page.WAYSTONES && configPage.isVisible() && configPage.isInBounds((int)mouseX - this.x, (int)mouseY - this.y)) {
+        if (page == Page.WAYSTONES && configPage.isVisible() && configPage.isInBounds((int) mouseX - this.x, (int) mouseY - this.y)) {
             MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             configPage.onClick();
             return super.superMouseClicked(mouseX, mouseY, button);
@@ -533,13 +546,13 @@ public class WaystoneScreen extends UniversalWaystoneScreen {
             return;
         }
         String name = this.nameField.getText();
-        String hash = ((WaystoneScreenHandler)handler).getWaystone();
-        UUID owner = ((WaystoneScreenHandler)handler).getOwner();
+        String hash = ((WaystoneBlockScreenHandler) handler).getWaystone();
+        UUID owner = ((WaystoneBlockScreenHandler) handler).getOwner();
 
         if (name == null) {
             name = "";
         }
-        ((WaystoneScreenHandler)handler).setName(name);
+        ((WaystoneBlockScreenHandler) handler).setName(name);
 
         PacketByteBuf data = PacketByteBufs.create();
 

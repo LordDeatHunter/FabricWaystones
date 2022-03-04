@@ -36,7 +36,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         HashSet<String> toLearn = new HashSet<>();
         for (String hash : Waystones.WAYSTONE_STORAGE.getAllHashes()) {
             if (!((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(hash)) {
-                var waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+                var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone != null && waystone.getOwner() == null) {
                     waystone.setOwner(user);
                 }

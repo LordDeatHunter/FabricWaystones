@@ -6,25 +6,25 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlockEntity;
-import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.registry.CustomScreenHandlerRegistry;
 import wraith.waystones.util.WaystonePacketHandler;
 
 import java.util.UUID;
 import java.util.function.Function;
 
-public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
+public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
 
     private String name;
     private String hash;
     private UUID owner;
     private boolean isGlobal;
     private Function<PlayerEntity, Boolean> canUse = null;
-    private boolean isClient;
+    private final boolean isClient;
     private String ownerName = "";
 
-    public WaystoneScreenHandler(int syncId, WaystoneBlockEntity waystoneEntity, PlayerEntity player) {
+    public WaystoneBlockScreenHandler(int syncId, WaystoneBlockEntity waystoneEntity, PlayerEntity player) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, player);
         this.hash = waystoneEntity.getHash();
         this.name = waystoneEntity.getWaystoneName();
@@ -33,9 +33,10 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
         this.canUse = waystoneEntity::canAccess;
         this.isClient = player.world.isClient;
         this.ownerName = waystoneEntity.getOwnerName();
+        updateWaystones(player);
     }
 
-    public WaystoneScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
+    public WaystoneBlockScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, playerInventory.player);
         this.isClient = playerInventory.player.world.isClient;
         NbtCompound tag = buf.readNbt();
@@ -50,6 +51,7 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
             }
             this.isGlobal = tag.getBoolean("waystone_is_global");
         }
+        updateWaystones(player);
     }
 
     @Override
@@ -65,7 +67,7 @@ public class WaystoneScreenHandler extends UniversalWaystoneScreenHandler {
         if (!player.world.isClient) {
             return;
         }
-        if (!WaystonesClient.WAYSTONE_STORAGE.containsWaystone(this.hash)) {
+        if (!Waystones.WAYSTONE_STORAGE.containsHash(this.hash)) {
             closeScreen();
         }
     }

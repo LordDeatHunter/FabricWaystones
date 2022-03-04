@@ -10,6 +10,7 @@ public class PocketWormholeScreenHandler extends UniversalWaystoneScreenHandler 
 
     public PocketWormholeScreenHandler(int syncId, PlayerInventory inventory) {
         super(CustomScreenHandlerRegistry.POCKET_WORMHOLE_SCREEN, syncId, inventory.player);
+        updateWaystones(player);
     }
 
     @Override

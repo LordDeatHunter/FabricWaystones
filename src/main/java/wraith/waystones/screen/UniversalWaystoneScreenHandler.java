@@ -14,9 +14,9 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerAccess;
 import wraith.waystones.access.PlayerEntityMixinAccess;
-import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.mixin.ClientPlayerEntityAccessor;
 import wraith.waystones.mixin.ServerPlayerEntityAccessor;
 import wraith.waystones.util.Utils;
@@ -35,7 +35,6 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
 
     protected UniversalWaystoneScreenHandler(ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type, int syncId, PlayerEntity player) {
         super(type, syncId);
-        updateWaystones(player);
         this.player = player;
         for (int y = 0; y < 3; ++y) {
             for (int x = 0; x < 9; ++x) {
@@ -53,17 +52,17 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
             return;
         }
         this.sortedWaystones = new ArrayList<>();
-        if (((PlayerEntityMixinAccess)player).shouldViewDiscoveredWaystones()) {
-            this.sortedWaystones.addAll(((PlayerAccess)player).getHashesSorted());
+        if (((PlayerEntityMixinAccess) player).shouldViewDiscoveredWaystones()) {
+            this.sortedWaystones.addAll(((PlayerAccess) player).getHashesSorted());
         }
-        if (((PlayerEntityMixinAccess)player).shouldViewGlobalWaystones()) {
-            for (String waystone : WaystonesClient.WAYSTONE_STORAGE.getGlobals()) {
+        if (((PlayerEntityMixinAccess) player).shouldViewGlobalWaystones()) {
+            for (String waystone : Waystones.WAYSTONE_STORAGE.getGlobals()) {
                 if (!this.sortedWaystones.contains(waystone)) {
                     this.sortedWaystones.add(waystone);
                 }
             }
         }
-        this.sortedWaystones.sort(Comparator.comparing(a -> WaystonesClient.WAYSTONE_STORAGE.getName(a)));
+        this.sortedWaystones.sort(Comparator.comparing(a -> Waystones.WAYSTONE_STORAGE.getName(a)));
         filterWaystones();
     }
 
@@ -91,10 +90,10 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         if (id % 2 != 0) {
             this.sortedWaystones.remove(waystone);
             this.filteredWaystones.remove(waystone);
-            ClientPlayNetworking.send(WaystonePacketHandler.FORGET_WAYSTONE, data);
             onForget(waystone);
-        }
-        else {
+            updateWaystones(player);
+            ClientPlayNetworking.send(WaystonePacketHandler.FORGET_WAYSTONE, data);
+        } else {
             if (Utils.canTeleport(player, waystone, false)) {
                 ClientPlayNetworking.send(WaystonePacketHandler.TELEPORT_TO_WAYSTONE, data);
             }
@@ -110,14 +109,14 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         if (player.world.isClient) {
             closeOnClient();
         } else {
-            ((ServerPlayerEntityAccessor)player).getNetworkHandler().sendPacket(new CloseScreenS2CPacket(this.syncId));
+            ((ServerPlayerEntityAccessor) player).getNetworkHandler().sendPacket(new CloseScreenS2CPacket(this.syncId));
             player.currentScreenHandler.close(player);
             player.currentScreenHandler = player.playerScreenHandler;
         }
     }
 
     protected void closeOnClient() {
-        ((ClientPlayerEntityAccessor)player).getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(this.syncId));
+        ((ClientPlayerEntityAccessor) player).getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(this.syncId));
         setCursorStack(ItemStack.EMPTY);
         player.currentScreenHandler = player.playerScreenHandler;
         MinecraftClient.getInstance().setScreen(null);
@@ -145,7 +144,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     public void filterWaystones() {
         this.filteredWaystones.clear();
         for (String waystone : this.sortedWaystones) {
-            String name = WaystonesClient.WAYSTONE_STORAGE.getName(waystone).toLowerCase();
+            String name = Waystones.WAYSTONE_STORAGE.getName(waystone).toLowerCase();
             if ("".equals(this.filter) || (this.searchType == SearchType.STARTS_WITH && name.startsWith(this.filter)) || (this.searchType == SearchType.CONTAINS && name.contains(this.filter))) {
                 filteredWaystones.add(waystone);
             }

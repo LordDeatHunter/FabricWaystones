@@ -61,7 +61,7 @@ public final class WaystonePacketHandler {
             server.execute(() -> {
                 if (Waystones.WAYSTONE_STORAGE.containsHash(hash) &&
                         ((player.getUuid().equals(owner) &&
-                                owner.equals(Waystones.WAYSTONE_STORAGE.getWaystone(hash).getOwner())) ||
+                                owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
                                 player.hasPermissionLevel(2))) {
                     Waystones.WAYSTONE_STORAGE.renameWaystone(hash, name);
                 }
@@ -76,7 +76,7 @@ public final class WaystonePacketHandler {
 
             String hash = tag.getString("waystone_hash");
             server.execute(() -> {
-                var waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+                var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone == null || waystone.isGlobal()) {
                     return;
                 }
@@ -100,7 +100,7 @@ public final class WaystonePacketHandler {
                 UUID owner = tag.getUuid("waystone_owner");
                 if (Waystones.WAYSTONE_STORAGE.containsHash(hash) &&
                         ((player.getUuid().equals(owner) &&
-                                owner.equals(Waystones.WAYSTONE_STORAGE.getWaystone(hash).getOwner())) ||
+                                owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
                                 player.hasPermissionLevel(2))) {
                     Waystones.WAYSTONE_STORAGE.toggleGlobal(hash);
                 }
@@ -120,7 +120,7 @@ public final class WaystonePacketHandler {
                     return;
                 }
                 String hash = tag.getString("waystone_hash");
-                var waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+                var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone == null) {
                     return;
                 }

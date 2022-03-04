@@ -1,6 +1,9 @@
 package wraith.waystones.util;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
@@ -12,7 +15,7 @@ import wraith.waystones.Waystones;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.util.Map;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 public final class Config {
@@ -34,7 +37,31 @@ public final class Config {
     }
 
     public boolean generateInVillages() {
-        return configData.getBoolean("generate_in_villages");
+        return configData.getCompound("worldgen").getBoolean("generate_in_villages");
+    }
+
+    //public int getMinPerVillage() {
+    //    return configData.getCompound("worldgen").getInt("min_per_village");
+    //}
+    //public int getMaxPerVillage() {
+    //    return configData.getCompound("worldgen").getInt("max_per_village");
+    //}
+
+    public int getVillageStructureWeight() {
+        return configData.getCompound("worldgen").getInt("village_waystone_weight");
+    }
+
+    public int getDiscoverItemAmount() {
+        return Math.max(0, configData.getInt("take_amount_from_discover_item"));
+    }
+
+    public Identifier getDiscoverItem() {
+        var discoverStr = configData.getString("discover_with_item");
+        if (discoverStr.equals("none")) {
+            return null;
+        }
+        String[] item = discoverStr.split(":");
+        return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
     }
 
     public boolean canOwnersRedeemPayments() {
@@ -47,8 +74,8 @@ public final class Config {
 
     @Nullable
     public Identifier teleportCostItem() {
-        if ("item".equals(configData.getString("cost_type"))) {
-            String[] item = configData.getString("cost_item").split(":");
+        if ("item".equals(configData.getCompound("teleportation_cost").getString("cost_type"))) {
+            String[] item = configData.getCompound("teleportation_cost").getString("cost_item").split(":");
             return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
         }
         return null;
@@ -59,11 +86,19 @@ public final class Config {
     }
 
     public String teleportType() {
-        return configData.getString("cost_type");
+        return configData.getCompound("teleportation_cost").getString("cost_type");
     }
 
-    public int teleportCost() {
-        return Math.abs(configData.getInt("cost_amount"));
+    public int baseTeleportCost() {
+        return Math.abs(configData.getCompound("teleportation_cost").getInt("base_cost"));
+    }
+
+    public float perDimensionMultiplier() {
+        return configData.getCompound("teleportation_cost").getFloat("cost_multiplier_between_dimensions");
+    }
+
+    public float extraCostPerBlock() {
+        return Math.abs(configData.getCompound("teleportation_cost").getFloat("cost_per_block_distance"));
     }
 
     public float getHardness() {
@@ -82,8 +117,8 @@ public final class Config {
         return configData.getBoolean("consume_local_void_on_use");
     }
 
-    public boolean areLocalVoidsFree() {
-        return configData.getBoolean("free_local_void_teleport");
+    public boolean doLocalVoidsUseCost() {
+        return !configData.getBoolean("free_local_void_teleport");
     }
 
     public boolean preventNonOwnersFromBreaking() {
@@ -93,15 +128,19 @@ public final class Config {
     public int getCooldownWhenHurt() {
         return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_when_hurt");
     }
+
     public int getCooldownFromAbyssWatcher() {
         return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_abyss_watcher");
     }
+
     public int getCooldownFromPocketWormhole() {
         return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_pocket_wormhole");
     }
+
     public int getCooldownFromLocalVoid() {
         return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_local_void");
     }
+
     public int getCooldownFromWaystone() {
         return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_waystone");
     }
@@ -208,19 +247,34 @@ public final class Config {
     private NbtCompound getDefaults() {
         NbtCompound defaultConfig = new NbtCompound();
 
-        defaultConfig.putBoolean("generate_in_villages", true);
+        NbtCompound worldgen = new NbtCompound();
+        worldgen.putBoolean("generate_in_villages", true);
+        //worldgen.putInt("min_per_village", 1);
+        //worldgen.putInt("max_per_village", 1);
+        worldgen.putInt("village_waystone_weight", 5);
+        defaultConfig.put("worldgen", worldgen);
+
         defaultConfig.putBoolean("consume_infinite_knowledge_scroll_on_use", false);
         defaultConfig.putBoolean("consume_local_void_on_use", true);
         defaultConfig.putBoolean("free_local_void_teleport", true);
         defaultConfig.putBoolean("can_owners_redeem_payments", false);
         defaultConfig.putBoolean("store_waystone_data_on_sneak_break", true);
-        defaultConfig.putInt("cost_amount", 1);
-        defaultConfig.putString("cost_type", "level");
-        defaultConfig.putString("cost_item", "minecraft:ender_pearl");
+
+        NbtCompound cost = new NbtCompound();
+        cost.putString("cost_type", "level");
+        cost.putString("cost_item", "minecraft:ender_pearl");
+        cost.putInt("base_cost", 1);
+        cost.putFloat("cost_per_block_distance", 0F);
+        cost.putFloat("cost_multiplier_between_dimensions", 1F);
+        defaultConfig.put("teleportation_cost", cost);
+
         defaultConfig.putFloat("waystone_block_hardness", 4F);
         defaultConfig.putInt("waystone_block_required_mining_level", 1);
         defaultConfig.putBoolean("prevent_non_owners_from_breaking_waystone", false);
         defaultConfig.putBoolean("can_players_toggle_global_mode", true);
+
+        defaultConfig.putString("discover_with_item", "none");
+        defaultConfig.putInt("take_amount_from_discover_item", 0);
 
         NbtCompound cooldown = new NbtCompound();
         cooldown.putInt("cooldown_ticks_when_hurt", 0);
@@ -238,15 +292,30 @@ public final class Config {
 
         NbtCompound defaults = getDefaults();
 
-        json.addProperty("generate_in_villages", getBooleanOrDefault(tag, "generate_in_villages", defaults));
+        JsonObject worldgenJson = new JsonObject();
+        NbtCompound worldgenTag = getCompoundOrDefault(tag, "worldgen", defaults);
+        worldgenJson.addProperty("generate_in_villages", getBooleanOrDefault(worldgenTag, "generate_in_villages", defaults));
+        //worldgenJson.addProperty("min_per_village", getIntOrDefault(worldgenTag, "min_per_village", defaults));
+        //worldgenJson.addProperty("max_per_village", getIntOrDefault(worldgenTag, "max_per_village", defaults));
+        worldgenJson.addProperty("village_waystone_weight", getIntOrDefault(worldgenTag, "village_waystone_weight", defaults));
+        json.add("worldgen", worldgenJson);
+
+        JsonObject costJson = new JsonObject();
+        NbtCompound costTag = getCompoundOrDefault(tag, "teleportation_cost", defaults);
+        costJson.addProperty("cost_type", getStringOrDefault(costTag, "cost_type", defaults));
+        costJson.addProperty("cost_item", getStringOrDefault(costTag, "cost_item", defaults));
+        costJson.addProperty("base_cost", getIntOrDefault(costTag, "base_cost", defaults));
+        costJson.addProperty("cost_per_block_distance", getFloatOrDefault(costTag, "cost_per_block_distance", defaults));
+        costJson.addProperty("cost_multiplier_between_dimensions", getFloatOrDefault(costTag, "cost_multiplier_between_dimensions", defaults));
+        json.add("teleportation_cost", costJson);
+
+        json.addProperty("discover_with_item", getStringOrDefault(tag, "discover_with_item", defaults));
+        json.addProperty("take_amount_from_discover_item", getIntOrDefault(tag, "take_amount_from_discover_item", defaults));
         json.addProperty("consume_infinite_knowledge_scroll_on_use", getBooleanOrDefault(tag, "consume_infinite_knowledge_scroll_on_use", defaults));
         json.addProperty("consume_local_void_on_use", getBooleanOrDefault(tag, "consume_local_void_on_use", defaults));
         json.addProperty("free_local_void_teleport", getBooleanOrDefault(tag, "free_local_void_teleport", defaults));
         json.addProperty("store_waystone_data_on_sneak_break", getBooleanOrDefault(tag, "store_waystone_data_on_sneak_break", defaults));
         json.addProperty("can_owners_redeem_payments", getBooleanOrDefault(tag, "can_owners_redeem_payments", defaults));
-        json.addProperty("cost_amount", getIntOrDefault(tag, "cost_amount", defaults));
-        json.addProperty("cost_type", getStringOrDefault(tag, "cost_type", defaults));
-        json.addProperty("cost_item", getStringOrDefault(tag, "cost_item", defaults));
         json.addProperty("waystone_block_hardness", getFloatOrDefault(tag, "waystone_block_hardness", defaults));
         json.addProperty("waystone_block_required_mining_level", getIntOrDefault(tag, "waystone_block_required_mining_level", defaults));
         json.addProperty("prevent_non_owners_from_breaking_waystone", getBooleanOrDefault(tag, "prevent_non_owners_from_breaking_waystone", defaults));
@@ -271,15 +340,42 @@ public final class Config {
 
         NbtCompound defaults = getDefaults();
 
-        tag.putBoolean("generate_in_villages", getBooleanOrDefault(json, "generate_in_villages", defaults));
+        NbtCompound worldgen = new NbtCompound();
+        if (json.has("worldgen")) {
+            var worldgenJson = json.get("worldgen").getAsJsonObject();
+            var defaultWorldgen = new NbtCompound();
+            worldgen.putBoolean("generate_in_villages", getBooleanOrDefault(worldgenJson, "generate_in_villages", defaultWorldgen));
+            //worldgen.putInt("min_per_village", getIntOrDefault(worldgenJson, "min_per_village", defaultWorldgen));
+            //worldgen.putInt("max_per_village", getIntOrDefault(worldgenJson, "max_per_village", defaultWorldgen));
+            worldgen.putInt("village_waystone_weight", getIntOrDefault(worldgenJson, "village_waystone_weight", defaultWorldgen));
+        } else {
+            ++difference;
+            worldgen = defaults.getCompound("worldgen");
+        }
+        tag.put("worldgen", worldgen);
+
+        NbtCompound cost = new NbtCompound();
+        if (json.has("teleportation_cost")) {
+            var costJson = json.get("teleportation_cost").getAsJsonObject();
+            var defaultCost = new NbtCompound();
+            cost.putString("cost_type", getStringOrDefault(costJson, "cost_type", defaultCost));
+            cost.putString("cost_item", getStringOrDefault(costJson, "cost_item", defaultCost));
+            cost.putInt("base_cost", getIntOrDefault(costJson, "base_cost", defaultCost));
+            cost.putFloat("cost_per_block_distance", getFloatOrDefault(costJson, "cost_per_block_distance", defaultCost));
+            cost.putFloat("cost_multiplier_between_dimensions", getFloatOrDefault(costJson, "cost_multiplier_between_dimensions", defaultCost));
+        } else {
+            ++difference;
+            cost = defaults.getCompound("teleportation_cost");
+        }
+        tag.put("teleportation_cost", cost);
+
+        tag.putString("discover_with_item", getStringOrDefault(json, "discover_with_item", defaults));
+        tag.putInt("take_amount_from_discover_item", getIntOrDefault(json, "take_amount_from_discover_item", defaults));
         tag.putBoolean("consume_infinite_knowledge_scroll_on_use", getBooleanOrDefault(json, "consume_infinite_knowledge_scroll_on_use", defaults));
         tag.putBoolean("consume_local_void_on_use", getBooleanOrDefault(json, "consume_local_void_on_use", defaults));
         tag.putBoolean("free_local_void_teleport", getBooleanOrDefault(json, "free_local_void_teleport", defaults));
         tag.putBoolean("store_waystone_data_on_sneak_break", getBooleanOrDefault(json, "store_waystone_data_on_sneak_break", defaults));
         tag.putBoolean("can_owners_redeem_payments", getBooleanOrDefault(json, "can_owners_redeem_payments", defaults));
-        tag.putInt("cost_amount", getIntOrDefault(json, "cost_amount", defaults));
-        tag.putString("cost_type", getStringOrDefault(json, "cost_type", defaults));
-        tag.putString("cost_item", getStringOrDefault(json, "cost_item", defaults));
         tag.putFloat("waystone_block_hardness", getFloatOrDefault(json, "waystone_block_hardness", defaults));
         tag.putInt("waystone_block_required_mining_level", getIntOrDefault(json, "waystone_block_required_mining_level", defaults));
         tag.putBoolean("prevent_non_owners_from_breaking_waystone", getBooleanOrDefault(json, "prevent_non_owners_from_breaking_waystone", defaults));
@@ -344,7 +440,7 @@ public final class Config {
 
     private void createFile(JsonObject contents, boolean overwrite) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        contents = new JsonParser().parse(gson.toJson(contents)).getAsJsonObject();
+        contents = JsonParser.parseString(gson.toJson(contents)).getAsJsonObject();
 
         File file = new File(Config.CONFIG_FILE);
         if (file.exists() && !overwrite) {
@@ -363,7 +459,7 @@ public final class Config {
         }
         try (FileWriter writer = new FileWriter(file)) {
             String json = gson.toJson(contents).replace("\n", "").replace("\r", "");
-            writer.write(gson.toJson(new JsonParser().parse(json).getAsJsonObject()));
+            writer.write(gson.toJson(JsonParser.parseString(json).getAsJsonObject()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -382,15 +478,23 @@ public final class Config {
     }
 
     public static JsonObject getJsonObject(String json) {
-        return new JsonParser().parse(json).getAsJsonObject();
+        return JsonParser.parseString(json).getAsJsonObject();
     }
 
     public void print(ServerPlayerEntity player) {
-        for (Map.Entry<String, JsonElement> config : toJson(configData).entrySet()) {
-            if (config.getValue().isJsonObject()) {
-                continue;
+        var q = new LinkedList<JsonObject>();
+        q.add(toJson(configData));
+        while (!q.isEmpty()) {
+            var current = q.poll();
+            for (var entry : current.entrySet()) {
+                var key = entry.getKey();
+                var value = entry.getValue();
+                if (value.isJsonObject()) {
+                    q.add(value.getAsJsonObject());
+                    continue;
+                }
+                player.sendMessage(new LiteralText("§6[§e" + key + "§6] §3 " + value), false);
             }
-            player.sendMessage(new LiteralText("§6[§e" + config.getKey() + "§6] §3 " + config.getValue()), false);
         }
     }
 

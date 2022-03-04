@@ -6,7 +6,7 @@ import wraith.waystones.util.Utils;
 import wraith.waystones.screen.AbyssScreenHandler;
 import wraith.waystones.screen.PocketWormholeScreenHandler;
 import wraith.waystones.screen.UniversalWaystoneScreenHandler;
-import wraith.waystones.screen.WaystoneScreenHandler;
+import wraith.waystones.screen.WaystoneBlockScreenHandler;
 
 public final class CustomScreenHandlerRegistry {
 
@@ -16,7 +16,7 @@ public final class CustomScreenHandlerRegistry {
 
 
     public static void registerScreenHandlers() {
-        WAYSTONE_SCREEN = ScreenHandlerRegistry.registerExtended(Utils.ID("waystone"), WaystoneScreenHandler::new);
+        WAYSTONE_SCREEN = ScreenHandlerRegistry.registerExtended(Utils.ID("waystone"), WaystoneBlockScreenHandler::new);
         POCKET_WORMHOLE_SCREEN = ScreenHandlerRegistry.registerSimple(Utils.ID("pocket_wormhole"), PocketWormholeScreenHandler::new);
         ABYSS_SCREEN_HANDLER = ScreenHandlerRegistry.registerSimple(Utils.ID("abyss"), AbyssScreenHandler::new);
     }

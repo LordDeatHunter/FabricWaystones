@@ -31,6 +31,8 @@
   "waystones.gui.displayed_waystones": "Displayed waystones: %s",
   "waystones.gui.contains": "Search at: Anywhere in name.",
   "waystones.gui.starts_with": "Search at: Start of name.",
+  "waystones.gui.cost_tooltip": "Cost: %s",
+  "waystones.gui.forget_tooltip": "Forget Waystone",
 
   "waystones.waystone_tooltip.name": "§6[§eStored name§6] §3%s",
   "waystones.waystone_tooltip.name.arg_color": "#00AAAA",
@@ -71,13 +73,19 @@
   "waystones.discover_waystone": "§6【%s§6】§3has been discovered!",
   "waystones.discover_waystone.arg_color": "#55FFFF",
 
+  "waystones.missing_discover_item": "§cMissing %d §cof discover item: %s",
+  "waystones.missing_discover_item.arg_color": "#AA0000",
+
+  "waystones.discover_item_paid": "§6Paid %d %s §6for discovery.",
+  "waystones.discover_item_paid.arg_color": "#FFFF55",
+
   "waystones.config.global": "Toggle global waystone",
   "waystones.config.view_discovered": "View discovered waystones",
   "waystones.config.view_global": "View global waystones",
   "waystones.config.owner": "Owned by %s",
   "waystones.config.no_owner": "No one",
 
-  "waystones.cost.item": "Total",
+  "waystones.cost.item": "Items",
   "waystones.cost.free": "Free",
   "waystones.cost.xp": "XP",
   "waystones.cost.health": "Half-Hearts",

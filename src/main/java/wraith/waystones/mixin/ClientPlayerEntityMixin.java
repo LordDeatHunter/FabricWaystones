@@ -4,9 +4,9 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.network.ClientPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import wraith.waystones.Waystones;
 import wraith.waystones.access.ClientPlayerEntityMixinAccess;
 import wraith.waystones.access.PlayerEntityMixinAccess;
-import wraith.waystones.client.WaystonesClient;
 import wraith.waystones.util.WaystonePacketHandler;
 
 import java.util.ArrayList;
@@ -27,8 +27,8 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
         HashSet<String> toRemove = new HashSet<>();
         HashSet<String> discoveredWaystones = ((PlayerEntityMixinAccess)this).getDiscoveredWaystones();
         for (String hash : discoveredWaystones) {
-            if (WaystonesClient.WAYSTONE_STORAGE.containsWaystone(hash)) {
-                waystones.add(WaystonesClient.WAYSTONE_STORAGE.getName(hash));
+            if (Waystones.WAYSTONE_STORAGE.containsHash(hash)) {
+                waystones.add(Waystones.WAYSTONE_STORAGE.getName(hash));
             } else {
                 toRemove.add(hash);
             }
@@ -48,7 +48,7 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
         HashSet<String> toRemove = new HashSet<>();
         HashSet<String> discoveredWaystones = ((PlayerEntityMixinAccess)this).getDiscoveredWaystones();
         for (String hash : discoveredWaystones) {
-            if (WaystonesClient.WAYSTONE_STORAGE.containsWaystone(hash)) {
+            if (Waystones.WAYSTONE_STORAGE.containsHash(hash)) {
                 waystones.add(hash);
             } else {
                 toRemove.add(hash);
@@ -58,7 +58,7 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
             discoveredWaystones.remove(remove);
         }
 
-        waystones.sort(Comparator.comparing(a -> WaystonesClient.WAYSTONE_STORAGE.getName(a)));
+        waystones.sort(Comparator.comparing(a -> Waystones.WAYSTONE_STORAGE.getName(a)));
         return waystones;
     }
 

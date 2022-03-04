@@ -39,7 +39,7 @@ import wraith.waystones.item.LocalVoidItem;
 import wraith.waystones.registry.BlockEntityRegistry;
 import wraith.waystones.screen.AbyssScreenHandler;
 import wraith.waystones.screen.PocketWormholeScreenHandler;
-import wraith.waystones.screen.WaystoneScreenHandler;
+import wraith.waystones.screen.WaystoneBlockScreenHandler;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.TeleportSources;
 import wraith.waystones.util.Utils;
@@ -112,7 +112,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new WaystoneScreenHandler(syncId, this, player);
+        return new WaystoneBlockScreenHandler(syncId, this, player);
     }
 
     @Override
@@ -303,7 +303,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public String getWorldName() {
-        return WaystoneBlock.getDimensionName(world);
+        return Utils.getDimensionName(world);
     }
 
     public boolean canAccess(PlayerEntity player) {
@@ -357,7 +357,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             source = TeleportSources.ABYSS_WATCHER;
         } else if (playerEntity.currentScreenHandler instanceof PocketWormholeScreenHandler) {
             source = TeleportSources.POCKET_WORMHOLE;
-        } else if (playerEntity.currentScreenHandler instanceof WaystoneScreenHandler) {
+        } else if (playerEntity.currentScreenHandler instanceof WaystoneBlockScreenHandler) {
             source = TeleportSources.WAYSTONE;
         } else {
             for (var hand : Hand.values()) {
@@ -399,7 +399,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             ), false);
             return false;
         }
-        if ((source != TeleportSources.LOCAL_VOID || !Config.getInstance().areLocalVoidsFree()) && !Utils.canTeleport(player, hash, takeCost)) {
+        if ((source != TeleportSources.LOCAL_VOID || Config.getInstance().doLocalVoidsUseCost()) && !Utils.canTeleport(player, hash, takeCost)) {
             return false;
         }
         playerAccess.setTeleportCooldown(switch (source) {
