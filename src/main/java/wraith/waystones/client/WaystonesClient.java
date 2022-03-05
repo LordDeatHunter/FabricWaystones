@@ -20,7 +20,7 @@ import java.util.HashSet;
 
 @Environment(EnvType.CLIENT)
 public class WaystonesClient implements ClientModInitializer {
-    
+
     @Override
     public void onInitializeClient() {
         CustomBlockEntityRendererRegistry.RegisterBlockEntityRenderers();
@@ -75,6 +75,7 @@ public class WaystonesClient implements ClientModInitializer {
                 Waystones.WAYSTONE_STORAGE = new WaystoneStorage(null);
             }
         });
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> Waystones.WAYSTONE_STORAGE = null);
     }
 
 }

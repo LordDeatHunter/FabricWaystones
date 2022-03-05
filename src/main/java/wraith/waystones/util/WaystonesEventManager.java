@@ -19,7 +19,11 @@ public class WaystonesEventManager {
 
     public static void registerEvents() {
 
-        ServerLifecycleEvents.SERVER_STARTED.register((server) -> Waystones.WAYSTONE_STORAGE = new WaystoneStorage(server));
+        ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
+            if (Waystones.WAYSTONE_STORAGE == null) {
+                Waystones.WAYSTONE_STORAGE = new WaystoneStorage(server);
+            }
+        });
 
         ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
             Waystones.WAYSTONE_STORAGE.loadOrSaveWaystones(true);

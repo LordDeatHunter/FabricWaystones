@@ -25,7 +25,7 @@ public class TagGroupLoaderMixin {
 
     @Inject(method = "loadTags", at = @At("TAIL"))
     private void loadWaystoneTags(ResourceManager manager, CallbackInfoReturnable<Map<Identifier, Tag.Builder>> cir) {
-        if (!dataType.equals("blocks")) {
+        if (!dataType.equals("tags/blocks")) {
             return;
         }
         var miningLevel = Config.getInstance().getMiningLevel();
@@ -36,8 +36,13 @@ public class TagGroupLoaderMixin {
             default -> "fabric:needs_tool_level_" + miningLevel;
         });
         var map = cir.getReturnValue();
-        var builder = map.computeIfAbsent(miningLevelTag, k -> new Tag.Builder());
-        BlockRegistry.WAYSTONE_BLOCKS.forEach((id, block) -> builder.add(Utils.ID(id), "waystones"));
+        var miningLevelBuilder = map.computeIfAbsent(miningLevelTag, k -> new Tag.Builder());
+        var minableBuilder = map.computeIfAbsent(new Identifier("mineable/pickaxe"), k -> new Tag.Builder());
+        BlockRegistry.WAYSTONE_BLOCKS.forEach((id, block) -> {
+            var waystoneId = Utils.ID(id);
+            miningLevelBuilder.add(waystoneId, "waystones");
+            minableBuilder.add(waystoneId, "waystones");
+        });
     }
 
 }
