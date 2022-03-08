@@ -138,7 +138,7 @@ public class UniversalWaystoneGui extends PagedGui {
                 }
             }
         }
-        this.sortedWaystones.sort(Comparator.comparing(a -> Waystones.WAYSTONE_STORAGE.getWaystone(a).getWaystoneName()));
+        this.sortedWaystones.sort(Comparator.comparing(a -> Waystones.WAYSTONE_STORAGE.getWaystoneData(a).getWaystoneName()));
     }
 
     @Override
@@ -150,7 +150,7 @@ public class UniversalWaystoneGui extends PagedGui {
     protected DisplayElement getElement(int id) {
         if (this.sortedWaystones.size() > id) {
             var hash = this.sortedWaystones.get(id);
-            var tmpWaystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+            var tmpWaystone = Waystones.WAYSTONE_STORAGE.getWaystoneData(hash);
 
             var builder =  new GuiElementBuilder(tmpWaystone.isGlobal() ? Items.ENDER_EYE : Items.ENDER_PEARL)
                     .setName(new LiteralText(tmpWaystone.getWaystoneName()))
@@ -168,7 +168,7 @@ public class UniversalWaystoneGui extends PagedGui {
     }
 
     private void handleSelection(int i, ClickType type, SlotActionType actionType, String hash) {
-        var waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+        var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
         if (waystone == null) {
             return;
         }
@@ -209,7 +209,7 @@ public class UniversalWaystoneGui extends PagedGui {
 
     protected DisplayElement getCost() {
             String cost = Config.getInstance().teleportType();
-            int amount = Config.getInstance().teleportCost();
+            int amount = Config.getInstance().baseTeleportCost();
 
             Item item;
             String type;

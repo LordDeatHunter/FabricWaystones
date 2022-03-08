@@ -30,10 +30,10 @@ dependencies {
 
 	modCompileOnly 'curse.maven:repurposed-structures-fabric-391366:3542863'
 
-	modImplementation include("eu.pb4:sgui:1.0.0-rc6+1.18-pre5")
+	modImplementation include("eu.pb4:sgui:1.0.0+1.18.1")
 	modImplementation include("eu.pb4:hologram-api:0.2.1+1.18-pre5")
-	modImplementation include("eu.pb4:polymer:0.2.0-beta.25+1.18.1")
-	modImplementation include("fr.catcore:server-translations-api:1.4.8+1.18-pre1")
+	modImplementation include("eu.pb4:polymer:0.2.0-beta.29+1.18.2")
+	modImplementation include("fr.catcore:server-translations-api:1.4.9+1.18.2-rc1")
 }
 
 loom {
