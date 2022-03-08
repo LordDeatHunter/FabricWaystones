@@ -1,2 +1,3 @@
 accessWidener v1 named
 accessible class net/minecraft/util/registry/DynamicRegistryManager$Info
+accessible class net/minecraft/structure/pool/StructurePoolBasedGenerator$StructurePoolGenerator

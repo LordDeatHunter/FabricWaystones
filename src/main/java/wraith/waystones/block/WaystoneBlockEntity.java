@@ -307,7 +307,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public String getWorldName() {
-        return WaystoneBlock.getDimensionName(world);
+        return Utils.getDimensionName(world);
     }
 
     public boolean canAccess(PlayerEntity player) {
@@ -399,7 +399,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             ), false);
             return false;
         }
-        if ((source != TeleportSources.LOCAL_VOID || !Config.getInstance().areLocalVoidsFree()) && !Utils.canTeleport(player, hash, takeCost)) {
+        if ((source != TeleportSources.LOCAL_VOID || Config.getInstance().doLocalVoidsUseCost()) && !Utils.canTeleport(player, hash, takeCost)) {
             return false;
         }
         playerAccess.setTeleportCooldown(switch (source) {

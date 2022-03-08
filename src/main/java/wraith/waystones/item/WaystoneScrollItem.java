@@ -47,7 +47,7 @@ public class WaystoneScrollItem extends Item implements PolymerItem {
         for (int i = 0; i < list.size(); ++i) {
             String hash = list.getString(i);
             if (Waystones.WAYSTONE_STORAGE != null && Waystones.WAYSTONE_STORAGE.containsHash(hash) && !((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(hash)) {
-                var waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
+                var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone.getOwner() == null) {
                     waystone.setOwner(user);
                 }

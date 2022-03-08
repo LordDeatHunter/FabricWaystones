@@ -33,6 +33,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
@@ -47,6 +48,7 @@ import wraith.waystones.item.WaystoneDebuggerItem;
 import wraith.waystones.item.WaystoneScrollItem;
 import wraith.waystones.registry.BlockEntityRegistry;
 import wraith.waystones.util.Config;
+import wraith.waystones.util.Utils;
 import wraith.waystones.util.TeleportSources;
 
 import java.util.HashSet;
@@ -250,14 +252,34 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
             }
         } else {
-            if (blockEntity.getOwner() == null) {
-                blockEntity.setOwner(player);
-            } else {
-                blockEntity.updateActiveState();
-            }
             Waystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
             if (!discovered.contains(blockEntity.getHash())) {
                 if (!blockEntity.isGlobal()) {
+                    var config = Config.getInstance();
+                    var discoverItemId = config.getDiscoverItem();
+                    if (discoverItemId != null && !player.isCreative()) {
+                        var discoverItem = Registry.ITEM.get(discoverItemId);
+                        var discoverAmount = config.getDiscoverItemAmount();
+                        if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
+                            player.sendMessage(new TranslatableText(
+                                    "waystones.missing_discover_item",
+                                    discoverAmount,
+                                    new TranslatableText(discoverItem.getTranslationKey()).styled(style ->
+                                            style.withColor(TextColor.parse(new TranslatableText("waystones.missing_discover_item.arg_color").getString()))
+                                    )
+                            ), false);
+                            return ActionResult.FAIL;
+                        } else {
+                            Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
+                            player.sendMessage(new TranslatableText(
+                                    "waystones.discover_item_paid",
+                                    discoverAmount,
+                                    new TranslatableText(discoverItem.getTranslationKey()).styled(style ->
+                                            style.withColor(TextColor.parse(new TranslatableText("waystones.discover_item_paid.arg_color").getString()))
+                                    )
+                            ), false);
+                        }
+                    }
                     player.sendMessage(new TranslatableText(
                             "waystones.discover_waystone",
                             new LiteralText(blockEntity.getWaystoneName()).styled(style ->
@@ -266,6 +288,11 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
                     ), false);
                 }
                 ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
+            }
+            if (blockEntity.getOwner() == null) {
+                blockEntity.setOwner(player);
+            } else {
+                blockEntity.updateActiveState();
             }
 
             if (player instanceof ServerPlayerEntity serverPlayerEntity) {
@@ -321,10 +348,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
             world.createAndScheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
         }
         return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
-    }
-
-    public static String getDimensionName(World world) {
-        return world.getRegistryKey().getValue().toString();
     }
 
     static {

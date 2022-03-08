@@ -7,24 +7,14 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.structure.PoolStructurePiece;
-import net.minecraft.structure.StructurePiece;
-import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.StructureAccessor;
-import net.minecraft.world.gen.feature.StructureFeature;
+import net.minecraft.world.World;
 import wraith.waystones.Waystones;
-import wraith.waystones.access.StructurePiecesListAccess;
-import wraith.waystones.block.WaystoneBlockEntity;
-import wraith.waystones.mixin.SinglePoolElementAccessor;
 import wraith.waystones.mixin.StructurePoolAccessor;
-import wraith.waystones.mixin.StructureStartAccessor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -32,19 +22,21 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public final class Utils {
 
-    private Utils() {}
+    private Utils() {
+    }
 
     public static final Random random = new Random();
     public static final DecimalFormat df = new DecimalFormat("#.##");
 
     public static int getRandomIntInRange(int min, int max) {
-        return random.nextInt(max - min + 1) + min;
+        if (min == max) {
+            return min;
+        }
+        return random.nextInt((max - min) + 1) + min;
     }
 
     public static Identifier ID(String id) {
@@ -76,7 +68,7 @@ public final class Utils {
     public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
         var poolGetter = server.getRegistryManager()
                 .get(Registry.STRUCTURE_POOL_KEY)
-                .getEntries().stream()
+                .getEntrySet().stream()
                 .filter(p -> p.getKey().getValue().equals(village))
                 .findFirst();
         if (poolGetter.isEmpty()) {
@@ -111,9 +103,25 @@ public final class Utils {
         return total;
     }
 
+    public static int getCost(Vec3d startPos, Vec3d endPos, String startDim, String endDim) {
+        var config = Config.getInstance();
+        float cost = config.baseTeleportCost();
+        if (startDim.equals(endDim)) {
+            cost += Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.extraCostPerBlock();
+        } else {
+            cost *= config.perDimensionMultiplier();
+        }
+        return Math.round(cost);
+    }
+
     public static boolean canTeleport(PlayerEntity player, String hash, boolean takeCost) {
-        String cost = Config.getInstance().teleportType();
-        int amount = Config.getInstance().teleportCost();
+        var config = Config.getInstance();
+        String cost = config.teleportType();
+        var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneData(hash);
+        if (waystone == null) {
+            return false;
+        }
+        int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), Utils.getDimensionName(player.world), waystone.getWorldName());
         if (player.isCreative()) {
             return true;
         }
@@ -168,11 +176,11 @@ public final class Utils {
                     if (player.world.isClient || Waystones.WAYSTONE_STORAGE == null) {
                         return true;
                     }
-                    WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
-                    if (waystone == null) {
+                    var waystoneBE = waystone.getEntity();
+                    if (waystoneBE == null) {
                         return true;
                     }
-                    ArrayList<ItemStack> oldInventory = new ArrayList<>(waystone.getInventory());
+                    ArrayList<ItemStack> oldInventory = new ArrayList<>(waystoneBE.getInventory());
                     boolean found = false;
                     for (ItemStack stack : oldInventory) {
                         if (stack.getItem() == item) {
@@ -184,7 +192,7 @@ public final class Utils {
                     if (!found) {
                         oldInventory.add(new ItemStack(Registry.ITEM.get(itemId), amount));
                     }
-                    waystone.setInventory(oldInventory);
+                    waystoneBE.setInventory(oldInventory);
                 }
                 return true;
             default:
@@ -193,7 +201,7 @@ public final class Utils {
 
     }
 
-    private static boolean containsItem(PlayerInventory inventory, Item item, int maxAmount) {
+    public static boolean containsItem(PlayerInventory inventory, Item item, int maxAmount) {
         int amount = 0;
         for (ItemStack stack : inventory.main) {
             if (stack.getItem().equals(item)) {
@@ -213,7 +221,7 @@ public final class Utils {
         return amount >= maxAmount;
     }
 
-    private static void removeItem(PlayerInventory inventory, Item item, int totalAmount) {
+    public static void removeItem(PlayerInventory inventory, Item item, int totalAmount) {
         for (ItemStack stack : inventory.main) {
             if (stack.getItem().equals(item)) {
                 int amount = stack.getCount();
@@ -255,34 +263,8 @@ public final class Utils {
         return "";
     }
 
-    public static StructureAccessor populateNoise(StructureAccessor accessor, Chunk chunk) {
-        if (!Config.getInstance().generateInVillages()) {
-            return accessor;
-        }
-        ChunkPos chunkPos = chunk.getPos();
-        for (int i = 0; i < StructureFeature.LAND_MODIFYING_STRUCTURES.size(); ++i) {
-            var structureFeature = StructureFeature.LAND_MODIFYING_STRUCTURES.get(i);
-            var waystones = new AtomicInteger(0);
-            accessor.getStructureStarts(ChunkSectionPos.from(chunkPos, 0), structureFeature).forEach((structures) -> {
-                var oldStructurePieces = new ArrayList<>(structures.getChildren());
-                ArrayList<Integer> toRemove = new ArrayList<>();
-                for (int j = 0; j < oldStructurePieces.size(); ++j) {
-                    StructurePiece structure = oldStructurePieces.get(j);
-                    if (structure instanceof PoolStructurePiece poolStructurePiece &&
-                            ((PoolStructurePiece) structure).getPoolElement() instanceof SinglePoolElement &&
-                            WaystonesWorldgen.WAYSTONE_STRUCTURES.contains(((SinglePoolElementAccessor) (poolStructurePiece).getPoolElement()).getLocation().left().get()) &&
-                            waystones.getAndIncrement() > 0) {
-                        toRemove.add(j);
-                    }
-                }
-                toRemove.sort(Collections.reverseOrder());
-                for (int remove : toRemove) {
-                    oldStructurePieces.remove(remove);
-                }
-                ((StructurePiecesListAccess) (Object) (((StructureStartAccessor) (Object) structures).getChildren())).setPieces(oldStructurePieces);
-            });
-        }
-        return accessor;
+    public static String getDimensionName(World world) {
+        return world.getRegistryKey().getValue().toString();
     }
 
 }

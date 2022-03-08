@@ -113,7 +113,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         HashSet<String> toRemove = new HashSet<>();
         for (String hash : discoveredWaystones) {
             if (Waystones.WAYSTONE_STORAGE.containsHash(hash)) {
-                waystones.add(Waystones.WAYSTONE_STORAGE.getWaystone(hash).getWaystoneName());
+                waystones.add(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getWaystoneName());
             } else {
                 toRemove.add(hash);
             }
@@ -141,7 +141,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             discoveredWaystones.remove(remove);
         }
 
-        waystones.sort(Comparator.comparing(a -> Waystones.WAYSTONE_STORAGE.getWaystone(a).getWaystoneName()));
+        waystones.sort(Comparator.comparing(a -> Waystones.WAYSTONE_STORAGE.getWaystoneEntity(a).getWaystoneName()));
         return waystones;
     }
 
@@ -189,7 +189,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             if (Waystones.WAYSTONE_STORAGE != null) {
                 hashes = Waystones.WAYSTONE_STORAGE.getAllHashes();
             }
-            NbtList waystones = tag.getList("discovered_waystones", 8);
+            NbtList waystones = tag.getList("discovered_waystones", NbtElement.STRING_TYPE);
             for (NbtElement waystone : waystones) {
                 if (hashes.contains(waystone.asString())) {
                     discoveredWaystones.add(waystone.asString());

@@ -44,8 +44,8 @@ public class LocalVoidItem extends Item implements PolymerItem {
         } else {
             String hash = tag.getString("waystone");
             if (Waystones.WAYSTONE_STORAGE != null) {
-                WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystone(hash);
-                if (waystone != null && waystone.teleportPlayer(user, !Config.getInstance().areLocalVoidsFree()) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
+                WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
+                if (waystone != null && waystone.teleportPlayer(user, Config.getInstance().doLocalVoidsUseCost()) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
                     stack.decrement(1);
                 }
             }
@@ -78,7 +78,7 @@ public class LocalVoidItem extends Item implements PolymerItem {
         if (tag == null || !tag.contains("waystone")) {
             invalid = true;
         } else {
-            name = Waystones.WAYSTONE_STORAGE.getWaystone(tag.getString("waystone")).getWaystoneName();
+            name = Waystones.WAYSTONE_STORAGE.getName(tag.getString("waystone"));
             if (name == null) {
                 invalid = true;
             }
