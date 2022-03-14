@@ -101,8 +101,4 @@
   "waystones.debug.debugger_tooltip2": "§6[§e?§6] §3Co potřebuje testovat?",
   "waystones.debug.debugger_tooltip3": "§6[§e?§6] §3Něco rozbitého?",
   "waystones.debug.debugger_tooltip4": "§6[§e?§6] §3Potřebuje něco opravit?",
-
-  "polyport.waystones.settings": "Nastavení Waystonu",
-  "polyport.waystones.rename": "Přejmenovat Waystone",
-  "polyport.waystones.cost": "Cena: %s × %s"
 }
