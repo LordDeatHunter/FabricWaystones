@@ -48,7 +48,7 @@ body:
     id: modVersion
     attributes:
       label: Mod Version
-      description: "Please select the used version of 'Towers of the Wild: Reworked'."
+      description: "Please select the used version of 'Fabric Waystones'."
       options:
         - "v2.5.0"
         - "v2.4.1"
