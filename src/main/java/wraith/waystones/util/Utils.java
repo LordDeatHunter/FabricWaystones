@@ -161,7 +161,7 @@ public final class Utils {
                     return false;
                 }
                 if (takeCost) {
-                    player.experienceLevel -= amount;
+                    player.addExperienceLevels(-amount);
                 }
                 return true;
             case "item":
