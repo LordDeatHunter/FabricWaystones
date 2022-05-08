@@ -11,6 +11,7 @@
     "SinglePoolElementAccessor",
     "StructurePiecesListMixin",
     "StructurePoolAccessor",
+    "StructurePoolBasedGeneratorMixin",
     "StructureStartAccessor",
     "TagGroupLoaderMixin"
   ],

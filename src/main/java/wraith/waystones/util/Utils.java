@@ -9,9 +9,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
+import net.minecraft.structure.processor.StructureProcessorList;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryEntry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import wraith.waystones.Waystones;
 import wraith.waystones.mixin.StructurePoolAccessor;
@@ -31,6 +34,8 @@ public final class Utils {
 
     public static final Random random = new Random();
     public static final DecimalFormat df = new DecimalFormat("#.##");
+    private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
+            Registry.STRUCTURE_PROCESSOR_LIST_KEY, new Identifier("minecraft", "empty"));
 
     public static int getRandomIntInRange(int min, int max) {
         if (min == max) {
@@ -66,19 +71,23 @@ public final class Utils {
     }
 
     public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
+
+        RegistryEntry<StructureProcessorList> emptyProcessorList = server.getRegistryManager()
+                .get(Registry.STRUCTURE_PROCESSOR_LIST_KEY)
+                .entryOf(EMPTY_PROCESSOR_LIST_KEY);
+
         var poolGetter = server.getRegistryManager()
                 .get(Registry.STRUCTURE_POOL_KEY)
-                .getEntrySet().stream()
-                .filter(p -> p.getKey().getValue().equals(village))
-                .findFirst();
+                .getOrEmpty(village);
+
         if (poolGetter.isEmpty()) {
             Waystones.LOGGER.error("Cannot add to " + village + " as it cannot be found!");
             return;
         }
-        var pool = poolGetter.get().getValue();
+        var pool = poolGetter.get();
 
         var pieceList = ((StructurePoolAccessor) pool).getElements();
-        var piece = StructurePoolElement.ofSingle(waystone.toString()).apply(StructurePool.Projection.RIGID);
+        var piece = StructurePoolElement.ofProcessedSingle(waystone.toString(), emptyProcessorList).apply(StructurePool.Projection.RIGID);
 
         var list = new ArrayList<>(((StructurePoolAccessor) pool).getElementCounts());
         list.add(Pair.of(piece, weight));
