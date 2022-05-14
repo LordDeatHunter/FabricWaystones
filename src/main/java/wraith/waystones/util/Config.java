@@ -40,12 +40,12 @@ public final class Config {
         return configData.getCompound("worldgen").getBoolean("generate_in_villages");
     }
 
-    //public int getMinPerVillage() {
-    //    return configData.getCompound("worldgen").getInt("min_per_village");
-    //}
-    //public int getMaxPerVillage() {
-    //    return configData.getCompound("worldgen").getInt("max_per_village");
-    //}
+    public int getMinPerVillage() {
+        return configData.getCompound("worldgen").getInt("min_per_village");
+    }
+    public int getMaxPerVillage() {
+        return configData.getCompound("worldgen").getInt("max_per_village");
+    }
 
     public int getVillageStructureWeight() {
         return configData.getCompound("worldgen").getInt("village_waystone_weight");
@@ -249,9 +249,9 @@ public final class Config {
 
         NbtCompound worldgen = new NbtCompound();
         worldgen.putBoolean("generate_in_villages", true);
-        //worldgen.putInt("min_per_village", 1);
-        //worldgen.putInt("max_per_village", 1);
-        worldgen.putInt("village_waystone_weight", 5);
+        worldgen.putInt("min_per_village", 1);
+        worldgen.putInt("max_per_village", 1);
+        worldgen.putInt("village_waystone_weight", 2);
         defaultConfig.put("worldgen", worldgen);
 
         defaultConfig.putBoolean("consume_infinite_knowledge_scroll_on_use", false);
@@ -295,8 +295,8 @@ public final class Config {
         JsonObject worldgenJson = new JsonObject();
         NbtCompound worldgenTag = getCompoundOrDefault(tag, "worldgen", defaults);
         worldgenJson.addProperty("generate_in_villages", getBooleanOrDefault(worldgenTag, "generate_in_villages", defaults));
-        //worldgenJson.addProperty("min_per_village", getIntOrDefault(worldgenTag, "min_per_village", defaults));
-        //worldgenJson.addProperty("max_per_village", getIntOrDefault(worldgenTag, "max_per_village", defaults));
+        worldgenJson.addProperty("min_per_village", getIntOrDefault(worldgenTag, "min_per_village", defaults));
+        worldgenJson.addProperty("max_per_village", getIntOrDefault(worldgenTag, "max_per_village", defaults));
         worldgenJson.addProperty("village_waystone_weight", getIntOrDefault(worldgenTag, "village_waystone_weight", defaults));
         json.add("worldgen", worldgenJson);
 
@@ -345,8 +345,8 @@ public final class Config {
             var worldgenJson = json.get("worldgen").getAsJsonObject();
             var defaultWorldgen = new NbtCompound();
             worldgen.putBoolean("generate_in_villages", getBooleanOrDefault(worldgenJson, "generate_in_villages", defaultWorldgen));
-            //worldgen.putInt("min_per_village", getIntOrDefault(worldgenJson, "min_per_village", defaultWorldgen));
-            //worldgen.putInt("max_per_village", getIntOrDefault(worldgenJson, "max_per_village", defaultWorldgen));
+            worldgen.putInt("min_per_village", getIntOrDefault(worldgenJson, "min_per_village", defaultWorldgen));
+            worldgen.putInt("max_per_village", getIntOrDefault(worldgenJson, "max_per_village", defaultWorldgen));
             worldgen.putInt("village_waystone_weight", getIntOrDefault(worldgenJson, "village_waystone_weight", defaultWorldgen));
         } else {
             ++difference;

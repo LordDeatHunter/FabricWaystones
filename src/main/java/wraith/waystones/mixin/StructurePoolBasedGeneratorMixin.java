@@ -1,86 +1,44 @@
 package wraith.waystones.mixin;
 
 import net.minecraft.structure.PoolStructurePiece;
-import net.minecraft.structure.Structure;
-import net.minecraft.structure.pool.SinglePoolElement;
-import net.minecraft.structure.pool.StructurePool;
+import net.minecraft.structure.StructureManager;
+import net.minecraft.structure.StructurePiecesCollector;
+import net.minecraft.structure.StructurePiecesGenerator;
 import net.minecraft.structure.pool.StructurePoolBasedGenerator;
-import net.minecraft.structure.pool.StructurePoolElement;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockBox;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.HeightLimitView;
-import org.apache.commons.lang3.mutable.MutableObject;
-import org.spongepowered.asm.mixin.Final;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.feature.StructurePoolFeatureConfig;
+import net.minecraft.world.gen.random.ChunkRandom;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
-import wraith.waystones.util.WaystonesWorldgen;
+import wraith.waystones.access.StructurePoolBasedGenerator_StructurePoolGeneratorAccess;
+import wraith.waystones.util.Config;
+import wraith.waystones.util.Utils;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
-@Mixin(StructurePoolBasedGenerator.StructurePoolGenerator.class)
+@Mixin(StructurePoolBasedGenerator.class)
 public class StructurePoolBasedGeneratorMixin {
 
-    @Shadow
-    @Final
-    private List<? super PoolStructurePiece> children;
-
-    @Inject(method = "generatePiece(Lnet/minecraft/structure/PoolStructurePiece;Lorg/apache/commons/lang3/mutable/MutableObject;IZLnet/minecraft/world/HeightLimitView;)V",
-        at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false),
-        locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece,
-                                                            MutableObject<VoxelShape> pieceShape,
-                                                            int minY,
-                                                            boolean modifyBoundingBox,
-                                                            HeightLimitView world,
-                                                            CallbackInfo ci,
-                                                            StructurePoolElement structurePoolElement,
-                                                            BlockPos blockPos,
-                                                            BlockRotation blockRotation,
-                                                            StructurePool.Projection projection,
-                                                            boolean bl,
-                                                            MutableObject<VoxelShape> mutableObject,
-                                                            BlockBox blockBox,
-                                                            int i,
-                                                            Iterator<Structure.StructureBlockInfo> var14,
-                                                            Structure.StructureBlockInfo structureBlockInfo,
-                                                            Direction direction,
-                                                            BlockPos blockPos2,
-                                                            BlockPos blockPos3,
-                                                            int j,
-                                                            int k,
-                                                            Identifier identifier,
-                                                            Optional<StructurePool> optional,
-                                                            Identifier identifier2,
-                                                            Optional<StructurePool> optional2,
-                                                            MutableObject<Object> mutableObject2,
-                                                            boolean bl2,
-                                                            List<StructurePoolElement> list)
-    {
-        if(optional.isPresent() && WaystonesWorldgen.VANILLA_VILLAGES.containsKey(optional.get().getId())) {
-            if(children.stream().anyMatch(element -> {
-                if(element instanceof PoolStructurePiece poolStructurePiece &&
-                        poolStructurePiece.getPoolElement() instanceof SinglePoolElement singlePoolElement) {
-                    return ((SinglePoolElementAccessor)singlePoolElement).getLocation().left().orElse(new Identifier("empty")).getNamespace().equals("waystones");
-                }
-                return false;
-            })) {
-                list.removeIf(element -> {
-                    if(element instanceof SinglePoolElement singlePoolElement) {
-                        return ((SinglePoolElementAccessor)singlePoolElement).getLocation().left().orElse(new Identifier("empty")).getNamespace().equals("waystones");
-                    }
-                    return false;
-                });
-            }
-        }
+    @Inject(method = "method_39824(Lnet/minecraft/structure/PoolStructurePiece;Lnet/minecraft/world/gen/feature/StructurePoolFeatureConfig;IIILnet/minecraft/util/registry/Registry;Lnet/minecraft/structure/pool/StructurePoolBasedGenerator$PieceFactory;Lnet/minecraft/world/gen/chunk/ChunkGenerator;Lnet/minecraft/structure/StructureManager;Lnet/minecraft/world/gen/random/ChunkRandom;Lnet/minecraft/util/math/BlockBox;ZLnet/minecraft/world/HeightLimitView;Lnet/minecraft/structure/StructurePiecesCollector;Lnet/minecraft/structure/StructurePiecesGenerator$Context;)V",
+            at = @At(value = "INVOKE", target = "Ljava/util/Deque;addLast(Ljava/lang/Object;)V"),
+            locals = LocalCapture.CAPTURE_FAILSOFT)
+    private static void preGenerate2(PoolStructurePiece poolStructurePiece, StructurePoolFeatureConfig structurePoolFeatureConfig, int i, int j, int k, Registry registry, StructurePoolBasedGenerator.PieceFactory pieceFactory, ChunkGenerator chunkGenerator, StructureManager structureManager, ChunkRandom chunkRandom, BlockBox blockBox, boolean bl, HeightLimitView heightLimitView, StructurePiecesCollector structurePiecesCollector, StructurePiecesGenerator.Context context, CallbackInfo ci, List list, int l, Box box, StructurePoolBasedGenerator.StructurePoolGenerator structurePoolGenerator) {
+        onInit(structurePoolGenerator);
     }
+
+    @Unique
+    private static void onInit(StructurePoolBasedGenerator.StructurePoolGenerator structurePoolGenerator) {
+        var config = Config.getInstance();
+        int maxWaystoneCount = Utils.getRandomIntInRange(config.getMinPerVillage(), config.getMaxPerVillage());
+        ((StructurePoolBasedGenerator_StructurePoolGeneratorAccess) (Object) structurePoolGenerator).setMaxWaystoneCount(maxWaystoneCount);
+    }
+
 }

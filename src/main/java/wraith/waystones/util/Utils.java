@@ -41,6 +41,11 @@ public final class Utils {
         if (min == max) {
             return min;
         }
+        if (min > max) {
+            int temp = min;
+            min = max;
+            max = temp;
+        }
         return random.nextInt((max - min) + 1) + min;
     }
 
