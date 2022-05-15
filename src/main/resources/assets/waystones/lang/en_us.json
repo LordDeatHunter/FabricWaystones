@@ -14,6 +14,7 @@
   "item.waystones.waystone_scroll": "Waystone Scroll",
   "item.waystones.empty_scroll": "Empty Scroll",
   "item.waystones.abyss_watcher": "Abyss Watcher",
+  "item.waystones.void_totem": "Void Totem",
   "item.waystones.scroll_of_infinite_knowledge": "Scroll of Infinite Knowledge",
   "block.waystones.waystone": "Waystone",
   "block.waystones.desert_waystone": "Desert Waystone",
@@ -49,6 +50,10 @@
   "waystones.local_void.tooltip": "§6Bound to: %s",
   "waystones.local_void.tooltip.arg_color": "#FFFF55",
   "waystones.local_void.empty_tooltip": "§3Unbound.",
+
+  "waystones.void_totem.tooltip": "§6Respawn point: %s",
+  "waystones.void_totem.tooltip.arg_color": "#FFFF55",
+  "waystones.void_totem.empty_tooltip": "§3Unbound.",
 
   "waystones.config.tooltip.revoke_ownership": "Revoke ownership.",
   "waystones.config.tooltip.toggle_global_view": "Toggle global waystone visibility.",

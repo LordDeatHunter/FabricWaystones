@@ -19,6 +19,7 @@ public final class WaystonePacketHandler {
     public static final Identifier SYNC_PLAYER_FROM_CLIENT = Utils.ID("sync_player_from_client");
     public static final Identifier TOGGLE_GLOBAL_WAYSTONE = Utils.ID("toggle_global_waystone");
     public static final Identifier REQUEST_PLAYER_SYNC = Utils.ID("request_player_waystone_update");
+    public static final Identifier VOID_REVIVE = Utils.ID("void_totem_revive");
 
     private WaystonePacketHandler() {
     }

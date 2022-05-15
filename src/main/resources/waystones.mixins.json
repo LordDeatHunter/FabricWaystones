@@ -4,6 +4,7 @@
   "package": "wraith.waystones.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "LivingEntityMixin",
     "MinecraftServerAccessor",
     "PlayerEntityMixin",
     "ServerPlayerEntityAccessor",

@@ -5,15 +5,20 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.sound.SoundEvents;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.registry.CustomBlockEntityRendererRegistry;
 import wraith.waystones.registry.CustomScreenRegistry;
+import wraith.waystones.registry.ItemRegistry;
 import wraith.waystones.registry.WaystonesModelProviderRegistry;
 import wraith.waystones.screen.UniversalWaystoneScreenHandler;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.Utils;
+import wraith.waystones.util.WaystonePacketHandler;
 import wraith.waystones.util.WaystoneStorage;
 
 import java.util.HashSet;
@@ -66,6 +71,20 @@ public class WaystonesClient implements ClientModInitializer {
                     ((PlayerEntityMixinAccess) client.player).fromTagW(tag);
                 }
             });
+        });
+        ClientPlayNetworking.registerGlobalReceiver(WaystonePacketHandler.VOID_REVIVE, (client, handler, packet, sender) -> {
+            if (client.player == null) {
+                return;
+            }
+            client.particleManager.addEmitter(client.player, ParticleTypes.TOTEM_OF_UNDYING, 30);
+            handler.getWorld().playSound(client.player.getX(), client.player.getY(), client.player.getZ(), SoundEvents.ITEM_TOTEM_USE, client.player.getSoundCategory(), 1.0F, 1.0F, false);
+            for (int i = 0; i < client.player.getInventory().size(); ++i) {
+                ItemStack playerStack = client.player.getInventory().getStack(i);
+                if (playerStack.getItem() == ItemRegistry.get("void_totem")) {
+                    client.gameRenderer.showFloatingItem(playerStack);
+                    break;
+                }
+            }
         });
     }
 

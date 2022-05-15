@@ -2,17 +2,17 @@ package wraith.waystones.registry;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.object.builder.v1.client.model.FabricModelPredicateProviderRegistry;
+import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.nbt.NbtCompound;
-import wraith.waystones.util.Utils;
 import wraith.waystones.item.LocalVoidItem;
 import wraith.waystones.item.WaystoneScrollItem;
+import wraith.waystones.util.Utils;
 
 @Environment(EnvType.CLIENT)
 public final class WaystonesModelProviderRegistry {
 
     public static void register() {
-        FabricModelPredicateProviderRegistry.register(Utils.ID("has_learned"),
+        ModelPredicateProviderRegistry.register(Utils.ID("has_learned"),
                 (stack, world, entity, seed) -> {
                     if (stack.isEmpty()) {
                         return 0f;

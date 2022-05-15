@@ -1,0 +1,20 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "waystones:item/void_totem"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "waystones:has_learned": 0
+      },
+      "model": "waystones:item/void_totem"
+    },
+    {
+      "predicate": {
+        "waystones:has_learned": 1
+      },
+      "model": "waystones:item/void_totem_active"
+    }
+  ]
+}

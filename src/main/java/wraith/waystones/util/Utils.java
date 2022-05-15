@@ -10,6 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorList;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
@@ -17,7 +18,11 @@ import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import wraith.waystones.Waystones;
+import wraith.waystones.item.LocalVoidItem;
 import wraith.waystones.mixin.StructurePoolAccessor;
+import wraith.waystones.screen.AbyssScreenHandler;
+import wraith.waystones.screen.PocketWormholeScreenHandler;
+import wraith.waystones.screen.WaystoneBlockScreenHandler;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -281,4 +286,19 @@ public final class Utils {
         return world.getRegistryKey().getValue().toString();
     }
 
+    public static TeleportSources getTeleportSource(PlayerEntity player) {
+        if (player.currentScreenHandler instanceof AbyssScreenHandler) {
+            return TeleportSources.ABYSS_WATCHER;
+        } else if (player.currentScreenHandler instanceof PocketWormholeScreenHandler) {
+            return TeleportSources.POCKET_WORMHOLE;
+        } else if (player.currentScreenHandler instanceof WaystoneBlockScreenHandler) {
+            return TeleportSources.WAYSTONE;
+        } else {
+            for (var hand : Hand.values()) {
+                if (!(player.getStackInHand(hand).getItem() instanceof LocalVoidItem)) continue;
+                return TeleportSources.LOCAL_VOID;
+            }
+        }
+        return null;
+    }
 }

@@ -35,10 +35,7 @@ import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.access.WaystoneValue;
 import wraith.waystones.item.AbyssWatcherItem;
-import wraith.waystones.item.LocalVoidItem;
 import wraith.waystones.registry.BlockEntityRegistry;
-import wraith.waystones.screen.AbyssScreenHandler;
-import wraith.waystones.screen.PocketWormholeScreenHandler;
 import wraith.waystones.screen.WaystoneBlockScreenHandler;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.TeleportSources;
@@ -270,6 +267,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public void tick() {
+        if (world == null) return;
         ++tickDelta;
         if (getCachedState().get(WaystoneBlock.ACTIVE)) {
             var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D, this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
@@ -303,7 +301,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public String getWorldName() {
-        return Utils.getDimensionName(world);
+        return world == null ? "" : Utils.getDimensionName(world);
     }
 
     public boolean canAccess(PlayerEntity player) {
@@ -311,6 +309,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public boolean teleportPlayer(PlayerEntity player, boolean takeCost) {
+        return teleportPlayer(player, takeCost, null);
+    }
+    public boolean teleportPlayer(PlayerEntity player, boolean takeCost, TeleportSources source) {
         if (!(player instanceof ServerPlayerEntity playerEntity)) {
             return false;
         }
@@ -352,20 +353,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 fYaw,
                 0
         );
-        TeleportSources source = null;
-        if (playerEntity.currentScreenHandler instanceof AbyssScreenHandler) {
-            source = TeleportSources.ABYSS_WATCHER;
-        } else if (playerEntity.currentScreenHandler instanceof PocketWormholeScreenHandler) {
-            source = TeleportSources.POCKET_WORMHOLE;
-        } else if (playerEntity.currentScreenHandler instanceof WaystoneBlockScreenHandler) {
-            source = TeleportSources.WAYSTONE;
-        } else {
-            for (var hand : Hand.values()) {
-                if (playerEntity.getStackInHand(hand).getItem() instanceof LocalVoidItem) {
-                    source = TeleportSources.LOCAL_VOID;
-                    break;
-                }
-            }
+        if (source == null) {
+            source = Utils.getTeleportSource(playerEntity);
         }
         if (source == null) {
             return false;
@@ -389,7 +378,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target, TeleportSources source, boolean takeCost) {
         var playerAccess = (PlayerEntityMixinAccess) player;
         var cooldown = playerAccess.getTeleportCooldown();
-        if (cooldown > 0) {
+        if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
             player.sendMessage(new TranslatableText(
                     "waystones.no_teleport_message.cooldown",
@@ -406,6 +395,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             case WAYSTONE -> Config.getInstance().getCooldownFromWaystone();
             case ABYSS_WATCHER -> Config.getInstance().getCooldownFromAbyssWatcher();
             case LOCAL_VOID -> Config.getInstance().getCooldownFromLocalVoid();
+            case VOID_TOTEM -> Config.getInstance().getCooldownFromVoidTotem();
             case POCKET_WORMHOLE -> Config.getInstance().getCooldownFromPocketWormhole();
         });
         var oldPos = player.getBlockPos();

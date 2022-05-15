@@ -141,6 +141,10 @@ public final class Config {
         return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_local_void");
     }
 
+    public int getCooldownFromVoidTotem() {
+        return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_void_totem");
+    }
+
     public int getCooldownFromWaystone() {
         return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_waystone");
     }
@@ -281,6 +285,7 @@ public final class Config {
         cooldown.putInt("cooldown_ticks_from_abyss_watcher", 0);
         cooldown.putInt("cooldown_ticks_from_pocket_wormhole", 0);
         cooldown.putInt("cooldown_ticks_from_local_void", 0);
+        cooldown.putInt("cooldown_ticks_from_void_totem", 0);
         cooldown.putInt("cooldown_ticks_from_waystone", 0);
         defaultConfig.put("teleportation_cooldown", cooldown);
 
@@ -327,6 +332,7 @@ public final class Config {
         cooldownsJson.addProperty("cooldown_ticks_from_abyss_watcher", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_abyss_watcher", defaults));
         cooldownsJson.addProperty("cooldown_ticks_from_pocket_wormhole", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_pocket_wormhole", defaults));
         cooldownsJson.addProperty("cooldown_ticks_from_local_void", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_local_void", defaults));
+        cooldownsJson.addProperty("cooldown_ticks_from_void_totem", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_void_totem", defaults));
         cooldownsJson.addProperty("cooldown_ticks_from_waystone", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_waystone", defaults));
         json.add("teleportation_cooldown", cooldownsJson);
 
@@ -389,6 +395,7 @@ public final class Config {
             cooldowns.putInt("cooldown_ticks_from_abyss_watcher", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_abyss_watcher", defaultCooldowns));
             cooldowns.putInt("cooldown_ticks_from_pocket_wormhole", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_pocket_wormhole", defaultCooldowns));
             cooldowns.putInt("cooldown_ticks_from_local_void", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_local_void", defaultCooldowns));
+            cooldowns.putInt("cooldown_ticks_from_void_totem", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_void_totem", defaultCooldowns));
             cooldowns.putInt("cooldown_ticks_from_waystone", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_waystone", defaultCooldowns));
         } else {
             ++difference;
