@@ -38,13 +38,15 @@ public class LocalVoidItem extends Item {
         if (tag == null || !tag.contains("waystone")) {
             return canTeleport ? TypedActionResult.pass(stack) : TypedActionResult.fail(stack);
         }
-        if (user.isSneaking() || !canTeleport) {
+        if (user.isSneaking()) {
             stack.removeSubNbt("waystone");
-        } else {
+        } else if (canTeleport) {
             String hash = tag.getString("waystone");
             if (Waystones.WAYSTONE_STORAGE != null) {
                 WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
-                if (waystone != null && waystone.teleportPlayer(user, Config.getInstance().doLocalVoidsUseCost()) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
+                if (waystone == null) {
+                    stack.removeSubNbt("waystone");
+                } else if (waystone.teleportPlayer(user, Config.getInstance().doLocalVoidsUseCost()) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
                     stack.decrement(1);
                 }
             }
