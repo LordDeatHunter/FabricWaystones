@@ -82,7 +82,7 @@ public final class Config {
     }
 
     public boolean storeWaystoneNbt() {
-        return true;
+        return configData.getBoolean("store_waystone_data_on_sneak_break");
     }
 
     public String teleportType() {
