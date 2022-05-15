@@ -75,7 +75,14 @@ public class WaystonesClient implements ClientModInitializer {
                 Waystones.WAYSTONE_STORAGE = new WaystoneStorage(null);
             }
         });
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> Waystones.WAYSTONE_STORAGE = null);
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            if (Waystones.WAYSTONE_STORAGE == null) {
+                Waystones.LOGGER.error("The Waystone storage is null. This is likely caused by a crash.");
+                return;
+            }
+            Waystones.WAYSTONE_STORAGE.loadOrSaveWaystones(true);
+            Waystones.WAYSTONE_STORAGE = null;
+        });
     }
 
 }

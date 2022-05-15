@@ -27,7 +27,8 @@ public class WaystonesEventManager {
 
         ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
             if (Waystones.WAYSTONE_STORAGE == null) {
-                Waystones.LOGGER.error("The Waystone storage is null. This is most likely caused by a crash.");
+                if (server.isDedicated())
+                    Waystones.LOGGER.error("The Waystone storage is null. This is likely caused by a crash.");
                 return;
             }
             Waystones.WAYSTONE_STORAGE.loadOrSaveWaystones(true);
