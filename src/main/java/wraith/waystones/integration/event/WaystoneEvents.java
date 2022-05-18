@@ -11,10 +11,10 @@ import wraith.waystones.access.WaystoneValue;
 public class WaystoneEvents
 {
 
-    public static final Event<UpdateWaystone> REMOVE_WAYSTONE_EVENT = EventFactory.createArrayBacked(UpdateWaystone.class, callbacks -> event -> {
-        for (UpdateWaystone callback : callbacks)
+    public static final Event<RemoveWaystone> REMOVE_WAYSTONE_EVENT = EventFactory.createArrayBacked(RemoveWaystone.class, callbacks -> hash -> {
+        for (RemoveWaystone callback : callbacks)
         {
-            callback.onUpdate(event);
+            callback.onRemove(hash);
         }
     });
 
@@ -25,10 +25,10 @@ public class WaystoneEvents
         }
     });
 
-    public static final Event<RenameWaystone> RENAME_WAYSTONE_EVENT = EventFactory.createArrayBacked(RenameWaystone.class, callbacks -> (event, newName) -> {
-        for (RenameWaystone callback : callbacks)
+    public static final Event<UpdateWaystone> RENAME_WAYSTONE_EVENT = EventFactory.createArrayBacked(UpdateWaystone.class, callbacks -> event -> {
+        for (UpdateWaystone callback : callbacks)
         {
-            callback.onRename(event, newName);
+            callback.onUpdate(event);
         }
     });
 
@@ -39,8 +39,8 @@ public class WaystoneEvents
     }
 
     @FunctionalInterface
-    public interface RenameWaystone
+    public interface RemoveWaystone
     {
-        void onRename(@Nullable WaystoneValue event, String newName);
+        void onRemove(@Nullable String hash);
     }
 }

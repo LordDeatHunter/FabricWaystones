@@ -158,6 +158,11 @@ public class WaystoneStorage {
         }
 
         @Override
+        public String getHash() {
+            return this.hash;
+        }
+
+        @Override
         public boolean isGlobal() {
             return this.isGlobal;
         }
@@ -251,6 +256,7 @@ public class WaystoneStorage {
     }
 
     public void removeWaystone(String hash) {
+        WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
         WAYSTONES.remove(hash);
         forgetForAllPlayers(hash);
         loadOrSaveWaystones(true);
@@ -280,8 +286,8 @@ public class WaystoneStorage {
     public void renameWaystone(String hash, String name) {
         if (WAYSTONES.containsKey(hash)) {
             WaystoneValue waystone = WAYSTONES.get(hash);
-            WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onRename(waystone, name);
             waystone.getEntity().setName(name);
+            WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(waystone);
             loadOrSaveWaystones(true);
         }
     }

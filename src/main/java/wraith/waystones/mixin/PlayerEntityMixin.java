@@ -201,6 +201,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             for (NbtElement waystone : waystones) {
                 if (hashes.contains(waystone.asString())) {
                     discoveredWaystones.add(waystone.asString());
+                    WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(Waystones.WAYSTONE_STORAGE.getWaystoneData(waystone.asString()));
                 }
             }
         }
@@ -256,7 +257,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void forgetWaystones(HashSet<String> toForget) {
         for (String hash : toForget) {
-            WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onUpdate(Waystones.WAYSTONE_STORAGE.getWaystoneData(hash));
+            WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
             discoveredWaystones.remove(hash);
         }
         syncData();

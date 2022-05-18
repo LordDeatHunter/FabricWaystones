@@ -5,15 +5,21 @@ import journeymap.client.api.IClientPlugin;
 import journeymap.client.api.display.Waypoint;
 import journeymap.client.api.event.ClientEvent;
 import journeymap.client.api.event.RegistryEvent;
+import journeymap.client.api.model.MapImage;
 import journeymap.client.api.option.BooleanOption;
 import journeymap.client.api.option.OptionCategory;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.WaystoneValue;
 import wraith.waystones.integration.event.WaystoneEvents;
+import wraith.waystones.util.Utils;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
+import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STARTED;
+import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STOPPED;
 import static journeymap.client.api.event.ClientEvent.Type.REGISTRY;
 
 public class JourneymapPlugin implements IClientPlugin
@@ -21,8 +27,11 @@ public class JourneymapPlugin implements IClientPlugin
     // API reference
     private IClientAPI api = null;
     private static JourneymapPlugin INSTANCE;
-    private OptionCategory category;
     private BooleanOption enabled;
+
+    private List<WaystoneValue> queuedWaypoints;
+
+    private boolean mappingStarted = false;
 
     /**
      * Do not manually instantiate this class, Journeymap will take care of it.
@@ -30,6 +39,7 @@ public class JourneymapPlugin implements IClientPlugin
     public JourneymapPlugin()
     {
         INSTANCE = this;
+        queuedWaypoints = new ArrayList<>();
     }
 
     /**
@@ -54,7 +64,7 @@ public class JourneymapPlugin implements IClientPlugin
         this.api = api;
 
         // event registration
-        api.subscribe(getModId(), EnumSet.of(REGISTRY));
+        api.subscribe(getModId(), EnumSet.of(REGISTRY, MAPPING_STOPPED, MAPPING_STARTED));
         WaystoneEvents.REMOVE_WAYSTONE_EVENT.register(this::onRemove);
         WaystoneEvents.DISCOVER_WAYSTONE_EVENT.register(this::onDiscover);
         WaystoneEvents.RENAME_WAYSTONE_EVENT.register(this::onRename);
@@ -74,16 +84,28 @@ public class JourneymapPlugin implements IClientPlugin
         {
             switch (event.type)
             {
-                case REGISTRY:
+                case MAPPING_STARTED ->
+                {
+                    mappingStarted = true;
+                    buildQueuedWaypoints();
+                }
+                case MAPPING_STOPPED ->
+                {
+                    mappingStarted = false;
+                    api.removeAll(Waystones.MOD_ID);
+                }
+                case REGISTRY ->
+                {
                     RegistryEvent registryEvent = (RegistryEvent) event;
                     switch (registryEvent.getRegistryType())
                     {
-                        case OPTIONS:
-                            this.category = new OptionCategory(Waystones.MOD_ID, "waystones.integration.journeymap.category");
+                        case OPTIONS ->
+                        {
+                            OptionCategory category = new OptionCategory(Waystones.MOD_ID, "waystones.integration.journeymap.category");
                             this.enabled = new BooleanOption(category, "enabled", "waystones.integration.journeymap.enable", true, true);
-                            break;
+                        }
                     }
-                    break;
+                }
             }
         }
         catch (Throwable t)
@@ -93,11 +115,18 @@ public class JourneymapPlugin implements IClientPlugin
 
     }
 
-    private void onRemove(WaystoneValue waystone)
+    private void buildQueuedWaypoints()
     {
-        if (waystone != null && enabled.get())
+        System.out.println("building");
+        queuedWaypoints.forEach(this::addWaypoint);
+        queuedWaypoints.clear();
+    }
+
+    private void onRemove(String hash)
+    {
+        if (enabled.get())
         {
-            Waypoint waypoint = api.getWaypoint(getModId(), waystone.getEntity().getHash());
+            Waypoint waypoint = api.getWaypoint(getModId(), hash);
             if (waypoint != null)
             {
                 api.remove(waypoint);
@@ -109,16 +138,54 @@ public class JourneymapPlugin implements IClientPlugin
     {
         if (waystone != null && enabled.get())
         {
+            if (mappingStarted)
+            {
+                addWaypoint(waystone);
+            }
+            else
+            {
+                queuedWaypoints.add(waystone);
+            }
 
         }
     }
 
-    private void onRename(WaystoneValue waystone, String newName)
+    private void onRename(WaystoneValue waystone)
     {
         if (waystone != null && enabled.get())
         {
-            onRemove(waystone);
+            onRemove(waystone.getHash());
+            addWaypoint(waystone);
         }
     }
 
+    public void addWaypoint(WaystoneValue waystone)
+    {
+        if (Waystones.WAYSTONE_STORAGE == null)
+        {
+            return;
+        }
+
+        var icon = new MapImage(Utils.ID("images/waystone-icon.png"), 16, 16); // this image will be very large until journeymap 5.8.4 is released
+
+        var waypoint = new Waypoint(
+                getModId(),
+                waystone.getHash(),
+                waystone.getWaystoneName(),
+                waystone.getWorldName(),
+                waystone.way_getPos()
+        )
+                .setIcon(icon)
+                .setPersistent(false);
+
+        try
+        {
+            System.out.println(waystone.getWaystoneName());
+            this.api.show(waypoint);
+        }
+        catch (Throwable t)
+        {
+            Waystones.LOGGER.error(t.getMessage(), t);
+        }
+    }
 }
