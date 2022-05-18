@@ -117,7 +117,6 @@ public class JourneymapPlugin implements IClientPlugin
 
     private void buildQueuedWaypoints()
     {
-        System.out.println("building");
         queuedWaypoints.forEach(this::addWaypoint);
         queuedWaypoints.clear();
     }
@@ -180,7 +179,6 @@ public class JourneymapPlugin implements IClientPlugin
 
         try
         {
-            System.out.println(waystone.getWaystoneName());
             this.api.show(waypoint);
         }
         catch (Throwable t)
