@@ -2,12 +2,16 @@ package wraith.waystones.integration.journeymap;
 
 import journeymap.client.api.IClientAPI;
 import journeymap.client.api.IClientPlugin;
+import journeymap.client.api.display.DisplayType;
 import journeymap.client.api.display.Waypoint;
 import journeymap.client.api.event.ClientEvent;
 import journeymap.client.api.event.RegistryEvent;
+import journeymap.client.api.event.fabric.FabricEvents;
+import journeymap.client.api.event.fabric.FullscreenDisplayEvent;
 import journeymap.client.api.model.MapImage;
 import journeymap.client.api.option.BooleanOption;
 import journeymap.client.api.option.OptionCategory;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.WaystoneValue;
@@ -28,8 +32,9 @@ public class JourneymapPlugin implements IClientPlugin
     private IClientAPI api = null;
     private static JourneymapPlugin INSTANCE;
     private BooleanOption enabled;
+    private BooleanOption displayWaypoints;
 
-    private List<WaystoneValue> queuedWaypoints;
+    private final List<WaystoneValue> queuedWaypoints;
 
     private boolean mappingStarted = false;
 
@@ -68,8 +73,24 @@ public class JourneymapPlugin implements IClientPlugin
         WaystoneEvents.REMOVE_WAYSTONE_EVENT.register(this::onRemove);
         WaystoneEvents.DISCOVER_WAYSTONE_EVENT.register(this::onDiscover);
         WaystoneEvents.RENAME_WAYSTONE_EVENT.register(this::onRename);
+        FabricEvents.ADDON_BUTTON_DISPLAY_EVENT.register(this::onFullscreenAddonButton);
     }
 
+    private void onFullscreenAddonButton(FullscreenDisplayEvent.AddonButtonDisplayEvent addonButtonDisplayEvent)
+    {
+        addonButtonDisplayEvent.getThemeButtonDisplay()
+                .addThemeToggleButton(
+                        "waystones.integration.journeymap.theme.on",
+                        "waystones.integration.journeymap.theme.off",
+                        "waystone-icon", // required to be in assets/journeymap/flat/icon due to themes
+                        displayWaypoints.get(),
+                        b -> {
+                            b.toggle();
+                            displayWaypoints.set(b.getToggled());
+                            updateWaypointDisplay(b.getToggled());
+                        });
+
+    }
 
     @Override
     public String getModId()
@@ -78,7 +99,7 @@ public class JourneymapPlugin implements IClientPlugin
     }
 
     @Override
-    public void onEvent(ClientEvent event)
+    public void onEvent(@NotNull final ClientEvent event)
     {
         try
         {
@@ -92,7 +113,7 @@ public class JourneymapPlugin implements IClientPlugin
                 case MAPPING_STOPPED ->
                 {
                     mappingStarted = false;
-                    api.removeAll(Waystones.MOD_ID);
+                    api.removeAll(getModId());
                 }
                 case REGISTRY ->
                 {
@@ -101,8 +122,9 @@ public class JourneymapPlugin implements IClientPlugin
                     {
                         case OPTIONS ->
                         {
-                            OptionCategory category = new OptionCategory(Waystones.MOD_ID, "waystones.integration.journeymap.category");
-                            this.enabled = new BooleanOption(category, "enabled", "waystones.integration.journeymap.enable", true, true);
+                            OptionCategory category = new OptionCategory(getModId(), "waystones.integration.journeymap.category");
+                            this.enabled = new BooleanOption(category, "enabled", "waystones.integration.journeymap.enable", true);
+                            this.displayWaypoints = new BooleanOption(new OptionCategory(getModId(), "Hidden"), "displayed", "waystones.integration.journeymap.enable", true);
                         }
                     }
                 }
@@ -113,6 +135,14 @@ public class JourneymapPlugin implements IClientPlugin
             Waystones.LOGGER.error(t.getMessage(), t);
         }
 
+    }
+
+    private void updateWaypointDisplay(boolean display) {
+       if(!display) {
+           api.removeAll(getModId(), DisplayType.Waypoint);
+       } else {
+           Waystones.WAYSTONE_STORAGE.getAllHashes().forEach(hash-> addWaypoint(Waystones.WAYSTONE_STORAGE.getWaystoneData(hash)));
+       }
     }
 
     private void buildQueuedWaypoints()
@@ -179,6 +209,7 @@ public class JourneymapPlugin implements IClientPlugin
 
         try
         {
+            waypoint.setEnabled(displayWaypoints.get());
             this.api.show(waypoint);
         }
         catch (Throwable t)
