@@ -12,15 +12,16 @@ import journeymap.client.api.model.MapImage;
 import journeymap.client.api.option.BooleanOption;
 import journeymap.client.api.option.OptionCategory;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.WaystoneValue;
 import wraith.waystones.integration.event.WaystoneEvents;
 import wraith.waystones.util.Utils;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Random;
 
 import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STARTED;
 import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STOPPED;
@@ -32,6 +33,8 @@ public class JourneymapPlugin implements IClientPlugin
     private IClientAPI api = null;
     private BooleanOption enabled;
     private BooleanOption displayWaypoints;
+
+    private BooleanOption randomizeColor;
 
     private final List<WaystoneValue> queuedWaypoints;
 
@@ -65,6 +68,7 @@ public class JourneymapPlugin implements IClientPlugin
 
     /**
      * Adds a themeable button in the fullscreen map to toggle waystone waypoint display.
+     *
      * @param addonButtonDisplayEvent - the event
      */
     private void onFullscreenAddonButton(FullscreenDisplayEvent.AddonButtonDisplayEvent addonButtonDisplayEvent)
@@ -116,6 +120,7 @@ public class JourneymapPlugin implements IClientPlugin
                             // Adds an option in the journeymap options screen.
                             OptionCategory category = new OptionCategory(getModId(), "waystones.integration.journeymap.category");
                             this.enabled = new BooleanOption(category, "enabled", "waystones.integration.journeymap.enable", true);
+                            this.randomizeColor = new BooleanOption(category, "random_color", "waystones.integration.journeymap.random_color", true);
                             // hidden from the ui
                             this.displayWaypoints = new BooleanOption(new OptionCategory(getModId(), "Hidden"), "displayed", "waystones.integration.journeymap.enable", true);
                         }
@@ -130,12 +135,16 @@ public class JourneymapPlugin implements IClientPlugin
 
     }
 
-    private void updateWaypointDisplay(boolean display) {
-       if(!display) {
-           api.removeAll(getModId(), DisplayType.Waypoint);
-       } else {
-           Waystones.WAYSTONE_STORAGE.getAllHashes().forEach(hash-> addWaypoint(Waystones.WAYSTONE_STORAGE.getWaystoneData(hash)));
-       }
+    private void updateWaypointDisplay(boolean display)
+    {
+        if (!display)
+        {
+            api.removeAll(getModId(), DisplayType.Waypoint);
+        }
+        else
+        {
+            Waystones.WAYSTONE_STORAGE.getAllHashes().forEach(hash -> addWaypoint(Waystones.WAYSTONE_STORAGE.getWaystoneData(hash)));
+        }
     }
 
     private void buildQueuedWaypoints()
@@ -185,7 +194,8 @@ public class JourneymapPlugin implements IClientPlugin
 
     public void addWaypoint(WaystoneValue waystone)
     {
-        if (Waystones.WAYSTONE_STORAGE == null)
+        if (Waystones.WAYSTONE_STORAGE == null
+                || api.getWaypoint(getModId(), waystone.getHash()) != null) // do not recreate waypoint
         {
             return;
         }
@@ -199,11 +209,14 @@ public class JourneymapPlugin implements IClientPlugin
                 waystone.getWorldName(),
                 waystone.way_getPos()
         )
-                .setIcon(icon)
-                .setPersistent(false);  // we don't want to save to disk.
+                .setIcon(icon);
 
         try
         {
+            if (randomizeColor.get())
+            {
+                waypoint.setColor(getRandomColor());
+            }
             waypoint.setEnabled(displayWaypoints.get());
             this.api.show(waypoint);
         }
@@ -211,5 +224,14 @@ public class JourneymapPlugin implements IClientPlugin
         {
             Waystones.LOGGER.error(t.getMessage(), t);
         }
+    }
+
+    private int getRandomColor()
+    {
+        Random rand = new Random();
+        float r = rand.nextFloat();
+        float g = rand.nextFloat();
+        float b = rand.nextFloat();
+        return new Color(r, g, b).getRGB();
     }
 }

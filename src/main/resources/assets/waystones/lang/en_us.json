@@ -111,6 +111,8 @@
   "waystones.integration.journeymap.category.tooltip" : "Fabric-Waystones Journeymap Properties",
   "waystones.integration.journeymap.enable" : "Enable",
   "waystones.integration.journeymap.enable.tooltip" : "Enable Integration, disabling will not hide existing waypoints but it will prevent new ones being created when waystones are discovered.",
+  "waystones.integration.journeymap.random_color" : "Randomize Color",
+  "waystones.integration.journeymap.random_color.tooltip" : "Randomizes waypoint color on creation.",
   "waystones.integration.journeymap.theme.on" : "Hide Waystones",
   "waystones.integration.journeymap.theme.on.tooltip" : "Hide Waystone waypoint display.",
   "waystones.integration.journeymap.theme.off" : "Show Waystones",

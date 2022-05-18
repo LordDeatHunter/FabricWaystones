@@ -15,5 +15,5 @@ public interface WaystoneValue {
 
 	boolean isGlobal();
 
-    String getHash();
+	String getHash();
 }
