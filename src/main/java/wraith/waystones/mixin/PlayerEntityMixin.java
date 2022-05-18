@@ -18,6 +18,7 @@ import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.client.ClientStuff;
+import wraith.waystones.integration.event.WaystoneEvents;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.Utils;
 
@@ -68,6 +69,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void discoverWaystone(WaystoneBlockEntity waystone) {
         discoveredWaystones.add(waystone.getHash());
+        WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(waystone);
         syncData();
     }
 
@@ -254,6 +256,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void forgetWaystones(HashSet<String> toForget) {
         for (String hash : toForget) {
+            WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onUpdate(Waystones.WAYSTONE_STORAGE.getWaystoneData(hash));
             discoveredWaystones.remove(hash);
         }
         syncData();

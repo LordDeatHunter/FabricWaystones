@@ -21,6 +21,7 @@ import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.access.WaystoneValue;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.integration.event.WaystoneEvents;
 import wraith.waystones.mixin.MinecraftServerAccessor;
 
 import java.io.File;
@@ -278,7 +279,9 @@ public class WaystoneStorage {
 
     public void renameWaystone(String hash, String name) {
         if (WAYSTONES.containsKey(hash)) {
-            WAYSTONES.get(hash).getEntity().setName(name);
+            WaystoneValue waystone = WAYSTONES.get(hash);
+            WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onRename(waystone, name);
+            waystone.getEntity().setName(name);
             loadOrSaveWaystones(true);
         }
     }

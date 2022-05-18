@@ -21,6 +21,9 @@
     ],
     "client": [
       "wraith.waystones.client.WaystonesClient"
+    ],
+    "journeymap": [
+      "wraith.waystones.integration.journeymap.JourneymapPlugin"
     ]
   },
   "mixins": [

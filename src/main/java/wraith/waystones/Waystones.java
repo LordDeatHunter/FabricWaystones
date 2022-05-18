@@ -13,11 +13,11 @@ public class Waystones implements ModInitializer {
 
     public static final String MOD_ID = "waystones";
     public static WaystoneStorage WAYSTONE_STORAGE;
-    public static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger("Fabric-Waystones");
 
     @Override
     public void onInitialize() {
-        LOGGER.info("[Fabric-Waystones] is initializing.");
+        LOGGER.info("Is initializing.");
         Config.getInstance().loadConfig();
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
@@ -27,8 +27,8 @@ public class Waystones implements ModInitializer {
         WaystonesEventManager.registerEvents();
         WaystonePacketHandler.registerPacketHandlers();
 
-        LOGGER.info("[Fabric-Waystones] has successfully been initialized.");
-        LOGGER.info("[Fabric-Waystones] If you have any issues or questions, feel free to join our Discord: https://discord.gg/vMjzgS4.");
+        LOGGER.info("Has successfully been initialized.");
+        LOGGER.info("If you have any issues or questions, feel free to join our Discord: https://discord.gg/vMjzgS4.");
     }
 
 }

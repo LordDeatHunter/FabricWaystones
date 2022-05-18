@@ -54,7 +54,7 @@ public class CompatibilityLayer {
 
     public void fromTag(NbtCompound tag) {
         if (tag.contains("Waystones")) {
-            Waystones.LOGGER.info("[Fabric-Waystones] Found old save data. Converting to new save format.");
+            Waystones.LOGGER.info("Found old save data. Converting to new save format.");
             COMPATABILITY_ENABLED = true;
             parseOldTag(tag);
         } else if (tag.contains("waystones_compat")) {
@@ -66,12 +66,12 @@ public class CompatibilityLayer {
     private void parseOldTag(NbtCompound tag) {
         NbtList compatTags = tag.getList("Waystones", 10);
         if (compatTags.isEmpty()) {
-            Waystones.LOGGER.info("[Fabric-Waystones] No waystones found in old save data.");
+            Waystones.LOGGER.info("No waystones found in old save data.");
             return;
         }
         HashSet<WaystoneBlockEntity> entities = new HashSet<>();
         for (int i = 0; i < compatTags.size(); ++i) {
-            Waystones.LOGGER.info("[Fabric-Waystones] Converting " + i + " of " + compatTags.size() + " waystones.");
+            Waystones.LOGGER.info("Converting " + i + " of " + compatTags.size() + " waystones.");
             var waystoneTag = compatTags.getCompound(i);
 
             var name = waystoneTag.getString("Name");

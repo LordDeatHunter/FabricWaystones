@@ -105,6 +105,11 @@
   "waystones.debug.debugger_tooltip1": "§6[§e?§6] §3What are we testing today?",
   "waystones.debug.debugger_tooltip2": "§6[§e?§6] §3What needs testing?",
   "waystones.debug.debugger_tooltip3": "§6[§e?§6] §3Anything broken?",
-  "waystones.debug.debugger_tooltip4": "§6[§e?§6] §3Does something need fixing?"
+  "waystones.debug.debugger_tooltip4": "§6[§e?§6] §3Does something need fixing?",
+
+  "waystones.integration.journeymap.category" : "Fabric-Waystones",
+  "waystones.integration.journeymap.category.tooltip" : "Fabric-Waystones Journeymap Properties",
+  "waystones.integration.journeymap.enable" : "Enable",
+  "waystones.integration.journeymap.enable.tooltip" : "Enable Integration"
 
 }
