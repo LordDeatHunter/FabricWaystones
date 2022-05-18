@@ -30,7 +30,6 @@ public class JourneymapPlugin implements IClientPlugin
 {
     // API reference
     private IClientAPI api = null;
-    private static JourneymapPlugin INSTANCE;
     private BooleanOption enabled;
     private BooleanOption displayWaypoints;
 
@@ -43,19 +42,7 @@ public class JourneymapPlugin implements IClientPlugin
      */
     public JourneymapPlugin()
     {
-        INSTANCE = this;
-        queuedWaypoints = new ArrayList<>();
-    }
-
-    /**
-     * This will return null if Journeymap is not loaded. Use carefully.
-     *
-     * @return - The Plugin
-     */
-    @Nullable
-    public static JourneymapPlugin getInstance()
-    {
-        return INSTANCE;
+        this.queuedWaypoints = new ArrayList<>();
     }
 
     /**
@@ -76,6 +63,10 @@ public class JourneymapPlugin implements IClientPlugin
         FabricEvents.ADDON_BUTTON_DISPLAY_EVENT.register(this::onFullscreenAddonButton);
     }
 
+    /**
+     * Adds a themeable button in the fullscreen map to toggle waystone waypoint display.
+     * @param addonButtonDisplayEvent - the event
+     */
     private void onFullscreenAddonButton(FullscreenDisplayEvent.AddonButtonDisplayEvent addonButtonDisplayEvent)
     {
         addonButtonDisplayEvent.getThemeButtonDisplay()
@@ -122,8 +113,10 @@ public class JourneymapPlugin implements IClientPlugin
                     {
                         case OPTIONS ->
                         {
+                            // Adds an option in the journeymap options screen.
                             OptionCategory category = new OptionCategory(getModId(), "waystones.integration.journeymap.category");
                             this.enabled = new BooleanOption(category, "enabled", "waystones.integration.journeymap.enable", true);
+                            // hidden from the ui
                             this.displayWaypoints = new BooleanOption(new OptionCategory(getModId(), "Hidden"), "displayed", "waystones.integration.journeymap.enable", true);
                         }
                     }
@@ -173,6 +166,8 @@ public class JourneymapPlugin implements IClientPlugin
             }
             else
             {
+                // queue waypoints to be displayed once mapping has started.
+                // Waystones that are sent on server join is too early to be displayed so we need to wait.
                 queuedWaypoints.add(waystone);
             }
 
@@ -205,7 +200,7 @@ public class JourneymapPlugin implements IClientPlugin
                 waystone.way_getPos()
         )
                 .setIcon(icon)
-                .setPersistent(false);
+                .setPersistent(false);  // we don't want to save to disk.
 
         try
         {
