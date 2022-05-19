@@ -81,7 +81,7 @@ public final class WaystonePacketHandler {
                 if (waystone == null || waystone.isGlobal()) {
                     return;
                 }
-                if (player.getUuid().equals(waystone.getOwner())) {
+                if (!server.isDedicated() || player.getUuid().equals(waystone.getOwner())) {
                     waystone.setOwner(null);
                 }
                 ((PlayerEntityMixinAccess) player).forgetWaystone(hash);
