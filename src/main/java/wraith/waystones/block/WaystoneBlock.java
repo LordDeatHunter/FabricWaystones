@@ -1,6 +1,14 @@
 package wraith.waystones.block;
 
-import net.minecraft.block.*;
+import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.HorizontalFacingBlock;
+import net.minecraft.block.ShapeContext;
+import net.minecraft.block.Waterloggable;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
@@ -46,8 +54,6 @@ import wraith.waystones.item.WaystoneScrollItem;
 import wraith.waystones.registry.BlockEntityRegistry;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.Utils;
-
-import java.util.HashSet;
 
 @SuppressWarnings("deprecation")
 public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
@@ -238,7 +244,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             return ActionResult.PASS;
         }
 
-        HashSet<String> discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
+        var discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
 
         WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
         if (blockEntity == null) {

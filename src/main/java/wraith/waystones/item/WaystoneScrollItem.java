@@ -86,7 +86,7 @@ public class WaystoneScrollItem extends Item {
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
         if (context.getWorld().getBlockState(context.getBlockPos()).getBlock() instanceof WaystoneBlock && context.getPlayer() != null) {
-            HashSet<String> discovered = ((PlayerEntityMixinAccess) context.getPlayer()).getDiscoveredWaystones();
+            var discovered = ((PlayerEntityMixinAccess) context.getPlayer()).getDiscoveredWaystones();
 
             ItemStack stack = context.getStack();
 

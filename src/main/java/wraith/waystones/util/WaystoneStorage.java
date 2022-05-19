@@ -287,7 +287,7 @@ public class WaystoneStorage {
         if (WAYSTONES.containsKey(hash)) {
             WaystoneValue waystone = WAYSTONES.get(hash);
             waystone.getEntity().setName(name);
-            WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(waystone);
+            WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(hash);
             loadOrSaveWaystones(true);
         }
     }

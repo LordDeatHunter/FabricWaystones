@@ -25,7 +25,7 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
     public ArrayList<String> getWaystonesSorted() {
         ArrayList<String> waystones = new ArrayList<>();
         HashSet<String> toRemove = new HashSet<>();
-        HashSet<String> discoveredWaystones = ((PlayerEntityMixinAccess)this).getDiscoveredWaystones();
+        var discoveredWaystones = ((PlayerEntityMixinAccess)this).getDiscoveredWaystones();
         for (String hash : discoveredWaystones) {
             if (Waystones.WAYSTONE_STORAGE.containsHash(hash)) {
                 waystones.add(Waystones.WAYSTONE_STORAGE.getName(hash));
@@ -46,7 +46,7 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
     public ArrayList<String> getHashesSorted() {
         ArrayList<String> waystones = new ArrayList<>();
         HashSet<String> toRemove = new HashSet<>();
-        HashSet<String> discoveredWaystones = ((PlayerEntityMixinAccess)this).getDiscoveredWaystones();
+        var discoveredWaystones = ((PlayerEntityMixinAccess)this).getDiscoveredWaystones();
         for (String hash : discoveredWaystones) {
             if (Waystones.WAYSTONE_STORAGE.containsHash(hash)) {
                 waystones.add(hash);

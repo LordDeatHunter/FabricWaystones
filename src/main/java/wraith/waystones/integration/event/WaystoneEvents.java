@@ -3,7 +3,6 @@ package wraith.waystones.integration.event;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import org.jetbrains.annotations.Nullable;
-import wraith.waystones.access.WaystoneValue;
 
 /**
  * Client side events.
@@ -35,7 +34,7 @@ public class WaystoneEvents
     @FunctionalInterface
     public interface UpdateWaystone
     {
-        void onUpdate(@Nullable WaystoneValue event);
+        void onUpdate(@Nullable String hash);
     }
 
     @FunctionalInterface

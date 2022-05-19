@@ -1,5 +1,10 @@
 package wraith.waystones.mixin;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.damage.DamageSource;
@@ -22,14 +27,10 @@ import wraith.waystones.integration.event.WaystoneEvents;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.Utils;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-
 @Mixin(PlayerEntity.class)
 public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
-    private final HashSet<String> discoveredWaystones = new HashSet<>();
+    private final Set<String> discoveredWaystones = ConcurrentHashMap.newKeySet();
     private boolean viewDiscoveredWaystones = true;
     private boolean viewGlobalWaystones = true;
     private int teleportCooldown = 0;
@@ -55,6 +56,11 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
     @Override
+    public int getTeleportCooldown() {
+        return teleportCooldown;
+    }
+
+    @Override
     public void setTeleportCooldown(int cooldown) {
         if (cooldown > 0) {
             this.teleportCooldown = cooldown;
@@ -62,15 +68,22 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
     @Override
-    public int getTeleportCooldown() {
-        return teleportCooldown;
+    public void discoverWaystone(WaystoneBlockEntity waystone) {
+        discoverWaystone(waystone.getHash());
     }
 
     @Override
-    public void discoverWaystone(WaystoneBlockEntity waystone) {
-        discoveredWaystones.add(waystone.getHash());
-        WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(waystone);
-        syncData();
+    public void discoverWaystone(String hash) {
+        discoverWaystone(hash, true);
+    }
+
+    @Override
+    public void discoverWaystone(String hash, boolean sync) {
+        WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(hash);
+        discoveredWaystones.add(hash);
+        if (sync) {
+            syncData();
+        }
     }
 
     @Override
@@ -80,14 +93,21 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Override
     public void forgetWaystone(WaystoneBlockEntity waystone) {
-        discoveredWaystones.remove(waystone.getHash());
-        syncData();
+        forgetWaystone(waystone.getHash());
     }
 
     @Override
     public void forgetWaystone(String hash) {
+        forgetWaystone(hash, true);
+    }
+
+    @Override
+    public void forgetWaystone(String hash, boolean sync) {
+        WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
         discoveredWaystones.remove(hash);
-        syncData();
+        if (sync) {
+            syncData();
+        }
     }
 
     @Override
@@ -101,7 +121,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
     @Override
-    public HashSet<String> getDiscoveredWaystones() {
+    public Set<String> getDiscoveredWaystones() {
         return discoveredWaystones;
     }
 
@@ -144,7 +164,8 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             discoveredWaystones.remove(remove);
         }
 
-        waystones.sort(Comparator.comparing(a -> Waystones.WAYSTONE_STORAGE.getWaystoneEntity(a).getWaystoneName()));
+        waystones.sort(Comparator.comparing(
+            a -> Waystones.WAYSTONE_STORAGE.getWaystoneEntity(a).getWaystoneName()));
         return waystones;
     }
 
@@ -172,7 +193,8 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void learnWaystones(PlayerEntity player, boolean overwrite) {
         discoveredWaystones.clear();
-        this.discoveredWaystones.addAll(((PlayerEntityMixinAccess) player).getDiscoveredWaystones());
+        this.discoveredWaystones.addAll(
+            ((PlayerEntityMixinAccess) player).getDiscoveredWaystones());
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
@@ -201,7 +223,8 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             for (NbtElement waystone : waystones) {
                 if (hashes.contains(waystone.asString())) {
                     discoveredWaystones.add(waystone.asString());
-                    WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(Waystones.WAYSTONE_STORAGE.getWaystoneData(waystone.asString()));
+                    WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker()
+                        .onUpdate(waystone.asString());
                 }
             }
         }
@@ -245,21 +268,13 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (Waystones.WAYSTONE_STORAGE == null) {
             return;
         }
-        for (String waystone : toLearn) {
-            if (!Waystones.WAYSTONE_STORAGE.containsHash(waystone)) {
-                continue;
-            }
-            this.discoveredWaystones.add(waystone);
-        }
+        toLearn.forEach(hash -> discoverWaystone(hash, false));
         syncData();
     }
 
     @Override
     public void forgetWaystones(HashSet<String> toForget) {
-        for (String hash : toForget) {
-            WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
-            discoveredWaystones.remove(hash);
-        }
+        toForget.forEach(hash -> this.forgetWaystone(hash, false));
         syncData();
     }
 
