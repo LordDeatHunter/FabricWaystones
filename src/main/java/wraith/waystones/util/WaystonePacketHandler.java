@@ -20,6 +20,9 @@ public final class WaystonePacketHandler {
     public static final Identifier TOGGLE_GLOBAL_WAYSTONE = Utils.ID("toggle_global_waystone");
     public static final Identifier REQUEST_PLAYER_SYNC = Utils.ID("request_player_waystone_update");
     public static final Identifier VOID_REVIVE = Utils.ID("void_totem_revive");
+    public static final Identifier SYNC_PLAYER = Utils.ID("sync_player");
+    public static final Identifier WAYSTONE_CONFIG_UPDATE = Utils.ID("waystone_config_update");
+    public static final Identifier WAYSTONE_PACKET = Utils.ID("waystone_packet");
 
     private WaystonePacketHandler() {
     }
@@ -61,9 +64,9 @@ public final class WaystonePacketHandler {
             UUID owner = tag.getUuid("waystone_owner");
             server.execute(() -> {
                 if (Waystones.WAYSTONE_STORAGE.containsHash(hash) &&
-                        ((player.getUuid().equals(owner) &&
-                                owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
-                                player.hasPermissionLevel(2))) {
+                    ((player.getUuid().equals(owner) &&
+                        owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
+                        player.hasPermissionLevel(2))) {
                     Waystones.WAYSTONE_STORAGE.renameWaystone(hash, name);
                 }
             });
@@ -76,16 +79,7 @@ public final class WaystonePacketHandler {
             }
 
             String hash = tag.getString("waystone_hash");
-            server.execute(() -> {
-                var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
-                if (waystone == null || waystone.isGlobal()) {
-                    return;
-                }
-                if (!server.isDedicated() || player.getUuid().equals(waystone.getOwner())) {
-                    waystone.setOwner(null);
-                }
-                ((PlayerEntityMixinAccess) player).forgetWaystone(hash);
-            });
+            server.execute(() -> ((PlayerEntityMixinAccess) player).forgetWaystone(hash));
         });
         ServerPlayNetworking.registerGlobalReceiver(REQUEST_PLAYER_SYNC, (server, player, networkHandler, data, sender) -> server.execute(((PlayerEntityMixinAccess) player)::syncData));
         ServerPlayNetworking.registerGlobalReceiver(TOGGLE_GLOBAL_WAYSTONE, (server, player, networkHandler, data, sender) -> {
@@ -100,9 +94,9 @@ public final class WaystonePacketHandler {
                 String hash = tag.getString("waystone_hash");
                 UUID owner = tag.getUuid("waystone_owner");
                 if (Waystones.WAYSTONE_STORAGE.containsHash(hash) &&
-                        ((player.getUuid().equals(owner) &&
-                                owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
-                                player.hasPermissionLevel(2))) {
+                    ((player.getUuid().equals(owner) &&
+                        owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
+                        player.hasPermissionLevel(2))) {
                     Waystones.WAYSTONE_STORAGE.toggleGlobal(hash);
                 }
             });

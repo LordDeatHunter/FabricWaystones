@@ -1,10 +1,5 @@
 package wraith.waystones.mixin;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.damage.DamageSource;
@@ -25,7 +20,13 @@ import wraith.waystones.block.WaystoneBlockEntity;
 import wraith.waystones.client.ClientStuff;
 import wraith.waystones.integration.event.WaystoneEvents;
 import wraith.waystones.util.Config;
-import wraith.waystones.util.Utils;
+import wraith.waystones.util.WaystonePacketHandler;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Mixin(PlayerEntity.class)
 public class PlayerEntityMixin implements PlayerEntityMixinAccess {
@@ -103,6 +104,17 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Override
     public void forgetWaystone(String hash, boolean sync) {
+        var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
+        var player = _this();
+        if (waystone != null) {
+            if (waystone.isGlobal()) {
+                return;
+            }
+            var server = player.getServer();
+            if ((server != null && !server.isDedicated()) || player.getUuid().equals(waystone.getOwner())) {
+                waystone.setOwner(null);
+            }
+        }
         WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
         discoveredWaystones.remove(hash);
         if (sync) {
@@ -117,7 +129,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         }
         PacketByteBuf packet = PacketByteBufs.create();
         packet.writeNbt(toTagW(new NbtCompound()));
-        ServerPlayNetworking.send(serverPlayerEntity, Utils.ID("sync_player"), packet);
+        ServerPlayNetworking.send(serverPlayerEntity, WaystonePacketHandler.SYNC_PLAYER, packet);
     }
 
     @Override
@@ -275,6 +287,12 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void forgetWaystones(HashSet<String> toForget) {
         toForget.forEach(hash -> this.forgetWaystone(hash, false));
+        syncData();
+    }
+
+    @Override
+    public void forgetAllWaystones() {
+        discoveredWaystones.forEach(hash -> forgetWaystone(hash, false));
         syncData();
     }
 

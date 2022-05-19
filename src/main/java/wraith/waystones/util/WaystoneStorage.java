@@ -200,7 +200,7 @@ public class WaystoneStorage {
     public void sendToPlayer(ServerPlayerEntity player) {
         PacketByteBuf data = PacketByteBufs.create();
         data.writeNbt(toTag(new NbtCompound()));
-        ServerPlayNetworking.send(player, Utils.ID("waystone_packet"), data);
+        ServerPlayNetworking.send(player, WaystonePacketHandler.WAYSTONE_PACKET, data);
     }
 
     public void removeWaystone(String hash) {

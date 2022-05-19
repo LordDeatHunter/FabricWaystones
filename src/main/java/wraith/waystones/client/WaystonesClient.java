@@ -17,7 +17,6 @@ import wraith.waystones.registry.ItemRegistry;
 import wraith.waystones.registry.WaystonesModelProviderRegistry;
 import wraith.waystones.screen.UniversalWaystoneScreenHandler;
 import wraith.waystones.util.Config;
-import wraith.waystones.util.Utils;
 import wraith.waystones.util.WaystonePacketHandler;
 import wraith.waystones.util.WaystoneStorage;
 
@@ -36,7 +35,7 @@ public class WaystonesClient implements ClientModInitializer {
     }
 
     private void registerPacketHandlers() {
-        ClientPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_packet"), (client, networkHandler, data, sender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(WaystonePacketHandler.WAYSTONE_PACKET, (client, networkHandler, data, sender) -> {
             var nbt = data.readNbt();
             client.execute(() -> {
                 if (Waystones.WAYSTONE_STORAGE == null) {
@@ -60,11 +59,11 @@ public class WaystonesClient implements ClientModInitializer {
                 }
             });
         });
-        ClientPlayNetworking.registerGlobalReceiver(Utils.ID("waystone_config_update"), (client, networkHandler, data, sender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(WaystonePacketHandler.WAYSTONE_CONFIG_UPDATE, (client, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();
             client.execute(() -> Config.getInstance().loadConfig(tag));
         });
-        ClientPlayNetworking.registerGlobalReceiver(Utils.ID("sync_player"), (client, networkHandler, data, sender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(WaystonePacketHandler.SYNC_PLAYER, (client, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();
             client.execute(() -> {
                 if (client.player != null) {

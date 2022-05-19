@@ -38,7 +38,7 @@ public class WaystonesEventManager {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             PacketByteBuf data = PacketByteBufs.create();
             data.writeNbt(Config.getInstance().toNbtCompound());
-            ServerPlayNetworking.send(handler.player, Utils.ID("waystone_config_update"), data);
+            ServerPlayNetworking.send(handler.player, WaystonePacketHandler.WAYSTONE_CONFIG_UPDATE, data);
 
             Waystones.WAYSTONE_STORAGE.sendToPlayer(handler.player);
             Waystones.WAYSTONE_STORAGE.sendCompatData(handler.player);
@@ -49,32 +49,43 @@ public class WaystonesEventManager {
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).syncData());
 
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(CommandManager.literal("waystones")
-                .then(CommandManager.literal("reload")
-                        .requires(source -> source.hasPermissionLevel(1))
-                        .executes(context -> {
-                            Config.getInstance().loadConfig();
-                            PacketByteBuf data = PacketByteBufs.create();
-                            data.writeNbt(Config.getInstance().toNbtCompound());
-                            for (ServerPlayerEntity player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
-                                ServerPlayNetworking.send(player, Utils.ID("waystone_config_update"), data);
-                            }
-                            ServerPlayerEntity player = context.getSource().getPlayer();
-                            if (player != null) {
-                                player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully reloaded!"), false);
-                            }
-                            return 1;
-                        })
-                )
-                .then(CommandManager.literal("display")
-                        .executes(context -> {
-                            ServerPlayerEntity player = context.getSource().getPlayer();
-                            if (player == null) {
-                                return 1;
-                            }
-                            Config.getInstance().print(player);
-                            return 1;
-                        })
-                )
+            .then(CommandManager.literal("reload")
+                .requires(source -> source.hasPermissionLevel(1))
+                .executes(context -> {
+                    Config.getInstance().loadConfig();
+                    PacketByteBuf data = PacketByteBufs.create();
+                    data.writeNbt(Config.getInstance().toNbtCompound());
+                    for (ServerPlayerEntity player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
+                        ServerPlayNetworking.send(player, WaystonePacketHandler.WAYSTONE_CONFIG_UPDATE, data);
+                    }
+                    ServerPlayerEntity player = context.getSource().getPlayer();
+                    if (player != null) {
+                        player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully reloaded!"), false);
+                    }
+                    return 1;
+                })
+            )
+            .then(CommandManager.literal("display")
+                .executes(context -> {
+                    ServerPlayerEntity player = context.getSource().getPlayer();
+                    if (player == null) {
+                        return 1;
+                    }
+                    Config.getInstance().print(player);
+                    return 1;
+                })
+            )
+            .then(CommandManager.literal("forget_all")
+                .executes(context -> {
+                    ServerPlayerEntity player = context.getSource().getPlayer();
+                    if (player == null) {
+                        return 1;
+                    }
+                    ((PlayerEntityMixinAccess) player).forgetAllWaystones();
+                    player.sendMessage(new LiteralText("§6[§eWaystones§6] §3All waystones have been forgotten!"), false);
+                    return 1;
+                })
+            )
         ));
     }
 
