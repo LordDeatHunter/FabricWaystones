@@ -21,6 +21,7 @@ import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.access.WaystoneValue;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.integration.event.WaystoneEvents;
 import wraith.waystones.mixin.MinecraftServerAccessor;
 
 import java.io.File;
@@ -157,6 +158,11 @@ public class WaystoneStorage {
         }
 
         @Override
+        public String getHash() {
+            return this.hash;
+        }
+
+        @Override
         public boolean isGlobal() {
             return this.isGlobal;
         }
@@ -250,6 +256,7 @@ public class WaystoneStorage {
     }
 
     public void removeWaystone(String hash) {
+        WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
         WAYSTONES.remove(hash);
         forgetForAllPlayers(hash);
         loadOrSaveWaystones(true);
@@ -278,7 +285,9 @@ public class WaystoneStorage {
 
     public void renameWaystone(String hash, String name) {
         if (WAYSTONES.containsKey(hash)) {
-            WAYSTONES.get(hash).getEntity().setName(name);
+            WaystoneValue waystone = WAYSTONES.get(hash);
+            waystone.getEntity().setName(name);
+            WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(waystone);
             loadOrSaveWaystones(true);
         }
     }

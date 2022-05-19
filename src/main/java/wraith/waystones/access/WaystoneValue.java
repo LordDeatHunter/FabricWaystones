@@ -14,4 +14,6 @@ public interface WaystoneValue {
 	String getWorldName();
 
 	boolean isGlobal();
+
+	String getHash();
 }

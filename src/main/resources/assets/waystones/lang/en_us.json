@@ -105,6 +105,17 @@
   "waystones.debug.debugger_tooltip1": "§6[§e?§6] §3What are we testing today?",
   "waystones.debug.debugger_tooltip2": "§6[§e?§6] §3What needs testing?",
   "waystones.debug.debugger_tooltip3": "§6[§e?§6] §3Anything broken?",
-  "waystones.debug.debugger_tooltip4": "§6[§e?§6] §3Does something need fixing?"
+  "waystones.debug.debugger_tooltip4": "§6[§e?§6] §3Does something need fixing?",
+
+  "waystones.integration.journeymap.category" : "Fabric-Waystones",
+  "waystones.integration.journeymap.category.tooltip" : "Fabric-Waystones Journeymap Properties",
+  "waystones.integration.journeymap.enable" : "Enable",
+  "waystones.integration.journeymap.enable.tooltip" : "Enable Integration, disabling will not hide existing waypoints but it will prevent new ones being created when waystones are discovered.",
+  "waystones.integration.journeymap.random_color" : "Randomize Color",
+  "waystones.integration.journeymap.random_color.tooltip" : "Randomizes waypoint color on creation.",
+  "waystones.integration.journeymap.theme.on" : "Hide Waystones",
+  "waystones.integration.journeymap.theme.on.tooltip" : "Hide Waystone waypoint display.",
+  "waystones.integration.journeymap.theme.off" : "Show Waystones",
+  "waystones.integration.journeymap.theme.off.tooltip" : "Show Waystone waypoint display."
 
 }
