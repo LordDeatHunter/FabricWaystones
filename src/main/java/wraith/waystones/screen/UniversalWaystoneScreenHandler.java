@@ -1,5 +1,7 @@
 package wraith.waystones.screen;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
@@ -22,9 +24,6 @@ import wraith.waystones.mixin.ServerPlayerEntityAccessor;
 import wraith.waystones.util.Utils;
 import wraith.waystones.util.WaystonePacketHandler;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-
 public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
 
     protected final PlayerEntity player;
@@ -33,12 +32,15 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     protected String filter = "";
     private SearchType searchType = SearchType.STARTS_WITH;
 
-    protected UniversalWaystoneScreenHandler(ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type, int syncId, PlayerEntity player) {
+    protected UniversalWaystoneScreenHandler(
+        ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type, int syncId,
+        PlayerEntity player) {
         super(type, syncId);
         this.player = player;
         for (int y = 0; y < 3; ++y) {
             for (int x = 0; x < 9; ++x) {
-                this.addSlot(new Slot(this.player.getInventory(), x + y * 9 + 9, 2000000000, 2000000000));
+                this.addSlot(
+                    new Slot(this.player.getInventory(), x + y * 9 + 9, 2000000000, 2000000000));
             }
         }
 
@@ -91,6 +93,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
             this.sortedWaystones.remove(waystone);
             this.filteredWaystones.remove(waystone);
             onForget(waystone);
+            ((PlayerEntityMixinAccess) player).forgetWaystone(waystone);
             updateWaystones(player);
             ClientPlayNetworking.send(WaystonePacketHandler.FORGET_WAYSTONE, data);
         } else {
@@ -109,14 +112,16 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         if (player.world.isClient) {
             closeOnClient();
         } else {
-            ((ServerPlayerEntityAccessor) player).getNetworkHandler().sendPacket(new CloseScreenS2CPacket(this.syncId));
+            ((ServerPlayerEntityAccessor) player).getNetworkHandler()
+                .sendPacket(new CloseScreenS2CPacket(this.syncId));
             player.currentScreenHandler.close(player);
             player.currentScreenHandler = player.playerScreenHandler;
         }
     }
 
     protected void closeOnClient() {
-        ((ClientPlayerEntityAccessor) player).getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(this.syncId));
+        ((ClientPlayerEntityAccessor) player).getNetworkHandler()
+            .sendPacket(new CloseHandledScreenC2SPacket(this.syncId));
         setCursorStack(ItemStack.EMPTY);
         player.currentScreenHandler = player.playerScreenHandler;
         MinecraftClient.getInstance().setScreen(null);
@@ -145,7 +150,9 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         this.filteredWaystones.clear();
         for (String waystone : this.sortedWaystones) {
             String name = Waystones.WAYSTONE_STORAGE.getName(waystone).toLowerCase();
-            if ("".equals(this.filter) || (this.searchType == SearchType.STARTS_WITH && name.startsWith(this.filter)) || (this.searchType == SearchType.CONTAINS && name.contains(this.filter))) {
+            if ("".equals(this.filter) || (this.searchType == SearchType.STARTS_WITH
+                && name.startsWith(this.filter)) || (this.searchType == SearchType.CONTAINS
+                && name.contains(this.filter))) {
                 filteredWaystones.add(waystone);
             }
         }
@@ -161,7 +168,9 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     }
 
     public Text getSearchTypeTooltip() {
-        return new TranslatableText("waystones.gui." + (this.searchType == SearchType.CONTAINS ? "contains" : "starts_with"));
+        return new TranslatableText(
+            "waystones.gui." + (this.searchType == SearchType.CONTAINS ? "contains"
+                : "starts_with"));
     }
 
     enum SearchType {
