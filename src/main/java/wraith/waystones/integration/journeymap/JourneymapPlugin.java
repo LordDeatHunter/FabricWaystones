@@ -136,11 +136,17 @@ public class JourneymapPlugin implements IClientPlugin {
         queuedWaypoints.clear();
     }
 
-    private void onRemove(String hash) {
+    private void onRemove(final String hash) {
         if (enabled.get()) {
             Waypoint waypoint = api.getWaypoint(getModId(), hash);
+            Waypoint diskWp = api.getWaypoints(getModId()).stream().filter(w ->
+                    w.getId().equals(hash)).findFirst().orElse(null);
             if (waypoint != null) {
                 api.remove(waypoint);
+            }
+            // failsafe in-case waypoint is on disk and not loaded in plugin memory.
+            if (diskWp != null) {
+                api.remove(diskWp);
             }
         }
     }
@@ -167,21 +173,31 @@ public class JourneymapPlugin implements IClientPlugin {
             return;
         }
         var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneData(hash);
-        if (waystone != null && enabled.get()) {
-            onRemove(waystone.getHash());
-            addWaypoint(waystone);
+        Integer color = 0;
+        Waypoint waypoint = api.getWaypoint(getModId(), waystone.getHash());
+
+        if (waypoint != null)
+        {
+            //save the old color!
+            color = waypoint.getColor();
         }
+        onRemove(waystone.getHash());
+        addWaypoint(waystone, color);
     }
 
-    public void addWaypoint(WaystoneValue waystone) {
+    private void addWaypoint(WaystoneValue waystone) {
+        addWaypoint(waystone, null);
+    }
+
+    private void addWaypoint(WaystoneValue waystone, Integer color) {
         if (Waystones.WAYSTONE_STORAGE == null
             || api.getWaypoint(getModId(), waystone.getHash()) != null) // do not recreate waypoint
         {
             return;
         }
 
-        var icon = new MapImage(Utils.ID("images/waystone-icon.png"), 16,
-            16); // this image will be very large until journeymap 5.8.4 is released
+        var icon = new MapImage(Utils.ID("images/waystone-icon.png"),
+                16, 16); // this image will be very large until journeymap 5.8.4 is released
 
         var waypoint = new Waypoint(
             getModId(),
@@ -193,12 +209,18 @@ public class JourneymapPlugin implements IClientPlugin {
             .setIcon(icon);
 
         try {
-            if (randomizeColor.get()) {
-                waypoint.setColor(getRandomColor());
+            if (randomizeColor.get() && color == null) {
+                color = getRandomColor();
             }
+
+            if (color != null) {
+                waypoint.setColor(color);
+            }
+
             waypoint.setEnabled(displayWaypoints.get());
             this.api.show(waypoint);
-        } catch (Throwable t) {
+        }
+        catch (Throwable t) {
             Waystones.LOGGER.error(t.getMessage(), t);
         }
     }

@@ -17,17 +17,15 @@ public class WaystoneEvents
         }
     });
 
-    public static final Event<UpdateWaystone> DISCOVER_WAYSTONE_EVENT = EventFactory.createArrayBacked(UpdateWaystone.class, callbacks -> event -> {
-        for (UpdateWaystone callback : callbacks)
-        {
-            callback.onUpdate(event);
+    public static final Event<UpdateWaystone> DISCOVER_WAYSTONE_EVENT = EventFactory.createArrayBacked(UpdateWaystone.class, callbacks -> hash -> {
+        for (UpdateWaystone callback : callbacks) {
+            callback.onUpdate(hash);
         }
     });
 
-    public static final Event<UpdateWaystone> RENAME_WAYSTONE_EVENT = EventFactory.createArrayBacked(UpdateWaystone.class, callbacks -> event -> {
-        for (UpdateWaystone callback : callbacks)
-        {
-            callback.onUpdate(event);
+    public static final Event<UpdateWaystone> RENAME_WAYSTONE_EVENT = EventFactory.createArrayBacked(UpdateWaystone.class, callbacks -> hash -> {
+        for (UpdateWaystone callback : callbacks) {
+            callback.onUpdate(hash);
         }
     });
 
