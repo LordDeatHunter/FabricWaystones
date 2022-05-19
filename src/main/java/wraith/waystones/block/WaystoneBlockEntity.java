@@ -2,6 +2,7 @@ package wraith.waystones.block;
 
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -46,44 +47,37 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
 
-public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory, WaystoneValue {
+public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory,
+    ExtendedScreenHandlerFactory, WaystoneValue {
 
+    public float lookingRotR = 0;
     private String name = "";
     private String hash;
     private boolean isGlobal = false;
     private UUID owner = null;
     private String ownerName = null;
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
+    private Integer color;
+    private float turningSpeedR = 2;
+    private long tickDelta = 0;
 
     public WaystoneBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, pos, state);
         this.name = Utils.generateWaystoneName(this.name);
     }
 
-    public void setOwner(PlayerEntity player) {
-        if (player == null) {
-            if (this.owner != null && this.world != null) {
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F);
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
-            }
-            this.owner = null;
-            this.ownerName = null;
-        } else {
-            if (this.owner == null && world != null) {
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F);
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
-            }
-            this.owner = player.getUuid();
-            this.ownerName = player.getName().asString();
-        }
-        updateActiveState();
-        markDirty();
+    public static void ticker(World world, BlockPos blockPos, BlockState blockState,
+                              WaystoneBlockEntity waystone) {
+        waystone.tick();
     }
 
     public void updateActiveState() {
-        if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (owner == null)) {
-            world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, this.ownerName != null));
-            world.setBlockState(pos.up(), world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, this.ownerName != null));
+        if (world != null && !world.isClient
+            && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (owner == null)) {
+            world.setBlockState(pos,
+                world.getBlockState(pos).with(WaystoneBlock.ACTIVE, this.ownerName != null));
+            world.setBlockState(pos.up(),
+                world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, this.ownerName != null));
         }
     }
 
@@ -98,6 +92,17 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
+    public @Nullable Integer getColor() {
+        return this.color;
+    }
+
+    @Override
+    public void setColor(@Nullable Integer color) {
+        this.color = color;
+        markDirty();
+    }
+
+    @Override
     protected DefaultedList<ItemStack> getInvStackList() {
         return this.inventory;
     }
@@ -108,7 +113,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory,
+                                    PlayerEntity player) {
         return new WaystoneBlockScreenHandler(syncId, this, player);
     }
 
@@ -142,6 +148,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (nbt.contains("waystone_owner_name")) {
             this.ownerName = nbt.getString("waystone_owner_name");
         }
+        this.color = nbt.contains("color", NbtType.INT) ? nbt.getInt("color") : null;
         this.inventory = DefaultedList.ofSize(nbt.getInt("inventory_size"), ItemStack.EMPTY);
         Inventories.readNbt(nbt, inventory);
     }
@@ -161,6 +168,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             tag.putString("waystone_owner_name", this.ownerName);
         }
         tag.putBoolean("waystone_is_global", this.isGlobal);
+        if (this.color != null) {
+            tag.putInt("color", this.color);
+        }
         tag.putInt("inventory_size", this.inventory.size());
         Inventories.writeNbt(tag, this.inventory);
         return tag;
@@ -188,17 +198,21 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         markDirty();
     }
 
+    public void setInventory(ArrayList<ItemStack> newInventory) {
+        this.inventory = DefaultedList.ofSize(newInventory.size(), ItemStack.EMPTY);
+        for (int i = 0; i < newInventory.size(); ++i) {
+            setItemInSlot(i, newInventory.get(i));
+        }
+        markDirty();
+    }
+
     @Override
-    public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf packetByteBuf) {
+    public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity,
+                                       PacketByteBuf packetByteBuf) {
         NbtCompound tag = createTag(new NbtCompound());
         tag.putString("waystone_hash", this.hash);
         packetByteBuf.writeNbt(tag);
     }
-
-    public float lookingRotR = 0;
-    private float turningSpeedR = 2;
-
-    private long tickDelta = 0;
 
     private float rotClamp(int clampTo, float value) {
         if (value >= clampTo) {
@@ -213,7 +227,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private boolean checkBound(int amount, float rot) {
         float Rot = Math.round(rot);
         float Rot2 = rotClamp(360, Rot + 180);
-        return ((Rot - amount <= lookingRotR && lookingRotR <= Rot + amount) || (Rot2 - amount <= lookingRotR && lookingRotR <= Rot2 + amount));
+        return ((Rot - amount <= lookingRotR && lookingRotR <= Rot + amount) || (
+            Rot2 - amount <= lookingRotR && lookingRotR <= Rot2 + amount));
     }
 
     private void moveOnTickR(float rot) {
@@ -251,26 +266,31 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (rd > 5) {
             if (p == ParticleTypes.ENCHANT) {
                 this.world.addParticle(p, playerPos.x, playerPos.y + 1.5D, playerPos.z,
-                        (getPos().getX() + 0.5D - playerPos.x), (y - 1.25D - playerPos.y),
-                        (getPos().getZ() + 0.5D - playerPos.z));
+                    (getPos().getX() + 0.5D - playerPos.x), (y - 1.25D - playerPos.y),
+                    (getPos().getZ() + 0.5D - playerPos.z));
             } else {
-                this.world.addParticle(p, this.getPos().getX() + 0.5D, y + 0.8D, this.getPos().getZ() + 0.5D,
-                        (playerPos.x - getPos().getX()) - r.nextDouble(),
-                        (playerPos.y - getPos().getY() - 0.5D) - r.nextDouble() * 0.5D,
-                        (playerPos.z - getPos().getZ()) - r.nextDouble());
+                this.world.addParticle(p, this.getPos().getX() + 0.5D, y + 0.8D,
+                    this.getPos().getZ() + 0.5D,
+                    (playerPos.x - getPos().getX()) - r.nextDouble(),
+                    (playerPos.y - getPos().getY() - 0.5D) - r.nextDouble() * 0.5D,
+                    (playerPos.z - getPos().getZ()) - r.nextDouble());
             }
         }
         if (rd > 8) {
-            this.world.addParticle(p, y + 0.5D, this.getPos().getY() + 0.8D, this.getPos().getZ() + 0.5D,
-                    r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D, r.nextDouble() * k);
+            this.world.addParticle(p, y + 0.5D, this.getPos().getY() + 0.8D,
+                this.getPos().getZ() + 0.5D,
+                r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D, r.nextDouble() * k);
         }
     }
 
     public void tick() {
-        if (world == null) return;
+        if (world == null) {
+            return;
+        }
         ++tickDelta;
         if (getCachedState().get(WaystoneBlock.ACTIVE)) {
-            var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D, this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
+            var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D,
+                this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
             if (closestPlayer != null) {
                 addParticle(closestPlayer);
                 double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
@@ -305,12 +325,14 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public boolean canAccess(PlayerEntity player) {
-        return player.squaredDistanceTo((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
+        return player.squaredDistanceTo((double) this.pos.getX() + 0.5D,
+            (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
     }
 
     public boolean teleportPlayer(PlayerEntity player, boolean takeCost) {
         return teleportPlayer(player, takeCost, null);
     }
+
     public boolean teleportPlayer(PlayerEntity player, boolean takeCost, TeleportSources source) {
         if (!(player instanceof ServerPlayerEntity playerEntity)) {
             return false;
@@ -348,10 +370,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             return false;
         }
         TeleportTarget target = new TeleportTarget(
-                new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
-                new Vec3d(0, 0, 0),
-                fYaw,
-                0
+            new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
+            new Vec3d(0, 0, 0),
+            fYaw,
+            0
         );
         if (source == null) {
             source = Utils.getTeleportSource(playerEntity);
@@ -368,27 +390,31 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 if (playerEntity.getStackInHand(hand).getItem() instanceof AbyssWatcherItem) {
                     player.sendToolBreakStatus(hand);
                     playerEntity.getStackInHand(hand).decrement(1);
-                    player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
+                    player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK,
+                        SoundCategory.PLAYERS, 1F, 1F);
                 }
             }
         }
         return true;
     }
 
-    private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target, TeleportSources source, boolean takeCost) {
+    private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target,
+                               TeleportSources source, boolean takeCost) {
         var playerAccess = (PlayerEntityMixinAccess) player;
         var cooldown = playerAccess.getTeleportCooldown();
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
             player.sendMessage(new TranslatableText(
-                    "waystones.no_teleport_message.cooldown",
-                    new LiteralText(cooldownSeconds).styled(style ->
-                            style.withColor(TextColor.parse(new TranslatableText("waystones.no_teleport_message.cooldown.arg_color").getString()))
-                    )
+                "waystones.no_teleport_message.cooldown",
+                new LiteralText(cooldownSeconds).styled(style ->
+                    style.withColor(TextColor.parse(new TranslatableText(
+                        "waystones.no_teleport_message.cooldown.arg_color").getString()))
+                )
             ), false);
             return false;
         }
-        if ((source != TeleportSources.LOCAL_VOID || Config.getInstance().doLocalVoidsUseCost()) && !Utils.canTeleport(player, hash, takeCost)) {
+        if ((source != TeleportSources.LOCAL_VOID || Config.getInstance().doLocalVoidsUseCost())
+            && !Utils.canTeleport(player, hash, takeCost)) {
             return false;
         }
         playerAccess.setTeleportCooldown(switch (source) {
@@ -399,12 +425,15 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             case POCKET_WORMHOLE -> Config.getInstance().getCooldownFromPocketWormhole();
         });
         var oldPos = player.getBlockPos();
-        player.world.playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        player.world.playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
+            SoundCategory.BLOCKS, 1F, 1F);
         FabricDimensions.teleport(player, world, target);
         BlockPos playerPos = player.getBlockPos();
 
-        if (!oldPos.isWithinDistance(playerPos, 6) || !player.world.getRegistryKey().equals(world.getRegistryKey())) {
-            world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        if (!oldPos.isWithinDistance(playerPos, 6) || !player.world.getRegistryKey()
+            .equals(world.getRegistryKey())) {
+            world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
+                SoundCategory.BLOCKS, 1F, 1F);
         }
         return true;
     }
@@ -414,6 +443,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         markDirty();
     }
 
+    @Override
     public String getHash() {
         if (this.hash == null) {
             createHash(world, pos);
@@ -454,6 +484,30 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return this.owner;
     }
 
+    public void setOwner(PlayerEntity player) {
+        if (player == null) {
+            if (this.owner != null && this.world != null) {
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
+                    SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F);
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
+                    SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
+            }
+            this.owner = null;
+            this.ownerName = null;
+        } else {
+            if (this.owner == null && world != null) {
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
+                    SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F);
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
+                    SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
+            }
+            this.owner = player.getUuid();
+            this.ownerName = player.getName().asString();
+        }
+        updateActiveState();
+        markDirty();
+    }
+
     public void toggleGlobal() {
         this.isGlobal = !this.isGlobal;
         markDirty();
@@ -471,14 +525,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return !this.inventory.isEmpty();
     }
 
-    public void setInventory(ArrayList<ItemStack> newInventory) {
-        this.inventory = DefaultedList.ofSize(newInventory.size(), ItemStack.EMPTY);
-        for (int i = 0; i < newInventory.size(); ++i) {
-            setItemInSlot(i, newInventory.get(i));
-        }
-        markDirty();
-    }
-
     @Override
     public int[] getAvailableSlots(Direction side) {
         return new int[0];
@@ -492,10 +538,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
         return false;
-    }
-
-    public static void ticker(World world, BlockPos blockPos, BlockState blockState, WaystoneBlockEntity waystone) {
-        waystone.tick();
     }
 
 }

@@ -1,14 +1,5 @@
 package wraith.waystones.integration.journeymap;
 
-import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STARTED;
-import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STOPPED;
-import static journeymap.client.api.event.ClientEvent.Type.REGISTRY;
-
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Random;
 import journeymap.client.api.IClientAPI;
 import journeymap.client.api.IClientPlugin;
 import journeymap.client.api.display.DisplayType;
@@ -23,13 +14,20 @@ import journeymap.client.api.option.BooleanOption;
 import journeymap.client.api.option.OptionCategory;
 import org.jetbrains.annotations.NotNull;
 import wraith.waystones.Waystones;
-import wraith.waystones.access.WaystoneValue;
 import wraith.waystones.integration.event.WaystoneEvents;
 import wraith.waystones.util.Utils;
 
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Random;
+
+import static journeymap.client.api.event.ClientEvent.Type.*;
+
 public class JourneymapPlugin implements IClientPlugin {
 
-    private final List<WaystoneValue> queuedWaypoints;
+    private final List<String> queuedWaypoints;
     // API reference
     private IClientAPI api = null;
     private BooleanOption enabled;
@@ -126,8 +124,7 @@ public class JourneymapPlugin implements IClientPlugin {
         if (!display) {
             api.removeAll(getModId(), DisplayType.Waypoint);
         } else {
-            Waystones.WAYSTONE_STORAGE.getAllHashes()
-                .forEach(hash -> addWaypoint(Waystones.WAYSTONE_STORAGE.getWaystoneData(hash)));
+            Waystones.WAYSTONE_STORAGE.getAllHashes().forEach(this::addWaypoint);
         }
     }
 
@@ -137,17 +134,12 @@ public class JourneymapPlugin implements IClientPlugin {
     }
 
     private void onRemove(final String hash) {
-        if (enabled.get()) {
-            Waypoint waypoint = api.getWaypoint(getModId(), hash);
-            Waypoint diskWp = api.getWaypoints(getModId()).stream().filter(w ->
-                    w.getId().equals(hash)).findFirst().orElse(null);
-            if (waypoint != null) {
-                api.remove(waypoint);
-            }
-            // failsafe in-case waypoint is on disk and not loaded in plugin memory.
-            if (diskWp != null) {
-                api.remove(diskWp);
-            }
+        if (!enabled.get()) {
+            return;
+        }
+        Waypoint waypoint = api.getWaypoint(getModId(), hash);
+        if (waypoint != null) {
+            api.remove(waypoint);
         }
     }
 
@@ -155,49 +147,31 @@ public class JourneymapPlugin implements IClientPlugin {
         if (Waystones.WAYSTONE_STORAGE == null) {
             return;
         }
-        var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneData(hash);
-        if (waystone != null && enabled.get()) {
-            if (mappingStarted) {
-                addWaypoint(waystone);
-            } else {
-                // queue waypoints to be displayed once mapping has started.
-                // Waystones that are sent on server join is too early to be displayed so we need to wait.
-                queuedWaypoints.add(waystone);
-            }
-
+        if (!enabled.get()) return;
+        if (mappingStarted) {
+            addWaypoint(hash);
+        } else {
+            // queue waypoints to be displayed once mapping has started.
+            // Waystones that are sent on server join is too early to be displayed, so we need to wait.
+            queuedWaypoints.add(hash);
         }
     }
 
     private void onRename(String hash) {
-        if (Waystones.WAYSTONE_STORAGE == null) {
-            return;
+        onRemove(hash);
+        addWaypoint(hash);
+    }
+
+    private void addWaypoint(String hash) {
+        if (Waystones.WAYSTONE_STORAGE == null || api.getWaypoint(getModId(), hash) != null) {
+            return; // do not recreate waypoint
         }
         var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneData(hash);
-        Integer color = 0;
-        Waypoint waypoint = api.getWaypoint(getModId(), waystone.getHash());
-
-        if (waypoint != null)
-        {
-            //save the old color!
-            color = waypoint.getColor();
-        }
-        onRemove(waystone.getHash());
-        addWaypoint(waystone, color);
-    }
-
-    private void addWaypoint(WaystoneValue waystone) {
-        addWaypoint(waystone, null);
-    }
-
-    private void addWaypoint(WaystoneValue waystone, Integer color) {
-        if (Waystones.WAYSTONE_STORAGE == null
-            || api.getWaypoint(getModId(), waystone.getHash()) != null) // do not recreate waypoint
-        {
+        if (waystone == null) {
             return;
         }
-
         var icon = new MapImage(Utils.ID("images/waystone-icon.png"),
-                16, 16); // this image will be very large until journeymap 5.8.4 is released
+            16, 16);
 
         var waypoint = new Waypoint(
             getModId(),
@@ -206,21 +180,22 @@ public class JourneymapPlugin implements IClientPlugin {
             waystone.getWorldName(),
             waystone.way_getPos()
         )
-            .setIcon(icon);
+            .setIcon(icon)
+            .setPersistent(false);
 
         try {
-            if (randomizeColor.get() && color == null) {
+            var color = waystone.getColor();
+            if (color == null && randomizeColor.get()) {
                 color = getRandomColor();
+                Waystones.WAYSTONE_STORAGE.recolorWaystone(hash, color);
             }
-
             if (color != null) {
                 waypoint.setColor(color);
             }
 
             waypoint.setEnabled(displayWaypoints.get());
             this.api.show(waypoint);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             Waystones.LOGGER.error(t.getMessage(), t);
         }
     }
@@ -232,4 +207,5 @@ public class JourneymapPlugin implements IClientPlugin {
         float b = rand.nextFloat();
         return new Color(r, g, b).getRGB();
     }
+
 }

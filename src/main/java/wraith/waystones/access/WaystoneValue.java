@@ -1,19 +1,24 @@
 package wraith.waystones.access;
 
+import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Nullable;
 import wraith.waystones.block.WaystoneBlockEntity;
 
-import net.minecraft.util.math.BlockPos;
-
 public interface WaystoneValue {
-	WaystoneBlockEntity getEntity();
 
-	String getWaystoneName();
+    WaystoneBlockEntity getEntity();
 
-	BlockPos way_getPos();
+    String getWaystoneName();
 
-	String getWorldName();
+    BlockPos way_getPos();
 
-	boolean isGlobal();
+    String getWorldName();
 
-	String getHash();
+    void setColor(@Nullable Integer color);
+
+    boolean isGlobal();
+
+    String getHash();
+
+    @Nullable Integer getColor();
 }

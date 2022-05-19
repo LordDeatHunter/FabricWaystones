@@ -46,11 +46,13 @@ public class WaystoneDebuggerItem extends Item {
         }
         var owner = waystone.getOwner();
         var ownerName = waystone.getOwnerName();
+        var color = waystone.getColor();
 
         var message = new LiteralText("");
         message.append("§6[§eNAME§6]§e=§3" + waystone.getWaystoneName());
         message.append("\n§6[§eGLOBAL§6]§e=§3" + waystone.isGlobal());
         message.append("\n§6[§eHASH§6]§e=§3" + waystone.getHexHash());
+        message.append("\n§6[§eCOLOR§6]§e=§3" + (color != null ? color : "§cNONE"));
         if (owner != null && ownerName != null) {
             message.append("\n§6[§eOWNER-UUID§6]§e=§3" + waystone.getOwner());
             message.append("\n§6[§eOWNER-NAME§6]§e=§3" + waystone.getOwnerName());

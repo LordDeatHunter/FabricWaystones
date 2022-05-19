@@ -2,6 +2,7 @@ package wraith.waystones.util;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.SharedConstants;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -26,16 +27,18 @@ import wraith.waystones.mixin.MinecraftServerAccessor;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WaystoneStorage {
-    private final PersistentState state;
-
-    private final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
-    private final MinecraftServer server;
 
     private static final String ID = "fw_" + Waystones.MOD_ID;
+    private final PersistentState state;
+    private final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
+    private final MinecraftServer server;
     private final CompatibilityLayer compat;
 
     public WaystoneStorage(MinecraftServer server) {
@@ -47,7 +50,8 @@ public class WaystoneStorage {
         }
         CompatibilityLayer compatLoading = new CompatibilityLayer(this, server);
         this.server = server;
-        var worldDirectory = ((MinecraftServerAccessor) server).getSession().getWorldDirectory(server.getOverworld().getRegistryKey()).toFile();
+        var worldDirectory = ((MinecraftServerAccessor) server).getSession()
+            .getWorldDirectory(server.getOverworld().getRegistryKey()).toFile();
         var file = new File(worldDirectory, "data/waystones:waystones.dat");
         if (file.exists()) {
             file.renameTo(new File(worldDirectory, "data/" + ID + ".dat"));
@@ -60,11 +64,11 @@ public class WaystoneStorage {
             }
         };
         state = this.server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(
-                nbtCompound -> {
-                    fromTag(nbtCompound);
-                    return pState;
-                },
-                () -> pState, ID);
+            nbtCompound -> {
+                fromTag(nbtCompound);
+                return pState;
+            },
+            () -> pState, ID);
 
         if (!compatLoading.loadCompatibility()) {
             compatLoading = null;
@@ -89,82 +93,21 @@ public class WaystoneStorage {
 
         for (int i = 0; i < waystones.size(); ++i) {
             NbtCompound waystoneTag = waystones.getCompound(i);
-            if (!waystoneTag.contains("hash") || !waystoneTag.contains("name") || !waystoneTag.contains("dimension") || !waystoneTag.contains("position")) {
+            if (!waystoneTag.contains("hash") || !waystoneTag.contains("name")
+                || !waystoneTag.contains("dimension") || !waystoneTag.contains("position")) {
                 continue;
             }
             String name = waystoneTag.getString("name");
             String hash = waystoneTag.getString("hash");
             String dimension = waystoneTag.getString("dimension");
             int[] coordinates = waystoneTag.getIntArray("position");
+            Integer color = null;
+            if (waystoneTag.contains("color", NbtType.INT)) {
+                color = waystoneTag.getInt("color");
+            }
             BlockPos pos = new BlockPos(coordinates[0], coordinates[1], coordinates[2]);
-            WAYSTONES.put(hash, new Lazy(name, pos, hash, dimension, globals.contains(hash)));
-        }
-    }
-
-    final class Lazy implements WaystoneValue {
-        /**
-         * unresolved name
-         */
-        final String name;
-        final BlockPos pos;
-        final String hash;
-        final String dimension;
-        final boolean isGlobal;
-        WaystoneBlockEntity entity;
-        World world;
-
-        Lazy(String name, BlockPos pos, String hash, String dimension, boolean global) {
-            this.name = name;
-            this.pos = pos;
-            this.hash = hash;
-            this.dimension = dimension;
-            this.isGlobal = global;
-        }
-
-        @Override
-        public WaystoneBlockEntity getEntity() {
-            if (server == null) {
-                return null;
-            }
-            if (this.entity == null) {
-                for (ServerWorld world : server.getWorlds()) {
-                    if (Utils.getDimensionName(world).equals(dimension)) {
-                        WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, pos);
-                        if (entity != null) {
-                            tryAddWaystone(entity); // should allow this instance to be GCed
-                            this.entity = entity;
-                            this.world = world;
-                        }
-                        break;
-                    }
-                }
-            }
-            return this.entity;
-        }
-
-        @Override
-        public String getWaystoneName() {
-            return name;
-        }
-
-        @Override
-        public BlockPos way_getPos() {
-            return pos;
-        }
-
-        @Override
-        public String getWorldName() {
-            return this.dimension;
-        }
-
-        @Override
-        public String getHash() {
-            return this.hash;
-        }
-
-        @Override
-        public boolean isGlobal() {
-            return this.isGlobal;
+            WAYSTONES.put(hash,
+                new Lazy(name, pos, hash, dimension, color, globals.contains(hash)));
         }
     }
 
@@ -176,10 +119,14 @@ public class WaystoneStorage {
         for (Map.Entry<String, WaystoneValue> waystone : WAYSTONES.entrySet()) {
             String hash = waystone.getKey();
             WaystoneValue entity = waystone.getValue();
+            Integer color = entity.getColor();
 
             NbtCompound waystoneTag = new NbtCompound();
             waystoneTag.putString("hash", hash);
             waystoneTag.putString("name", entity.getWaystoneName());
+            if (color != null) {
+                waystoneTag.putInt("color", color);
+            }
             BlockPos pos = entity.way_getPos();
             waystoneTag.putIntArray("position", Arrays.asList(pos.getX(), pos.getY(), pos.getZ()));
             waystoneTag.putString("dimension", entity.getWorldName());
@@ -232,7 +179,8 @@ public class WaystoneStorage {
             sendToAllPlayers();
         } else {
             try {
-                NbtCompound compoundTag = world.getPersistentStateManager().readNbt(ID, SharedConstants.getGameVersion().getWorldVersion());
+                NbtCompound compoundTag = world.getPersistentStateManager()
+                    .readNbt(ID, SharedConstants.getGameVersion().getWorldVersion());
                 state.writeNbt(compoundTag.getCompound("data"));
             } catch (IOException ignored) {
             }
@@ -278,16 +226,18 @@ public class WaystoneStorage {
         loadOrSaveWaystones(true);
     }
 
-    public void renameWaystone(WaystoneBlockEntity waystone, String name) {
-        waystone.setName(name);
-        loadOrSaveWaystones(true);
-    }
-
     public void renameWaystone(String hash, String name) {
         if (WAYSTONES.containsKey(hash)) {
             WaystoneValue waystone = WAYSTONES.get(hash);
             waystone.getEntity().setName(name);
             WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(hash);
+            loadOrSaveWaystones(true);
+        }
+    }
+
+    public void recolorWaystone(String hash, Integer color) {
+        if (WAYSTONES.containsKey(hash)) {
+            WAYSTONES.get(hash).setColor(color);
             loadOrSaveWaystones(true);
         }
     }
@@ -308,7 +258,8 @@ public class WaystoneStorage {
     }
 
     public List<String> getGlobals() {
-        return WAYSTONES.entrySet().stream().filter(entry -> entry.getValue().isGlobal()).map(Map.Entry::getKey).toList();
+        return WAYSTONES.entrySet().stream().filter(entry -> entry.getValue().isGlobal())
+            .map(Map.Entry::getKey).toList();
     }
 
     public void toggleGlobal(String hash) {
@@ -343,6 +294,86 @@ public class WaystoneStorage {
     public void sendCompatData(ServerPlayerEntity player) {
         if (this.compat != null) {
             this.compat.updatePlayerCompatibility(player);
+        }
+    }
+
+    final class Lazy implements WaystoneValue {
+
+        /**
+         * unresolved name
+         */
+        final String name;
+        final BlockPos pos;
+        final String hash;
+        final String dimension;
+        final boolean isGlobal;
+        Integer color;
+        WaystoneBlockEntity entity;
+        World world;
+
+        Lazy(String name, BlockPos pos, String hash, String dimension, Integer color, boolean global) {
+            this.name = name;
+            this.pos = pos;
+            this.hash = hash;
+            this.dimension = dimension;
+            this.color = color;
+            this.isGlobal = global;
+        }
+
+        @Override
+        public WaystoneBlockEntity getEntity() {
+            if (server == null) {
+                return null;
+            }
+            if (this.entity == null) {
+                for (ServerWorld world : server.getWorlds()) {
+                    if (Utils.getDimensionName(world).equals(dimension)) {
+                        WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, pos);
+                        if (entity != null) {
+                            tryAddWaystone(entity); // should allow this instance to be GCed
+                            this.entity = entity;
+                            this.world = world;
+                        }
+                        break;
+                    }
+                }
+            }
+            return this.entity;
+        }
+
+        @Override
+        public String getWaystoneName() {
+            return name;
+        }
+
+        @Override
+        public BlockPos way_getPos() {
+            return pos;
+        }
+
+        @Override
+        public String getWorldName() {
+            return this.dimension;
+        }
+
+        @Override
+        public String getHash() {
+            return this.hash;
+        }
+
+        @Override
+        public @Nullable Integer getColor() {
+            return this.color;
+        }
+
+        @Override
+        public void setColor(@Nullable Integer color) {
+            this.color = color;
+        }
+
+        @Override
+        public boolean isGlobal() {
+            return this.isGlobal;
         }
     }
 }
