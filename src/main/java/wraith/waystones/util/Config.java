@@ -8,9 +8,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
-import wraith.waystones.Waystones;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,12 +16,14 @@ import java.io.FileWriter;
 import java.util.LinkedList;
 import java.util.Scanner;
 
-public final class Config {
-    private static Config instance = null;
+import static wraith.waystones.Waystones.LOGGER;
 
-    public NbtCompound configData;
-    private final Logger LOGGER = Waystones.LOGGER;
+// TODO: rewrite/migrate to new config system
+public final class Config {
+
     private static final String CONFIG_FILE = "config/waystones/config.json";
+    private static Config instance = null;
+    public NbtCompound configData;
     private int difference = 0;
 
     private Config() {
@@ -36,6 +36,18 @@ public final class Config {
         return instance;
     }
 
+    public static String readFile(File file) throws FileNotFoundException {
+        Scanner scanner = new Scanner(file);
+        scanner.useDelimiter("\\Z");
+        var result = scanner.next();
+        scanner.close();
+        return result;
+    }
+
+    public static JsonObject getJsonObject(String json) {
+        return JsonParser.parseString(json).getAsJsonObject();
+    }
+
     public boolean generateInVillages() {
         return configData.getCompound("worldgen").getBoolean("generate_in_villages");
     }
@@ -43,12 +55,17 @@ public final class Config {
     public int getMinPerVillage() {
         return configData.getCompound("worldgen").getInt("min_per_village");
     }
+
     public int getMaxPerVillage() {
         return configData.getCompound("worldgen").getInt("max_per_village");
     }
 
     public int getVillageStructureWeight() {
         return configData.getCompound("worldgen").getInt("village_waystone_weight");
+    }
+
+    public NbtCompound getWorldgenStructures() {
+        return configData.getCompound("add_waystone_structure_piece");
     }
 
     public int getDiscoverItemAmount() {
@@ -185,15 +202,6 @@ public final class Config {
         }
     }
 
-    private double getDoubleOrDefault(NbtCompound getFrom, String key, NbtCompound defaults) {
-        if (getFrom.contains(key)) {
-            return getFrom.getDouble(key);
-        } else {
-            ++difference;
-            return defaults.getDouble(key);
-        }
-    }
-
     private float getFloatOrDefault(NbtCompound getFrom, String key, NbtCompound defaults) {
         if (getFrom.contains(key)) {
             return getFrom.getFloat(key);
@@ -227,15 +235,6 @@ public final class Config {
         } else {
             ++difference;
             return defaults.getString(key);
-        }
-    }
-
-    private double getDoubleOrDefault(JsonObject getFrom, String key, NbtCompound defaults) {
-        if (getFrom.has(key)) {
-            return getFrom.get(key).getAsDouble();
-        } else {
-            ++difference;
-            return defaults.getDouble(key);
         }
     }
 
@@ -289,6 +288,14 @@ public final class Config {
         cooldown.putInt("cooldown_ticks_from_waystone", 0);
         defaultConfig.put("teleportation_cooldown", cooldown);
 
+        NbtCompound waystoneStructures = new NbtCompound();
+        waystoneStructures.putString("minecraft:village/plains/houses", "village_waystone");
+        waystoneStructures.putString("minecraft:village/desert/houses", "desert_village_waystone");
+        waystoneStructures.putString("minecraft:village/savanna/houses", "village_waystone");
+        waystoneStructures.putString("minecraft:village/taiga/houses", "village_waystone");
+        waystoneStructures.putString("minecraft:village/snowy/houses", "village_waystone");
+        defaultConfig.put("add_waystone_structure_piece", waystoneStructures);
+
         return defaultConfig;
     }
 
@@ -335,6 +342,11 @@ public final class Config {
         cooldownsJson.addProperty("cooldown_ticks_from_void_totem", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_void_totem", defaults));
         cooldownsJson.addProperty("cooldown_ticks_from_waystone", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_waystone", defaults));
         json.add("teleportation_cooldown", cooldownsJson);
+
+        JsonObject structuresJson = new JsonObject();
+        NbtCompound structuresTag = getCompoundOrDefault(tag, "add_waystone_structure_piece", defaults);
+        structuresTag.getKeys().forEach(key -> structuresJson.addProperty(key, structuresTag.getString(key)));
+        json.add("add_waystone_structure_piece", structuresJson);
 
         createFile(json, difference > 0);
         difference = 0;
@@ -402,6 +414,18 @@ public final class Config {
             cooldowns = defaults.getCompound("teleportation_cooldown");
         }
         tag.put("teleportation_cooldown", cooldowns);
+
+        NbtCompound waystoneStructuresNbt = new NbtCompound();
+        if (json.has("add_waystone_structure_piece")) {
+            var waystoneStructures = json.get("add_waystone_structure_piece").getAsJsonObject();
+            for (var entry : waystoneStructures.entrySet()) {
+                waystoneStructuresNbt.putString(entry.getKey(), entry.getValue().getAsString());
+            }
+        } else {
+            ++difference;
+            waystoneStructuresNbt = defaults.getCompound("add_waystone_structure_piece");
+        }
+        tag.put("add_waystone_structure_piece", waystoneStructuresNbt);
 
         createFile(toJson(tag), difference > 0);
         difference = 0;
@@ -474,18 +498,6 @@ public final class Config {
 
     public NbtCompound toNbtCompound() {
         return configData;
-    }
-
-    public static String readFile(File file) throws FileNotFoundException {
-        Scanner scanner = new Scanner(file);
-        scanner.useDelimiter("\\Z");
-        var result = scanner.next();
-        scanner.close();
-        return result;
-    }
-
-    public static JsonObject getJsonObject(String json) {
-        return JsonParser.parseString(json).getAsJsonObject();
     }
 
     public void print(ServerPlayerEntity player) {

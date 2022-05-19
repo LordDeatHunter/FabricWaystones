@@ -41,6 +41,17 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     private int maxWaystoneCount = -1;
 
     @Unique
+    private static boolean isWaystone(StructurePoolElement element) {
+        return element instanceof SinglePoolElement singlePoolElement
+            && ((SinglePoolElementAccessor) singlePoolElement)
+            .getLocation()
+            .left()
+            .orElse(new Identifier("empty"))
+            .getNamespace()
+            .equals("waystones");
+    }
+
+    @Unique
     public void setMaxWaystoneCount(int maxWaystoneCount) {
         this.maxWaystoneCount = maxWaystoneCount;
     }
@@ -55,8 +66,8 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     }
 
     @Inject(method = "generatePiece(Lnet/minecraft/structure/PoolStructurePiece;Lorg/apache/commons/lang3/mutable/MutableObject;IZLnet/minecraft/world/HeightLimitView;)V",
-            at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false),
-            locals = LocalCapture.CAPTURE_FAILSOFT)
+        at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false),
+        locals = LocalCapture.CAPTURE_FAILSOFT)
     private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece,
                                                             MutableObject<VoxelShape> pieceShape,
                                                             int minY,
@@ -86,33 +97,22 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                                                             boolean bl2,
                                                             List<StructurePoolElement> list) {
         if (!Config.getInstance().generateInVillages() ||
-                maxWaystoneCount < 0 ||
-                optional.isEmpty() ||
-                !WaystonesWorldgen.VANILLA_VILLAGES.containsKey(optional.get().getId())
+            maxWaystoneCount < 0 ||
+            optional.isEmpty() ||
+            !WaystonesWorldgen.VANILLA_VILLAGES.containsKey(optional.get().getId())
         ) return;
         long villageWaystoneCount = children.stream()
-                .filter(element -> element instanceof PoolStructurePiece poolStructurePiece
-                        && poolStructurePiece.getPoolElement() instanceof SinglePoolElement singlePoolElement
-                        && ((SinglePoolElementAccessor) singlePoolElement)
-                        .getLocation()
-                        .left()
-                        .orElse(new Identifier("empty"))
-                        .getNamespace()
-                        .equals("waystones")
-                )
-                .count();
-        final boolean hasMaxWaystones = villageWaystoneCount >= maxWaystoneCount;
-        list.removeIf(element -> hasMaxWaystones == isWaystone(element));
-    }
-
-    @Unique
-    private static boolean isWaystone(StructurePoolElement element) {
-        return element instanceof SinglePoolElement singlePoolElement
+            .filter(element -> element instanceof PoolStructurePiece poolStructurePiece
+                && poolStructurePiece.getPoolElement() instanceof SinglePoolElement singlePoolElement
                 && ((SinglePoolElementAccessor) singlePoolElement)
                 .getLocation()
                 .left()
                 .orElse(new Identifier("empty"))
                 .getNamespace()
-                .equals("waystones");
+                .equals("waystones")
+            )
+            .count();
+        final boolean hasMaxWaystones = villageWaystoneCount >= maxWaystoneCount;
+        list.removeIf(element -> hasMaxWaystones == isWaystone(element));
     }
 }

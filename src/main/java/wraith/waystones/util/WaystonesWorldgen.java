@@ -9,9 +9,6 @@ import java.util.HashSet;
 
 public final class WaystonesWorldgen {
 
-    private WaystonesWorldgen() {
-    }
-
     public static final HashSet<Identifier> WAYSTONE_STRUCTURES = new HashSet<>();
     public static final HashMap<Identifier, Identifier> VANILLA_VILLAGES = new HashMap<>();
 
@@ -24,12 +21,11 @@ public final class WaystonesWorldgen {
         WAYSTONE_STRUCTURES.add(Utils.ID("stone_brick_village_waystone"));
         WAYSTONE_STRUCTURES.add(Utils.ID("village_waystone"));
 
-        VANILLA_VILLAGES.put(new Identifier("village/plains/houses"), Utils.ID("village_waystone"));
-        VANILLA_VILLAGES.put(new Identifier("village/desert/houses"), Utils.ID("desert_village_waystone"));
-        VANILLA_VILLAGES.put(new Identifier("village/savanna/houses"), Utils.ID("village_waystone"));
-        VANILLA_VILLAGES.put(new Identifier("village/taiga/houses"), Utils.ID("village_waystone"));
-        VANILLA_VILLAGES.put(new Identifier("village/snowy/houses"), Utils.ID("village_waystone"));
+        var structureList = Config.getInstance().getWorldgenStructures();
+        structureList.getKeys().forEach(originalStructure -> VANILLA_VILLAGES.put(new Identifier(originalStructure), Utils.ID(structureList.getString(originalStructure))));
     }
+
+    private WaystonesWorldgen() {}
 
     public static void registerVillage(MinecraftServer server, Identifier village, Identifier waystone) {
         var config = Config.getInstance();
