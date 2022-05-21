@@ -390,16 +390,15 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 if (playerEntity.getStackInHand(hand).getItem() instanceof AbyssWatcherItem) {
                     player.sendToolBreakStatus(hand);
                     playerEntity.getStackInHand(hand).decrement(1);
-                    player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK,
-                        SoundCategory.PLAYERS, 1F, 1F);
+                    player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
+                    break;
                 }
             }
         }
         return true;
     }
 
-    private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target,
-                               TeleportSources source, boolean takeCost) {
+    private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target, TeleportSources source, boolean takeCost) {
         var playerAccess = (PlayerEntityMixinAccess) player;
         var cooldown = playerAccess.getTeleportCooldown();
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
@@ -427,13 +426,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         var oldPos = player.getBlockPos();
         player.world.playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
             SoundCategory.BLOCKS, 1F, 1F);
+        Waystones.LOGGER.info("Teleporting...");
         FabricDimensions.teleport(player, world, target);
         BlockPos playerPos = player.getBlockPos();
 
-        if (!oldPos.isWithinDistance(playerPos, 6) || !player.world.getRegistryKey()
-            .equals(world.getRegistryKey())) {
-            world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
-                SoundCategory.BLOCKS, 1F, 1F);
+        if (!oldPos.isWithinDistance(playerPos, 6) || !player.world.getRegistryKey().equals(world.getRegistryKey())) {
+            world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         }
         return true;
     }

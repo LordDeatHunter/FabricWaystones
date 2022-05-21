@@ -56,6 +56,7 @@ public class JourneymapPlugin implements IClientPlugin {
         WaystoneEvents.REMOVE_WAYSTONE_EVENT.register(this::onRemove);
         WaystoneEvents.DISCOVER_WAYSTONE_EVENT.register(this::onDiscover);
         WaystoneEvents.RENAME_WAYSTONE_EVENT.register(this::onRename);
+        WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.register(player -> api.removeAll(getModId()));
         FabricEvents.ADDON_BUTTON_DISPLAY_EVENT.register(this::onFullscreenAddonButton);
     }
 

@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.block.WaystoneBlockEntity;
-import wraith.waystones.client.ClientStuff;
 import wraith.waystones.integration.event.WaystoneEvents;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.WaystonePacketHandler;
@@ -203,10 +202,11 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
     @Override
-    public void learnWaystones(PlayerEntity player, boolean overwrite) {
+    public void learnWaystones(PlayerEntity player) {
         discoveredWaystones.clear();
-        this.discoveredWaystones.addAll(
-            ((PlayerEntityMixinAccess) player).getDiscoveredWaystones());
+        WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
+        ((PlayerEntityMixinAccess) player).getDiscoveredWaystones().forEach(hash -> discoverWaystone(hash, false));
+        syncData();
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
@@ -222,21 +222,17 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         tag = tag.getCompound("waystones");
         if (tag.contains("discovered_waystones")) {
             discoveredWaystones.clear();
+            WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
             HashSet<String> hashes = new HashSet<>();
             if (Waystones.WAYSTONE_STORAGE != null) {
                 hashes = Waystones.WAYSTONE_STORAGE.getAllHashes();
-            } else if (_this().world.isClient) {
-                HashSet<String> tmpHashes = ClientStuff.getWaystoneHashes();
-                if (tmpHashes != null) {
-                    hashes = tmpHashes;
-                }
             }
             NbtList waystones = tag.getList("discovered_waystones", NbtElement.STRING_TYPE);
             for (NbtElement waystone : waystones) {
-                if (hashes.contains(waystone.asString())) {
-                    discoveredWaystones.add(waystone.asString());
-                    WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker()
-                        .onUpdate(waystone.asString());
+                var hash = waystone.asString();
+                if (hashes.contains(hash)) {
+                    discoveredWaystones.add(hash);
+                    WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(hash);
                 }
             }
         }
@@ -292,7 +288,9 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Override
     public void forgetAllWaystones() {
-        discoveredWaystones.forEach(hash -> forgetWaystone(hash, false));
+        discoveredWaystones.clear();
+        WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
+        //discoveredWaystones.forEach(hash -> forgetWaystone(hash, false));
         syncData();
     }
 

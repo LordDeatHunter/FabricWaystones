@@ -30,7 +30,7 @@ public interface PlayerEntityMixinAccess extends PlayerAccess {
 
     ArrayList<String> getWaystonesSorted();
 
-    void learnWaystones(PlayerEntity player, boolean overwrite);
+    void learnWaystones(PlayerEntity player);
 
     void fromTagW(NbtCompound tag);
 

@@ -1,7 +1,5 @@
 package wraith.waystones.screen;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
@@ -23,6 +21,9 @@ import wraith.waystones.mixin.ClientPlayerEntityAccessor;
 import wraith.waystones.mixin.ServerPlayerEntityAccessor;
 import wraith.waystones.util.Utils;
 import wraith.waystones.util.WaystonePacketHandler;
+
+import java.util.ArrayList;
+import java.util.Comparator;
 
 public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
 

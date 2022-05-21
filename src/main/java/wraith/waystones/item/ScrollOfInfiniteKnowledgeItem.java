@@ -13,7 +13,6 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
-import wraith.waystones.client.ClientStuff;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.util.Config;
 
@@ -48,15 +47,15 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         if (learned > 0) {
             if (learned > 1) {
                 text = new TranslatableText(
-                        "waystones.learned.infinite.multiple",
-                        new LiteralText(String.valueOf(learned)).styled(style ->
-                                style.withColor(TextColor.parse(new TranslatableText("waystones.learned.infinite.multiple.arg_color").getString()))
-                        )
+                    "waystones.learned.infinite.multiple",
+                    new LiteralText(String.valueOf(learned)).styled(style ->
+                        style.withColor(TextColor.parse(new TranslatableText("waystones.learned.infinite.multiple.arg_color").getString()))
+                    )
                 );
             } else {
                 text = new TranslatableText("waystones.learned.infinite.single");
             }
-            ((PlayerEntityMixinAccess)user).discoverWaystones(toLearn);
+            ((PlayerEntityMixinAccess) user).discoverWaystones(toLearn);
             if (!user.isCreative() && Config.getInstance().consumeInfiniteScroll()) {
                 stack.decrement(1);
             }
@@ -81,15 +80,13 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         int count = -1;
         if (Waystones.WAYSTONE_STORAGE != null) {
             count = Waystones.WAYSTONE_STORAGE.getCount();
-        } else if (world != null && world.isClient) {
-            count = ClientStuff.getWaystoneCount();
         }
         if (count != -1) {
             tooltip.add(new TranslatableText(
-                    "waystones.scroll.infinite_tooltip",
-                    new LiteralText(String.valueOf(count)).styled(style ->
-                            style.withColor(TextColor.parse(new TranslatableText("waystones.scroll.infinite_tooltip.arg_color").getString()))
-                    )
+                "waystones.scroll.infinite_tooltip",
+                new LiteralText(String.valueOf(count)).styled(style ->
+                    style.withColor(TextColor.parse(new TranslatableText("waystones.scroll.infinite_tooltip.arg_color").getString()))
+                )
             ));
         }
     }
