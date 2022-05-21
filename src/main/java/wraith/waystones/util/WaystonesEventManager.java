@@ -65,6 +65,19 @@ public class WaystonesEventManager {
                     return 1;
                 })
             )
+            .then(CommandManager.literal("delete")
+                .requires(source -> source.hasPermissionLevel(1))
+                .executes(context -> {
+                    ServerPlayerEntity player = context.getSource().getPlayer();
+                    if (player == null || Waystones.WAYSTONE_STORAGE == null) {
+                        return 1;
+                    }
+                    var dimension = Utils.getDimensionName(player.world);
+                    Waystones.WAYSTONE_STORAGE.removeWorldWaystones(dimension);
+                    player.sendMessage(new LiteralText("§6[§eWaystones§6] §3Removed all waystones from " + dimension + "!"), false);
+                    return 1;
+                })
+            )
             .then(CommandManager.literal("display")
                 .executes(context -> {
                     ServerPlayerEntity player = context.getSource().getPlayer();

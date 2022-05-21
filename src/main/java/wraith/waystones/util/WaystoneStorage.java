@@ -210,6 +210,21 @@ public class WaystoneStorage {
         loadOrSaveWaystones(true);
     }
 
+    public void removeWorldWaystones(String dimension) {
+        if (server == null) {
+            return;
+        }
+        WAYSTONES.forEach((hash, waystone) -> {
+            if (waystone.getWorldName().equals(dimension)) {
+                var entity = waystone.getEntity();
+                if (entity != null) {
+                    entity.setOwner(null);
+                }
+                removeWaystone(hash);
+            }
+        });
+    }
+
     private void forgetForAllPlayers(String hash) {
         if (server == null) {
             return;
