@@ -101,13 +101,9 @@ public class WaystoneStorage {
             String hash = waystoneTag.getString("hash");
             String dimension = waystoneTag.getString("dimension");
             int[] coordinates = waystoneTag.getIntArray("position");
-            Integer color = null;
-            if (waystoneTag.contains("color", NbtType.INT)) {
-                color = waystoneTag.getInt("color");
-            }
+            int color = waystoneTag.contains("color", NbtType.INT) ? waystoneTag.getInt("color") : Utils.getRandomColor();
             BlockPos pos = new BlockPos(coordinates[0], coordinates[1], coordinates[2]);
-            WAYSTONES.put(hash,
-                new Lazy(name, pos, hash, dimension, color, globals.contains(hash)));
+            WAYSTONES.put(hash, new Lazy(name, pos, hash, dimension, color, globals.contains(hash)));
         }
     }
 
@@ -119,14 +115,10 @@ public class WaystoneStorage {
         for (Map.Entry<String, WaystoneValue> waystone : WAYSTONES.entrySet()) {
             String hash = waystone.getKey();
             WaystoneValue entity = waystone.getValue();
-            Integer color = entity.getColor();
-
             NbtCompound waystoneTag = new NbtCompound();
             waystoneTag.putString("hash", hash);
             waystoneTag.putString("name", entity.getWaystoneName());
-            if (color != null) {
-                waystoneTag.putInt("color", color);
-            }
+            waystoneTag.putInt("color", entity.getColor());
             BlockPos pos = entity.way_getPos();
             waystoneTag.putIntArray("position", Arrays.asList(pos.getX(), pos.getY(), pos.getZ()));
             waystoneTag.putString("dimension", entity.getWorldName());
@@ -247,7 +239,7 @@ public class WaystoneStorage {
         }
     }
 
-    public void recolorWaystone(String hash, Integer color) {
+    public void recolorWaystone(String hash, int color) {
         if (WAYSTONES.containsKey(hash)) {
             WAYSTONES.get(hash).setColor(color);
             loadOrSaveWaystones(true);
@@ -319,11 +311,11 @@ public class WaystoneStorage {
         final String hash;
         final String dimension;
         final boolean isGlobal;
-        Integer color;
+        int color;
         WaystoneBlockEntity entity;
         World world;
 
-        Lazy(String name, BlockPos pos, String hash, String dimension, Integer color, boolean global) {
+        Lazy(String name, BlockPos pos, String hash, String dimension, int color, boolean global) {
             this.name = name;
             this.pos = pos;
             this.hash = hash;
@@ -374,12 +366,12 @@ public class WaystoneStorage {
         }
 
         @Override
-        public @Nullable Integer getColor() {
+        public int getColor() {
             return this.color;
         }
 
         @Override
-        public void setColor(@Nullable Integer color) {
+        public void setColor(int color) {
             this.color = color;
         }
 

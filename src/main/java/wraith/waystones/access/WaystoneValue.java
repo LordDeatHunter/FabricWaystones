@@ -1,7 +1,6 @@
 package wraith.waystones.access;
 
 import net.minecraft.util.math.BlockPos;
-import org.jetbrains.annotations.Nullable;
 import wraith.waystones.block.WaystoneBlockEntity;
 
 public interface WaystoneValue {
@@ -14,11 +13,11 @@ public interface WaystoneValue {
 
     String getWorldName();
 
-    void setColor(@Nullable Integer color);
-
     boolean isGlobal();
 
     String getHash();
 
-    @Nullable Integer getColor();
+    int getColor();
+
+    void setColor(int color);
 }

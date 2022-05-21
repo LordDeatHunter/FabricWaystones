@@ -227,14 +227,14 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             if (Waystones.WAYSTONE_STORAGE != null) {
                 hashes = Waystones.WAYSTONE_STORAGE.getAllHashes();
             }
-            NbtList waystones = tag.getList("discovered_waystones", NbtElement.STRING_TYPE);
-            for (NbtElement waystone : waystones) {
-                var hash = waystone.asString();
-                if (hashes.contains(hash)) {
+            tag.getList("discovered_waystones", NbtElement.STRING_TYPE)
+                .stream()
+                .map(NbtElement::asString)
+                .filter(hashes::contains)
+                .forEach(hash -> {
                     discoveredWaystones.add(hash);
                     WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(hash);
-                }
-            }
+                });
         }
         if (tag.contains("view_global_waystones")) {
             this.viewGlobalWaystones = tag.getBoolean("view_global_waystones");

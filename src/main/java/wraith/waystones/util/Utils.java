@@ -24,6 +24,7 @@ import wraith.waystones.screen.AbyssScreenHandler;
 import wraith.waystones.screen.PocketWormholeScreenHandler;
 import wraith.waystones.screen.WaystoneBlockScreenHandler;
 
+import java.awt.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -301,4 +302,12 @@ public final class Utils {
         }
         return null;
     }
+    public static int getRandomColor() {
+        Random rand = new Random();
+        float r = rand.nextFloat();
+        float g = rand.nextFloat();
+        float b = rand.nextFloat();
+        return new Color(r, g, b).getRGB();
+    }
+
 }

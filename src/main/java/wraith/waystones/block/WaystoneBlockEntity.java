@@ -66,18 +66,14 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         this.name = Utils.generateWaystoneName(this.name);
     }
 
-    public static void ticker(World world, BlockPos blockPos, BlockState blockState,
-                              WaystoneBlockEntity waystone) {
+    public static void ticker(World world, BlockPos blockPos, BlockState blockState, WaystoneBlockEntity waystone) {
         waystone.tick();
     }
 
     public void updateActiveState() {
-        if (world != null && !world.isClient
-            && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (owner == null)) {
-            world.setBlockState(pos,
-                world.getBlockState(pos).with(WaystoneBlock.ACTIVE, this.ownerName != null));
-            world.setBlockState(pos.up(),
-                world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, this.ownerName != null));
+        if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (owner == null)) {
+            world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, this.ownerName != null));
+            world.setBlockState(pos.up(), world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, this.ownerName != null));
         }
     }
 
@@ -92,12 +88,13 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public @Nullable Integer getColor() {
+    public int getColor() {
+        if (this.color == null) this.color = Utils.getRandomColor();
         return this.color;
     }
 
     @Override
-    public void setColor(@Nullable Integer color) {
+    public void setColor(int color) {
         this.color = color;
         markDirty();
     }
@@ -113,8 +110,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory,
-                                    PlayerEntity player) {
+    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
         return new WaystoneBlockScreenHandler(syncId, this, player);
     }
 

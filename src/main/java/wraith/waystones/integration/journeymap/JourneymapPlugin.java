@@ -17,11 +17,9 @@ import wraith.waystones.Waystones;
 import wraith.waystones.integration.event.WaystoneEvents;
 import wraith.waystones.util.Utils;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Random;
 
 import static journeymap.client.api.event.ClientEvent.Type.*;
 
@@ -32,7 +30,7 @@ public class JourneymapPlugin implements IClientPlugin {
     private IClientAPI api = null;
     private BooleanOption enabled;
     private BooleanOption displayWaypoints;
-    private BooleanOption randomizeColor;
+    //    private BooleanOption randomizeColor;
     private boolean mappingStarted = false;
 
     /**
@@ -100,18 +98,12 @@ public class JourneymapPlugin implements IClientPlugin {
                 }
                 case REGISTRY -> {
                     RegistryEvent registryEvent = (RegistryEvent) event;
-                    if (registryEvent.getRegistryType()
-                        == RegistryType.OPTIONS) {// Adds an option in the journeymap options screen.
-                        OptionCategory category = new OptionCategory(getModId(),
-                            "waystones.integration.journeymap.category");
-                        this.enabled = new BooleanOption(category, "enabled",
-                            "waystones.integration.journeymap.enable", true);
-                        this.randomizeColor = new BooleanOption(category, "random_color",
-                            "waystones.integration.journeymap.random_color", true);
+                    if (registryEvent.getRegistryType() == RegistryType.OPTIONS) {// Adds an option in the journeymap options screen.
+                        OptionCategory category = new OptionCategory(getModId(), "waystones.integration.journeymap.category");
+                        this.enabled = new BooleanOption(category, "enabled", "waystones.integration.journeymap.enable", true);
+//                        this.randomizeColor = new BooleanOption(category, "random_color", "waystones.integration.journeymap.random_color", true);
                         // hidden from the ui
-                        this.displayWaypoints = new BooleanOption(
-                            new OptionCategory(getModId(), "Hidden"), "displayed",
-                            "waystones.integration.journeymap.enable", true);
+                        this.displayWaypoints = new BooleanOption(new OptionCategory(getModId(), "Hidden"), "displayed", "waystones.integration.journeymap.enable", true);
                     }
                 }
             }
@@ -185,28 +177,12 @@ public class JourneymapPlugin implements IClientPlugin {
             .setPersistent(false);
 
         try {
-            var color = waystone.getColor();
-            if (color == null && randomizeColor.get()) {
-                color = getRandomColor();
-                Waystones.WAYSTONE_STORAGE.recolorWaystone(hash, color);
-            }
-            if (color != null) {
-                waypoint.setColor(color);
-            }
-
+            waypoint.setColor(waystone.getColor());
             waypoint.setEnabled(displayWaypoints.get());
             this.api.show(waypoint);
         } catch (Throwable t) {
             Waystones.LOGGER.error(t.getMessage(), t);
         }
-    }
-
-    private int getRandomColor() {
-        Random rand = new Random();
-        float r = rand.nextFloat();
-        float g = rand.nextFloat();
-        float b = rand.nextFloat();
-        return new Color(r, g, b).getRGB();
     }
 
 }

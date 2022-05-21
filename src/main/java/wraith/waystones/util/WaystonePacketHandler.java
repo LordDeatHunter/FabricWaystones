@@ -73,15 +73,15 @@ public final class WaystonePacketHandler {
         });
         ServerPlayNetworking.registerGlobalReceiver(FORGET_WAYSTONE, (server, player, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();
-
             if (tag == null || !tag.contains("waystone_hash")) {
                 return;
             }
-
             String hash = tag.getString("waystone_hash");
             server.execute(() -> ((PlayerEntityMixinAccess) player).forgetWaystone(hash));
         });
-        ServerPlayNetworking.registerGlobalReceiver(REQUEST_PLAYER_SYNC, (server, player, networkHandler, data, sender) -> server.execute(((PlayerEntityMixinAccess) player)::syncData));
+        ServerPlayNetworking.registerGlobalReceiver(REQUEST_PLAYER_SYNC, (server, player, networkHandler, data, sender) ->
+            server.execute(((PlayerEntityMixinAccess) player)::syncData)
+        );
         ServerPlayNetworking.registerGlobalReceiver(TOGGLE_GLOBAL_WAYSTONE, (server, player, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();
             if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
