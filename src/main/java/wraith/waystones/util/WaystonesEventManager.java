@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -98,6 +99,21 @@ public class WaystonesEventManager {
                     player.sendMessage(new LiteralText("§6[§eWaystones§6] §3All waystones have been forgotten!"), false);
                     return 1;
                 })
+                .then(CommandManager.argument("player", EntityArgumentType.player())
+                    .executes(context -> {
+                        ServerPlayerEntity player = context.getSource().getPlayer();
+                        if (player == null) {
+                            return 1;
+                        }
+                        ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "player");
+                        if (target == null) {
+                            return 1;
+                        }
+                        ((PlayerEntityMixinAccess) target).forgetAllWaystones();
+                        player.sendMessage(new LiteralText("§6[§eWaystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
+                        return 1;
+                    })
+                )
             )
         ));
     }
