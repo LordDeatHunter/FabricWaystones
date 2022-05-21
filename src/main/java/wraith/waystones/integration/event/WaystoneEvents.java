@@ -4,40 +4,32 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+
 /**
  * Client side events.
  */
-public class WaystoneEvents
-{
+public class WaystoneEvents {
 
-    public static final Event<RemoveWaystone> REMOVE_WAYSTONE_EVENT = EventFactory.createArrayBacked(RemoveWaystone.class, callbacks -> hash -> {
-        for (RemoveWaystone callback : callbacks)
-        {
-            callback.onRemove(hash);
-        }
-    });
-
-    public static final Event<UpdateWaystone> DISCOVER_WAYSTONE_EVENT = EventFactory.createArrayBacked(UpdateWaystone.class, callbacks -> hash -> {
-        for (UpdateWaystone callback : callbacks) {
-            callback.onUpdate(hash);
-        }
-    });
-
-    public static final Event<UpdateWaystone> RENAME_WAYSTONE_EVENT = EventFactory.createArrayBacked(UpdateWaystone.class, callbacks -> hash -> {
-        for (UpdateWaystone callback : callbacks) {
-            callback.onUpdate(hash);
-        }
-    });
+    public static final Event<RemoveWaystone> REMOVE_WAYSTONE_EVENT = EventFactory.createArrayBacked(
+        RemoveWaystone.class, callbacks -> hash -> Arrays.stream(callbacks).forEach(callback -> callback.onRemove(hash))
+    );
+    public static final Event<UpdateWaystone> DISCOVER_WAYSTONE_EVENT = EventFactory.createArrayBacked(
+        UpdateWaystone.class, callbacks -> hash -> Arrays.stream(callbacks).forEach(callback -> callback.onUpdate(hash))
+    );
+    public static final Event<UpdateWaystone> RENAME_WAYSTONE_EVENT = EventFactory.createArrayBacked(
+        UpdateWaystone.class, callbacks -> hash -> Arrays.stream(callbacks).forEach(callback -> callback.onUpdate(hash))
+    );
 
     @FunctionalInterface
-    public interface UpdateWaystone
-    {
+    public interface UpdateWaystone {
+
         void onUpdate(@Nullable String hash);
     }
 
     @FunctionalInterface
-    public interface RemoveWaystone
-    {
+    public interface RemoveWaystone {
+
         void onRemove(@Nullable String hash);
     }
 }
