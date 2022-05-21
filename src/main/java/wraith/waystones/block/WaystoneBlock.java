@@ -1,14 +1,6 @@
 package wraith.waystones.block;
 
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.HorizontalFacingBlock;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.Waterloggable;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
@@ -67,9 +59,43 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     protected static final VoxelShape VOXEL_SHAPE_TOP;
     protected static final VoxelShape VOXEL_SHAPE_BOTTOM;
 
+    static {
+        // TOP
+        VoxelShape vs1_1 = Block.createCuboidShape(1f, 0f, 1f, 15f, 2f, 15f);
+        VoxelShape vs2_1 = Block.createCuboidShape(2f, 2f, 2f, 14f, 5f, 14f);
+        VoxelShape vs3_1 = Block.createCuboidShape(3f, 5f, 3f, 13f, 16f, 13f);
+        // BOTTOM
+        VoxelShape vs1_2 = Block.createCuboidShape(3f, 0f, 3f, 13f, 1f, 13f);
+        VoxelShape vs2_2 = Block.createCuboidShape(2f, 1f, 2f, 14f, 5f, 14f);
+        VoxelShape vs3_2 = Block.createCuboidShape(3f, 5f, 3f, 13f, 7f, 13f);
+        VoxelShape vs4_2 = Block.createCuboidShape(7f, 5f, 1f, 9f, 8f, 3f);
+        VoxelShape vs5_2 = Block.createCuboidShape(7f, 7f, 3f, 9f, 10f, 4f);
+        VoxelShape vs6_2 = Block.createCuboidShape(1f, 5f, 7f, 3f, 8f, 9f);
+        VoxelShape vs7_2 = Block.createCuboidShape(3f, 7f, 7f, 4f, 10f, 9f);
+        VoxelShape vs8_2 = Block.createCuboidShape(7f, 5f, 13f, 9f, 8f, 15f);
+        VoxelShape vs9_2 = Block.createCuboidShape(7f, 7f, 12f, 9f, 10f, 13f);
+        VoxelShape vs10_2 = Block.createCuboidShape(13f, 5f, 7f, 15f, 8f, 9f);
+        VoxelShape vs11_2 = Block.createCuboidShape(12f, 7f, 7f, 13f, 10f, 9f);
+
+        VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2).simplify();
+        VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1).simplify();
+    }
+
     public WaystoneBlock(AbstractBlock.Settings settings) {
         super(settings);
         setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, false).with(ACTIVE, false));
+    }
+
+    @Nullable
+    public static WaystoneBlockEntity getEntity(World world, BlockPos pos) {
+        BlockState state = world.getBlockState(pos);
+        if (!(state.getBlock() instanceof WaystoneBlock)) {
+            return null;
+        }
+        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
+            pos = pos.down();
+        }
+        return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
     }
 
     @Override
@@ -99,10 +125,10 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 entityPos = pos.down();
             }
             if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone &&
-                    Config.getInstance().preventNonOwnersFromBreaking() &&
-                    waystone.getOwner() != null &&
-                    !player.getUuid().equals(waystone.getOwner()) &&
-                    !player.hasPermissionLevel(2)) {
+                Config.getInstance().preventNonOwnersFromBreaking() &&
+                waystone.getOwner() != null &&
+                !player.getUuid().equals(waystone.getOwner()) &&
+                !player.hasPermissionLevel(2)) {
                 return 0;
             }
         }
@@ -121,10 +147,10 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
         if (blockPos.getY() < world.getTopY() - 1 && world.getBlockState(blockPos.up()).canReplace(ctx)) {
             return this.getDefaultState()
-                    .with(FACING, ctx.getPlayerFacing().getOpposite())
-                    .with(HALF, DoubleBlockHalf.LOWER)
-                    .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
-                    .with(ACTIVE, hasOwner);
+                .with(FACING, ctx.getPlayerFacing().getOpposite())
+                .with(HALF, DoubleBlockHalf.LOWER)
+                .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
+                .with(ACTIVE, hasOwner);
         } else {
             return null;
         }
@@ -195,18 +221,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         }
     }
 
-    @Nullable
-    public static WaystoneBlockEntity getEntity(World world, BlockPos pos) {
-        BlockState state = world.getBlockState(pos);
-        if (!(state.getBlock() instanceof WaystoneBlock)) {
-            return null;
-        }
-        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-            pos = pos.down();
-        }
-        return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
-    }
-
     @Override
     public BlockRenderType getRenderType(BlockState state) {
         return BlockRenderType.MODEL;
@@ -267,29 +281,29 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                         var discoverAmount = config.getDiscoverItemAmount();
                         if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
                             player.sendMessage(new TranslatableText(
-                                    "waystones.missing_discover_item",
-                                    discoverAmount,
-                                    new TranslatableText(discoverItem.getTranslationKey()).styled(style ->
-                                            style.withColor(TextColor.parse(new TranslatableText("waystones.missing_discover_item.arg_color").getString()))
-                                    )
+                                "waystones.missing_discover_item",
+                                discoverAmount,
+                                new TranslatableText(discoverItem.getTranslationKey()).styled(style ->
+                                    style.withColor(TextColor.parse(new TranslatableText("waystones.missing_discover_item.arg_color").getString()))
+                                )
                             ), false);
                             return ActionResult.FAIL;
                         } else {
                             Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
                             player.sendMessage(new TranslatableText(
-                                    "waystones.discover_item_paid",
-                                    discoverAmount,
-                                    new TranslatableText(discoverItem.getTranslationKey()).styled(style ->
-                                            style.withColor(TextColor.parse(new TranslatableText("waystones.discover_item_paid.arg_color").getString()))
-                                    )
+                                "waystones.discover_item_paid",
+                                discoverAmount,
+                                new TranslatableText(discoverItem.getTranslationKey()).styled(style ->
+                                    style.withColor(TextColor.parse(new TranslatableText("waystones.discover_item_paid.arg_color").getString()))
+                                )
                             ), false);
                         }
                     }
                     player.sendMessage(new TranslatableText(
-                            "waystones.discover_waystone",
-                            new LiteralText(blockEntity.getWaystoneName()).styled(style ->
-                                    style.withColor(TextColor.parse(new TranslatableText("waystones.discover_waystone.arg_color").getString()))
-                            )
+                        "waystones.discover_waystone",
+                        new LiteralText(blockEntity.getWaystoneName()).styled(style ->
+                            style.withColor(TextColor.parse(new TranslatableText("waystones.discover_waystone.arg_color").getString()))
+                        )
                     ), false);
                 }
                 ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
@@ -335,7 +349,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             }
             BlockEntity entity = world.getBlockEntity(testPos);
             if (!world.isClient && entity instanceof WaystoneBlockEntity waystone) {
-                Waystones.WAYSTONE_STORAGE.removeWaystone((waystone).getHash());
+                Waystones.WAYSTONE_STORAGE.removeWaystone(waystone);
             }
             world.removeBlockEntity(newPos);
             world.setBlockState(newPos, newState);
@@ -355,28 +369,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             world.createAndScheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
         }
         return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
-    }
-
-    static {
-        // TOP
-        VoxelShape vs1_1 = Block.createCuboidShape(1f, 0f, 1f, 15f, 2f, 15f);
-        VoxelShape vs2_1 = Block.createCuboidShape(2f, 2f, 2f, 14f, 5f, 14f);
-        VoxelShape vs3_1 = Block.createCuboidShape(3f, 5f, 3f, 13f, 16f, 13f);
-        // BOTTOM
-        VoxelShape vs1_2 = Block.createCuboidShape(3f, 0f, 3f, 13f, 1f, 13f);
-        VoxelShape vs2_2 = Block.createCuboidShape(2f, 1f, 2f, 14f, 5f, 14f);
-        VoxelShape vs3_2 = Block.createCuboidShape(3f, 5f, 3f, 13f, 7f, 13f);
-        VoxelShape vs4_2 = Block.createCuboidShape(7f, 5f, 1f, 9f, 8f, 3f);
-        VoxelShape vs5_2 = Block.createCuboidShape(7f, 7f, 3f, 9f, 10f, 4f);
-        VoxelShape vs6_2 = Block.createCuboidShape(1f, 5f, 7f, 3f, 8f, 9f);
-        VoxelShape vs7_2 = Block.createCuboidShape(3f, 7f, 7f, 4f, 10f, 9f);
-        VoxelShape vs8_2 = Block.createCuboidShape(7f, 5f, 13f, 9f, 8f, 15f);
-        VoxelShape vs9_2 = Block.createCuboidShape(7f, 7f, 12f, 9f, 10f, 13f);
-        VoxelShape vs10_2 = Block.createCuboidShape(13f, 5f, 7f, 15f, 8f, 9f);
-        VoxelShape vs11_2 = Block.createCuboidShape(12f, 7f, 7f, 13f, 10f, 9f);
-
-        VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2).simplify();
-        VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1).simplify();
     }
 
 }

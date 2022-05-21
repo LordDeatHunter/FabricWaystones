@@ -148,7 +148,7 @@ public class WaystoneStorage {
     }
 
     public void tryAddWaystone(WaystoneBlockEntity waystone) {
-        if (waystone == null || WAYSTONES.containsValue(waystone)) {
+        if (waystone == null || hasWaystone(waystone)) {
             return;
         }
         WAYSTONES.put(waystone.getHash(), waystone);
@@ -235,10 +235,7 @@ public class WaystoneStorage {
     }
 
     public void removeWaystone(WaystoneBlockEntity waystone) {
-        String hash = waystone.getHash();
-        WAYSTONES.remove(hash);
-        forgetForAllPlayers(hash);
-        loadOrSaveWaystones(true);
+        removeWaystone(waystone.getHash());
     }
 
     public void renameWaystone(String hash, String name) {
