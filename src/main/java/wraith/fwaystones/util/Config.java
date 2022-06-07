@@ -21,7 +21,6 @@ import static wraith.fwaystones.FabricWaystones.LOGGER;
 // TODO: rewrite/migrate to new config system
 public final class Config {
 
-    private static final String OLD_CONFIG_FILE = "config/waystones/config.json";
     private static final String CONFIG_FILE = "config/fwaystones/config.json";
     private static Config instance = null;
     public NbtCompound configData;
@@ -436,12 +435,6 @@ public final class Config {
     @SuppressWarnings("UnusedReturnValue")
     public boolean loadConfig() {
         try {
-            // TODO: Remove compat stuff
-            var file = new File(OLD_CONFIG_FILE);
-            if (file.exists()) {
-                file.renameTo(new File(CONFIG_FILE));
-            }
-            // end compat stuff
             return loadConfig(getJsonObject(readFile(new File(CONFIG_FILE))));
         } catch (Exception e) {
             LOGGER.info("Found error with config. Using default config.");

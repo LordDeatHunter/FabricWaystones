@@ -42,14 +42,13 @@ public class WaystonesEventManager {
             ServerPlayNetworking.send(handler.player, WaystonePacketHandler.WAYSTONE_CONFIG_UPDATE, data);
 
             FabricWaystones.WAYSTONE_STORAGE.sendToPlayer(handler.player);
-            FabricWaystones.WAYSTONE_STORAGE.sendCompatData(handler.player);
         });
 
         ServerLifecycleEvents.SERVER_STARTING.register(WaystonesWorldgen::registerVanillaVillageWorldgen);
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).syncData());
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal("fwaystones")
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal(FabricWaystones.MOD_ID)
             .then(CommandManager.literal("reload")
                 .requires(source -> source.hasPermissionLevel(1))
                 .executes(context -> {

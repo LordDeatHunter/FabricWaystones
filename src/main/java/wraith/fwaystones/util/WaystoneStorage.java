@@ -4,15 +4,15 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.SharedConstants;
-import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.datafixer.Schemas;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
@@ -23,12 +23,8 @@ import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
-import wraith.fwaystones.mixin.MinecraftServerAccessor;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -41,52 +37,14 @@ public class WaystoneStorage {
     private final PersistentState state;
     private final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
     private final MinecraftServer server;
-    private final CompatibilityLayer compat;
 
     public WaystoneStorage(MinecraftServer server) {
         if (server == null) {
             this.server = null;
             this.state = null;
-            this.compat = null;
             return;
         }
-        CompatibilityLayer compatLoading = new CompatibilityLayer(this, server);
         this.server = server;
-
-        // TODO: Remove more compat stuff...
-        var savedPlayersPath = server.getSavePath(WorldSavePath.PLAYERDATA);
-        if (Files.isDirectory(savedPlayersPath)) {
-            try (var fileList = Files.list(savedPlayersPath)) {
-                var iterator = fileList.iterator();
-                while (iterator.hasNext()) {
-                    Path savedPlayerFile = iterator.next();
-                    if (Files.isDirectory(savedPlayerFile) || !savedPlayerFile.toString().endsWith(".dat")) {
-                        continue;
-                    }
-                    NbtCompound rawNbt = NbtIo.readCompressed(savedPlayerFile.toFile());
-                    int dataVersion = rawNbt.contains("DataVersion", 3) ? rawNbt.getInt("DataVersion") : -1;
-                    NbtHelper.update(Schemas.getFixer(), DataFixTypes.PLAYER, rawNbt, dataVersion);
-                    if (rawNbt.contains("waystones")) {
-                        var waystoneData = rawNbt.getCompound("waystones");
-                        rawNbt.put(FabricWaystones.MOD_ID, waystoneData);
-                        rawNbt.remove("waystones");
-                        NbtIo.writeCompressed(rawNbt, savedPlayerFile.toFile());
-                    }
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        // end me
-
-        // TODO: Remove compat stuff
-        var worldDirectory = ((MinecraftServerAccessor) server).getSession()
-            .getWorldDirectory(server.getOverworld().getRegistryKey()).toFile();
-        var file = new File(worldDirectory, "data/waystones:waystones.dat");
-        if (file.exists()) {
-            file.renameTo(new File(worldDirectory, "data/" + ID + ".dat"));
-        }
-        // end compat stuff
 
         var pState = new PersistentState() {
             @Override
@@ -101,31 +59,13 @@ public class WaystoneStorage {
             },
             () -> pState, ID);
 
-        if (!compatLoading.loadCompatibility()) {
-            compatLoading = null;
-        }
-        compat = compatLoading;
-
         loadOrSaveWaystones(false);
     }
 
     public void fromTag(NbtCompound tag) {
-//        if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
-//            return;
-//        }
-// TODO: Remove compat stuff
-        String tagId;
-        if (tag == null) {
+        if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return;
         }
-        if (tag.contains("waystones")) {
-            tagId = "waystones";
-        } else if (tag.contains("fwaystones")) {
-            tagId = "fwaystones";
-        } else {
-            return;
-        }
-// end compat stuff
         WAYSTONES.clear();
 
         var globals = new HashSet<String>();
@@ -133,7 +73,7 @@ public class WaystoneStorage {
             globals.add(element.asString());
         }
 
-        var waystones = tag.getList(tagId, NbtElement.COMPOUND_TYPE);
+        var waystones = tag.getList(FabricWaystones.MOD_ID, NbtElement.COMPOUND_TYPE);
 
         for (int i = 0; i < waystones.size(); ++i) {
             NbtCompound waystoneTag = waystones.getCompound(i);
@@ -169,7 +109,7 @@ public class WaystoneStorage {
 
             waystones.add(waystoneTag);
         }
-        tag.put("fwaystones", waystones);
+        tag.put(FabricWaystones.MOD_ID, waystones);
         NbtList globals = new NbtList();
         var globalWaystones = getGlobals();
         for (String globalWaystone : globalWaystones) {
@@ -337,12 +277,6 @@ public class WaystoneStorage {
     public String getName(String hash) {
         WaystoneValue value = getWaystoneData(hash);
         return value != null ? value.getWaystoneName() : null;
-    }
-
-    public void sendCompatData(ServerPlayerEntity player) {
-        if (this.compat != null) {
-            this.compat.updatePlayerCompatibility(player);
-        }
     }
 
     final class Lazy implements WaystoneValue {

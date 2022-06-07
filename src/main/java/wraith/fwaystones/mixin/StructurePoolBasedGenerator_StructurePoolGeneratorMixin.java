@@ -23,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.StructurePoolBasedGenerator_StructurePoolGeneratorAccess;
 import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.WaystonesWorldgen;
@@ -49,7 +50,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             .left()
             .orElse(new Identifier("empty"))
             .getNamespace()
-            .equals("waystones");
+            .equals(FabricWaystones.MOD_ID);
     }
 
     @Unique
@@ -112,7 +113,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                 .left()
                 .orElse(new Identifier("empty"))
                 .getNamespace()
-                .equals("waystones")
+                .equals(FabricWaystones.MOD_ID)
             )
             .count();
         final boolean hasMaxWaystones = villageWaystoneCount >= maxWaystoneCount;

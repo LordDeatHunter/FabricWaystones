@@ -197,7 +197,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         customTag.putBoolean("view_discovered_waystones", this.viewDiscoveredWaystones);
         customTag.putBoolean("view_global_waystones", this.viewGlobalWaystones);
 
-        tag.put("fwaystones", customTag);
+        tag.put(FabricWaystones.MOD_ID, customTag);
         return tag;
     }
 
@@ -216,20 +216,10 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Override
     public void fromTagW(NbtCompound tag) {
-//        if (!tag.contains(FabricWaystones.MOD_ID)) {
-//            return;
-//        }
-// TODO: Remove compat stuff
-        String tagId;
-        if (tag.contains("waystones")) {
-            tagId = "waystones";
-        } else if (tag.contains("fwaystones")) {
-            tagId = "fwaystones";
-        } else {
+        if (!tag.contains(FabricWaystones.MOD_ID)) {
             return;
         }
-        tag = tag.getCompound(tagId);
-// end compat stuff
+        tag = tag.getCompound(FabricWaystones.MOD_ID);
         if (tag.contains("discovered_waystones")) {
             discoveredWaystones.clear();
             WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());

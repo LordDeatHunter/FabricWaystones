@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "fwaystones",
   "version": "${version}",
-  "name": "Waystones",
+  "name": "Fabric Waystones",
   "description": "A better way of transport!",
   "authors": [
     "LordDeatHunter"

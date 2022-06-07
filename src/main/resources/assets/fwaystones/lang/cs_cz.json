@@ -95,7 +95,7 @@
   "fwaystones.no_teleport_message.cooldown": "§4Musíš odpočívat ještě dalších %s §4sekund.",
   "fwaystones.no_teleport_message.cooldown.arg_color": "#FF5555",
 
-  "itemGroup.fwaystones.waystones": "Waystony",
+  "itemGroup.fwaystones.fwaystones": "Waystony",
 
   "fwaystones.debug.debugger_tooltip1": "§6[§e?§6] §3Co dnes testujeme?",
   "fwaystones.debug.debugger_tooltip2": "§6[§e?§6] §3Co potřebuje testovat?",
