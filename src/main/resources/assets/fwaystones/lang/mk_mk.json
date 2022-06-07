@@ -1,0 +1,70 @@
+{
+  "item.fwaystones.waystone": "Патен камен",
+  "item.fwaystones.desert_waystone": "Пустински патен камен",
+  "item.fwaystones.red_desert_waystone": "Црвен пустински патен камен",
+  "item.fwaystones.stone_brick_waystone": "Патен камен од камени цигли",
+  "item.fwaystones.pocket_wormhole": "Джебна црвоточина",
+  "item.fwaystones.local_void": "Локална празнина",
+  "item.fwaystones.waystone_scroll": "Скрол",
+  "item.fwaystones.empty_scroll": "Празен скрол",
+  "item.fwaystones.abyss_watcher": "Набљудувач на бездната",
+  "item.fwaystones.scroll_of_infinite_knowledge": "Скрол на бесконечно знаење",
+  "block.fwaystones.waystone": "Патен камен",
+  "block.fwaystones.desert_waystone": "Пустински патен камен",
+  "block.fwaystones.red_desert_waystone": "Црвен пустински патен камен",
+  "block.fwaystones.stone_brick_waystone": "Патен камен од камени цигли",
+  "container.fwaystones.waystone": "Патни камења",
+  "container.fwaystones.pocket_wormhole": "Джебна црвоточина",
+  "container.fwaystones.abyss_watcher": "Набљудувач на бездната",
+
+  "fwaystones.gui.displayed_waystones": "Прикажани патни камења: %s",
+  "fwaystones.gui.contains": "Барај во: Било каде во името.",
+  "fwaystones.gui.starts_with": "Барај во: Почетокот на името.",
+
+  "fwaystones.waystone_tooltip.name": "§6[§eЗачувано име§6] §3%s",
+  "fwaystones.waystone_tooltip.global": "§6[§eГлобален§6]",
+  "fwaystones.waystone_tooltip.global_on": "§3ВКЛУЧЕНО",
+  "fwaystones.waystone_tooltip.global_off": "§3ИСКЛУЧЕНО",
+
+  "fwaystones.scroll.tooltip": "§6Зачувани патни камења: %s",
+  "fwaystones.scroll.infinite": "§6Откриј се што има за откривање.",
+  "fwaystones.scroll.infinite_tooltip": "§6Постоечки патни камења: %s",
+
+  "fwaystones.local_void.tooltip": "§6Приврзано со: %s",
+  "fwaystones.local_void.empty_tooltip": "§3Не приврзано.",
+
+  "fwaystones.config.tooltip.revoke_ownership": "Откажи сопственост.",
+  "fwaystones.config.tooltip.toggle_global_view": "Смени видливост на глобални патни камења.",
+  "fwaystones.config.tooltip.toggle_discovered_view": "Смени видливост на откриени патни камења.",
+  "fwaystones.config.tooltip.toggle_is_global": "Смени глобалност на патниот камен.",
+  "fwaystones.config.tooltip.randomize_name": "Генерирај случајно име за патен камен.",
+  "fwaystones.config.tooltip.set_name": "Зачувај го името на патниот камен.",
+  "fwaystones.config.tooltip.delete_name": "Избриши го името на патниот камен.",
+  "fwaystones.config.tooltip.back": "Назад на листата на патни камења.",
+  "fwaystones.config.tooltip.config": "Отвори го менито за подесување.",
+
+  "fwaystones.learned.single": "Откриен е нов патен камен!",
+  "fwaystones.learned.multiple": "§bОткриени се %s нови патни камења!",
+  "fwaystones.learned.none": "§bНе се откриени нови патни камења!",
+
+  "fwaystones.learned.infinite.single": "§bОткриен е нов патен камен!",
+  "fwaystones.learned.infinite.multiple": "§bОткриени се %s патни камења!",
+  "fwaystones.learned.infinite.none": "§6Веќе знаете се што треба да знаете!",
+
+  "fwaystones.discover_waystone": "§b%s е откриен!",
+
+  "fwaystones.config.global": "Смени глобалност на патниот камен",
+  "fwaystones.config.view_discovered": "Прикажи откриени патни камења",
+  "fwaystones.config.view_global": "Прикажи глобални патни камења",
+  "fwaystones.config.owner": "Во сопственост на %s",
+  "fwaystones.config.no_owner": "Никој",
+
+  "fwaystones.cost.item": "Вкупно",
+  "fwaystones.cost.free": "Бесплатно",
+  "fwaystones.cost.xp": "Искуство",
+  "fwaystones.cost.health": "Полу-срциња",
+  "fwaystones.cost.hunger": "Глад",
+  "fwaystones.cost.level": "Ниво(а)",
+
+  "itemGroup.fwaystones.waystones": "Патни камења (Waystones)"
+}

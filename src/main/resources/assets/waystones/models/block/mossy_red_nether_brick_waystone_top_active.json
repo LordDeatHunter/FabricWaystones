@@ -1,7 +1,0 @@
-{
-	"parent": "waystones:block/base_waystone_top",
-	"textures": {
-		"body": "waystones:block/mossy_red_nether_brick_waystone_active",
-		"particle": "block/red_nether_bricks"
-	}
-}

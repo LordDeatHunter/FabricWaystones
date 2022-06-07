@@ -1,0 +1,88 @@
+{
+  "item.fwaystones.waystone_debugger": "传送石碑调试器",
+  "item.fwaystones.waystone": "传送石碑",
+  "item.fwaystones.desert_waystone": "沙漠传送石碑",
+  "item.fwaystones.red_desert_waystone": "红色沙漠传送石碑",
+  "item.fwaystones.stone_brick_waystone": "石砖传送石碑",
+  "item.fwaystones.nether_brick_waystone": "下界砖传送石碑",
+  "item.fwaystones.end_stone_brick_waystone": "末地石砖传送石碑",
+  "item.fwaystones.blackstone_brick_waystone": "黑石砖传送石碑",
+  "item.fwaystones.deepslate_brick_waystone": "深板岩石砖传送石碑",
+  "item.fwaystones.red_nether_brick_waystone": "红色下界砖传送石碑",
+  "item.fwaystones.pocket_wormhole": "小型虫洞",
+  "item.fwaystones.local_void": "局部虚空",
+  "item.fwaystones.waystone_scroll": "传送石碑卷轴",
+  "item.fwaystones.empty_scroll": "空卷轴",
+  "item.fwaystones.abyss_watcher": "深渊观察者",
+  "item.fwaystones.scroll_of_infinite_knowledge": "无限知识卷轴",
+  "block.fwaystones.waystone": "传送石碑",
+  "block.fwaystones.desert_waystone": "沙漠传送石碑",
+  "block.fwaystones.red_desert_waystone": "红色沙漠传送石碑",
+  "block.fwaystones.stone_brick_waystone": "石砖传送石碑",
+  "block.fwaystones.nether_brick_waystone": "下界砖传送石碑",
+  "block.fwaystones.red_nether_brick_waystone": "红色下界砖传送石碑",
+  "block.fwaystones.end_stone_brick_waystone": "末地石砖传送石碑",
+  "block.fwaystones.blackstone_brick_waystone": "黑石砖传送石碑",
+  "block.fwaystones.deepslate_brick_waystone": "深板岩石砖传送石碑",
+  "container.fwaystones.waystone": "传送石碑",
+  "container.fwaystones.pocket_wormhole": "小型虫洞",
+  "container.fwaystones.abyss_watcher": "深渊观察者",
+  
+  "fwaystones.gui.displayed_waystones": "已显示的传送石碑：%s",
+  "fwaystones.gui.contains": "从名称的任意位置搜索。",
+  "fwaystones.gui.starts_with": "从名称的开头搜索。",
+
+  "fwaystones.waystone_tooltip.name": "§6[§eStored name§6] §3%s",
+  "fwaystones.waystone_tooltip.global": "§6[§eGlobal§6]",
+  "fwaystones.waystone_tooltip.global_on": "§3开启",
+  "fwaystones.waystone_tooltip.global_off": "§3O关闭",
+
+  "fwaystones.scroll.tooltip": "§6已存储的传送石碑：%s",
+  "fwaystones.scroll.infinite": "§6发现一切现存的传送石碑。",
+  "fwaystones.scroll.infinite_tooltip": "§6现存的传送石碑：%s",
+
+
+  "fwaystones.local_void.tooltip": "§6已绑定至：%s",
+  "fwaystones.local_void.empty_tooltip": "§3未绑定。",
+
+  "fwaystones.config.tooltip.revoke_ownership": "取消已声明的所有权。",
+  "fwaystones.config.tooltip.toggle_global_view": "切换全局传送石碑的可见性。",
+  "fwaystones.config.tooltip.toggle_discovered_view": "切换已发现的传送石碑的可见性。",
+  "fwaystones.config.tooltip.toggle_is_global": "切换全局传送石碑。",
+  "fwaystones.config.tooltip.randomize_name": "随机生成传送石碑名称。",
+  "fwaystones.config.tooltip.set_name": "保存传送石碑名称。",
+  "fwaystones.config.tooltip.delete_name": "清除传送石碑名称。",
+  "fwaystones.config.tooltip.back": "返回传送石碑列表。",
+  "fwaystones.config.tooltip.config": "打开配置菜单。",
+
+  "fwaystones.learned.single": "已发现一个新的传送石碑！",
+  "fwaystones.learned.multiple": "§b已发现%s个新的传送石碑！",
+  "fwaystones.learned.none": "§b没有发现新的传送石碑！",
+
+  "fwaystones.learned.infinite.single": "§b已发现一个新的传送石碑！",
+  "fwaystones.learned.infinite.multiple": "§b已发现%s个新的传送石碑！",
+  "fwaystones.learned.infinite.none": "§6你已发现所有现存的传送石碑！",
+
+  "fwaystones.discover_waystone": "§b%s 已被发现！",
+
+  "fwaystones.config.global": "切换全局传送石碑",
+  "fwaystones.config.view_discovered": "查看已发现的传送石碑",
+  "fwaystones.config.view_global": "查看全局传送石碑",
+  "fwaystones.config.owner": "由%s拥有 ",
+  "fwaystones.config.no_owner": "无",
+
+  "fwaystones.cost.item": "总计",
+  "fwaystones.cost.free": "免费",
+  "fwaystones.cost.xp": "经验",
+  "fwaystones.cost.health": "半颗红心",
+  "fwaystones.cost.level": "等级",
+  "fwaystones.cost.hunger": "饥饿",
+
+  "itemGroup.fwaystones.waystones": "传送石碑（Waystones）",
+  
+  "fwaystones.debug.debugger_tooltip1": "§6[§e?§6] §3今天我们要调试什么？",
+  "fwaystones.debug.debugger_tooltip2": "§6[§e?§6] §3需要测试什么？",
+  "fwaystones.debug.debugger_tooltip3": "§6[§e?§6] §3有东西坏了吗？",
+  "fwaystones.debug.debugger_tooltip4": "§6[§e?§6] §3要修东西吗?"
+  
+}

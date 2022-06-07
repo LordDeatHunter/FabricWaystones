@@ -1,0 +1,7 @@
+{
+	"parent": "fwaystones:block/base_waystone_top",
+	"textures": {
+		"body": "fwaystones:block/mossy_red_desert_waystone_active",
+		"particle": "block/cut_red_sandstone"
+	}
+}

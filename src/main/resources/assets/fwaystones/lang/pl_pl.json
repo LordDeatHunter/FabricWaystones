@@ -1,0 +1,11 @@
+{
+  "item.fwaystones.waystone": "Kamień teleportacji",
+  "item.fwaystones.pocket_wormhole": "Kieszonkowy tunel czasoprzestrzenny",
+  "item.fwaystones.empty_scroll": "Pusty zwój",
+  "item.fwaystones.waystone_scroll": "Zwój teleportacji",
+  "item.fwaystones.abyss_watcher": "Abyss Watcher",
+  "block.fwaystones.waystone": "Kamień teleportacji",
+  "container.fwaystones.waystone": "Waystones",
+  "container.fwaystones.pocket_wormhole": "Kieszonkowy tunel czasoprzestrzenny",
+  "itemGroup.fwaystones.blocks": "Waystones"
+}

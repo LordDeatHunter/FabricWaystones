@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#A#",
+    "#E#",
+    "#O#"
+  ],
+  "key": {
+    "#": {
+      "tag": "c:sandstones"
+    },
+    "A": {
+      "item": "fwaystones:abyss_watcher"
+    },
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "result": {
+    "item": "fwaystones:desert_waystone",
+    "count": 1
+  }
+}

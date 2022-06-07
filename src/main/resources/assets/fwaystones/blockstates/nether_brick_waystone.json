@@ -1,0 +1,124 @@
+{
+  "variants": {
+    "half=lower,facing=north,mossy=false,active=true": {
+      "model": "fwaystones:block/nether_brick_waystone_bottom_active"
+    },
+    "half=upper,facing=north,mossy=false,active=true": {
+      "model": "fwaystones:block/nether_brick_waystone_top_active"
+    },
+    "half=lower,facing=east,mossy=false,active=true": {
+      "model": "fwaystones:block/nether_brick_waystone_bottom_active",
+      "y": 90
+    },
+    "half=upper,facing=east,mossy=false,active=true": {
+      "model": "fwaystones:block/nether_brick_waystone_top_active",
+      "y": 90
+    },
+    "half=lower,facing=west,mossy=false,active=true": {
+      "model": "fwaystones:block/nether_brick_waystone_bottom_active",
+      "y": 270
+    },
+    "half=upper,facing=west,mossy=false,active=true": {
+      "model": "fwaystones:block/nether_brick_waystone_top_active",
+      "y": 270
+    },
+    "half=lower,facing=south,mossy=false,active=true": {
+      "model": "fwaystones:block/nether_brick_waystone_bottom_active",
+      "y": 180
+    },
+    "half=upper,facing=south,mossy=false,active=true": {
+      "model": "fwaystones:block/nether_brick_waystone_top_active",
+      "y": 180
+    },
+    "half=lower,facing=north,mossy=true,active=true": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_bottom_active"
+    },
+    "half=upper,facing=north,mossy=true,active=true": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_top_active"
+    },
+    "half=lower,facing=east,mossy=true,active=true": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_bottom_active",
+      "y": 90
+    },
+    "half=upper,facing=east,mossy=true,active=true": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_top_active",
+      "y": 90
+    },
+    "half=lower,facing=west,mossy=true,active=true": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_bottom_active",
+      "y": 270
+    },
+    "half=upper,facing=west,mossy=true,active=true": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_top_active",
+      "y": 270
+    },
+    "half=lower,facing=south,mossy=true,active=true": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_bottom_active",
+      "y": 180
+    },
+    "half=upper,facing=south,mossy=true,active=true": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_top_active",
+      "y": 180
+    },
+    "half=lower,facing=north,mossy=false,active=false": {
+      "model": "fwaystones:block/nether_brick_waystone_bottom_inactive"
+    },
+    "half=upper,facing=north,mossy=false,active=false": {
+      "model": "fwaystones:block/nether_brick_waystone_top_inactive"
+    },
+    "half=lower,facing=east,mossy=false,active=false": {
+      "model": "fwaystones:block/nether_brick_waystone_bottom_inactive",
+      "y": 90
+    },
+    "half=upper,facing=east,mossy=false,active=false": {
+      "model": "fwaystones:block/nether_brick_waystone_top_inactive",
+      "y": 90
+    },
+    "half=lower,facing=west,mossy=false,active=false": {
+      "model": "fwaystones:block/nether_brick_waystone_bottom_inactive",
+      "y": 270
+    },
+    "half=upper,facing=west,mossy=false,active=false": {
+      "model": "fwaystones:block/nether_brick_waystone_top_inactive",
+      "y": 270
+    },
+    "half=lower,facing=south,mossy=false,active=false": {
+      "model": "fwaystones:block/nether_brick_waystone_bottom_inactive",
+      "y": 180
+    },
+    "half=upper,facing=south,mossy=false,active=false": {
+      "model": "fwaystones:block/nether_brick_waystone_top_inactive",
+      "y": 180
+    },
+    "half=lower,facing=north,mossy=true,active=false": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_bottom_inactive"
+    },
+    "half=upper,facing=north,mossy=true,active=false": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_top_inactive"
+    },
+    "half=lower,facing=east,mossy=true,active=false": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_bottom_inactive",
+      "y": 90
+    },
+    "half=upper,facing=east,mossy=true,active=false": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_top_inactive",
+      "y": 90
+    },
+    "half=lower,facing=west,mossy=true,active=false": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_bottom_inactive",
+      "y": 270
+    },
+    "half=upper,facing=west,mossy=true,active=false": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_top_inactive",
+      "y": 270
+    },
+    "half=lower,facing=south,mossy=true,active=false": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_bottom_inactive",
+      "y": 180
+    },
+    "half=upper,facing=south,mossy=true,active=false": {
+      "model": "fwaystones:block/mossy_nether_brick_waystone_top_inactive",
+      "y": 180
+    }
+  }
+}

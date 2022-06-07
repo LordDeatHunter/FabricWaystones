@@ -1,0 +1,11 @@
+{
+  "item.fwaystones.waystone": "傳送石碑",
+  "item.fwaystones.pocket_wormhole": "小型蟲洞",
+  "item.fwaystones.empty_scroll": "空卷軸",
+  "item.fwaystones.waystone_scroll": "傳送石碑卷軸",
+  "item.fwaystones.abyss_watcher": "深淵觀察者",
+  "block.fwaystones.waystone": "傳送石碑",
+  "container.fwaystones.waystone": "傳送石碑",
+  "container.fwaystones.pocket_wormhole": "小型蟲洞",
+  "itemGroup.fwaystones.blocks": "傳送石碑 (Waystones)"
+}

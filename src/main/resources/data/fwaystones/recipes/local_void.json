@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "PSP",
+    " P "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:blaze_powder"
+    },
+    "S": {
+      "item": "fwaystones:abyss_watcher"
+    }
+  },
+  "result": {
+    "item": "fwaystones:local_void",
+    "count": 1
+  }
+}

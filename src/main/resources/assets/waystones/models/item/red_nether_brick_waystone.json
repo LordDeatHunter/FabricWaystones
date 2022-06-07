@@ -1,6 +1,0 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "waystones:item/red_nether_brick_waystone"
-  }
-}

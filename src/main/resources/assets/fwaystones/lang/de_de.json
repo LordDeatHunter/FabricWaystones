@@ -1,0 +1,68 @@
+{
+  "item.fwaystones.waystone": "Wegstein",
+  "item.fwaystones.desert_waystone": "Desert Waystone",
+  "item.fwaystones.stone_brick_waystone": "Stone Brick Waystone",
+  "item.fwaystones.pocket_wormhole": "Tragbares Wurmloch",
+  "item.fwaystones.local_void": "Örtliches Nichts",
+  "item.fwaystones.waystone_scroll": "Wegsteinrolle",
+  "item.fwaystones.empty_scroll": "Leere Schriftrolle",
+  "item.fwaystones.abyss_watcher": "Auge des Abgrunds",
+  "item.fwaystones.scroll_of_infinite_knowledge": "Schrift unendlichen Wissens",
+  "block.fwaystones.waystone": "Wegstein",
+  "block.fwaystones.desert_waystone": "Desert Waystone",
+  "block.fwaystones.stone_brick_waystone": "Stone Brick Waystone",
+  "container.fwaystones.waystone": "Wegsteine",
+  "container.fwaystones.pocket_wormhole": "Tragbares Wurmloch",
+  "container.fwaystones.abyss_watcher": "Auge des Abgrunds",
+
+  "fwaystones.gui.displayed_waystones": "Angezeigte Wegsteine: %s",
+  "fwaystones.gui.contains": "Suchen in: Ganzer Name.",
+  "fwaystones.gui.starts_with": "Suchen in: Anfang des Namens.",
+
+  "fwaystones.waystone_tooltip.name": "§6[§eGemerkter Name§6] §3%s",
+  "fwaystones.waystone_tooltip.global": "§6[§eGlobal§6]",
+  "fwaystones.waystone_tooltip.global_on": "§3AN",
+  "fwaystones.waystone_tooltip.global_off": "§3AUS",
+
+  "fwaystones.scroll.tooltip": "§6Enhaltene Wegsteine: %s",
+  "fwaystones.scroll.infinite": "Erlerne alles was zu erlernen ist.",
+  "fwaystones.scroll.infinite_tooltip": "Vorhandene Wegsteine:",
+
+  "fwaystones.local_void.tooltip": "§6Gebunden an: %s",
+  "fwaystones.local_void.empty_tooltip": "§3Ungebunden.",
+
+  "fwaystones.config.tooltip.revoke_ownership": "Besitzer entfernen.",
+  "fwaystones.config.tooltip.toggle_global_view": "Sichtbarkeit globaler Wegsteine umschalten.",
+  "fwaystones.config.tooltip.toggle_discovered_view": "Sichtbarkeit entdeckter Wegsteine umschalten.",
+  "fwaystones.config.tooltip.toggle_is_global": "Globale Sichtbarkeit umschalten.",
+  "fwaystones.config.tooltip.randomize_name": "Zuälligen Namen erzeugen.",
+  "fwaystones.config.tooltip.set_name": "Namen speichern.",
+  "fwaystones.config.tooltip.delete_name": "Namen löschen.",
+  "fwaystones.config.tooltip.back": "Zurück zur Wegsteinliste.",
+  "fwaystones.config.tooltip.config": "Einstellungen öffnen.",
+
+  "fwaystones.learned.single": "Einen neuen Wegstein erlernt!",
+  "fwaystones.learned.multiple": "§b%s neue Wegsteine erlernt!",
+  "fwaystones.learned.none": "§bKeine neuen Wegsteine erlernt!",
+
+  "fwaystones.learned.infinite.single": "§bEinen Wegstein erlernt!",
+  "fwaystones.learned.infinite.multiple": "§6%s Wegsteine erlernt!",
+  "fwaystones.learned.infinite.none": "§6Du weißt bereits alles was zu wissen ist!",
+
+  "fwaystones.discover_waystone": "§b%s wurde entdeckt!",
+
+  "fwaystones.config.global": "Globale Sichtbarkeit umschalten",
+  "fwaystones.config.view_discovered": "Entdeckte Wegsteine anzeigen",
+  "fwaystones.config.view_global": "Globale Wegsteine anzeigen",
+  "fwaystones.config.owner": "Besitzer %s",
+  "fwaystones.config.no_owner": "Kein Besitzer",
+
+  "fwaystones.cost.item": "Ingesamt",
+  "fwaystones.cost.free": "Kostenlos",
+  "fwaystones.cost.xp": "XP",
+  "fwaystones.cost.health": "Halbe Herzen",
+  "fwaystones.cost.level": "Level",
+  "fwaystones.cost.hunger": "Hunger",
+
+  "itemGroup.fwaystones.waystones": "Waystones"
+}

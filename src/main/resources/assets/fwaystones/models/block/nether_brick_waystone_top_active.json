@@ -1,0 +1,7 @@
+{
+	"parent": "fwaystones:block/base_waystone_top",
+	"textures": {
+		"body": "fwaystones:block/nether_brick_waystone_active",
+		"particle": "block/nether_bricks"
+	}
+}
