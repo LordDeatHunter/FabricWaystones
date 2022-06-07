@@ -9,9 +9,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
+import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.block.WaystoneBlock;
 import wraith.waystones.block.WaystoneBlockEntity;
-import wraith.waystones.access.PlayerEntityMixinAccess;
 import wraith.waystones.mixin.MinecraftServerAccessor;
 
 import java.io.File;
@@ -21,11 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CompatibilityLayer {
 
+    private static final String OLD_ID = "waystones_waystones";
     private final WaystoneStorage STORAGE;
     private final ConcurrentHashMap<String, HashSet<String>> COMPATABILITY_MAP = new ConcurrentHashMap<>();
-    private boolean COMPATABILITY_ENABLED = false;
     private final MinecraftServer SERVER;
-    private static final String OLD_ID = "waystones_waystones";
+    private boolean COMPATABILITY_ENABLED = false;
 
     public CompatibilityLayer(WaystoneStorage storage, MinecraftServer server) {
         SERVER = server;
@@ -156,8 +156,8 @@ public class CompatibilityLayer {
     }
 
     public void updatePlayerCompatibility(PlayerEntity player) {
-        String username = player.getName().asString();
-        if (COMPATABILITY_MAP.containsKey(player.getName().asString())) {
+        String username = player.getName().getString();
+        if (COMPATABILITY_MAP.containsKey(player.getName().getString())) {
             HashSet<String> stonesToLearn = COMPATABILITY_MAP.get(username);
             COMPATABILITY_MAP.remove(username);
             ((PlayerEntityMixinAccess) player).discoverWaystones(stonesToLearn);

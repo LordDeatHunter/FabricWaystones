@@ -6,7 +6,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -15,7 +14,7 @@ import wraith.waystones.screen.AbyssScreenHandler;
 
 public class AbyssWatcherItem extends Item {
 
-    private static final Text TITLE = new TranslatableText("container." + Waystones.MOD_ID + ".abyss_watcher");
+    private static final Text TITLE = Text.translatable("container." + Waystones.MOD_ID + ".abyss_watcher");
 
     public AbyssWatcherItem(Settings settings) {
         super(settings);

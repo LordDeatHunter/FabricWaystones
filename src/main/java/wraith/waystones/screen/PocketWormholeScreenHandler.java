@@ -14,9 +14,7 @@ public class PocketWormholeScreenHandler extends UniversalWaystoneScreenHandler 
     }
 
     @Override
-    public void onForget(String waystone) {
-
-    }
+    public void onForget(String waystone) {}
 
     @Override
     public boolean canUse(PlayerEntity player) {

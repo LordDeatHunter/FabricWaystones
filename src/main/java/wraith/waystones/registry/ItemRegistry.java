@@ -13,15 +13,15 @@ import java.util.HashMap;
 
 public final class ItemRegistry {
 
-    private ItemRegistry(){}
-
     private static final HashMap<String, Item> ITEMS = new HashMap<>();
 
-    private static void registerItem(String id, Item item){
+    private ItemRegistry() {}
+
+    private static void registerItem(String id, Item item) {
         ITEMS.put(id, Registry.register(Registry.ITEM, Utils.ID(id), item));
     }
 
-    public static void init(){
+    public static void init() {
         if (!ITEMS.isEmpty()) {
             return;
         }

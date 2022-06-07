@@ -5,10 +5,8 @@ import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,14 +27,14 @@ public class WaystoneItem extends BlockItem {
         }
         String name = tag.getString("waystone_name");
         boolean global = tag.getBoolean("waystone_is_global");
-        tooltip.add(new TranslatableText(
-                "waystones.waystone_tooltip.name",
-                new LiteralText(name).styled(style ->
-                        style.withColor(TextColor.parse(new TranslatableText("waystones.waystone_tooltip.name.arg_color").getString()))
-                )
+        tooltip.add(Text.translatable(
+            "waystones.waystone_tooltip.name",
+            Text.literal(name).styled(style ->
+                style.withColor(TextColor.parse(Text.translatable("waystones.waystone_tooltip.name.arg_color").getString()))
+            )
         ));
-        tooltip.add(new TranslatableText("waystones.waystone_tooltip.global").append(" ")
-                .append(new TranslatableText("waystones.waystone_tooltip.global_" + (global ? "on" : "off"))));
+        tooltip.add(Text.translatable("waystones.waystone_tooltip.global").append(" ")
+            .append(Text.translatable("waystones.waystone_tooltip.global_" + (global ? "on" : "off"))));
     }
 
 }

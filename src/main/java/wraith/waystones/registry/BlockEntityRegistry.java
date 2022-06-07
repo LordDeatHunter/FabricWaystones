@@ -3,8 +3,8 @@ package wraith.waystones.registry;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.util.registry.Registry;
-import wraith.waystones.util.Utils;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.util.Utils;
 
 public final class BlockEntityRegistry {
 

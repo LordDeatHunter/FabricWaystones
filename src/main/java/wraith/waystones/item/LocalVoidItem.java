@@ -6,10 +6,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -24,12 +22,23 @@ import java.util.List;
 
 public class LocalVoidItem extends Item {
 
+    protected boolean canTeleport = true;
+    protected String translationName = "local_void";
+
     public LocalVoidItem(Settings settings) {
         super(settings);
     }
 
-    protected boolean canTeleport = true;
-    protected String translationName = "local_void";
+    public static String getBoundWaystone(ItemStack stack) {
+        if (!(stack.getItem() instanceof LocalVoidItem)) {
+            return null;
+        }
+        NbtCompound tag = stack.getNbt();
+        if (tag == null || !tag.contains("waystone")) {
+            return null;
+        }
+        return tag.getString("waystone");
+    }
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
@@ -78,26 +87,15 @@ public class LocalVoidItem extends Item {
         var hash = getBoundWaystone(stack);
         if (hash != null) name = Waystones.WAYSTONE_STORAGE.getName(hash);
         if (name == null) {
-            tooltip.add(new TranslatableText("waystones." + translationName + ".empty_tooltip"));
+            tooltip.add(Text.translatable("waystones." + translationName + ".empty_tooltip"));
             return;
         }
-        tooltip.add(new TranslatableText(
-                "waystones." + translationName + ".tooltip",
-                new LiteralText(name).styled(style ->
-                        style.withColor(TextColor.parse(new TranslatableText("waystones." + translationName + ".tooltip.arg_color").getString()))
-                )
+        tooltip.add(Text.translatable(
+            "waystones." + translationName + ".tooltip",
+            Text.literal(name).styled(style ->
+                style.withColor(TextColor.parse(Text.translatable("waystones." + translationName + ".tooltip.arg_color").getString()))
+            )
         ));
-    }
-
-    public static String getBoundWaystone(ItemStack stack) {
-        if (!(stack.getItem() instanceof LocalVoidItem)) {
-            return null;
-        }
-        NbtCompound tag = stack.getNbt();
-        if (tag == null || !tag.contains("waystone")) {
-            return null;
-        }
-        return tag.getString("waystone");
     }
 
 }

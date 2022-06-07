@@ -9,8 +9,8 @@ import java.util.HashSet;
 
 public final class WaystonesWorldgen {
 
-    public static final HashSet<Identifier> WAYSTONE_STRUCTURES = new HashSet<>();
     public static final HashMap<Identifier, Identifier> VANILLA_VILLAGES = new HashMap<>();
+    public static final HashSet<Identifier> WAYSTONE_STRUCTURES = new HashSet<>();
 
     static {
         WAYSTONE_STRUCTURES.add(Utils.ID("desert_village_waystone"));

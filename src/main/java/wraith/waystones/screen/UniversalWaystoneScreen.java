@@ -18,10 +18,8 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -87,7 +85,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     protected void init() {
         super.init();
 
-        this.searchField = new TextFieldWidget(this.textRenderer, this.x + 37, this.y + 27, 93, 10, new LiteralText("")) {
+        this.searchField = new TextFieldWidget(this.textRenderer, this.x + 37, this.y + 27, 93, 10, Text.literal("")) {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
                 boolean bl = mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
@@ -159,7 +157,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     private void renderWaystoneAmount(MatrixStack matrices, int x, int y) {
-        this.textRenderer.draw(matrices, new TranslatableText("waystones.gui.displayed_waystones", this.getDiscoveredCount()), x, y, 0x161616);
+        this.textRenderer.draw(matrices, Text.translatable("waystones.gui.displayed_waystones", this.getDiscoveredCount()), x, y, 0x161616);
     }
 
     protected void renderButtons(MatrixStack matrices, int mouseX, int mouseY) {
@@ -212,26 +210,26 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         switch (config.teleportType()) {
             case "hp", "health" -> {
                 this.drawTexture(matrices, x + 4, y + 4, 186, 15, 9, 9);
-                text = new TranslatableText("waystones.cost.health");
+                text = Text.translatable("waystones.cost.health");
             }
             case "hunger" -> {
                 this.drawTexture(matrices, x + 4, y + 4, 177, 24, 9, 9);
-                text = new TranslatableText("waystones.cost.hunger");
+                text = Text.translatable("waystones.cost.hunger");
             }
             case "xp", "experience" -> {
                 this.drawTexture(matrices, x + 4, y + 4, 177, 15, 9, 9);
-                text = new TranslatableText("waystones.cost.xp");
+                text = Text.translatable("waystones.cost.xp");
             }
             case "level" -> {
                 this.itemRenderer.renderGuiItemIcon(new ItemStack(Items.EXPERIENCE_BOTTLE), x, y);
-                text = new TranslatableText("waystones.cost.level");
+                text = Text.translatable("waystones.cost.level");
             }
             case "item" -> {
                 var item = Registry.ITEM.get(config.teleportCostItem());
                 this.itemRenderer.renderGuiItemIcon(new ItemStack(item), x, y);
                 text = (MutableText) item.getName();
             }
-            default -> text = new TranslatableText("waystones.cost.free");
+            default -> text = Text.translatable("waystones.cost.free");
         }
 
         renderCostText(matrices, x, y, text);
@@ -242,7 +240,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected void renderCostText(MatrixStack matrices, int x, int y, MutableText text, int color) {
-        this.textRenderer.draw(matrices, text.append(new LiteralText(": " + Config.getInstance().baseTeleportCost())), x + 20, y + 5, color);
+        this.textRenderer.draw(matrices, text.append(Text.literal(": " + Config.getInstance().baseTeleportCost())), x + 20, y + 5, color);
     }
 
     @Override
@@ -272,7 +270,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             if (mouseX < x || mouseY < r || mouseX > x + 8 || mouseY >= r + 8) {
                 continue;
             }
-            this.renderTooltip(matrixStack, new TranslatableText("waystones.gui.forget_tooltip"), mouseX, mouseY);
+            this.renderTooltip(matrixStack, Text.translatable("waystones.gui.forget_tooltip"), mouseX, mouseY);
         }
     }
 
@@ -302,7 +300,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             }
             var startDim = Utils.getDimensionName(client.player.world);
             var endDim = waystoneData.getWorldName();
-            this.renderTooltip(matrixStack, new TranslatableText("waystones.gui.cost_tooltip", Utils.getCost(Vec3d.ofCenter(waystoneData.way_getPos()), client.player.getPos(), startDim, endDim)), mouseX, mouseY);
+            this.renderTooltip(matrixStack, Text.translatable("waystones.gui.cost_tooltip", Utils.getCost(Vec3d.ofCenter(waystoneData.way_getPos()), client.player.getPos(), startDim, endDim)), mouseX, mouseY);
         }
     }
 

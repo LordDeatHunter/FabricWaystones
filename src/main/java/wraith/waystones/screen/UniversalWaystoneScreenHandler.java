@@ -13,7 +13,6 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerAccess;
 import wraith.waystones.access.PlayerEntityMixinAccess;
@@ -159,6 +158,11 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         }
     }
 
+    @Override
+    public ItemStack transferSlot(PlayerEntity player, int index) {
+        return ItemStack.EMPTY;
+    }
+
     public void toggleSearchType() {
         if (this.searchType == SearchType.CONTAINS) {
             this.searchType = SearchType.STARTS_WITH;
@@ -169,7 +173,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     }
 
     public Text getSearchTypeTooltip() {
-        return new TranslatableText(
+        return Text.translatable(
             "waystones.gui." + (this.searchType == SearchType.CONTAINS ? "contains"
                 : "starts_with"));
     }

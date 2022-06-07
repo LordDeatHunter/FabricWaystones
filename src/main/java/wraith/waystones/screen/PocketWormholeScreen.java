@@ -25,7 +25,7 @@ public class PocketWormholeScreen extends UniversalWaystoneScreen {
 
     @Override
     protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
-        this.textRenderer.draw(matrices, this.title, (float)this.titleX, (float)this.titleY, 0x7E3483);
+        this.textRenderer.draw(matrices, this.title, (float) this.titleX, (float) this.titleY, 0x7E3483);
     }
 
 

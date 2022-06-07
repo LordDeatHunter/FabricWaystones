@@ -15,9 +15,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
@@ -53,7 +51,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
         @Override
         public void setup() {
-            this.tooltip = new TranslatableText("waystones.config.tooltip.config");
+            this.tooltip = Text.translatable("waystones.config.tooltip.config");
         }
     };
 
@@ -87,7 +85,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
             @Override
             public void setup() {
-                this.tooltip = new TranslatableText("waystones.config.tooltip.back");
+                this.tooltip = Text.translatable("waystones.config.tooltip.back");
             }
         });
 
@@ -109,7 +107,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
             @Override
             public void setup() {
-                this.tooltip = new TranslatableText("waystones.config.tooltip.delete_name");
+                this.tooltip = Text.translatable("waystones.config.tooltip.delete_name");
             }
         });
 
@@ -117,7 +115,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         buttons.add(new ToggleableButton(128, 103, 13, 13, 190, 54, 216, 54) {
             @Override
             public void setup() {
-                this.tooltip = new TranslatableText("waystones.config.tooltip.set_name");
+                this.tooltip = Text.translatable("waystones.config.tooltip.set_name");
                 boolean settable = !((WaystoneBlockScreenHandler) handler).getName().equals(nameField.getText());
                 if (toggled == settable) {
                     toggle();
@@ -161,7 +159,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
             @Override
             public void setup() {
-                this.tooltip = new TranslatableText("waystones.config.tooltip.randomize_name");
+                this.tooltip = Text.translatable("waystones.config.tooltip.randomize_name");
             }
         });
 
@@ -171,7 +169,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             @Override
             public void setup() {
                 this.toggled = ((WaystoneBlockScreenHandler) handler).isGlobal();
-                this.tooltip = new TranslatableText("waystones.config.tooltip.toggle_is_global");
+                this.tooltip = Text.translatable("waystones.config.tooltip.toggle_is_global");
             }
 
             @Override
@@ -194,7 +192,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             @Override
             public void setup() {
                 this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewDiscoveredWaystones();
-                this.tooltip = new TranslatableText("waystones.config.tooltip.toggle_discovered_view");
+                this.tooltip = Text.translatable("waystones.config.tooltip.toggle_discovered_view");
             }
 
             @Override
@@ -221,7 +219,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         buttons.add(new ToggleableButton(8, 27, 13, 13, 177, 54, 190, 54) {
             @Override
             public void setup() {
-                this.tooltip = new TranslatableText("waystones.config.tooltip.toggle_global_view");
+                this.tooltip = Text.translatable("waystones.config.tooltip.toggle_global_view");
                 this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewGlobalWaystones();
             }
 
@@ -266,7 +264,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
             @Override
             public void setup() {
-                this.tooltip = new TranslatableText("waystones.config.tooltip.revoke_ownership");
+                this.tooltip = Text.translatable("waystones.config.tooltip.revoke_ownership");
             }
         });
     }
@@ -275,7 +273,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     protected void init() {
         super.init();
 
-        this.nameField = new TextFieldWidget(this.textRenderer, this.x + 28, this.y + 106, 93, 10, new LiteralText("")) {
+        this.nameField = new TextFieldWidget(this.textRenderer, this.x + 28, this.y + 106, 93, 10, Text.literal("")) {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
                 boolean bl = mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
@@ -404,9 +402,9 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             renderButtonText(matrices);
             String owner = ((WaystoneBlockScreenHandler) handler).getOwnerName();
             if (owner == null || "".equals(owner)) {
-                owner = new TranslatableText("waystones.config.no_owner").getString();
+                owner = Text.translatable("waystones.config.no_owner").getString();
             }
-            this.textRenderer.draw(matrices, new TranslatableText("waystones.config.owner", owner), this.x + 10, this.y + 75, 0x161616);
+            this.textRenderer.draw(matrices, Text.translatable("waystones.config.owner", owner), this.x + 10, this.y + 75, 0x161616);
             if (this.nameField.isVisible()) {
                 this.nameField.render(matrices, mouseX, mouseY, delta);
             }
@@ -488,8 +486,8 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     private void renderButtonText(MatrixStack matrices) {
-        this.textRenderer.draw(matrices, new TranslatableText("waystones.config.view_discovered"), this.x + 25, this.y + 14, 0x161616);
-        this.textRenderer.draw(matrices, new TranslatableText("waystones.config.view_global"), this.x + 25, this.y + 30, 0x161616);
+        this.textRenderer.draw(matrices, Text.translatable("waystones.config.view_discovered"), this.x + 25, this.y + 14, 0x161616);
+        this.textRenderer.draw(matrices, Text.translatable("waystones.config.view_global"), this.x + 25, this.y + 30, 0x161616);
     }
 
     @Override

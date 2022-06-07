@@ -15,7 +15,9 @@ import wraith.waystones.access.ClientPlayerEntityMixinAccess;
 @Mixin(ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
 
-    @Shadow @Final private MinecraftClient client;
+    @Shadow
+    @Final
+    private MinecraftClient client;
 
     @Inject(method = "onPlayerRespawn", at = @At("RETURN"))
     public void onPlayerRespawn(PlayerRespawnS2CPacket packet, CallbackInfo ci) {

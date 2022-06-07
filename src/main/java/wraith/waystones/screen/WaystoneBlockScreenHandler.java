@@ -16,12 +16,12 @@ import java.util.function.Function;
 
 public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
 
+    private final boolean isClient;
     private String name;
     private String hash;
     private UUID owner;
     private boolean isGlobal;
     private Function<PlayerEntity, Boolean> canUse = null;
-    private final boolean isClient;
     private String ownerName = "";
 
     public WaystoneBlockScreenHandler(int syncId, WaystoneBlockEntity waystoneEntity, PlayerEntity player) {
@@ -104,12 +104,12 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
         return this.name;
     }
 
-    public boolean isGlobal() {
-        return this.isGlobal;
-    }
-
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isGlobal() {
+        return this.isGlobal;
     }
 
     public UUID getOwner() {

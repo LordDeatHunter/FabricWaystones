@@ -4,10 +4,8 @@ import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -46,21 +44,21 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         Text text;
         if (learned > 0) {
             if (learned > 1) {
-                text = new TranslatableText(
+                text = Text.translatable(
                     "waystones.learned.infinite.multiple",
-                    new LiteralText(String.valueOf(learned)).styled(style ->
-                        style.withColor(TextColor.parse(new TranslatableText("waystones.learned.infinite.multiple.arg_color").getString()))
+                    Text.literal(String.valueOf(learned)).styled(style ->
+                        style.withColor(TextColor.parse(Text.translatable("waystones.learned.infinite.multiple.arg_color").getString()))
                     )
                 );
             } else {
-                text = new TranslatableText("waystones.learned.infinite.single");
+                text = Text.translatable("waystones.learned.infinite.single");
             }
             ((PlayerEntityMixinAccess) user).discoverWaystones(toLearn);
             if (!user.isCreative() && Config.getInstance().consumeInfiniteScroll()) {
                 stack.decrement(1);
             }
         } else {
-            text = new TranslatableText("waystones.learned.infinite.none");
+            text = Text.translatable("waystones.learned.infinite.none");
         }
         if (!world.isClient) {
             user.sendMessage(text, false);
@@ -76,16 +74,16 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
-        tooltip.add(new TranslatableText("waystones.scroll.infinite"));
+        tooltip.add(Text.translatable("waystones.scroll.infinite"));
         int count = -1;
         if (Waystones.WAYSTONE_STORAGE != null) {
             count = Waystones.WAYSTONE_STORAGE.getCount();
         }
         if (count != -1) {
-            tooltip.add(new TranslatableText(
+            tooltip.add(Text.translatable(
                 "waystones.scroll.infinite_tooltip",
-                new LiteralText(String.valueOf(count)).styled(style ->
-                    style.withColor(TextColor.parse(new TranslatableText("waystones.scroll.infinite_tooltip.arg_color").getString()))
+                Text.literal(String.valueOf(count)).styled(style ->
+                    style.withColor(TextColor.parse(Text.translatable("waystones.scroll.infinite_tooltip.arg_color").getString()))
                 )
             ));
         }

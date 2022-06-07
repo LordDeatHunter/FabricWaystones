@@ -1,7 +1,7 @@
 package wraith.waystones.mixin;
 
 import net.minecraft.structure.PoolStructurePiece;
-import net.minecraft.structure.Structure;
+import net.minecraft.structure.StructureTemplate;
 import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolBasedGenerator;
@@ -13,6 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.HeightLimitView;
+import net.minecraft.world.gen.noise.NoiseConfig;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -56,16 +57,17 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
         this.maxWaystoneCount = maxWaystoneCount;
     }
 
-    @Inject(method = "generatePiece(Lnet/minecraft/structure/PoolStructurePiece;Lorg/apache/commons/lang3/mutable/MutableObject;IZLnet/minecraft/world/HeightLimitView;)V", at = @At(value = "HEAD"))
+    @Inject(method = "generatePiece(Lnet/minecraft/structure/PoolStructurePiece;Lorg/apache/commons/lang3/mutable/MutableObject;IZLnet/minecraft/world/HeightLimitView;Lnet/minecraft/world/gen/noise/NoiseConfig;)V", at = @At(value = "HEAD"))
     private void fabricwaystones_startGeneratePiece(PoolStructurePiece piece,
                                                     MutableObject<VoxelShape> pieceShape,
                                                     int minY,
                                                     boolean modifyBoundingBox,
                                                     HeightLimitView world,
+                                                    NoiseConfig noiseConfig,
                                                     CallbackInfo ci) {
     }
 
-    @Inject(method = "generatePiece(Lnet/minecraft/structure/PoolStructurePiece;Lorg/apache/commons/lang3/mutable/MutableObject;IZLnet/minecraft/world/HeightLimitView;)V",
+    @Inject(method = "generatePiece(Lnet/minecraft/structure/PoolStructurePiece;Lorg/apache/commons/lang3/mutable/MutableObject;IZLnet/minecraft/world/HeightLimitView;Lnet/minecraft/world/gen/noise/NoiseConfig;)V",
         at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false),
         locals = LocalCapture.CAPTURE_FAILSOFT)
     private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece,
@@ -73,6 +75,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                                                             int minY,
                                                             boolean modifyBoundingBox,
                                                             HeightLimitView world,
+                                                            NoiseConfig noiseConfig,
                                                             CallbackInfo ci,
                                                             StructurePoolElement structurePoolElement,
                                                             BlockPos blockPos,
@@ -82,8 +85,8 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                                                             MutableObject<VoxelShape> mutableObject,
                                                             BlockBox blockBox,
                                                             int i,
-                                                            Iterator<Structure.StructureBlockInfo> var14,
-                                                            Structure.StructureBlockInfo structureBlockInfo,
+                                                            Iterator<StructureTemplate.StructureBlockInfo> var14,
+                                                            StructureTemplate.StructureBlockInfo structureBlockInfo,
                                                             Direction direction,
                                                             BlockPos blockPos2,
                                                             BlockPos blockPos3,

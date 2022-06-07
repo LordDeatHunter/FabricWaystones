@@ -1,7 +1,7 @@
 package wraith.waystones.mixin;
 
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagEntry;
 import net.minecraft.tag.TagGroupLoader;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Final;
@@ -14,6 +14,8 @@ import wraith.waystones.registry.BlockRegistry;
 import wraith.waystones.util.Config;
 import wraith.waystones.util.Utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Mixin(TagGroupLoader.class)
@@ -24,7 +26,7 @@ public class TagGroupLoaderMixin {
     private String dataType;
 
     @Inject(method = "loadTags", at = @At("TAIL"))
-    private void loadWaystoneTags(ResourceManager manager, CallbackInfoReturnable<Map<Identifier, Tag.Builder>> cir) {
+    private void loadWaystoneTags(ResourceManager manager, CallbackInfoReturnable<Map<Identifier, List<TagGroupLoader.TrackedEntry>>> cir) {
         if (!dataType.equals("tags/blocks")) {
             return;
         }
@@ -35,13 +37,14 @@ public class TagGroupLoaderMixin {
             case 3 -> "minecraft:needs_diamond_tool";
             default -> "fabric:needs_tool_level_" + miningLevel;
         });
+
         var map = cir.getReturnValue();
-        var miningLevelBuilder = map.computeIfAbsent(miningLevelTag, k -> new Tag.Builder());
-        var minableBuilder = map.computeIfAbsent(new Identifier("mineable/pickaxe"), k -> new Tag.Builder());
+        var miningLevelBuilder = map.computeIfAbsent(miningLevelTag, k -> new ArrayList<>());
+        var mineableBuilder = map.computeIfAbsent(new Identifier("mineable/pickaxe"), k -> new ArrayList<>());
         BlockRegistry.WAYSTONE_BLOCKS.forEach((id, block) -> {
             var waystoneId = Utils.ID(id);
-            miningLevelBuilder.add(waystoneId, "waystones");
-            minableBuilder.add(waystoneId, "waystones");
+            miningLevelBuilder.add(new TagGroupLoader.TrackedEntry(TagEntry.create(waystoneId), "waystones"));
+            mineableBuilder.add(new TagGroupLoader.TrackedEntry(TagEntry.create(waystoneId), "waystones"));
         });
     }
 

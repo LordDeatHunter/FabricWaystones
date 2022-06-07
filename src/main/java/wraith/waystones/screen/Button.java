@@ -4,13 +4,13 @@ import net.minecraft.text.Text;
 
 public class Button {
 
+    protected Text tooltip = null;
     private int x;
     private int y;
     private int u;
     private int v;
     private int height;
     private int width;
-    protected Text tooltip = null;
 
     public Button(int x, int y, int width, int height, int u, int v) {
         this.x = x;
@@ -73,16 +73,16 @@ public class Button {
         this.width = width;
     }
 
-    public void onClick(){}
+    public void onClick() {}
 
-    public void setup(){}
+    public void setup() {}
 
-    public boolean isVisible(){
+    public boolean isVisible() {
         return true;
     }
 
-    public boolean hasToolTip(){return this.tooltip != null;}
+    public boolean hasToolTip() {return this.tooltip != null;}
 
-    public Text tooltip(){return this.tooltip;}
+    public Text tooltip() {return this.tooltip;}
 
 }

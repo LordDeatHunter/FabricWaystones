@@ -19,10 +19,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -44,7 +42,6 @@ import wraith.waystones.util.Utils;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.UUID;
 
 public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory,
@@ -121,7 +118,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public Text getDisplayName() {
-        return new TranslatableText("container." + Waystones.MOD_ID + ".waystone");
+        return Text.translatable("container." + Waystones.MOD_ID + ".waystone");
     }
 
     @Override
@@ -249,7 +246,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (world == null) {
             return;
         }
-        Random r = world.getRandom();
+        var r = world.getRandom();
         Vec3d playerPos = player.getPos();
         ParticleEffect p = (r.nextInt(10) > 7) ? ParticleTypes.ENCHANT : ParticleTypes.PORTAL;
 
@@ -399,10 +396,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         var cooldown = playerAccess.getTeleportCooldown();
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
-            player.sendMessage(new TranslatableText(
+            player.sendMessage(Text.translatable(
                 "waystones.no_teleport_message.cooldown",
-                new LiteralText(cooldownSeconds).styled(style ->
-                    style.withColor(TextColor.parse(new TranslatableText(
+                Text.literal(cooldownSeconds).styled(style ->
+                    style.withColor(TextColor.parse(Text.translatable(
                         "waystones.no_teleport_message.cooldown.arg_color").getString()))
                 )
             ), false);
@@ -496,7 +493,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                     SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
             }
             this.owner = player.getUuid();
-            this.ownerName = player.getName().asString();
+            this.ownerName = player.getName().getString();
         }
         updateActiveState();
         markDirty();

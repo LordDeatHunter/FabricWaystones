@@ -21,9 +21,8 @@ import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
@@ -50,10 +49,10 @@ import wraith.waystones.util.Utils;
 @SuppressWarnings("deprecation")
 public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
-    public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
-    public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
-    public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
     public static final BooleanProperty ACTIVE = BooleanProperty.of("active");
+    public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
+    public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
+    public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
     protected static final VoxelShape VOXEL_SHAPE_TOP;
@@ -280,29 +279,29 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                         var discoverItem = Registry.ITEM.get(discoverItemId);
                         var discoverAmount = config.getDiscoverItemAmount();
                         if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
-                            player.sendMessage(new TranslatableText(
+                            player.sendMessage(Text.translatable(
                                 "waystones.missing_discover_item",
                                 discoverAmount,
-                                new TranslatableText(discoverItem.getTranslationKey()).styled(style ->
-                                    style.withColor(TextColor.parse(new TranslatableText("waystones.missing_discover_item.arg_color").getString()))
+                                Text.translatable(discoverItem.getTranslationKey()).styled(style ->
+                                    style.withColor(TextColor.parse(Text.translatable("waystones.missing_discover_item.arg_color").getString()))
                                 )
                             ), false);
                             return ActionResult.FAIL;
                         } else {
                             Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
-                            player.sendMessage(new TranslatableText(
+                            player.sendMessage(Text.translatable(
                                 "waystones.discover_item_paid",
                                 discoverAmount,
-                                new TranslatableText(discoverItem.getTranslationKey()).styled(style ->
-                                    style.withColor(TextColor.parse(new TranslatableText("waystones.discover_item_paid.arg_color").getString()))
+                                Text.translatable(discoverItem.getTranslationKey()).styled(style ->
+                                    style.withColor(TextColor.parse(Text.translatable("waystones.discover_item_paid.arg_color").getString()))
                                 )
                             ), false);
                         }
                     }
-                    player.sendMessage(new TranslatableText(
+                    player.sendMessage(Text.translatable(
                         "waystones.discover_waystone",
-                        new LiteralText(blockEntity.getWaystoneName()).styled(style ->
-                            style.withColor(TextColor.parse(new TranslatableText("waystones.discover_waystone.arg_color").getString()))
+                        Text.literal(blockEntity.getWaystoneName()).styled(style ->
+                            style.withColor(TextColor.parse(Text.translatable("waystones.discover_waystone.arg_color").getString()))
                         )
                     ), false);
                 }

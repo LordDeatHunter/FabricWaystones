@@ -13,7 +13,9 @@ import java.util.List;
 @Mixin(StructurePiecesList.class)
 public class StructurePiecesListMixin implements StructurePiecesListAccess {
 
-    @Shadow @Final @Mutable
+    @Shadow
+    @Final
+    @Mutable
     private List<StructurePiece> pieces;
 
     @Override

@@ -11,9 +11,9 @@ import wraith.waystones.util.WaystonesEventManager;
 
 public class Waystones implements ModInitializer {
 
+    public static final Logger LOGGER = LogManager.getLogger("Fabric-Waystones");
     public static final String MOD_ID = "waystones";
     public static WaystoneStorage WAYSTONE_STORAGE;
-    public static final Logger LOGGER = LogManager.getLogger("Fabric-Waystones");
 
     @Override
     public void onInitialize() {

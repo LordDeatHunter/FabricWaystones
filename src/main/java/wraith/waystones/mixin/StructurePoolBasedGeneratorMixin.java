@@ -1,17 +1,15 @@
 package wraith.waystones.mixin;
 
 import net.minecraft.structure.PoolStructurePiece;
-import net.minecraft.structure.StructureManager;
-import net.minecraft.structure.StructurePiecesCollector;
-import net.minecraft.structure.StructurePiecesGenerator;
+import net.minecraft.structure.StructureTemplateManager;
+import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolBasedGenerator;
-import net.minecraft.util.math.BlockBox;
-import net.minecraft.util.math.Box;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.feature.StructurePoolFeatureConfig;
-import net.minecraft.world.gen.random.ChunkRandom;
+import net.minecraft.world.gen.noise.NoiseConfig;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -27,10 +25,10 @@ import java.util.List;
 @Mixin(StructurePoolBasedGenerator.class)
 public class StructurePoolBasedGeneratorMixin {
 
-    @Inject(method = "method_39824(Lnet/minecraft/structure/PoolStructurePiece;Lnet/minecraft/world/gen/feature/StructurePoolFeatureConfig;IIILnet/minecraft/util/registry/Registry;Lnet/minecraft/structure/pool/StructurePoolBasedGenerator$PieceFactory;Lnet/minecraft/world/gen/chunk/ChunkGenerator;Lnet/minecraft/structure/StructureManager;Lnet/minecraft/world/gen/random/ChunkRandom;Lnet/minecraft/util/math/BlockBox;ZLnet/minecraft/world/HeightLimitView;Lnet/minecraft/structure/StructurePiecesCollector;Lnet/minecraft/structure/StructurePiecesGenerator$Context;)V",
+    @Inject(method = "generate(Lnet/minecraft/world/gen/noise/NoiseConfig;IZLnet/minecraft/world/gen/chunk/ChunkGenerator;Lnet/minecraft/structure/StructureTemplateManager;Lnet/minecraft/world/HeightLimitView;Lnet/minecraft/util/math/random/Random;Lnet/minecraft/util/registry/Registry;Lnet/minecraft/structure/PoolStructurePiece;Ljava/util/List;Lnet/minecraft/util/shape/VoxelShape;)V",
             at = @At(value = "INVOKE", target = "Ljava/util/Deque;addLast(Ljava/lang/Object;)V"),
             locals = LocalCapture.CAPTURE_FAILSOFT)
-    private static void preGenerate2(PoolStructurePiece poolStructurePiece, StructurePoolFeatureConfig structurePoolFeatureConfig, int i, int j, int k, Registry registry, StructurePoolBasedGenerator.PieceFactory pieceFactory, ChunkGenerator chunkGenerator, StructureManager structureManager, ChunkRandom chunkRandom, BlockBox blockBox, boolean bl, HeightLimitView heightLimitView, StructurePiecesCollector structurePiecesCollector, StructurePiecesGenerator.Context context, CallbackInfo ci, List list, int l, Box box, StructurePoolBasedGenerator.StructurePoolGenerator structurePoolGenerator) {
+    private static void preGenerate2(NoiseConfig noiseConfig, int maxSize, boolean modifyBoundingBox, ChunkGenerator chunkGenerator, StructureTemplateManager structureTemplateManager, HeightLimitView heightLimitView, Random random, Registry<StructurePool> structurePoolRegistry, PoolStructurePiece firstPiece, List<PoolStructurePiece> pieces, VoxelShape pieceShape, CallbackInfo ci, StructurePoolBasedGenerator.StructurePoolGenerator structurePoolGenerator) {
         onInit(structurePoolGenerator);
     }
 

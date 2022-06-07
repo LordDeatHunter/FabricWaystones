@@ -34,13 +34,12 @@ import java.util.Random;
 
 public final class Utils {
 
+    public static final DecimalFormat df = new DecimalFormat("#.##");
+    public static final Random random = new Random();
+    private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
+        Registry.STRUCTURE_PROCESSOR_LIST_KEY, new Identifier("minecraft", "empty"));
     private Utils() {
     }
-
-    public static final Random random = new Random();
-    public static final DecimalFormat df = new DecimalFormat("#.##");
-    private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
-            Registry.STRUCTURE_PROCESSOR_LIST_KEY, new Identifier("minecraft", "empty"));
 
     public static int getRandomIntInRange(int min, int max) {
         if (min == max) {
@@ -67,8 +66,8 @@ public final class Utils {
             return "DeatHunter was here";
         }
         var sb = new StringBuilder();
-        char[] vowels = {'a', 'e', 'i', 'o', 'u'};
-        char[] consonants = {'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'};
+        char[] vowels = { 'a', 'e', 'i', 'o', 'u' };
+        char[] consonants = { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
         for (int i = 0; i < 4; ++i) {
             var consonant = consonants[Utils.random.nextInt(consonants.length)];
             if (i == 0) {
@@ -83,12 +82,12 @@ public final class Utils {
     public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
 
         RegistryEntry<StructureProcessorList> emptyProcessorList = server.getRegistryManager()
-                .get(Registry.STRUCTURE_PROCESSOR_LIST_KEY)
-                .entryOf(EMPTY_PROCESSOR_LIST_KEY);
+            .get(Registry.STRUCTURE_PROCESSOR_LIST_KEY)
+            .entryOf(EMPTY_PROCESSOR_LIST_KEY);
 
         var poolGetter = server.getRegistryManager()
-                .get(Registry.STRUCTURE_POOL_KEY)
-                .getOrEmpty(village);
+            .get(Registry.STRUCTURE_POOL_KEY)
+            .getOrEmpty(village);
 
         if (poolGetter.isEmpty()) {
             Waystones.LOGGER.error("Cannot add to " + village + " as it cannot be found!");
@@ -301,6 +300,7 @@ public final class Utils {
         }
         return null;
     }
+
     public static int getRandomColor() {
         Random rand = new Random();
         return rand.nextInt(256) << 16 + rand.nextInt(256) << 8 + rand.nextInt(256);

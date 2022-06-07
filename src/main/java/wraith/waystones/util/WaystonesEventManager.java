@@ -1,6 +1,6 @@
 package wraith.waystones.util;
 
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -10,7 +10,7 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import wraith.waystones.Waystones;
 import wraith.waystones.access.PlayerEntityMixinAccess;
 
@@ -49,7 +49,7 @@ public class WaystonesEventManager {
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).syncData());
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(CommandManager.literal("waystones")
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal("waystones")
             .then(CommandManager.literal("reload")
                 .requires(source -> source.hasPermissionLevel(1))
                 .executes(context -> {
@@ -61,7 +61,7 @@ public class WaystonesEventManager {
                     }
                     ServerPlayerEntity player = context.getSource().getPlayer();
                     if (player != null) {
-                        player.sendMessage(new LiteralText("§6[§eWaystones§6] §3has successfully reloaded!"), false);
+                        player.sendMessage(Text.literal("§6[§eWaystones§6] §3has successfully reloaded!"), false);
                     }
                     return 1;
                 })
@@ -75,7 +75,7 @@ public class WaystonesEventManager {
                     }
                     var dimension = Utils.getDimensionName(player.world);
                     Waystones.WAYSTONE_STORAGE.removeWorldWaystones(dimension);
-                    player.sendMessage(new LiteralText("§6[§eWaystones§6] §3Removed all waystones from " + dimension + "!"), false);
+                    player.sendMessage(Text.literal("§6[§eWaystones§6] §3Removed all waystones from " + dimension + "!"), false);
                     return 1;
                 })
             )
@@ -96,7 +96,7 @@ public class WaystonesEventManager {
                         return 1;
                     }
                     ((PlayerEntityMixinAccess) player).forgetAllWaystones();
-                    player.sendMessage(new LiteralText("§6[§eWaystones§6] §3All waystones have been forgotten!"), false);
+                    player.sendMessage(Text.literal("§6[§eWaystones§6] §3All waystones have been forgotten!"), false);
                     return 1;
                 })
                 .then(CommandManager.argument("player", EntityArgumentType.player())
@@ -110,7 +110,7 @@ public class WaystonesEventManager {
                             return 1;
                         }
                         ((PlayerEntityMixinAccess) target).forgetAllWaystones();
-                        player.sendMessage(new LiteralText("§6[§eWaystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
+                        player.sendMessage(Text.literal("§6[§eWaystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
                         return 1;
                     })
                 )

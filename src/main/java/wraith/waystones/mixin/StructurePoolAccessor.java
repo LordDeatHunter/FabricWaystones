@@ -1,6 +1,7 @@
 package wraith.waystones.mixin;
 
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,7 +14,7 @@ import java.util.List;
 public interface StructurePoolAccessor {
 
     @Accessor(value = "elements")
-    List<StructurePoolElement> getElements();
+    ObjectArrayList<StructurePoolElement> getElements();
 
     @Accessor(value = "elementCounts")
     List<Pair<StructurePoolElement, Integer>> getElementCounts();

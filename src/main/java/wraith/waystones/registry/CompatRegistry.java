@@ -9,17 +9,16 @@ import java.util.function.Supplier;
 
 public final class CompatRegistry {
 
-    private CompatRegistry() {
-    }
+    private CompatRegistry() {}
 
     @SuppressWarnings("unchecked")
     public static void init() {
         Registry.REGISTRIES.getOrEmpty(new Identifier("repurposed_structures", "json_conditions"))
-                .ifPresent(registry -> Registry.register(
-                        (Registry<Supplier<Boolean>>) registry,
-                        Utils.ID("config"),
-                        () -> Config.getInstance().generateInVillages()
-                ));
+            .ifPresent(registry -> Registry.register(
+                (Registry<Supplier<Boolean>>) registry,
+                Utils.ID("config"),
+                () -> Config.getInstance().generateInVillages()
+            ));
     }
 
 }
