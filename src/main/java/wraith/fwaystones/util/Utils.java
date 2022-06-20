@@ -302,8 +302,7 @@ public final class Utils {
     }
 
     public static int getRandomColor() {
-        Random rand = new Random();
-        return rand.nextInt(256) << 16 + rand.nextInt(256) << 8 + rand.nextInt(256);
+        return random.nextInt(0xFFFFFF);
     }
 
 }
