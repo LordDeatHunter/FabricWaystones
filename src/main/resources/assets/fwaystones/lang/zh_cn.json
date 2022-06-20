@@ -78,7 +78,7 @@
   "fwaystones.cost.level": "等级",
   "fwaystones.cost.hunger": "饥饿",
 
-  "itemGroup.fwaystones.waystones": "传送石碑（Waystones）",
+  "itemGroup.fwaystones.fwaystones": "传送石碑（Waystones）",
   
   "fwaystones.debug.debugger_tooltip1": "§6[§e?§6] §3今天我们要调试什么？",
   "fwaystones.debug.debugger_tooltip2": "§6[§e?§6] §3需要测试什么？",

@@ -83,7 +83,7 @@
   "fwaystones.cost.hunger": "Голод",
   "fwaystones.cost.level": "Уровень",
 
-  "itemGroup.fwaystones.waystones": "Путевые камни",
+  "itemGroup.fwaystones.fwaystones": "Путевые камни",
 
   "fwaystones.debug.debugger_tooltip1": "§6[§e?§6] §3Что мы сегодня тестируем?",
   "fwaystones.debug.debugger_tooltip2": "§6[§e?§6] §3Что нуждается в тестировании?",

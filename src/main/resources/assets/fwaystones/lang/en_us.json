@@ -100,7 +100,7 @@
   "fwaystones.no_teleport_message.cooldown": "§4You must rest for %s §4more seconds.",
   "fwaystones.no_teleport_message.cooldown.arg_color": "#FF5555",
 
-  "itemGroup.fwaystones.waystones": "Waystones",
+  "itemGroup.fwaystones.fwaystones": "Waystones",
 
   "fwaystones.debug.debugger_tooltip1": "§6[§e?§6] §3What are we testing today?",
   "fwaystones.debug.debugger_tooltip2": "§6[§e?§6] §3What needs testing?",
