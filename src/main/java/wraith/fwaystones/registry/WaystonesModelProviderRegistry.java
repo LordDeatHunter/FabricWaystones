@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
@@ -20,7 +21,7 @@ public final class WaystonesModelProviderRegistry {
                 }
                 if (stack.getItem() instanceof WaystoneScrollItem) {
                     NbtCompound tag = stack.getNbt();
-                    return tag == null || !tag.contains(FabricWaystones.MOD_ID) || tag.getList(FabricWaystones.MOD_ID, 8).isEmpty() ? 0 : 1;
+                    return tag == null || !tag.contains(FabricWaystones.MOD_ID) || tag.getList(FabricWaystones.MOD_ID, NbtElement.STRING_TYPE).isEmpty() ? 0 : 1;
                 } else if (stack.getItem() instanceof LocalVoidItem) {
                     NbtCompound tag = stack.getNbt();
                     return tag == null || !tag.contains(FabricWaystones.MOD_ID) ? 0 : 1;

@@ -6,6 +6,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Text;
@@ -31,18 +32,24 @@ public class WaystoneScrollItem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
+        if (world.isClient) {
+            return TypedActionResult.success(stack);
+        }
+        if (FabricWaystones.WAYSTONE_STORAGE == null) {
+            return TypedActionResult.fail(stack);
+        }
         NbtCompound tag = stack.getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return TypedActionResult.fail(stack);
         }
-        NbtList list = tag.getList(FabricWaystones.MOD_ID, 8);
+        NbtList list = tag.getList(FabricWaystones.MOD_ID, NbtElement.STRING_TYPE);
         int learned = 0;
         HashSet<String> toLearn = new HashSet<>();
         for (int i = 0; i < list.size(); ++i) {
             String hash = list.getString(i);
-            if (FabricWaystones.WAYSTONE_STORAGE != null && FabricWaystones.WAYSTONE_STORAGE.containsHash(hash) && !((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(hash)) {
+            if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash) && !((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(hash)) {
                 var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
-                if (waystone.getOwner() == null) {
+                if (waystone != null && waystone.getOwner() == null) {
                     waystone.setOwner(user);
                 }
                 toLearn.add(hash);
@@ -69,15 +76,13 @@ public class WaystoneScrollItem extends Item {
             text = Text.translatable("fwaystones.learned.none");
             stack.setNbt(null);
         }
-        if (!world.isClient) {
-            user.sendMessage(text, false);
-        }
+        user.sendMessage(text, false);
 
         if (stack.isEmpty()) {
             user.setStackInHand(hand, ItemStack.EMPTY);
         }
         stack = user.getStackInHand(hand);
-        return TypedActionResult.success(stack, world.isClient());
+        return TypedActionResult.success(stack, false);
     }
 
     @Override
@@ -108,7 +113,7 @@ public class WaystoneScrollItem extends Item {
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return;
         }
-        int size = tag.getList(FabricWaystones.MOD_ID, 8).size();
+        int size = tag.getList(FabricWaystones.MOD_ID, NbtElement.STRING_TYPE).size();
         HashSet<String> waystones = null;
         if (FabricWaystones.WAYSTONE_STORAGE != null) {
             waystones = FabricWaystones.WAYSTONE_STORAGE.getAllHashes();
