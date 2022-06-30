@@ -15,7 +15,9 @@
     "StructurePoolBasedGenerator_StructurePoolGeneratorMixin",
     "StructurePoolBasedGeneratorMixin",
     "StructureStartAccessor",
-    "TagGroupLoaderMixin"
+    "TagGroupLoaderMixin",
+    "MapStateMixin",
+    "MapIconTypeMixin"
   ],
   "client": [
     "ClientPlayerEntityAccessor",

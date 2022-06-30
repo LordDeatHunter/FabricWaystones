@@ -9,10 +9,8 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
+import net.minecraft.item.map.MapState;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -40,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.item.LocalVoidItem;
+import wraith.fwaystones.item.map.MapStateAccessor;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
 import wraith.fwaystones.registry.BlockEntityRegistry;
@@ -270,6 +269,15 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
             }
         } else {
+            // Adds a waypoint marker on a map if a player is holding one before returning with an ActionResult so
+            // that the marker is always added regardless of whether the player discovered the waystone or not.
+            MapState mapState;
+            if ((mapState = FilledMapItem.getOrCreateMapState(player.getStackInHand(hand), world)) != null) {
+                if (((MapStateAccessor)mapState).addWaystone(world, openPos)) {
+                    return ActionResult.SUCCESS;
+                }
+            }
+
             FabricWaystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
             if (!discovered.contains(blockEntity.getHash())) {
                 if (!blockEntity.isGlobal()) {
