@@ -17,7 +17,8 @@
     "StructureStartAccessor",
     "TagGroupLoaderMixin",
     "MapStateMixin",
-    "MapIconTypeMixin"
+    "MapIconTypeMixin",
+    "FilledMapItemMixin"
   ],
   "client": [
     "ClientPlayerEntityAccessor",
