@@ -13,6 +13,7 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -32,7 +33,8 @@ public class MapStateMixin implements MapStateAccessor {
     @Shadow
     private void addIcon(MapIcon.Type type, @Nullable WorldAccess world, String key, double x, double z, double rotation, @Nullable Text text) {}
 
-    private final Map<String, MapWaystoneMarker> waystones = Maps.newHashMap();
+    @Unique
+    private final Map<String, MapWaystoneMarker> fwaystones$waystones = Maps.newHashMap();
 
     @Inject(method = "fromNbt", at = @At("TAIL"))
     private static void loadWaystonesNbt(NbtCompound nbt, CallbackInfoReturnable<MapState> cir) {
@@ -40,7 +42,7 @@ public class MapStateMixin implements MapStateAccessor {
         NbtList nbtList = nbt.getList("waystones", NbtElement.COMPOUND_TYPE);
         for (int k = 0; k < nbtList.size(); ++k) {
             MapWaystoneMarker mapWaystoneMarker = MapWaystoneMarker.fromNbt(nbtList.getCompound(k));
-            ((MapStateMixin)(Object)mapState).waystones.put(mapWaystoneMarker.getKey(), mapWaystoneMarker);
+            ((MapStateMixin)(Object)mapState).fwaystones$waystones.put(mapWaystoneMarker.getKey(), mapWaystoneMarker);
             ((MapStateMixin)(Object)mapState).addIcon(mapWaystoneMarker.getIconType(), null, mapWaystoneMarker.getKey(), mapWaystoneMarker.getPos().getX(), mapWaystoneMarker.getPos().getZ(), 180.0, mapWaystoneMarker.getName());
         }
     }
@@ -48,7 +50,7 @@ public class MapStateMixin implements MapStateAccessor {
     @Inject(method = "writeNbt", at = @At("TAIL"))
     private void saveWaystonesNbt(NbtCompound nbt, CallbackInfoReturnable<NbtCompound> cir) {
         NbtList nbtList = new NbtList();
-        for (MapWaystoneMarker mapwaystoneMarker : this.waystones.values()) {
+        for (MapWaystoneMarker mapwaystoneMarker : this.fwaystones$waystones.values()) {
             nbtList.add(mapwaystoneMarker.getNbt());
         }
         nbt.put("waystones", nbtList);
@@ -56,7 +58,7 @@ public class MapStateMixin implements MapStateAccessor {
 
     @Inject(method = "copy", at = @At(value = "INVOKE", target = "Ljava/util/Map;putAll(Ljava/util/Map;)V", ordinal = 1))
     private void copyWaystones(CallbackInfoReturnable<MapState> cir) {
-        ((MapStateMixin)(Object)cir.getReturnValue()).waystones.putAll(this.waystones);
+        ((MapStateMixin)(Object)cir.getReturnValue()).fwaystones$waystones.putAll(this.fwaystones$waystones);
     }
 
     @Override
@@ -71,12 +73,12 @@ public class MapStateMixin implements MapStateAccessor {
             if (mapWaystoneMarker == null) {
                 return false;
             }
-            if (this.waystones.remove(mapWaystoneMarker.getKey(), mapWaystoneMarker)) {
+            if (this.fwaystones$waystones.remove(mapWaystoneMarker.getKey(), mapWaystoneMarker)) {
                 removeIcon(mapWaystoneMarker.getKey());
                 return true;
             }
             if (!((MapState)(Object)this).method_37343(256)) {
-                this.waystones.put(mapWaystoneMarker.getKey(), mapWaystoneMarker);
+                this.fwaystones$waystones.put(mapWaystoneMarker.getKey(), mapWaystoneMarker);
                 addIcon(mapWaystoneMarker.getIconType(), world, mapWaystoneMarker.getKey(), d, e, 180.0, mapWaystoneMarker.getName());
                 return true;
             }
@@ -87,7 +89,7 @@ public class MapStateMixin implements MapStateAccessor {
     @SuppressWarnings({"TooBroadScope", "UnclearExpression"})
     @Override
     public @Nullable BlockPos removeWaystone(BlockView world, int x, int z) {
-        Iterator<MapWaystoneMarker> iterator = this.waystones.values().iterator();
+        Iterator<MapWaystoneMarker> iterator = this.fwaystones$waystones.values().iterator();
         while (iterator.hasNext()) {
             MapWaystoneMarker mapWaystoneMarker2;
             MapWaystoneMarker mapWaystoneMarker = iterator.next();
@@ -100,7 +102,7 @@ public class MapStateMixin implements MapStateAccessor {
     }
 
     @Override
-    public Collection<MapWaystoneMarker> getWaystones() {
-        return this.waystones.values();
+    public Collection<MapWaystoneMarker> getFwaystones$waystones() {
+        return this.fwaystones$waystones.values();
     }
 }

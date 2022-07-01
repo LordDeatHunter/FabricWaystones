@@ -11,5 +11,5 @@ public interface MapStateAccessor {
     boolean addWaystone(WorldAccess world, BlockPos pos);
     @Nullable BlockPos removeWaystone(BlockView world, int x, int z);
 
-    Collection<MapWaystoneMarker> getWaystones();
+    Collection<MapWaystoneMarker> getFwaystones$waystones();
 }

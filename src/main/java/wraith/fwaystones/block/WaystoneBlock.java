@@ -38,9 +38,9 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.item.LocalVoidItem;
-import wraith.fwaystones.item.map.MapStateAccessor;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
+import wraith.fwaystones.item.map.MapStateAccessor;
 import wraith.fwaystones.registry.BlockEntityRegistry;
 import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.Utils;
@@ -272,9 +272,16 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             // Adds a waypoint marker on a map if a player is holding one before returning with an ActionResult so
             // that the marker is always added regardless of whether the player discovered the waystone or not.
             MapState mapState;
+            boolean isUsingMap = false;
             if ((mapState = FilledMapItem.getOrCreateMapState(player.getStackInHand(hand), world)) != null) {
-                if (((MapStateAccessor)mapState).addWaystone(world, openPos)) {
-                    return ActionResult.SUCCESS;
+                isUsingMap = true;
+                boolean waystoneMarkerAdded = ((MapStateAccessor)mapState).addWaystone(world, openPos);
+                if (!Config.getInstance().discoverWaystoneOnMapUse()) {
+                    if (waystoneMarkerAdded) {
+                        return ActionResult.SUCCESS;
+                    } else {
+                        return ActionResult.FAIL;
+                    }
                 }
             }
 
@@ -321,10 +328,12 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 blockEntity.updateActiveState();
             }
 
-            var screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
+            if (!isUsingMap) {
+                var screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
 
-            if (screenHandlerFactory != null) {
-                player.openHandledScreen(screenHandlerFactory);
+                if (screenHandlerFactory != null) {
+                    player.openHandledScreen(screenHandlerFactory);
+                }
             }
         }
         blockEntity.markDirty();

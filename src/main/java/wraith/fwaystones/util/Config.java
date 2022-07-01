@@ -102,6 +102,10 @@ public final class Config {
         return configData.getBoolean("store_waystone_data_on_sneak_break");
     }
 
+    public boolean discoverWaystoneOnMapUse() {
+        return configData.getBoolean("discover_waystone_on_map_use");
+    }
+
     public String teleportType() {
         return configData.getCompound("teleportation_cost").getString("cost_type");
     }
@@ -262,6 +266,7 @@ public final class Config {
         defaultConfig.putBoolean("free_local_void_teleport", true);
         defaultConfig.putBoolean("can_owners_redeem_payments", false);
         defaultConfig.putBoolean("store_waystone_data_on_sneak_break", true);
+        defaultConfig.putBoolean("discover_waystone_on_map_use", true);
 
         NbtCompound cost = new NbtCompound();
         cost.putString("cost_type", "level");
@@ -327,6 +332,7 @@ public final class Config {
         json.addProperty("consume_local_void_on_use", getBooleanOrDefault(tag, "consume_local_void_on_use", defaults));
         json.addProperty("free_local_void_teleport", getBooleanOrDefault(tag, "free_local_void_teleport", defaults));
         json.addProperty("store_waystone_data_on_sneak_break", getBooleanOrDefault(tag, "store_waystone_data_on_sneak_break", defaults));
+        json.addProperty("discover_waystone_on_map_use", getBooleanOrDefault(tag, "discover_waystone_on_map_use", defaults));
         json.addProperty("can_owners_redeem_payments", getBooleanOrDefault(tag, "can_owners_redeem_payments", defaults));
         json.addProperty("waystone_block_hardness", getFloatOrDefault(tag, "waystone_block_hardness", defaults));
         json.addProperty("waystone_block_required_mining_level", getIntOrDefault(tag, "waystone_block_required_mining_level", defaults));
@@ -393,6 +399,7 @@ public final class Config {
         tag.putBoolean("consume_local_void_on_use", getBooleanOrDefault(json, "consume_local_void_on_use", defaults));
         tag.putBoolean("free_local_void_teleport", getBooleanOrDefault(json, "free_local_void_teleport", defaults));
         tag.putBoolean("store_waystone_data_on_sneak_break", getBooleanOrDefault(json, "store_waystone_data_on_sneak_break", defaults));
+        tag.putBoolean("discover_waystone_on_map_use", getBooleanOrDefault(json, "discover_waystone_on_map_use", defaults));
         tag.putBoolean("can_owners_redeem_payments", getBooleanOrDefault(json, "can_owners_redeem_payments", defaults));
         tag.putFloat("waystone_block_hardness", getFloatOrDefault(json, "waystone_block_hardness", defaults));
         tag.putInt("waystone_block_required_mining_level", getIntOrDefault(json, "waystone_block_required_mining_level", defaults));
