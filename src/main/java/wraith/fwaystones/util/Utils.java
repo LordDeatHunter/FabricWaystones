@@ -138,17 +138,18 @@ public final class Utils {
         String cost = config.teleportType();
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
+            player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
             return false;
         }
         var sourceDim = getDimensionName(player.world);
         var destDim = waystone.getWorldName();
         if (!config.ignoreDimensionBlacklistsIfSameDimension() || !sourceDim.equals(destDim)) {
             if (config.getBlacklistedSourceDimensions().contains(sourceDim)) {
-                player.sendMessage(Text.translatable("fwaystones.blacklisted_dimension.source"));
+                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
                 return false;
             }
             if (config.getBlacklistedDestinationDimensions().contains(destDim)) {
-                player.sendMessage(Text.translatable("fwaystones.blacklisted_dimension.destination"));
+                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
                 return false;
             }
         }
@@ -160,10 +161,11 @@ public final class Utils {
             case "hp":
             case "health":
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.health"), true);
                     return false;
                 }
                 if (takeCost) {
-                    player.damage(DamageSource.OUT_OF_WORLD, amount);
+                    player.damage(DamageSource.MAGIC, amount);
                 }
                 return true;
             case "hunger":
@@ -171,6 +173,7 @@ public final class Utils {
                 var hungerManager = player.getHungerManager();
                 var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
                 if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustion() / 4F <= amount) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.hunger"), true);
                     return false;
                 }
                 if (takeCost) {
@@ -181,6 +184,7 @@ public final class Utils {
             case "experience":
                 long total = determineLevelXP(player);
                 if (total < amount) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.xp"), true);
                     return false;
                 }
                 if (takeCost) {
@@ -189,6 +193,7 @@ public final class Utils {
                 return true;
             case "level":
                 if (player.experienceLevel < amount) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.level"), true);
                     return false;
                 }
                 if (takeCost) {
@@ -199,6 +204,7 @@ public final class Utils {
                 Identifier itemId = Config.getInstance().teleportCostItem();
                 Item item = Registry.ITEM.get(itemId);
                 if (!containsItem(player.getInventory(), item, amount)) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.item"), true);
                     return false;
                 }
                 if (takeCost) {

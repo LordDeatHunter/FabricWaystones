@@ -99,8 +99,14 @@
 
   "fwaystones.no_teleport_message.cooldown": "§4You must rest for %s §4more seconds.",
   "fwaystones.no_teleport_message.cooldown.arg_color": "#FF5555",
-  "fwaystones.blacklisted_dimension.source": "You are unable to travel from the dimension of this Waystone.",
-  "fwaystones.blacklisted_dimension.destination": "You are unable to travel to the dimension of this Waystone.",
+  "fwaystones.no_teleport.blacklisted_dimension_source": "§c§lYou are unable to travel from the dimension of this Waystone.",
+  "fwaystones.no_teleport.blacklisted_dimension_destination": "§c§lYou are unable to travel to the dimension of this Waystone.",
+  "fwaystones.no_teleport.invalid_waystone": "§c§lThis Waystone does not exist.",
+  "fwaystones.no_teleport.health": "§c§lYou are too weak to travel.",
+  "fwaystones.no_teleport.hunger": "§c§lYou are too hungry to travel.",
+  "fwaystones.no_teleport.xp": "§c§lYou lack the required XP to travel.",
+  "fwaystones.no_teleport.level": "§c§lYou lack the required XP to travel.",
+  "fwaystones.no_teleport.item": "§c§lYou lack the required items to travel.",
 
   "itemGroup.fwaystones.fwaystones": "Waystones",
 
