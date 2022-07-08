@@ -28,6 +28,9 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
+        if (world.isClient) {
+            return TypedActionResult.success(stack);
+        }
         if (Waystones.WAYSTONE_STORAGE == null) {
             return TypedActionResult.fail(stack);
         }
@@ -62,9 +65,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         } else {
             text = new TranslatableText("waystones.learned.infinite.none");
         }
-        if (!world.isClient) {
-            user.sendMessage(text, false);
-        }
+        user.sendMessage(text, false);
 
         if (stack.isEmpty()) {
             user.setStackInHand(hand, ItemStack.EMPTY);
