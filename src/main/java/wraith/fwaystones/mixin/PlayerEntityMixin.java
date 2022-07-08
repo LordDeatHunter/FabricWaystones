@@ -221,6 +221,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         }
         tag = tag.getCompound(FabricWaystones.MOD_ID);
         if (tag.contains("discovered_waystones")) {
+            var oldDiscovered = new HashSet<>(discoveredWaystones);
             discoveredWaystones.clear();
             WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
             HashSet<String> hashes = new HashSet<>();
@@ -233,7 +234,9 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
                 .filter(hashes::contains)
                 .forEach(hash -> {
                     discoveredWaystones.add(hash);
-                    WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(hash);
+                    if (!oldDiscovered.contains(hash)) {
+                        WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(hash);
+                    }
                 });
         }
         if (tag.contains("view_global_waystones")) {
