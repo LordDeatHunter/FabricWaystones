@@ -1,10 +1,10 @@
 package wraith.fwaystones.util;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -62,6 +63,28 @@ public final class Config {
 
     public int getVillageStructureWeight() {
         return configData.getCompound("worldgen").getInt("village_waystone_weight");
+    }
+
+    public boolean ignoreDimensionBlacklistsIfSameDimension() {
+        return configData.getBoolean("ignore_dimension_blacklists_if_same_dimension");
+    }
+
+    public HashSet<String> getBlacklistedSourceDimensions() {
+        var blacklist = new HashSet<String>();
+        var list = configData.getList("disable_teleportation_from_dimensions", NbtElement.STRING_TYPE);
+        for (int i = 0; i < list.size(); ++i) {
+            blacklist.add(list.getString(i));
+        }
+        return blacklist;
+    }
+
+    public HashSet<String> getBlacklistedDestinationDimensions() {
+        var blacklist = new HashSet<String>();
+        var list = configData.getList("disable_teleportation_to_dimensions", NbtElement.STRING_TYPE);
+        for (int i = 0; i < list.size(); ++i) {
+            blacklist.add(list.getString(i));
+        }
+        return blacklist;
     }
 
     public NbtCompound getWorldgenStructures() {
@@ -296,6 +319,12 @@ public final class Config {
         waystoneStructures.putString("minecraft:village/snowy/houses", "village_waystone");
         defaultConfig.put("add_waystone_structure_piece", waystoneStructures);
 
+        NbtList sourceDimensionsBlacklist = new NbtList();
+        defaultConfig.put("disable_teleportation_from_dimensions", sourceDimensionsBlacklist);
+        NbtList destinationDimensionsBlacklist = new NbtList();
+        defaultConfig.put("disable_teleportation_to_dimensions", destinationDimensionsBlacklist);
+        defaultConfig.putBoolean("ignore_dimension_blacklists_if_same_dimension", true);
+
         return defaultConfig;
     }
 
@@ -342,6 +371,22 @@ public final class Config {
         cooldownsJson.addProperty("cooldown_ticks_from_void_totem", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_void_totem", defaults));
         cooldownsJson.addProperty("cooldown_ticks_from_waystone", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_waystone", defaults));
         json.add("teleportation_cooldown", cooldownsJson);
+
+        NbtList nbtList;
+        nbtList = tag.getList("disable_teleportation_from_dimensions", NbtElement.STRING_TYPE);
+        JsonArray disableSourceDimensionsJson = new JsonArray();
+        for (int i = 0; i < nbtList.size(); ++i) {
+            disableSourceDimensionsJson.add(nbtList.getString(i));
+        }
+        json.add("disable_teleportation_from_dimensions", disableSourceDimensionsJson);
+
+        nbtList = tag.getList("disable_teleportation_to_dimensions", NbtElement.STRING_TYPE);
+        JsonArray disableDestinationDimensionsJson = new JsonArray();
+        for (int i = 0; i < nbtList.size(); ++i) {
+            disableDestinationDimensionsJson.add(nbtList.getString(i));
+        }
+        json.add("disable_teleportation_to_dimensions", disableDestinationDimensionsJson);
+        json.addProperty("ignore_dimension_blacklists_if_same_dimension", getBooleanOrDefault(tag, "ignore_dimension_blacklists_if_same_dimension", defaults));
 
         JsonObject structuresJson = new JsonObject();
         NbtCompound structuresTag = getCompoundOrDefault(tag, "add_waystone_structure_piece", defaults);
@@ -426,6 +471,31 @@ public final class Config {
             waystoneStructuresNbt = defaults.getCompound("add_waystone_structure_piece");
         }
         tag.put("add_waystone_structure_piece", waystoneStructuresNbt);
+
+        NbtList disabledSourceDimensions = new NbtList();
+        if (json.has("disable_teleportation_from_dimensions")) {
+            var disabledSourceDimensionsJson = json.get("disable_teleportation_from_dimensions").getAsJsonArray();
+            for (var dimension : disabledSourceDimensionsJson) {
+                disabledSourceDimensions.add(NbtString.of(dimension.getAsString()));
+            }
+        } else {
+            ++difference;
+            disabledSourceDimensions = defaults.getList("disable_teleportation_from_dimensions", NbtElement.STRING_TYPE);
+        }
+        tag.put("disable_teleportation_from_dimensions", disabledSourceDimensions);
+
+        NbtList disabledDestinationDimensions = new NbtList();
+        if (json.has("disable_teleportation_to_dimensions")) {
+            var disabledDestinationDimensionsJson = json.get("disable_teleportation_to_dimensions").getAsJsonArray();
+            for (var dimension : disabledDestinationDimensionsJson) {
+                disabledDestinationDimensions.add(NbtString.of(dimension.getAsString()));
+            }
+        } else {
+            ++difference;
+            disabledDestinationDimensions = defaults.getList("disable_teleportation_to_dimensions", NbtElement.STRING_TYPE);
+        }
+        tag.put("disable_teleportation_to_dimensions", disabledDestinationDimensions);
+        tag.putBoolean("ignore_dimension_blacklists_if_same_dimension", getBooleanOrDefault(json, "ignore_dimension_blacklists_if_same_dimension", defaults));
 
         createFile(toJson(tag), difference > 0);
         difference = 0;

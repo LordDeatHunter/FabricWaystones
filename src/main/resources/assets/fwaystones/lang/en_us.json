@@ -99,6 +99,8 @@
 
   "fwaystones.no_teleport_message.cooldown": "§4You must rest for %s §4more seconds.",
   "fwaystones.no_teleport_message.cooldown.arg_color": "#FF5555",
+  "fwaystones.blacklisted_dimension.source": "You are unable to travel from the dimension of this Waystone.",
+  "fwaystones.blacklisted_dimension.destination": "You are unable to travel to the dimension of this Waystone.",
 
   "itemGroup.fwaystones.fwaystones": "Waystones",
 
@@ -117,5 +119,4 @@
   "fwaystones.integration.journeymap.theme.on.tooltip" : "Hide Waystone waypoint display.",
   "fwaystones.integration.journeymap.theme.off" : "Show Waystones",
   "fwaystones.integration.journeymap.theme.off.tooltip" : "Show Waystone waypoint display."
-
 }

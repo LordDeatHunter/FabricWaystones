@@ -10,6 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorList;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
@@ -139,7 +140,19 @@ public final class Utils {
         if (waystone == null) {
             return false;
         }
-        int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), Utils.getDimensionName(player.world), waystone.getWorldName());
+        var sourceDim = getDimensionName(player.world);
+        var destDim = waystone.getWorldName();
+        if (!config.ignoreDimensionBlacklistsIfSameDimension() || !sourceDim.equals(destDim)) {
+            if (config.getBlacklistedSourceDimensions().contains(sourceDim)) {
+                player.sendMessage(Text.translatable("fwaystones.blacklisted_dimension.source"));
+                return false;
+            }
+            if (config.getBlacklistedDestinationDimensions().contains(destDim)) {
+                player.sendMessage(Text.translatable("fwaystones.blacklisted_dimension.destination"));
+                return false;
+            }
+        }
+        int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), sourceDim, destDim);
         if (player.isCreative()) {
             return true;
         }
