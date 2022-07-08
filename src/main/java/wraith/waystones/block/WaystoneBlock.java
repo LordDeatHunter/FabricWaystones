@@ -50,10 +50,10 @@ import wraith.waystones.util.Utils;
 @SuppressWarnings("deprecation")
 public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
-    public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
-    public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
-    public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
     public static final BooleanProperty ACTIVE = BooleanProperty.of("active");
+    public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
+    public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
+    public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
     protected static final VoxelShape VOXEL_SHAPE_TOP;
@@ -173,33 +173,23 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             botPos = pos;
         }
 
-        if (world.getBlockEntity(botPos) instanceof WaystoneBlockEntity waystone) {
-            if (!player.isCreative() && player.canHarvest(world.getBlockState(botPos)) && world instanceof ServerWorld) {
-                if (!world.isClient) {
-                    ItemStack itemStack = new ItemStack(state.getBlock().asItem());
-                    var compoundTag = new NbtCompound();
-                    waystone.writeNbt(compoundTag);
-                    if (Config.getInstance().storeWaystoneNbt() && player.isSneaking() && !compoundTag.isEmpty()) {
-                        itemStack.setSubNbt("BlockEntityTag", compoundTag);
-                    }
-                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
-                    if (waystone.getCachedState().get(MOSSY)) {
-                        ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
-                    }
-                } else {
-                    waystone.checkLootInteraction(player);
+        if (world.getBlockEntity(botPos) instanceof WaystoneBlockEntity waystone && !player.isCreative() && player.canHarvest(world.getBlockState(botPos)) && world instanceof ServerWorld) {
+            if (!world.isClient) {
+                ItemStack itemStack = new ItemStack(state.getBlock().asItem());
+                var compoundTag = new NbtCompound();
+                waystone.writeNbt(compoundTag);
+                if (Config.getInstance().storeWaystoneNbt() && player.isSneaking() && !compoundTag.isEmpty()) {
+                    itemStack.setSubNbt("BlockEntityTag", compoundTag);
                 }
+                ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
+                if (waystone.getCachedState().get(MOSSY)) {
+                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
+                }
+            } else {
+                waystone.checkLootInteraction(player);
             }
-            if (Waystones.WAYSTONE_STORAGE != null) {
-                Waystones.WAYSTONE_STORAGE.removeWaystone(waystone);
-            }
-            world.removeBlockEntity(botPos);
         }
 
-        if (Waystones.WAYSTONE_STORAGE != null && world.getBlockEntity(topPos) instanceof WaystoneBlockEntity waystone) {
-            Waystones.WAYSTONE_STORAGE.removeWaystone(waystone);
-            world.removeBlockEntity(topPos);
-        }
         world.removeBlock(topPos, false);
         world.removeBlock(botPos, false);
         world.updateNeighbors(topPos, Blocks.AIR);
@@ -351,7 +341,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             if (!world.isClient && entity instanceof WaystoneBlockEntity waystone) {
                 Waystones.WAYSTONE_STORAGE.removeWaystone(waystone);
             }
-            world.removeBlockEntity(newPos);
+            world.removeBlockEntity(testPos);
             world.setBlockState(newPos, newState);
         } else {
             var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER && verticalPosition == DoubleBlockHalf.LOWER;
