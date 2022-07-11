@@ -24,9 +24,6 @@
     ],
     "journeymap": [
       "wraith.fwaystones.integration.journeymap.JourneymapPlugin"
-    ],
-    "preLaunch": [
-      "wraith.fwaystones.FabricWaystonesPreLaunch"
     ]
   },
   "mixins": [

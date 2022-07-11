@@ -16,14 +16,10 @@ repositories {
         name = "JourneyMap (Public)"
         url = "https://jm.gserv.me/repository/maven-public/"
     }
-	maven { url 'https://jitpack.io' }
 }
 
 dependencies {
 	implementation 'org.jetbrains:annotations:22.0.0'
-
-	implementation("com.github.LlamaLad7:MixinExtras:0.0.11")
-	annotationProcessor("com.github.LlamaLad7:MixinExtras:0.0.11")
 
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
