@@ -17,13 +17,15 @@
     "StructureStartAccessor",
     "TagGroupLoaderMixin",
     "MapStateMixin",
-    "MapIconTypeMixin",
-    "FilledMapItemMixin"
+    "MapIconMixin",
+    "FilledMapItemMixin",
+    "MapUpdateS2CPacketMixin"
   ],
   "client": [
     "ClientPlayerEntityAccessor",
     "ClientPlayerEntityMixin",
-    "ClientPlayNetworkHandlerMixin"
+    "ClientPlayNetworkHandlerMixin",
+    "MapTextureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

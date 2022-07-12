@@ -49,7 +49,7 @@ public class MapWaystoneMarker {
     }
 
     public MapIcon.Type getIconType() {
-        return ((MapIconTypeAccessor)(Object)MapIcon.Type.byId((byte) 27)).setIsWaystone(true);
+        return MapIcon.Type.byId((byte) 27);
     }
 
     @Nullable

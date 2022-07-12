@@ -16,7 +16,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import wraith.fwaystones.item.map.MapIconAccessor;
 import wraith.fwaystones.item.map.MapStateAccessor;
 import wraith.fwaystones.item.map.MapWaystoneMarker;
 
@@ -36,6 +38,9 @@ public class MapStateMixin implements MapStateAccessor {
     @Unique
     private final Map<String, MapWaystoneMarker> fwaystones$waystones = Maps.newHashMap();
 
+    @Unique
+    private boolean fwaystones$is_adding_waystone_icon;
+
     @Inject(method = "fromNbt", at = @At("TAIL"))
     private static void loadWaystonesNbt(NbtCompound nbt, CallbackInfoReturnable<MapState> cir) {
         MapState mapState = cir.getReturnValue();
@@ -43,6 +48,7 @@ public class MapStateMixin implements MapStateAccessor {
         for (int k = 0; k < nbtList.size(); ++k) {
             MapWaystoneMarker mapWaystoneMarker = MapWaystoneMarker.fromNbt(nbtList.getCompound(k));
             ((MapStateMixin)(Object)mapState).fwaystones$waystones.put(mapWaystoneMarker.getKey(), mapWaystoneMarker);
+            ((MapStateMixin)(Object)mapState).fwaystones$is_adding_waystone_icon = true;
             ((MapStateMixin)(Object)mapState).addIcon(mapWaystoneMarker.getIconType(), null, mapWaystoneMarker.getKey(), mapWaystoneMarker.getPos().getX(), mapWaystoneMarker.getPos().getZ(), 180.0, mapWaystoneMarker.getName());
         }
     }
@@ -59,6 +65,14 @@ public class MapStateMixin implements MapStateAccessor {
     @Inject(method = "copy", at = @At(value = "INVOKE", target = "Ljava/util/Map;putAll(Ljava/util/Map;)V", ordinal = 1))
     private void copyWaystones(CallbackInfoReturnable<MapState> cir) {
         ((MapStateMixin)(Object)cir.getReturnValue()).fwaystones$waystones.putAll(this.fwaystones$waystones);
+    }
+
+    @ModifyVariable(method = "addIcon", at = @At("STORE"))
+    private MapIcon markIconAsWaystoneIcon(MapIcon icon) {
+        if (fwaystones$is_adding_waystone_icon)
+            ((MapIconAccessor)icon).setIsWaystone(true);
+        fwaystones$is_adding_waystone_icon = false;
+        return icon;
     }
 
     @Override
@@ -79,6 +93,7 @@ public class MapStateMixin implements MapStateAccessor {
             }
             if (!((MapState)(Object)this).method_37343(256)) {
                 this.fwaystones$waystones.put(mapWaystoneMarker.getKey(), mapWaystoneMarker);
+                fwaystones$is_adding_waystone_icon = true;
                 addIcon(mapWaystoneMarker.getIconType(), world, mapWaystoneMarker.getKey(), d, e, 180.0, mapWaystoneMarker.getName());
                 return true;
             }
