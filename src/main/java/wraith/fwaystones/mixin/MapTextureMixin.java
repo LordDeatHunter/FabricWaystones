@@ -12,13 +12,14 @@ import wraith.fwaystones.item.map.MapIconAccessor;
 
 @Mixin(targets = "net.minecraft.client.render.MapRenderer$MapTexture")
 public class MapTextureMixin {
+
     @Unique
     private static final RenderLayer fwaystones$WAYSTONE_ICON_RENDER_LAYER = RenderLayer.getText(new Identifier("fwaystones", "textures/map/waystone_icon.png"));
 
     @Unique
     private boolean fwaystones$is_waystone_icon_cache;
 
-    @ModifyVariable(method = "draw", at = @At("LOAD"), ordinal = 0)
+    @ModifyVariable(method = "draw", at = @At(value = "LOAD", ordinal = 4), ordinal = 0)
     private MapIcon check_if_waystone_icon(MapIcon icon) {
         fwaystones$is_waystone_icon_cache = ((MapIconAccessor) icon).getIsWaystone();
         return icon;
