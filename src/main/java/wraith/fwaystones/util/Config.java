@@ -289,7 +289,7 @@ public final class Config {
         defaultConfig.putBoolean("free_local_void_teleport", true);
         defaultConfig.putBoolean("can_owners_redeem_payments", false);
         defaultConfig.putBoolean("store_waystone_data_on_sneak_break", true);
-        defaultConfig.putBoolean("discover_waystone_on_map_use", true);
+        defaultConfig.putBoolean("discover_waystone_on_map_use", false);
 
         NbtCompound cost = new NbtCompound();
         cost.putString("cost_type", "level");

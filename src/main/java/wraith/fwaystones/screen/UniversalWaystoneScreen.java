@@ -305,6 +305,8 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected void renderWaystoneNames(MatrixStack matrices, int x, int y, int m) {
+        if (FabricWaystones.WAYSTONE_STORAGE == null)
+            return;
         ArrayList<String> waystones = getDiscoveredWaystones();
         for (int n = this.scrollOffset; n < m && n < waystones.size(); ++n) {
             int o = n - this.scrollOffset;

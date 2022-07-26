@@ -23,6 +23,7 @@ repositories {
 			includeGroup "maven.modrinth"
 		}
 	}
+	maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -40,6 +41,8 @@ dependencies {
 
     modApi group: 'info.journeymap', name: 'journeymap-api', version: project.journeymap_api_version, changing: true
     modRuntimeOnly "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id}"
+
+	modImplementation "maven.modrinth:pinlib:$project.pinlib_api_version"
 }
 
 loom {

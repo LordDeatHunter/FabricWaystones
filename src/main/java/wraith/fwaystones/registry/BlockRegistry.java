@@ -1,5 +1,7 @@
 package wraith.fwaystones.registry;
 
+import com.rokoblox.pinlib.PinLib;
+import com.rokoblox.pinlib.mapmarker.MapMarker;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Material;
@@ -22,6 +24,9 @@ public final class BlockRegistry {
     public static final Block STONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().strength(Config.getInstance().getHardness(), 3600000));
     public static final Block WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().strength(Config.getInstance().getHardness(), 3600000));
     public static final HashMap<String, Block> WAYSTONE_BLOCKS = new HashMap<>();
+
+    // Map marker for waystones using PinLib.
+    public static final MapMarker WAYSTONE_MAP_MARKER = PinLib.createDynamicMarker(Utils.ID("waystone"));
 
     public static void registerBlocks() {
         registerAndAdd("waystone", WAYSTONE);
