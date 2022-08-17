@@ -15,17 +15,12 @@
     "StructurePoolBasedGenerator_StructurePoolGeneratorMixin",
     "StructurePoolBasedGeneratorMixin",
     "StructureStartAccessor",
-    "TagGroupLoaderMixin",
-    "MapStateMixin",
-    "MapIconMixin",
-    "FilledMapItemMixin",
-    "MapUpdateS2CPacketMixin"
+    "TagGroupLoaderMixin"
   ],
   "client": [
     "ClientPlayerEntityAccessor",
     "ClientPlayerEntityMixin",
-    "ClientPlayNetworkHandlerMixin",
-    "MapTextureMixin"
+    "ClientPlayNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
