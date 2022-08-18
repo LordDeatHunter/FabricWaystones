@@ -204,7 +204,6 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void learnWaystones(PlayerEntity player) {
         discoveredWaystones.clear();
-        WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
         ((PlayerEntityMixinAccess) player).getDiscoveredWaystones().forEach(hash -> discoverWaystone(hash, false));
         syncData();
     }
@@ -223,7 +222,6 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (tag.contains("discovered_waystones")) {
             var oldDiscovered = new HashSet<>(discoveredWaystones);
             discoveredWaystones.clear();
-            WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
             HashSet<String> hashes = new HashSet<>();
             if (FabricWaystones.WAYSTONE_STORAGE != null) {
                 hashes = FabricWaystones.WAYSTONE_STORAGE.getAllHashes();
