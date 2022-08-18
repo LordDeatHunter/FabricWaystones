@@ -163,8 +163,7 @@ public class JourneymapPlugin implements IClientPlugin {
         if (waystone == null) {
             return;
         }
-        var icon = new MapImage(Utils.ID("images/fabric_waystones_icon.png"),
-            16, 16);
+        var icon = new MapImage(Utils.ID("images/fabric_waystones_icon.png"), 16, 16);
 
         var waypoint = new Waypoint(
             getModId(),
