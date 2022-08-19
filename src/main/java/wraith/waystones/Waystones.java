@@ -28,7 +28,6 @@ public class Waystones implements ModInitializer {
         WaystonePacketHandler.registerPacketHandlers();
 
         LOGGER.info("Has successfully been initialized.");
-        LOGGER.info("If you have any issues or questions, feel free to join our Discord: https://discord.gg/vMjzgS4.");
     }
 
 }
