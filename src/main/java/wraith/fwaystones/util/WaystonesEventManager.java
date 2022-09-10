@@ -99,6 +99,7 @@ public class WaystonesEventManager {
                     return 1;
                 })
                 .then(CommandManager.argument("player", EntityArgumentType.player())
+                    .requires(source -> source.hasPermissionLevel(1))
                     .executes(context -> {
                         ServerPlayerEntity player = context.getSource().getPlayer();
                         if (player == null) {
