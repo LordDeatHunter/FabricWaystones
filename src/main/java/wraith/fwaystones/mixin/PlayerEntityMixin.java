@@ -18,7 +18,6 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.WaystonePacketHandler;
 
 import java.util.ArrayList;
@@ -52,7 +51,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (source == DamageSource.OUT_OF_WORLD) {
             return;
         }
-        setTeleportCooldown(Config.getInstance().getCooldownWhenHurt());
+        setTeleportCooldown(FabricWaystones.CONFIG.teleportation_cooldown.cooldown_ticks_when_hurt());
     }
 
     @Override

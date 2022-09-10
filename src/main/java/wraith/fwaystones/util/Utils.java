@@ -18,6 +18,7 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
@@ -39,6 +40,7 @@ public final class Utils {
     public static final Random random = new Random();
     private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
         Registry.STRUCTURE_PROCESSOR_LIST_KEY, new Identifier("minecraft", "empty"));
+
     private Utils() {
     }
 
@@ -123,19 +125,18 @@ public final class Utils {
     }
 
     public static int getCost(Vec3d startPos, Vec3d endPos, String startDim, String endDim) {
-        var config = Config.getInstance();
-        float cost = config.baseTeleportCost();
+        var config = FabricWaystones.CONFIG.teleportation_cost;
+        float cost = config.base_cost();
         if (startDim.equals(endDim)) {
-            cost += Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.extraCostPerBlock();
+            cost += Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.cost_per_block_distance();
         } else {
-            cost *= config.perDimensionMultiplier();
+            cost *= config.cost_multiplier_between_dimensions();
         }
         return Math.round(cost);
     }
 
     public static boolean canTeleport(PlayerEntity player, String hash, boolean takeCost) {
-        var config = Config.getInstance();
-        String cost = config.teleportType();
+        String cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
             player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
@@ -143,12 +144,12 @@ public final class Utils {
         }
         var sourceDim = getDimensionName(player.world);
         var destDim = waystone.getWorldName();
-        if (!config.ignoreDimensionBlacklistsIfSameDimension() || !sourceDim.equals(destDim)) {
-            if (config.getBlacklistedSourceDimensions().contains(sourceDim)) {
+        if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
+            if (FabricWaystones.CONFIG.disable_teleportation_from_dimensions().contains(sourceDim)) {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
                 return false;
             }
-            if (config.getBlacklistedDestinationDimensions().contains(destDim)) {
+            if (FabricWaystones.CONFIG.disable_teleportation_to_dimensions().contains(destDim)) {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
                 return false;
             }
@@ -201,14 +202,14 @@ public final class Utils {
                 }
                 return true;
             case "item":
-                Identifier itemId = Config.getInstance().teleportCostItem();
+                Identifier itemId = getTeleportCostItem();
                 Item item = Registry.ITEM.get(itemId);
                 if (!containsItem(player.getInventory(), item, amount)) {
                     player.sendMessage(Text.translatable("fwaystones.no_teleport.item"), true);
                     return false;
                 }
                 if (takeCost) {
-                    removeItem(player.getInventory(), Registry.ITEM.get(itemId), amount);
+                    removeItem(player.getInventory(), item, amount);
 
                     if (player.world.isClient || FabricWaystones.WAYSTONE_STORAGE == null) {
                         return true;
@@ -227,7 +228,7 @@ public final class Utils {
                         }
                     }
                     if (!found) {
-                        oldInventory.add(new ItemStack(Registry.ITEM.get(itemId), amount));
+                        oldInventory.add(new ItemStack(item, amount));
                     }
                     waystoneBE.setInventory(oldInventory);
                 }
@@ -322,6 +323,25 @@ public final class Utils {
 
     public static int getRandomColor() {
         return random.nextInt(0xFFFFFF);
+    }
+
+    @Nullable
+    public static Identifier getTeleportCostItem() {
+        if ("item".equals(FabricWaystones.CONFIG.teleportation_cost.cost_type())) {
+            String[] item = FabricWaystones.CONFIG.teleportation_cost.cost_item().split(":");
+            return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
+        }
+        return null;
+    }
+
+    @Nullable
+    public static Identifier getDiscoverItem() {
+        var discoverStr = FabricWaystones.CONFIG.discover_with_item();
+        if (discoverStr.equals("none")) {
+            return null;
+        }
+        String[] item = discoverStr.split(":");
+        return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
     }
 
 }

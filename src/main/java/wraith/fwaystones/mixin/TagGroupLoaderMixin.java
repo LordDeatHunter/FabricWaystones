@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.registry.BlockRegistry;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.Utils;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public class TagGroupLoaderMixin {
         if (!dataType.equals("tags/blocks")) {
             return;
         }
-        var miningLevel = Config.getInstance().getMiningLevel();
+        var miningLevel = FabricWaystones.CONFIG.waystone_block_required_mining_level();
         var miningLevelTag = new Identifier(switch (miningLevel) {
             case 1 -> "minecraft:needs_stone_tool";
             case 2 -> "minecraft:needs_iron_tool";

@@ -25,7 +25,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.util.WaystonePacketHandler;
 
@@ -33,15 +32,15 @@ import java.util.ArrayList;
 
 public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
-    private final Identifier texture;
     protected final PlayerInventory inventory;
+    protected final ArrayList<Button> buttons = new ArrayList<>();
+    private final Identifier texture;
     protected float scrollAmount;
     protected boolean mouseClicked;
     protected int scrollOffset;
     protected boolean ignoreTypedCharacter;
-    private TextFieldWidget searchField;
-    protected final ArrayList<Button> buttons = new ArrayList<>();
     protected boolean mousePressed;
+    private TextFieldWidget searchField;
 
     public UniversalWaystoneScreen(ScreenHandler handler, PlayerInventory inventory, Identifier texture, Text title) {
         super(handler, inventory, title);
@@ -205,9 +204,9 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected void renderCostItem(MatrixStack matrices, int x, int y) {
-        var config = Config.getInstance();
+        var config = FabricWaystones.CONFIG.teleportation_cost;
         MutableText text;
-        switch (config.teleportType()) {
+        switch (config.cost_type()) {
             case "hp", "health" -> {
                 this.drawTexture(matrices, x + 4, y + 4, 186, 15, 9, 9);
                 text = Text.translatable("fwaystones.cost.health");
@@ -225,7 +224,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 text = Text.translatable("fwaystones.cost.level");
             }
             case "item" -> {
-                var item = Registry.ITEM.get(config.teleportCostItem());
+                var item = Registry.ITEM.get(Utils.getTeleportCostItem());
                 this.itemRenderer.renderGuiItemIcon(new ItemStack(item), x, y);
                 text = (MutableText) item.getName();
             }
@@ -240,7 +239,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected void renderCostText(MatrixStack matrices, int x, int y, MutableText text, int color) {
-        this.textRenderer.draw(matrices, text.append(Text.literal(": " + Config.getInstance().baseTeleportCost())), x + 20, y + 5, color);
+        this.textRenderer.draw(matrices, text.append(Text.literal(": " + FabricWaystones.CONFIG.teleportation_cost.base_cost())), x + 20, y + 5, color);
     }
 
     @Override

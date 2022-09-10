@@ -47,7 +47,6 @@ import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
 import wraith.fwaystones.registry.BlockEntityRegistry;
 import wraith.fwaystones.registry.BlockRegistry;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.Utils;
 
 @SuppressWarnings("deprecation")
@@ -128,7 +127,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, IMa
                 entityPos = pos.down();
             }
             if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone &&
-                Config.getInstance().preventNonOwnersFromBreaking() &&
+                FabricWaystones.CONFIG.prevent_non_owners_from_breaking_waystone() &&
                 waystone.getOwner() != null &&
                 !player.getUuid().equals(waystone.getOwner()) &&
                 !player.hasPermissionLevel(2)) {
@@ -181,7 +180,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, IMa
                 ItemStack itemStack = new ItemStack(state.getBlock().asItem());
                 var compoundTag = new NbtCompound();
                 waystone.writeNbt(compoundTag);
-                if (Config.getInstance().storeWaystoneNbt() && player.isSneaking() && !compoundTag.isEmpty()) {
+                if (FabricWaystones.CONFIG.store_waystone_data_on_sneak_break() && player.isSneaking() && !compoundTag.isEmpty()) {
                     itemStack.setSubNbt("BlockEntityTag", compoundTag);
                 }
                 ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
@@ -258,23 +257,22 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, IMa
             return ActionResult.FAIL;
         }
 
-        if (player.isSneaking() && (player.hasPermissionLevel(2) || (Config.getInstance().canOwnersRedeemPayments() && player.getUuid().equals(blockEntity.getOwner())))) {
+        if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.can_owners_redeem_payments() && player.getUuid().equals(blockEntity.getOwner())))) {
             if (blockEntity.hasStorage()) {
                 ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
             }
         } else {
-            if (PinLib.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos) && !Config.getInstance().discoverWaystoneOnMapUse())
+            if (PinLib.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos) && !FabricWaystones.CONFIG.discover_waystone_on_map_use())
                 return ActionResult.SUCCESS;
 
             FabricWaystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
             if (!discovered.contains(blockEntity.getHash())) {
                 if (!blockEntity.isGlobal()) {
-                    var config = Config.getInstance();
-                    var discoverItemId = config.getDiscoverItem();
-                    if (discoverItemId != null && !player.isCreative()) {
+                    var discoverItemId = Utils.getDiscoverItem();
+                    if (!player.isCreative()) {
                         var discoverItem = Registry.ITEM.get(discoverItemId);
-                        var discoverAmount = config.getDiscoverItemAmount();
+                        var discoverAmount = FabricWaystones.CONFIG.take_amount_from_discover_item();
                         if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
                             player.sendMessage(Text.translatable(
                                 "fwaystones.missing_discover_item",

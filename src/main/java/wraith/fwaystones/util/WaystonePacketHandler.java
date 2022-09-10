@@ -20,7 +20,6 @@ public final class WaystonePacketHandler {
     public static final Identifier TELEPORT_TO_WAYSTONE = Utils.ID("teleport_to_waystone");
     public static final Identifier TOGGLE_GLOBAL_WAYSTONE = Utils.ID("toggle_global_waystone");
     public static final Identifier VOID_REVIVE = Utils.ID("void_totem_revive");
-    public static final Identifier WAYSTONE_CONFIG_UPDATE = Utils.ID("waystone_config_update");
     public static final Identifier WAYSTONE_GUI_SLOT_CLICK = Utils.ID("waystone_gui_slot_click");
     public static final Identifier WAYSTONE_PACKET = Utils.ID("waystone_packet");
 
@@ -87,7 +86,7 @@ public final class WaystonePacketHandler {
             if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
                 return;
             }
-            if (!Config.getInstance().canPlayersToggleGlobal() && !player.hasPermissionLevel(2)) {
+            if (!FabricWaystones.CONFIG.can_players_toggle_global_mode() && !player.hasPermissionLevel(2)) {
                 return;
             }
             server.execute(() -> {
