@@ -207,23 +207,23 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         var config = FabricWaystones.CONFIG.teleportation_cost;
         MutableText text;
         switch (config.cost_type()) {
-            case "hp", "health" -> {
+            case HEALTH -> {
                 this.drawTexture(matrices, x + 4, y + 4, 186, 15, 9, 9);
                 text = Text.translatable("fwaystones.cost.health");
             }
-            case "hunger" -> {
+            case HUNGER -> {
                 this.drawTexture(matrices, x + 4, y + 4, 177, 24, 9, 9);
                 text = Text.translatable("fwaystones.cost.hunger");
             }
-            case "xp", "experience" -> {
+            case EXPERIENCE -> {
                 this.drawTexture(matrices, x + 4, y + 4, 177, 15, 9, 9);
                 text = Text.translatable("fwaystones.cost.xp");
             }
-            case "level" -> {
+            case LEVEL -> {
                 this.itemRenderer.renderGuiItemIcon(new ItemStack(Items.EXPERIENCE_BOTTLE), x, y);
                 text = Text.translatable("fwaystones.cost.level");
             }
-            case "item" -> {
+            case ITEM -> {
                 var item = Registry.ITEM.get(Utils.getTeleportCostItem());
                 this.itemRenderer.renderGuiItemIcon(new ItemStack(item), x, y);
                 text = (MutableText) item.getName();
@@ -265,7 +265,6 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     protected void renderForgetTooltips(MatrixStack matrixStack, int mouseX, int mouseY, int x, int y) {
         for (int i = 0; i < 5; ++i) {
             int r = y + i * 18;
-            int v = 0;
             if (mouseX < x || mouseY < r || mouseX > x + 8 || mouseY >= r + 8) {
                 continue;
             }

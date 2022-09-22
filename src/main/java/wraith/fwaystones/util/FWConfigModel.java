@@ -31,8 +31,8 @@ public final class FWConfigModel {
     public boolean can_owners_redeem_payments = false;
     public float waystone_block_hardness = 4F;
     public int waystone_block_required_mining_level = 1;
-    public boolean prevent_non_owners_from_breaking_waystone = false;
-    public boolean can_players_toggle_global_mode = true;
+    public PermissionLevel permission_level_for_breaking_waystones = PermissionLevel.ANYONE;
+    public PermissionLevel global_mode_toggle_permission_levels = PermissionLevel.OWNER;
     @Nest
     public CooldownSettings teleportation_cooldown = new CooldownSettings();
     public List<String> disable_teleportation_from_dimensions = new ArrayList<>();
@@ -46,9 +46,25 @@ public final class FWConfigModel {
         put("minecraft:village/snowy/houses", "village_waystone");
     }};
 
+    public enum PermissionLevel {
+        OWNER,
+        OP,
+        ANYONE,
+        NONE
+    }
+
+    public enum CostType {
+        HEALTH,
+        HUNGER,
+        LEVEL,
+        EXPERIENCE,
+        ITEM,
+        NONE
+    }
+
     public static class CostSettings {
 
-        public String cost_type = "level";
+        public CostType cost_type = CostType.LEVEL;
         public String cost_item = "minecraft:ender_pearl";
         public int base_cost = 1;
         public float cost_per_block_distance = 0F;
@@ -73,5 +89,4 @@ public final class FWConfigModel {
         public int max_per_village = 1;
         public int village_waystone_weight = 2;
     }
-
 }

@@ -86,16 +86,25 @@ public final class WaystonePacketHandler {
             if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
                 return;
             }
-            if (!FabricWaystones.CONFIG.can_players_toggle_global_mode() && !player.hasPermissionLevel(2)) {
-                return;
-            }
             server.execute(() -> {
-                String hash = tag.getString("waystone_hash");
+                var permissionLevel = FabricWaystones.CONFIG.global_mode_toggle_permission_levels();
                 UUID owner = tag.getUuid("waystone_owner");
-                if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash) &&
-                    ((player.getUuid().equals(owner) &&
-                        owner.equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
-                        player.hasPermissionLevel(2))) {
+                String hash = tag.getString("waystone_hash");
+                switch (permissionLevel) {
+                    case NONE:
+                        return;
+                    case OP:
+                        if (!player.hasPermissionLevel(2)) {
+                            return;
+                        }
+                        break;
+                    case OWNER:
+                        if (!player.getUuid().equals(tag.getUuid("waystone_owner")) || owner.equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) {
+                            return;
+                        }
+                        break;
+                }
+                if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash)) {
                     FabricWaystones.WAYSTONE_STORAGE.toggleGlobal(hash);
                 }
             });

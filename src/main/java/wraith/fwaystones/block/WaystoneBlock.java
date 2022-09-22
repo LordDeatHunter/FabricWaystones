@@ -118,18 +118,20 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         var bottomState = world.getBlockState(pos);
         if (bottomState.getBlock() instanceof WaystoneBlock) {
-            BlockPos entityPos;
-            if (bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER) {
-                entityPos = pos;
-            } else {
-                entityPos = pos.down();
-            }
-            if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone &&
-                FabricWaystones.CONFIG.prevent_non_owners_from_breaking_waystone() &&
-                waystone.getOwner() != null &&
-                !player.getUuid().equals(waystone.getOwner()) &&
-                !player.hasPermissionLevel(2)) {
-                return 0;
+            BlockPos entityPos = bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
+            switch (FabricWaystones.CONFIG.permission_level_for_breaking_waystones()) {
+                case OWNER:
+                    if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone && waystone.getOwner() != null && !player.getUuid().equals(waystone.getOwner())) {
+                        return 0;
+                    }
+                    break;
+                case OP:
+                    if (!player.hasPermissionLevel(2)) {
+                        return 0;
+                    }
+                    break;
+                case NONE:
+                    return 0;
             }
         }
         return super.calcBlockBreakingDelta(state, player, world, pos);

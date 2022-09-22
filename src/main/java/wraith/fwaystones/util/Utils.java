@@ -136,7 +136,7 @@ public final class Utils {
     }
 
     public static boolean canTeleport(PlayerEntity player, String hash, boolean takeCost) {
-        String cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
+        FWConfigModel.CostType cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
             player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
@@ -159,8 +159,7 @@ public final class Utils {
             return true;
         }
         switch (cost) {
-            case "hp":
-            case "health":
+            case HEALTH:
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
                     player.sendMessage(Text.translatable("fwaystones.no_teleport.health"), true);
                     return false;
@@ -169,8 +168,7 @@ public final class Utils {
                     player.damage(DamageSource.MAGIC, amount);
                 }
                 return true;
-            case "hunger":
-            case "saturation":
+            case HUNGER:
                 var hungerManager = player.getHungerManager();
                 var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
                 if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustion() / 4F <= amount) {
@@ -181,8 +179,7 @@ public final class Utils {
                     hungerManager.addExhaustion(4 * amount);
                 }
                 return true;
-            case "xp":
-            case "experience":
+            case EXPERIENCE:
                 long total = determineLevelXP(player);
                 if (total < amount) {
                     player.sendMessage(Text.translatable("fwaystones.no_teleport.xp"), true);
@@ -192,7 +189,7 @@ public final class Utils {
                     player.addExperience(-amount);
                 }
                 return true;
-            case "level":
+            case LEVEL:
                 if (player.experienceLevel < amount) {
                     player.sendMessage(Text.translatable("fwaystones.no_teleport.level"), true);
                     return false;
@@ -201,7 +198,7 @@ public final class Utils {
                     player.addExperienceLevels(-amount);
                 }
                 return true;
-            case "item":
+            case ITEM:
                 Identifier itemId = getTeleportCostItem();
                 Item item = Registry.ITEM.get(itemId);
                 if (!containsItem(player.getInventory(), item, amount)) {
@@ -327,7 +324,7 @@ public final class Utils {
 
     @Nullable
     public static Identifier getTeleportCostItem() {
-        if ("item".equals(FabricWaystones.CONFIG.teleportation_cost.cost_type())) {
+        if (FabricWaystones.CONFIG.teleportation_cost.cost_type() == FWConfigModel.CostType.ITEM) {
             String[] item = FabricWaystones.CONFIG.teleportation_cost.cost_item().split(":");
             return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
         }
