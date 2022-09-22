@@ -44,7 +44,7 @@ dependencies {
     modRuntimeOnly "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id}"
 
     modApi "maven.modrinth:pinlib:$project.pinlib_api_version"
-    include "maven.modrinth:pinlib:$project.pinlib_api_version"
+    modRuntimeOnly "maven.modrinth:pinlib:$project.pinlib_api_version"
 
     annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
     include "io.wispforest:owo-sentinel:${project.owo_version}"

@@ -2,14 +2,17 @@ package wraith.fwaystones.util;
 
 import io.wispforest.owo.config.Option;
 import io.wispforest.owo.config.annotation.Config;
+import io.wispforest.owo.config.annotation.Modmenu;
 import io.wispforest.owo.config.annotation.Nest;
 import io.wispforest.owo.config.annotation.Sync;
+import wraith.fwaystones.FabricWaystones;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Modmenu(modId = FabricWaystones.MOD_ID)
 @Sync(Option.SyncMode.OVERRIDE_CLIENT)
 @Config(name = "fwaystones/config", wrapperName = "FWConfig")
 public final class FWConfigModel {

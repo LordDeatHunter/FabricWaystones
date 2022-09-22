@@ -1,8 +1,6 @@
 package wraith.fwaystones.block;
 
-import com.rokoblox.pinlib.PinLib;
-import com.rokoblox.pinlib.mapmarker.IMapMarkedBlock;
-import com.rokoblox.pinlib.mapmarker.MapMarker;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -42,15 +40,15 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
+import wraith.fwaystones.integration.pinlib.PinlibPlugin;
 import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
 import wraith.fwaystones.registry.BlockEntityRegistry;
-import wraith.fwaystones.registry.BlockRegistry;
 import wraith.fwaystones.util.Utils;
 
 @SuppressWarnings("deprecation")
-public class WaystoneBlock extends BlockWithEntity implements Waterloggable, IMapMarkedBlock {
+public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     public static final BooleanProperty ACTIVE = BooleanProperty.of("active");
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
@@ -263,7 +261,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, IMa
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
             }
         } else {
-            if (PinLib.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos) && !FabricWaystones.CONFIG.discover_waystone_on_map_use())
+            if (!FabricWaystones.CONFIG.discover_waystone_on_map_use() && FabricLoader.getInstance().isModLoaded("pinlib") && PinlibPlugin.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos))
                 return ActionResult.SUCCESS;
 
             FabricWaystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
@@ -364,35 +362,4 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, IMa
         return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }
 
-    @Override
-    public MapMarker getCustomMarker() {
-        return BlockRegistry.WAYSTONE_MAP_MARKER;
-    }
-
-    @Override
-    public long getMarkerColor(BlockView world, BlockPos pos) {
-        BlockState state = world.getBlockState(pos);
-        if (state != null)
-            return switch (Registry.BLOCK.getId(state.getBlock()).getPath()) {
-                // Always put 'L' at the end of numbers so that they are longs NOT integers and 'FF' at the start so alpha is 255.
-                case "desert_waystone" -> 0xFFE3DBB0L;
-                case "stone_brick_waystone" -> 0xFFB4B2ACL;
-                case "red_desert_waystone" -> 0xFFED904AL;
-                case "nether_brick_waystone" -> 0xFF59383EL;
-                case "red_nether_brick_waystone" -> 0xFF942E31L;
-                case "end_stone_brick_waystone" -> 0xFFFBFFE8L;
-                case "deepslate_brick_waystone" -> 0xFF808080L;
-                case "blackstone_brick_waystone" -> 0xFF4E4B54L;
-                default -> 0xFFFFFFFFL;
-            };
-        return 0xFFFFFFFFL;
-    }
-
-    @Override
-    public Text getDisplayName(BlockView world, BlockPos pos) {
-        if (world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystoneBlockEntity) {
-            return Text.literal(waystoneBlockEntity.getWaystoneName());
-        }
-        return null;
-    }
 }
