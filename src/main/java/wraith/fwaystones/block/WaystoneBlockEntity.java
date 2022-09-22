@@ -36,7 +36,6 @@ import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.item.AbyssWatcherItem;
 import wraith.fwaystones.registry.BlockEntityRegistry;
 import wraith.fwaystones.screen.WaystoneBlockScreenHandler;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
 
@@ -405,16 +404,17 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             ), false);
             return false;
         }
-        if ((source != TeleportSources.LOCAL_VOID || Config.getInstance().doLocalVoidsUseCost())
+        if ((source != TeleportSources.LOCAL_VOID || !FabricWaystones.CONFIG.free_local_void_teleport())
             && !Utils.canTeleport(player, hash, takeCost)) {
             return false;
         }
+        var cooldowns = FabricWaystones.CONFIG.teleportation_cooldown;
         playerAccess.setTeleportCooldown(switch (source) {
-            case WAYSTONE -> Config.getInstance().getCooldownFromWaystone();
-            case ABYSS_WATCHER -> Config.getInstance().getCooldownFromAbyssWatcher();
-            case LOCAL_VOID -> Config.getInstance().getCooldownFromLocalVoid();
-            case VOID_TOTEM -> Config.getInstance().getCooldownFromVoidTotem();
-            case POCKET_WORMHOLE -> Config.getInstance().getCooldownFromPocketWormhole();
+            case WAYSTONE -> cooldowns.cooldown_ticks_from_waystone();
+            case ABYSS_WATCHER -> cooldowns.cooldown_ticks_from_abyss_watcher();
+            case LOCAL_VOID -> cooldowns.cooldown_ticks_from_local_void();
+            case VOID_TOTEM -> cooldowns.cooldown_ticks_from_void_totem();
+            case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole();
         });
         var oldPos = player.getBlockPos();
         player.world.playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,

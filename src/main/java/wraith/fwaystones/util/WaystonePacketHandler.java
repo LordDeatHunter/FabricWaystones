@@ -20,7 +20,6 @@ public final class WaystonePacketHandler {
     public static final Identifier TELEPORT_TO_WAYSTONE = Utils.ID("teleport_to_waystone");
     public static final Identifier TOGGLE_GLOBAL_WAYSTONE = Utils.ID("toggle_global_waystone");
     public static final Identifier VOID_REVIVE = Utils.ID("void_totem_revive");
-    public static final Identifier WAYSTONE_CONFIG_UPDATE = Utils.ID("waystone_config_update");
     public static final Identifier WAYSTONE_GUI_SLOT_CLICK = Utils.ID("waystone_gui_slot_click");
     public static final Identifier WAYSTONE_PACKET = Utils.ID("waystone_packet");
 
@@ -87,16 +86,25 @@ public final class WaystonePacketHandler {
             if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
                 return;
             }
-            if (!Config.getInstance().canPlayersToggleGlobal() && !player.hasPermissionLevel(2)) {
-                return;
-            }
             server.execute(() -> {
-                String hash = tag.getString("waystone_hash");
+                var permissionLevel = FabricWaystones.CONFIG.global_mode_toggle_permission_levels();
                 UUID owner = tag.getUuid("waystone_owner");
-                if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash) &&
-                    ((player.getUuid().equals(owner) &&
-                        owner.equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
-                        player.hasPermissionLevel(2))) {
+                String hash = tag.getString("waystone_hash");
+                switch (permissionLevel) {
+                    case NONE:
+                        return;
+                    case OP:
+                        if (!player.hasPermissionLevel(2)) {
+                            return;
+                        }
+                        break;
+                    case OWNER:
+                        if (!player.getUuid().equals(tag.getUuid("waystone_owner")) || owner.equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) {
+                            return;
+                        }
+                        break;
+                }
+                if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash)) {
                     FabricWaystones.WAYSTONE_STORAGE.toggleGlobal(hash);
                 }
             });

@@ -25,7 +25,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.StructurePoolBasedGenerator_StructurePoolGeneratorAccess;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.WaystonesWorldgen;
 
 import java.util.Iterator;
@@ -100,7 +99,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                                                             MutableObject<Object> mutableObject2,
                                                             boolean bl2,
                                                             List<StructurePoolElement> list) {
-        if (!Config.getInstance().generateInVillages() ||
+        if (!FabricWaystones.CONFIG.worldgen.generate_in_villages() ||
             maxWaystoneCount < 0 ||
             optional.isEmpty() ||
             !WaystonesWorldgen.VANILLA_VILLAGES.containsKey(optional.get().getId())

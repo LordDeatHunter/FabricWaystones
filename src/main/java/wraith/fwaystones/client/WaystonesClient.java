@@ -16,7 +16,6 @@ import wraith.fwaystones.registry.CustomScreenRegistry;
 import wraith.fwaystones.registry.ItemRegistry;
 import wraith.fwaystones.registry.WaystonesModelProviderRegistry;
 import wraith.fwaystones.screen.UniversalWaystoneScreenHandler;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.WaystonePacketHandler;
 import wraith.fwaystones.util.WaystoneStorage;
 
@@ -58,10 +57,6 @@ public class WaystonesClient implements ClientModInitializer {
                     ((UniversalWaystoneScreenHandler) client.player.currentScreenHandler).updateWaystones(client.player);
                 }
             });
-        });
-        ClientPlayNetworking.registerGlobalReceiver(WaystonePacketHandler.WAYSTONE_CONFIG_UPDATE, (client, networkHandler, data, sender) -> {
-            NbtCompound tag = data.readNbt();
-            client.execute(() -> Config.getInstance().loadConfig(tag));
         });
         ClientPlayNetworking.registerGlobalReceiver(WaystonePacketHandler.SYNC_PLAYER, (client, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();

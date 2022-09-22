@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
-import wraith.fwaystones.util.Config;
 
 import java.util.List;
 
@@ -55,7 +54,7 @@ public class LocalVoidItem extends Item {
                 WaystoneBlockEntity waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone == null) {
                     stack.removeSubNbt("waystone");
-                } else if (waystone.teleportPlayer(user, Config.getInstance().doLocalVoidsUseCost()) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
+                } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.free_local_void_teleport()) && !user.isCreative() && FabricWaystones.CONFIG.consume_local_void_on_use()) {
                     stack.decrement(1);
                 }
             }
