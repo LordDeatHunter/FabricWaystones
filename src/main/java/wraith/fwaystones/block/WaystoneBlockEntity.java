@@ -404,8 +404,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             ), false);
             return false;
         }
-        if ((source != TeleportSources.LOCAL_VOID || !FabricWaystones.CONFIG.free_local_void_teleport())
-            && !Utils.canTeleport(player, hash, takeCost)) {
+        if (source == TeleportSources.LOCAL_VOID && !FabricWaystones.CONFIG.free_local_void_teleport()) {
+            return false;
+        }
+        if (source != TeleportSources.VOID_TOTEM && !Utils.canTeleport(player, hash, takeCost)) {
             return false;
         }
         var cooldowns = FabricWaystones.CONFIG.teleportation_cooldown;
@@ -417,9 +419,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole();
         });
         var oldPos = player.getBlockPos();
-        player.world.playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
-            SoundCategory.BLOCKS, 1F, 1F);
-        FabricWaystones.LOGGER.info("Teleporting...");
+        player.world.playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         FabricDimensions.teleport(player, world, target);
         BlockPos playerPos = player.getBlockPos();
 
