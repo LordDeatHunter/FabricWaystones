@@ -99,7 +99,7 @@ public final class WaystonePacketHandler {
                         }
                         break;
                     case OWNER:
-                        if (!player.getUuid().equals(tag.getUuid("waystone_owner")) || owner.equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) {
+                        if (!player.getUuid().equals(owner) || !owner.equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) {
                             return;
                         }
                         break;

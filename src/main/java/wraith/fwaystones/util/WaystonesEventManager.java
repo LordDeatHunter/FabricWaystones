@@ -3,6 +3,7 @@ package wraith.fwaystones.util;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -32,6 +33,7 @@ public class WaystonesEventManager {
             FabricWaystones.WAYSTONE_STORAGE = null;
         });
 
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> FabricWaystones.WAYSTONE_STORAGE.sendToPlayer(handler.player));
         ServerLifecycleEvents.SERVER_STARTING.register(WaystonesWorldgen::registerVanillaVillageWorldgen);
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> FabricWaystones.CONFIG.load());
 
