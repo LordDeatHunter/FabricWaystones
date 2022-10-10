@@ -282,7 +282,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                                 )
                             ), false);
                             return ActionResult.FAIL;
-                        } else {
+                        } else if (discoverItem != Items.AIR) {
                             Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
                             player.sendMessage(Text.translatable(
                                 "fwaystones.discover_item_paid",
