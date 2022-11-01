@@ -30,7 +30,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     protected ArrayList<String> sortedWaystones = new ArrayList<>();
     protected ArrayList<String> filteredWaystones = new ArrayList<>();
     protected String filter = "";
-    private SearchType searchType = SearchType.STARTS_WITH;
+    private SearchType searchType = SearchType.CONTAINS;
 
     protected UniversalWaystoneScreenHandler(
         ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type, int syncId,

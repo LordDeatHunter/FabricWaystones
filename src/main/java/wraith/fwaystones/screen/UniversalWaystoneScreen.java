@@ -111,8 +111,9 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
     @Override
     public void handledScreenTick() {
-        if (this.searchField != null) {
+        if (this.searchField != null && this.searchField.isVisible()) {
             this.searchField.tick();
+            this.searchField.setTextFieldFocused(true);
         }
     }
 
@@ -263,7 +264,8 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected void renderForgetTooltips(MatrixStack matrixStack, int mouseX, int mouseY, int x, int y) {
-        for (int i = 0; i < 5; ++i) {
+        int n = getDiscoveredCount();
+        for (int i = 0; i < n; ++i) {
             int r = y + i * 18;
             if (mouseX < x || mouseY < r || mouseX > x + 8 || mouseY >= r + 8) {
                 continue;
@@ -454,6 +456,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        this.mouseClicked = false;
         this.mousePressed = false;
         return super.mouseReleased(mouseX, mouseY, button);
     }
