@@ -33,9 +33,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WaystoneStorage {
 
-    private static final String ID = "fw_waystones";
+    public static final String ID = "fw_waystones";
     private final PersistentState state;
-    private final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
     private final MinecraftServer server;
 
     public WaystoneStorage(MinecraftServer server) {
@@ -201,7 +201,7 @@ public class WaystoneStorage {
         });
     }
 
-    private void forgetForAllPlayers(String hash) {
+    public void forgetForAllPlayers(String hash) {
         if (server == null) {
             return;
         }
