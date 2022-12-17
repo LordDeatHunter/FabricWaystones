@@ -162,7 +162,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             @Override
             public void setup() {
                 this.toggled = ((WaystoneBlockScreenHandler) handler).isGlobal();
-                this.tooltip = Text.translatable("fwaystones.config.tooltip.toggle_is_global");
+                setupTooltip();
             }
 
             @Override
@@ -172,11 +172,19 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
                 }
                 super.onClick();
                 ((WaystoneBlockScreenHandler) handler).toggleGlobal();
+
+                setupTooltip();
             }
 
             @Override
             public boolean isVisible() {
                 return canEdit() && page == Page.CONFIG;
+            }
+
+            private void setupTooltip() {
+                this.tooltip = this.toggled
+                        ? Text.translatable("fwaystones.config.tooltip.make_non_global")
+                        : Text.translatable("fwaystones.config.tooltip.make_global");
             }
         });
 
@@ -185,7 +193,6 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             @Override
             public void setup() {
                 this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewDiscoveredWaystones();
-                this.tooltip = Text.translatable("fwaystones.config.tooltip.toggle_discovered_view");
             }
 
             @Override
@@ -212,7 +219,6 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         buttons.add(new ToggleableButton(8, 27, 13, 13, 177, 54, 190, 54) {
             @Override
             public void setup() {
-                this.tooltip = Text.translatable("fwaystones.config.tooltip.toggle_global_view");
                 this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewGlobalWaystones();
             }
 
@@ -318,8 +324,10 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
     @Override
     public void handledScreenTick() {
+        super.handledScreenTick();
         if (this.nameField != null && this.nameField.isVisible()) {
             this.nameField.tick();
+            this.nameField.setTextFieldFocused(true);
         }
     }
 

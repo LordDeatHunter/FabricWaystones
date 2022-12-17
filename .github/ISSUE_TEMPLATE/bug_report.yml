@@ -50,6 +50,13 @@ body:
       label: Mod Version
       description: "Please select the used version of 'Fabric Waystones'."
       options:
+        - "v3.0.5"
+        - "v3.0.4"
+        - "v3.0.3"
+        - "v3.0.2"
+        - "v3.0.1"
+        - "v3.0.0"
+        - "v2.6.0-CONVERT"
         - "v2.5.0"
         - "v2.4.1"
         - "v2.4.0"
@@ -81,6 +88,9 @@ body:
       label: Minecraft Version
       description: "Please select the used version of 'Minecraft'."
       options:
+        - "1.19.3 or newer"
+        - "1.19.2"
+        - "1.19.1"
         - "1.19"
         - "1.18.2"
         - "1.18.1"
