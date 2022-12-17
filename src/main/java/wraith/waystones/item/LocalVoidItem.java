@@ -33,6 +33,9 @@ public class LocalVoidItem extends Item {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        if (world.isClient) {
+            return TypedActionResult.success(user.getStackInHand(hand));
+        }
         ItemStack stack = user.getStackInHand(hand);
         NbtCompound tag = stack.getNbt();
         if (tag == null || !tag.contains("waystone")) {
