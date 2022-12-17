@@ -1,5 +1,6 @@
 package wraith.waystones.integration.journeymap;
 
+import joptsimple.internal.Strings;
 import journeymap.client.api.IClientAPI;
 import journeymap.client.api.IClientPlugin;
 import journeymap.client.api.display.DisplayType;
@@ -169,7 +170,7 @@ public class JourneymapPlugin implements IClientPlugin {
         var waypoint = new Waypoint(
             getModId(),
             waystone.getHash(),
-            waystone.getWaystoneName(),
+            Strings.isNullOrEmpty(waystone.getWaystoneName()) ? "Unnamed Waystone" : waystone.getWaystoneName(),
             waystone.getWorldName(),
             waystone.way_getPos()
         )
