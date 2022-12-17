@@ -1,0 +1,20 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "fwaystones:item/empty_waystone_scroll"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "fwaystones:has_learned": 0
+      },
+      "model": "fwaystones:item/empty_waystone_scroll"
+    },
+    {
+      "predicate": {
+        "fwaystones:has_learned": 1
+      },
+      "model": "fwaystones:item/learned_waystone_scroll"
+    }
+  ]
+}

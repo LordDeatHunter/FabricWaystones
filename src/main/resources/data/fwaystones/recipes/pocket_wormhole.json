@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " # ",
+    "PSP",
+    " P "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:blaze_powder"
+    },
+    "S": {
+      "item": "minecraft:nether_star"
+    },
+    "#": {
+      "item": "fwaystones:abyss_watcher"
+    }
+  },
+  "result": {
+    "item": "fwaystones:pocket_wormhole",
+    "count": 1
+  }
+}

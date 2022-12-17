@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:totem_of_undying"
+    },
+    {
+      "item": "fwaystones:local_void"
+    }
+  ],
+  "result": {
+    "item": "fwaystones:void_totem",
+    "count": 1
+  }
+}

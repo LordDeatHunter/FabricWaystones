@@ -1,7 +1,0 @@
-{
-	"parent": "waystones:block/base_waystone_bottom",
-	"textures": {
-		"body": "waystones:block/mossy_red_desert_waystone_active",
-		"particle": "block/cut_red_sandstone"
-	}
-}

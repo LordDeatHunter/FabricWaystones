@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#P#",
+    "PPP",
+    "#P#"
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "#": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "fwaystones:waystone_scroll",
+    "count": 1
+  }
+}

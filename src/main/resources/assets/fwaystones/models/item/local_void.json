@@ -1,0 +1,20 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "fwaystones:item/local_void_inert"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "fwaystones:has_learned": 0
+      },
+      "model": "fwaystones:item/local_void_inert"
+    },
+    {
+      "predicate": {
+        "fwaystones:has_learned": 1
+      },
+      "model": "fwaystones:item/local_void_active"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "waystones",
+  "id": "fwaystones",
   "version": "${version}",
-  "name": "Waystones",
+  "name": "Fabric Waystones",
   "description": "A better way of transport!",
   "authors": [
     "LordDeatHunter"
@@ -13,23 +13,23 @@
     "issues": "https://github.com/LordDeatHunter/FabricWaystones/issues"
   },
   "license": "MIT License",
-  "icon": "assets/waystones/WaystoneIcon.png",
+  "icon": "assets/fwaystones/fabric_waystones_icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "wraith.waystones.Waystones"
+      "wraith.fwaystones.FabricWaystones"
     ],
     "client": [
-      "wraith.waystones.client.WaystonesClient"
+      "wraith.fwaystones.client.FabricWaystonesClient"
     ],
     "journeymap": [
-      "wraith.waystones.integration.journeymap.JourneymapPlugin"
+      "wraith.fwaystones.integration.journeymap.JourneymapPlugin"
     ]
   },
   "mixins": [
-    "waystones.mixins.json"
+    "fwaystones.mixins.json"
   ],
-  "accessWidener": "waystones.accesswidener",
+  "accessWidener": "fwaystones.accesswidener",
   "depends": {
     "fabricloader": ">=0.13.3",
     "fabric": "*",

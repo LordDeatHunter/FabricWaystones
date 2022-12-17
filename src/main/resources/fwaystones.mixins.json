@@ -1,0 +1,28 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "wraith.fwaystones.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "LivingEntityMixin",
+    "MinecraftServerAccessor",
+    "PlayerEntityMixin",
+    "ServerPlayerEntityAccessor",
+    "ServerPlayerEntityMixin",
+    "SinglePoolElementAccessor",
+    "StructurePiecesListMixin",
+    "StructurePoolAccessor",
+    "StructurePoolBasedGenerator_StructurePoolGeneratorMixin",
+    "StructurePoolBasedGeneratorMixin",
+    "StructureStartAccessor",
+    "TagGroupLoaderMixin"
+  ],
+  "client": [
+    "ClientPlayerEntityAccessor",
+    "ClientPlayerEntityMixin",
+    "ClientPlayNetworkHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
