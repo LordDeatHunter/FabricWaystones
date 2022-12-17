@@ -408,8 +408,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             ), false);
             return false;
         }
-        if ((source != TeleportSources.LOCAL_VOID || Config.getInstance().doLocalVoidsUseCost())
-            && !Utils.canTeleport(player, hash, takeCost)) {
+        if (source == TeleportSources.LOCAL_VOID && Config.getInstance().doLocalVoidsUseCost()) {
+            return false;
+        }
+        if (source != TeleportSources.VOID_TOTEM && !Utils.canTeleport(player, hash, takeCost)) {
             return false;
         }
         playerAccess.setTeleportCooldown(switch (source) {

@@ -80,7 +80,7 @@ public abstract class LivingEntityMixin {
                 var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone != null) {
                     player.fallDistance = 0;
-                    waystone.teleportPlayer(player, false, TeleportSources.LOCAL_VOID);
+                    waystone.teleportPlayer(player, false, TeleportSources.VOID_TOTEM);
                     teleported = true;
                 }
             }
