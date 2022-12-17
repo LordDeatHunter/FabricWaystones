@@ -1,5 +1,7 @@
 package wraith.fwaystones.mixin;
 
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.structure.PoolStructurePiece;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.structure.pool.SinglePoolElement;
@@ -70,40 +72,42 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     @Inject(method = "generatePiece(Lnet/minecraft/structure/PoolStructurePiece;Lorg/apache/commons/lang3/mutable/MutableObject;IZLnet/minecraft/world/HeightLimitView;Lnet/minecraft/world/gen/noise/NoiseConfig;)V",
         at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false),
         locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece,
-                                                            MutableObject<VoxelShape> pieceShape,
-                                                            int minY,
-                                                            boolean modifyBoundingBox,
-                                                            HeightLimitView world,
-                                                            NoiseConfig noiseConfig,
-                                                            CallbackInfo ci,
-                                                            StructurePoolElement structurePoolElement,
-                                                            BlockPos blockPos,
-                                                            BlockRotation blockRotation,
-                                                            StructurePool.Projection projection,
-                                                            boolean bl,
-                                                            MutableObject<VoxelShape> mutableObject,
-                                                            BlockBox blockBox,
-                                                            int i,
-                                                            Iterator<StructureTemplate.StructureBlockInfo> var14,
-                                                            StructureTemplate.StructureBlockInfo structureBlockInfo,
-                                                            Direction direction,
-                                                            BlockPos blockPos2,
-                                                            BlockPos blockPos3,
-                                                            int j,
-                                                            int k,
-                                                            Identifier identifier,
-                                                            Optional<StructurePool> optional,
-                                                            Identifier identifier2,
-                                                            Optional<StructurePool> optional2,
-                                                            MutableObject<Object> mutableObject2,
-                                                            boolean bl2,
-                                                            List<StructurePoolElement> list) {
+    private void fabricwaystones_limitWaystonePieceSpawning(
+        PoolStructurePiece piece,
+        MutableObject<VoxelShape> pieceShape,
+        int minY,
+        boolean modifyBoundingBox,
+        HeightLimitView world,
+        NoiseConfig noiseConfig,
+        CallbackInfo ci,
+        StructurePoolElement structurePoolElement,
+        BlockPos blockPos,
+        BlockRotation blockRotation,
+        StructurePool.Projection projection,
+        boolean bl,
+        MutableObject<VoxelShape> mutableObject,
+        BlockBox blockBox,
+        int i,
+        Iterator var15,
+        StructureTemplate.StructureBlockInfo structureBlockInfo,
+        Direction direction,
+        BlockPos blockPos2,
+        BlockPos blockPos3,
+        int j,
+        int k,
+        RegistryKey<StructurePool> registryKey,
+        Optional optional,
+        RegistryEntry<StructurePool> registryEntry,
+        RegistryEntry<StructurePool> registryEntry2,
+        MutableObject mutableObject2,
+        boolean bl2,
+        List<StructurePoolElement> list
+    ) {
         if (!FabricWaystones.CONFIG.worldgen.generate_in_villages() ||
             maxWaystoneCount < 0 ||
-            optional.isEmpty() ||
-            !WaystonesWorldgen.VANILLA_VILLAGES.containsKey(optional.get().getId())
-        ) return;
+            !WaystonesWorldgen.VANILLA_VILLAGES.containsKey(registryKey.getValue())) {
+            return;
+        }
         long villageWaystoneCount = children.stream()
             .filter(element -> element instanceof PoolStructurePiece poolStructurePiece
                 && poolStructurePiece.getPoolElement() instanceof SinglePoolElement singlePoolElement

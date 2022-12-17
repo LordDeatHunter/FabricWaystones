@@ -2,7 +2,8 @@ package wraith.fwaystones.registry;
 
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.util.Utils;
 
@@ -20,8 +21,8 @@ public final class BlockEntityRegistry {
             BlockRegistry.BLACKSTONE_BRICK_WAYSTONE
     ).build(null);
 
-    public static  void registerBlockEntities() {
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, Utils.ID("waystone"), WAYSTONE_BLOCK_ENTITY);
+    public static void registerBlockEntities() {
+        Registry.register(Registries.BLOCK_ENTITY_TYPE, Utils.ID("waystone"), WAYSTONE_BLOCK_ENTITY);
     }
 
 }

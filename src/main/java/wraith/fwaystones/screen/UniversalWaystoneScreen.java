@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -23,7 +24,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.util.WaystonePacketHandler;
@@ -87,7 +87,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         this.searchField = new TextFieldWidget(this.textRenderer, this.x + 37, this.y + 27, 93, 10, Text.literal("")) {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
-                boolean bl = mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
+                boolean bl = mouseX >= (double) this.getX() && mouseX < (double) (this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double) (this.getY() + this.height);
                 if (bl && button == 1) {
                     this.setText("");
                 }
@@ -224,7 +224,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 text = Text.translatable("fwaystones.cost.level");
             }
             case ITEM -> {
-                var item = Registry.ITEM.get(Utils.getTeleportCostItem());
+                var item = Registries.ITEM.get(Utils.getTeleportCostItem());
                 this.itemRenderer.renderGuiItemIcon(new ItemStack(item), x, y);
                 text = (MutableText) item.getName();
             }

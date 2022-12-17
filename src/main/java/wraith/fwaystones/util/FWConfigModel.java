@@ -40,10 +40,10 @@ public final class FWConfigModel {
     public boolean ignore_dimension_blacklists_if_same_dimension = true;
     public Map<String, String> add_waystone_structure_piece = new HashMap<>() {{
         put("minecraft:village/desert/houses", "desert_village_waystone");
-        put("minecraft:village/savanna/houses", "village_waystone");
         put("minecraft:village/plains/houses", "village_waystone");
-        put("minecraft:village/taiga/houses", "village_waystone");
+        put("minecraft:village/savanna/houses", "village_waystone");
         put("minecraft:village/snowy/houses", "village_waystone");
+        put("minecraft:village/taiga/houses", "village_waystone");
     }};
 
     public enum PermissionLevel {

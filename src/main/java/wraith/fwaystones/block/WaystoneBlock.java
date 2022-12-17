@@ -15,6 +15,7 @@ import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -31,7 +32,6 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
@@ -120,18 +120,19 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (bottomState.getBlock() instanceof WaystoneBlock) {
             BlockPos entityPos = bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
             switch (FabricWaystones.CONFIG.permission_level_for_breaking_waystones()) {
-                case OWNER:
+                case OWNER -> {
                     if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone && waystone.getOwner() != null && !player.getUuid().equals(waystone.getOwner())) {
                         return 0;
                     }
-                    break;
-                case OP:
+                }
+                case OP -> {
                     if (!player.hasPermissionLevel(2)) {
                         return 0;
                     }
-                    break;
-                case NONE:
+                }
+                case NONE -> {
                     return 0;
+                }
             }
         }
         return super.calcBlockBreakingDelta(state, player, world, pos);
@@ -271,7 +272,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 if (!blockEntity.isGlobal()) {
                     var discoverItemId = Utils.getDiscoverItem();
                     if (!player.isCreative()) {
-                        var discoverItem = Registry.ITEM.get(discoverItemId);
+                        var discoverItem = Registries.ITEM.get(discoverItemId);
                         var discoverAmount = FabricWaystones.CONFIG.take_amount_from_discover_item();
                         if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
                             player.sendMessage(Text.translatable(
@@ -359,7 +360,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
         if (state.get(WATERLOGGED)) {
-            world.createAndScheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+            world.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
         }
         return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }

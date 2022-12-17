@@ -1,7 +1,8 @@
 package wraith.fwaystones.registry;
 
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.util.Utils;
 
@@ -13,7 +14,7 @@ public final class CompatRegistry {
 
     @SuppressWarnings("unchecked")
     public static void init() {
-        Registry.REGISTRIES.getOrEmpty(new Identifier("repurposed_structures", "json_conditions"))
+        Registries.REGISTRIES.getOrEmpty(new Identifier("repurposed_structures", "json_conditions"))
             .ifPresent(registry -> Registry.register(
                 (Registry<Supplier<Boolean>>) registry,
                 Utils.ID("config"),

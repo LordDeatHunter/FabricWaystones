@@ -1,9 +1,12 @@
 package wraith.fwaystones.registry;
 
+import io.wispforest.owo.util.TagInjector;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Material;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.util.Utils;
@@ -11,7 +14,6 @@ import wraith.fwaystones.util.Utils;
 import java.util.HashMap;
 
 public final class BlockRegistry {
-
 
     public static final Block BLACKSTONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
     public static final Block DEEPSLATE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
@@ -23,8 +25,17 @@ public final class BlockRegistry {
     public static final Block STONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
     public static final Block WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
     public static final HashMap<String, Block> WAYSTONE_BLOCKS = new HashMap<>();
+    private static Identifier miningLevelTag;
 
     public static void registerBlocks() {
+        var miningLevel = FabricWaystones.CONFIG.waystone_block_required_mining_level();
+        miningLevelTag = new Identifier(switch (miningLevel) {
+            case 1 -> "minecraft:needs_stone_tool";
+            case 2 -> "minecraft:needs_iron_tool";
+            case 3 -> "minecraft:needs_diamond_tool";
+            default -> "fabric:needs_tool_level_" + miningLevel;
+        });
+
         registerAndAdd("waystone", WAYSTONE);
         registerAndAdd("desert_waystone", DESERT_WAYSTONE);
         registerAndAdd("stone_brick_waystone", STONE_BRICK_WAYSTONE);
@@ -38,7 +49,8 @@ public final class BlockRegistry {
 
     private static void registerAndAdd(String id, Block block) {
         WAYSTONE_BLOCKS.put(id, block);
-        Registry.register(Registry.BLOCK, Utils.ID(id), block);
+        Registry.register(Registries.BLOCK, Utils.ID(id), block);
+        TagInjector.inject(Registries.BLOCK, miningLevelTag, block);
     }
 
 }
