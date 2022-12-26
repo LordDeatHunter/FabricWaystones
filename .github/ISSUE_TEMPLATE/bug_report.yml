@@ -50,6 +50,8 @@ body:
       label: Mod Version
       description: "Please select the used version of 'Fabric Waystones'."
       options:
+        - "v3.0.7 or newer"
+        - "v3.0.6"
         - "v3.0.5"
         - "v3.0.4"
         - "v3.0.3"
