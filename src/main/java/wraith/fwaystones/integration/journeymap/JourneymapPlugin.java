@@ -3,26 +3,28 @@ package wraith.fwaystones.integration.journeymap;
 import joptsimple.internal.Strings;
 import journeymap.client.api.IClientAPI;
 import journeymap.client.api.IClientPlugin;
-import journeymap.client.api.display.DisplayType;
-import journeymap.client.api.display.Waypoint;
 import journeymap.client.api.event.ClientEvent;
 import journeymap.client.api.event.RegistryEvent;
 import journeymap.client.api.event.RegistryEvent.RegistryType;
 import journeymap.client.api.event.fabric.FabricEvents;
 import journeymap.client.api.event.fabric.FullscreenDisplayEvent;
-import journeymap.client.api.model.MapImage;
 import journeymap.client.api.option.BooleanOption;
 import journeymap.client.api.option.OptionCategory;
+import journeymap.common.api.waypoint.Waypoint;
+import journeymap.common.api.waypoint.WaypointIcon;
 import org.jetbrains.annotations.NotNull;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.util.Utils;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
-import static journeymap.client.api.event.ClientEvent.Type.*;
+import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STARTED;
+import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STOPPED;
+import static journeymap.client.api.event.ClientEvent.Type.REGISTRY;
 
 public class JourneymapPlugin implements IClientPlugin {
 
@@ -116,7 +118,7 @@ public class JourneymapPlugin implements IClientPlugin {
 
     private void updateWaypointDisplay(boolean display) {
         if (!display) {
-            api.removeAll(getModId(), DisplayType.Waypoint);
+            api.removeAllWaypoints(getModId());
         } else {
             FabricWaystones.WAYSTONE_STORAGE.getAllHashes().forEach(this::addWaypoint);
         }
@@ -133,7 +135,7 @@ public class JourneymapPlugin implements IClientPlugin {
         }
         Waypoint waypoint = api.getWaypoint(getModId(), hash);
         if (waypoint != null) {
-            api.remove(waypoint);
+            api.removeWaypoint(getModId(), waypoint);
         }
     }
 
@@ -164,22 +166,23 @@ public class JourneymapPlugin implements IClientPlugin {
         if (waystone == null) {
             return;
         }
-        var icon = new MapImage(Utils.ID("images/fabric_waystones_icon.png"), 16, 16);
+        var icon = new WaypointIcon(Utils.ID("images/fabric_waystones_icon.png"), 16, 16);
 
         var waypoint = new Waypoint(
-            getModId(),
-            waystone.getHash(),
-            Strings.isNullOrEmpty(waystone.getWaystoneName()) ? "Unnamed Waystone" : waystone.getWaystoneName(),
-            waystone.getWorldName(),
-            waystone.way_getPos()
-        )
-            .setIcon(icon)
-            .setPersistent(false);
+                getModId(),
+                waystone.getHash(),
+                Strings.isNullOrEmpty(waystone.getWaystoneName()) ? "Unnamed Waystone" : waystone.getWaystoneName(),
+                waystone.way_getPos(),
+                new Color(waystone.getColor()),
+                waystone.getWorldName()
+        );
+        icon.setUseBeaconColor(false);
+        waypoint.setIcon(icon);
+        waypoint.setPersistent(false);
 
         try {
-            waypoint.setColor(waystone.getColor());
-            waypoint.setEnabled(displayWaypoints.get());
-            this.api.show(waypoint);
+            waypoint.getSettings().setEnable(displayWaypoints.get());
+            this.api.addWaypoint(getModId(), waypoint);
         } catch (Throwable t) {
             FabricWaystones.LOGGER.error(t.getMessage(), t);
         }
