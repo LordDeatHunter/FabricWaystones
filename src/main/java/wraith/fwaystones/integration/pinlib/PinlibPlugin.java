@@ -40,6 +40,7 @@ public class PinlibPlugin {
             block,
             () -> WAYSTONE_MAP_MARKER,
             PinlibPlugin::getMarkerColor,
+            PinlibPlugin::getMarkerColor,
             PinlibPlugin::getDisplayName
         ));
     }
