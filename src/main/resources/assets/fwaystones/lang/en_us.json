@@ -52,6 +52,8 @@
   "fwaystones.config.tooltip.revoke_ownership": "Revoke ownership",
   "fwaystones.config.tooltip.toggle_global_view": "Toggle global waystone visibility",
   "fwaystones.config.tooltip.toggle_discovered_view": "Toggle discovered waystone visibility",
+  "fwaystones.config.tooltip.lock_search": "Don't auto select search",
+  "fwaystones.config.tooltip.unlock_search": "Auto select search",
   "fwaystones.config.tooltip.make_global": "Make waystone global",
   "fwaystones.config.tooltip.make_non_global": "Make waystone non-global",
   "fwaystones.config.tooltip.randomize_name": "Generate random waystone name",

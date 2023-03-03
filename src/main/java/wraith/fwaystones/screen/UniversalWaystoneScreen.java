@@ -25,6 +25,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.util.WaystonePacketHandler;
 
@@ -74,6 +75,46 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             }
         });
 
+        //Autoselect search
+        buttons.add(new ToggleableButton(24, 25, 8, 11, 177, 33, 185, 33) {
+            @Override
+            public void setup() {
+                this.toggled = ((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields();
+                setupTooltip();
+            }
+
+            @Override
+            public boolean isVisible() {
+                return !(UniversalWaystoneScreen.this instanceof WaystoneBlockScreen waystoneBlockScreen) || waystoneBlockScreen.page == WaystoneBlockScreen.Page.WAYSTONES;
+            }
+
+            @Override
+            public void onClick() {
+                if (!isVisible()) {
+                    return;
+                }
+                super.onClick();
+                ((PlayerEntityMixinAccess) inventory.player).toggleAutofocusWaystoneFields();
+                PacketByteBuf packet = PacketByteBufs.create();
+                packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
+                ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
+                setupTooltip();
+            }
+
+            private void setupTooltip() {
+                this.tooltip = this.toggled
+                    ? Text.translatable("fwaystones.config.tooltip.unlock_search")
+                    : Text.translatable("fwaystones.config.tooltip.lock_search");
+            }
+        });
+
+        setupButtons();
+    }
+
+    protected void setupButtons() {
+        for (Button button : buttons) {
+            button.setup();
+        }
     }
 
     protected boolean searchVisible() {
@@ -113,7 +154,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     public void handledScreenTick() {
         if (this.searchField != null && this.searchField.isVisible()) {
             this.searchField.tick();
-            this.searchField.setTextFieldFocused(true);
+            this.searchField.setTextFieldFocused(((PlayerEntityMixinAccess) this.client.player).autofocusWaystoneFields());
         }
     }
 

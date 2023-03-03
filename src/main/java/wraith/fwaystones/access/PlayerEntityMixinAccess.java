@@ -55,4 +55,6 @@ public interface PlayerEntityMixinAccess extends PlayerAccess {
     void setTeleportCooldown(int cooldown);
 
     void forgetAllWaystones();
+    boolean autofocusWaystoneFields();
+    void toggleAutofocusWaystoneFields();
 }

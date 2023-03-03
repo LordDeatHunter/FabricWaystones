@@ -32,6 +32,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     private final Set<String> discoveredWaystones = ConcurrentHashMap.newKeySet();
     private boolean viewDiscoveredWaystones = true;
     private boolean viewGlobalWaystones = true;
+    private boolean autofocusWaystoneFields = true;
     private int teleportCooldown = 0;
 
     private PlayerEntity _this() {
@@ -195,6 +196,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         customTag.put("discovered_waystones", waystones);
         customTag.putBoolean("view_discovered_waystones", this.viewDiscoveredWaystones);
         customTag.putBoolean("view_global_waystones", this.viewGlobalWaystones);
+        customTag.putBoolean("autofocusWaystoneFields", this.autofocusWaystoneFields);
 
         tag.put(FabricWaystones.MOD_ID, customTag);
         return tag;
@@ -241,6 +243,9 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         }
         if (tag.contains("view_discovered_waystones")) {
             this.viewDiscoveredWaystones = tag.getBoolean("view_discovered_waystones");
+        }
+        if (tag.contains("autofocus_waystone_fields")) {
+            this.autofocusWaystoneFields = tag.getBoolean("autofocus_waystone_fields");
         }
     }
 
@@ -292,6 +297,16 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
         //discoveredWaystones.forEach(hash -> forgetWaystone(hash, false));
         syncData();
+    }
+
+    @Override
+    public boolean autofocusWaystoneFields() {
+        return autofocusWaystoneFields;
+    }
+
+    @Override
+    public void toggleAutofocusWaystoneFields() {
+        autofocusWaystoneFields = !autofocusWaystoneFields;
     }
 
 }

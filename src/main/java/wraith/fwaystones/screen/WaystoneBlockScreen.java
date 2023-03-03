@@ -28,9 +28,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
     private static final Identifier TEXTURE = Utils.ID("textures/gui/waystone.png");
     private static final Identifier CONFIG_TEXTURE = Utils.ID("textures/gui/waystone_config.png");
-
-    private TextFieldWidget nameField;
-    private Page page = Page.WAYSTONES;
+    public Page page = Page.WAYSTONES;
     private final Button configPage = new Button(156, -17, 18, 18, 207, 0) {
         @Override
         public void onClick() {
@@ -39,9 +37,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             }
             page = Page.CONFIG;
             backgroundHeight = 125;
-            for (Button button : buttons) {
-                button.setup();
-            }
+            setupButtons();
         }
 
         @Override
@@ -54,6 +50,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             this.tooltip = Text.translatable("fwaystones.config.tooltip.config");
         }
     };
+    private TextFieldWidget nameField;
 
     public WaystoneBlockScreen(ScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, TEXTURE, title);
@@ -183,8 +180,8 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
             private void setupTooltip() {
                 this.tooltip = this.toggled
-                        ? Text.translatable("fwaystones.config.tooltip.make_non_global")
-                        : Text.translatable("fwaystones.config.tooltip.make_global");
+                    ? Text.translatable("fwaystones.config.tooltip.make_non_global")
+                    : Text.translatable("fwaystones.config.tooltip.make_global");
             }
         });
 
@@ -327,7 +324,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         super.handledScreenTick();
         if (this.nameField != null && this.nameField.isVisible()) {
             this.nameField.tick();
-            this.nameField.setTextFieldFocused(true);
+            this.nameField.setTextFieldFocused(((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields());
         }
     }
 
@@ -397,7 +394,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             RenderSystem.setShaderTexture(0, CONFIG_TEXTURE);
             this.drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
             if (canEdit()) {
-                this.drawTexture(matrices, x + 23, y + 103, 0, 125, 103, 13);
+                this.drawTexture(matrices, x + 23, y + 103, 0, backgroundHeight, 103, 13);
             }
             renderButtons(matrices, mouseX, mouseY);
             renderButtonText(matrices);
@@ -566,7 +563,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         ClientPlayNetworking.send(WaystonePacketHandler.RENAME_WAYSTONE, data);
     }
 
-    private enum Page {
+    protected enum Page {
         WAYSTONES,
         CONFIG
     }
