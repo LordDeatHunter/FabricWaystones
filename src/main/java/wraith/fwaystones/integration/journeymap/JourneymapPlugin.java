@@ -167,18 +167,16 @@ public class JourneymapPlugin implements IClientPlugin {
             return;
         }
         var icon = new WaypointIcon(Utils.ID("images/fabric_waystones_icon.png"), 16, 16);
-
-        var waypoint = new Waypoint(
-                getModId(),
-                waystone.getHash(),
-                Strings.isNullOrEmpty(waystone.getWaystoneName()) ? "Unnamed Waystone" : waystone.getWaystoneName(),
-                waystone.way_getPos(),
-                new Color(waystone.getColor()),
-                waystone.getWorldName()
-        );
         icon.setUseBeaconColor(false);
-        waypoint.setIcon(icon);
-        waypoint.setPersistent(false);
+        var waypoint = new  Waypoint.Builder(getModId())
+                .withDisplayId(waystone.getHash())
+                .withName(Strings.isNullOrEmpty(waystone.getWaystoneName()) ? "Unnamed Waystone" : waystone.getWaystoneName())
+                .withBlockPos(waystone.way_getPos())
+                .withColorInt(waystone.getColor())
+                .withDimension(waystone.getWorldName())
+                .withIcon(icon)
+                .isPersistent(false)
+                .build();
 
         try {
             waypoint.getSettings().setEnable(displayWaypoints.get());
