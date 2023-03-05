@@ -429,60 +429,6 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         }
     }
 
-    @Override
-    protected boolean tryClick(double mouseX, double mouseY) {
-        int i1 = this.x + 24;
-        int j1 = this.y + 45;
-        int i2 = this.x + 36;
-        int j2 = this.y + 39;
-        int k = this.scrollOffset + 5;
-
-        int n = getDiscoveredCount();
-        for (int l = this.scrollOffset; l < k && l < n; ++l) {
-            int m = l - this.scrollOffset;
-            double x1 = mouseX - (double) (i1);
-            double y1 = mouseY - (double) (j1 + m * 18);
-
-            double x2 = mouseX - (double) (i2);
-            double y2 = mouseY - (double) (j2 + m * 18);
-            if (m < n && x1 >= 0.0D && y1 >= 0.0D && x1 < 8 && y1 < 8 && (this.handler).onButtonClick(this.client.player, l * 2 + 1)) {
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_ANVIL_BREAK, 1.0F));
-                this.scrollOffset = Math.max(0, this.scrollOffset - 1);
-
-                NbtCompound tag = new NbtCompound();
-                tag.putInt("sync_id", handler.syncId);
-                tag.putInt("clicked_slot", l * 2 + 1);
-                PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
-
-                ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
-
-                return true;
-            }
-            if (((WaystoneBlockScreenHandler) handler).getWaystone().equals(getDiscoveredWaystones().get(l))) {
-                continue;
-            }
-            if (x2 >= 0.0D && y2 >= 0.0D && x2 < 101.0D && y2 < 18.0D && (this.handler).onButtonClick(this.client.player, l * 2)) {
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-
-                NbtCompound tag = new NbtCompound();
-                tag.putInt("sync_id", handler.syncId);
-                tag.putInt("clicked_slot", l * 2);
-                PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
-
-                ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
-                return true;
-            }
-        }
-
-        int i3 = this.x + 141;
-        int j3 = this.y + 40;
-        if (mouseX >= (double) i3 && mouseX < (double) (i3 + 11) && mouseY >= (double) j3 && mouseY < (double) (j3 + 90)) {
-            this.mouseClicked = true;
-        }
-        return false;
-    }
-
     private void renderButtonText(MatrixStack matrices) {
         this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.view_discovered"), this.x + 25, this.y + 14, 0x161616);
         this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.view_global"), this.x + 25, this.y + 30, 0x161616);

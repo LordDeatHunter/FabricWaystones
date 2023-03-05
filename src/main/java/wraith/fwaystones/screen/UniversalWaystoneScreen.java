@@ -384,40 +384,43 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected boolean tryClick(double mouseX, double mouseY) {
-        int i1 = this.x + 24;
-        int j1 = this.y + 45;
-        int i2 = this.x + 36;
-        int j2 = this.y + 39;
-        int k = this.scrollOffset + 5;
+        int forgetButtonX = this.x + 24;
+        int forgetButtonY = this.y + 45;
+        int waystoneButtonX = this.x + 36;
+        int waystoneButtonY = this.y + 40;
+        int adjustedScrollOffset = this.scrollOffset + 5;
 
         int n = getDiscoveredCount();
-        for (int l = this.scrollOffset; l < k; ++l) {
-            int m = l - this.scrollOffset;
-            double x1 = mouseX - (double) (i1);
-            double y1 = mouseY - (double) (j1 + m * 18);
+        for (int currentWaystone = this.scrollOffset; currentWaystone < adjustedScrollOffset && currentWaystone < n; ++currentWaystone) {
+            int currentWaystoneOffsetPosition = currentWaystone - this.scrollOffset;
+            int forgetButtonStartX = (int) (mouseX - forgetButtonX);
+            int forgetButtonStartY = (int) (mouseY - (forgetButtonY + currentWaystoneOffsetPosition * 18));
 
-            double x2 = mouseX - (double) (i2);
-            double y2 = mouseY - (double) (j2 + m * 18);
-            if (m < n && x1 >= 0.0D && y1 >= 0.0D && x1 < 8 && y1 < 8 && (this.handler).onButtonClick(this.client.player, l * 2 + 1)) {
+            int waystoneButtonStartX = (int) (mouseX - waystoneButtonX);
+            int waystoneButtonStartY = (int) (mouseY - (waystoneButtonY + currentWaystoneOffsetPosition * 18));
+            if (currentWaystoneOffsetPosition < n && forgetButtonStartX > 0.0D && forgetButtonStartY > 0.0D && forgetButtonStartX < 8 && forgetButtonStartY < 8 && (this.handler).onButtonClick(this.client.player, currentWaystone * 2 + 1)) {
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_ANVIL_BREAK, 1.0F));
                 this.scrollOffset = Math.max(0, this.scrollOffset - 1);
 
                 NbtCompound tag = new NbtCompound();
                 tag.putInt("sync_id", handler.syncId);
-                tag.putInt("clicked_slot", l * 2 + 1);
+                tag.putInt("clicked_slot", currentWaystone * 2 + 1);
                 PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
 
                 ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
 
                 return true;
             }
-            if (x2 >= 0.0D && y2 >= 0.0D && x2 < 101.0D && y2 < 18.0D && (this.handler).onButtonClick(this.client.player, l * 2)) {
+            if (handler instanceof WaystoneBlockScreenHandler waystoneBlockScreenHandler && waystoneBlockScreenHandler.getWaystone().equals(getDiscoveredWaystones().get(currentWaystone))) {
+                continue;
+            }
+            if (waystoneButtonStartX > 0.0D && waystoneButtonStartY > 0.0D && waystoneButtonStartX < 101.0D && waystoneButtonStartY < 18.0D && (this.handler).onButtonClick(this.client.player, currentWaystone * 2)) {
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 
                 NbtCompound tag = new NbtCompound();
                 tag.putInt("sync_id", handler.syncId);
-                tag.putInt("clicked_slot", l * 2);
+                tag.putInt("clicked_slot", currentWaystone * 2);
                 PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
 
                 ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
