@@ -29,6 +29,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     private static final Identifier TEXTURE = Utils.ID("textures/gui/waystone.png");
     private static final Identifier CONFIG_TEXTURE = Utils.ID("textures/gui/waystone_config.png");
     public Page page = Page.WAYSTONES;
+    private TextFieldWidget nameField;
     private final Button configPage = new Button(156, -17, 18, 18, 207, 0) {
         @Override
         public void onClick() {
@@ -37,6 +38,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             }
             page = Page.CONFIG;
             backgroundHeight = 125;
+            nameField.setTextFieldFocused(((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields());
             setupButtons();
         }
 
@@ -50,7 +52,6 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             this.tooltip = Text.translatable("fwaystones.config.tooltip.config");
         }
     };
-    private TextFieldWidget nameField;
 
     public WaystoneBlockScreen(ScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, TEXTURE, title);
@@ -302,7 +303,8 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         this.nameField.setText(waystone == null ? "" : waystone);
         this.nameField.setChangedListener((s) -> {
             boolean settable = !((WaystoneBlockScreenHandler) handler).getName().equals(s);
-            ToggleableButton button = ((ToggleableButton) buttons.get(4));
+            // TODO: unhardcode this
+            ToggleableButton button = ((ToggleableButton) buttons.get(5));
             if (button.isToggled() == settable) {
                 button.toggle();
             }
@@ -324,7 +326,6 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         super.handledScreenTick();
         if (this.nameField != null && this.nameField.isVisible()) {
             this.nameField.tick();
-            this.nameField.setTextFieldFocused(((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields());
         }
     }
 

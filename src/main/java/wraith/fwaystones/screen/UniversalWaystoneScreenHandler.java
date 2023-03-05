@@ -151,9 +151,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         var searchType = ((PlayerEntityMixinAccess) player).getSearchType();
         for (String waystone : this.sortedWaystones) {
             String name = FabricWaystones.WAYSTONE_STORAGE.getName(waystone).toLowerCase();
-            if ("".equals(this.filter) || (searchType == SearchType.STARTS_WITH
-                && name.startsWith(this.filter)) || (searchType == SearchType.CONTAINS
-                && name.contains(this.filter))) {
+            if ("".equals(this.filter) || searchType.match(name, filter)) {
                 filteredWaystones.add(waystone);
             }
         }
@@ -168,18 +166,13 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     public void toggleSearchType() {
         var playerAccess = (PlayerEntityMixinAccess) player;
         var searchType = playerAccess.getSearchType();
-        if (searchType == SearchType.CONTAINS) {
-            playerAccess.setSearchType(SearchType.STARTS_WITH);
-        } else {
-            playerAccess.setSearchType(SearchType.CONTAINS);
-        }
+        var searchValues = SearchType.values();
+        playerAccess.setSearchType(searchValues[(searchType.ordinal() + 1) % searchValues.length]);
         filterWaystones();
     }
 
     public Text getSearchTypeTooltip() {
-        return Text.translatable(
-            "fwaystones.gui." + (((PlayerEntityMixinAccess) player).getSearchType() == SearchType.CONTAINS ? "contains"
-                : "starts_with"));
+        return Text.translatable("fwaystones.gui." + (((PlayerEntityMixinAccess) player).getSearchType().name().toLowerCase()));
     }
 
 }

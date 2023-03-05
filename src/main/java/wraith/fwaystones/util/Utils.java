@@ -33,6 +33,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Random;
 
 public final class Utils {
@@ -348,12 +349,12 @@ public final class Utils {
         return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
     }
 
-    boolean isSubSequence(String mainString, String searchString) {
+    public static boolean isSubSequence(String mainString, String searchString) {
         int j = 0;
         for (int i = 0; i < mainString.length() && j < searchString.length(); ++i) {
             if (mainString.charAt(i) == searchString.charAt(j))
                 ++j;
-            if (j == mainString.length()) return true;
+            if (j == searchString.length()) return true;
         }
         return false;
     }
