@@ -18,6 +18,7 @@ import wraith.fwaystones.access.PlayerAccess;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.mixin.ClientPlayerEntityAccessor;
 import wraith.fwaystones.mixin.ServerPlayerEntityAccessor;
+import wraith.fwaystones.util.SearchType;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.util.WaystonePacketHandler;
 
@@ -30,7 +31,6 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     protected ArrayList<String> sortedWaystones = new ArrayList<>();
     protected ArrayList<String> filteredWaystones = new ArrayList<>();
     protected String filter = "";
-    private SearchType searchType = SearchType.CONTAINS;
 
     protected UniversalWaystoneScreenHandler(
         ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type, int syncId,
@@ -148,10 +148,11 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
 
     public void filterWaystones() {
         this.filteredWaystones.clear();
+        var searchType = ((PlayerEntityMixinAccess) player).getSearchType();
         for (String waystone : this.sortedWaystones) {
             String name = FabricWaystones.WAYSTONE_STORAGE.getName(waystone).toLowerCase();
-            if ("".equals(this.filter) || (this.searchType == SearchType.STARTS_WITH
-                && name.startsWith(this.filter)) || (this.searchType == SearchType.CONTAINS
+            if ("".equals(this.filter) || (searchType == SearchType.STARTS_WITH
+                && name.startsWith(this.filter)) || (searchType == SearchType.CONTAINS
                 && name.contains(this.filter))) {
                 filteredWaystones.add(waystone);
             }
@@ -165,23 +166,20 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     }
 
     public void toggleSearchType() {
-        if (this.searchType == SearchType.CONTAINS) {
-            this.searchType = SearchType.STARTS_WITH;
+        var playerAccess = (PlayerEntityMixinAccess) player;
+        var searchType = playerAccess.getSearchType();
+        if (searchType == SearchType.CONTAINS) {
+            playerAccess.setSearchType(SearchType.STARTS_WITH);
         } else {
-            this.searchType = SearchType.CONTAINS;
+            playerAccess.setSearchType(SearchType.CONTAINS);
         }
         filterWaystones();
     }
 
     public Text getSearchTypeTooltip() {
         return Text.translatable(
-            "fwaystones.gui." + (this.searchType == SearchType.CONTAINS ? "contains"
+            "fwaystones.gui." + (((PlayerEntityMixinAccess) player).getSearchType() == SearchType.CONTAINS ? "contains"
                 : "starts_with"));
-    }
-
-    enum SearchType {
-        CONTAINS,
-        STARTS_WITH
     }
 
 }

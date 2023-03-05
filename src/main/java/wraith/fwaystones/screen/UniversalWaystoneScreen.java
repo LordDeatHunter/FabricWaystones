@@ -43,6 +43,14 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     protected boolean mousePressed;
     private TextFieldWidget searchField;
 
+    @Override
+    public void close() {
+        super.close();
+        PacketByteBuf packet = PacketByteBufs.create();
+        packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
+        ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
+    }
+
     public UniversalWaystoneScreen(ScreenHandler handler, PlayerInventory inventory, Identifier texture, Text title) {
         super(handler, inventory, title);
         this.inventory = inventory;
@@ -57,6 +65,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 }
                 super.onClick();
                 ((UniversalWaystoneScreenHandler) handler).toggleSearchType();
+                searchField.setTextFieldFocused(((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields());
             }
 
             @Override
@@ -75,8 +84,8 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             }
         });
 
-        //Autoselect search
-        buttons.add(new ToggleableButton(24, 25, 8, 11, 177, 33, 185, 33) {
+        //Autoselect search lock
+        buttons.add(new ToggleableButton(24, 26, 8, 11, 177, 33, 185, 33) {
             @Override
             public void setup() {
                 this.toggled = ((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields();
@@ -95,9 +104,6 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 }
                 super.onClick();
                 ((PlayerEntityMixinAccess) inventory.player).toggleAutofocusWaystoneFields();
-                PacketByteBuf packet = PacketByteBufs.create();
-                packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
-                ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
                 setupTooltip();
             }
 
@@ -154,7 +160,6 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     public void handledScreenTick() {
         if (this.searchField != null && this.searchField.isVisible()) {
             this.searchField.tick();
-            this.searchField.setTextFieldFocused(((PlayerEntityMixinAccess) this.client.player).autofocusWaystoneFields());
         }
     }
 
@@ -398,7 +403,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
             int waystoneButtonStartX = (int) (mouseX - waystoneButtonX);
             int waystoneButtonStartY = (int) (mouseY - (waystoneButtonY + currentWaystoneOffsetPosition * 18));
-            if (currentWaystoneOffsetPosition < n && forgetButtonStartX > 0.0D && forgetButtonStartY > 0.0D && forgetButtonStartX < 8 && forgetButtonStartY < 8 && (this.handler).onButtonClick(this.client.player, currentWaystone * 2 + 1)) {
+            if (currentWaystoneOffsetPosition < n && forgetButtonStartX >= 0.0D && forgetButtonStartY >= 0.0D && forgetButtonStartX < 8 && forgetButtonStartY < 8 && (this.handler).onButtonClick(this.client.player, currentWaystone * 2 + 1)) {
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_ANVIL_BREAK, 1.0F));
                 this.scrollOffset = Math.max(0, this.scrollOffset - 1);
@@ -415,7 +420,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             if (handler instanceof WaystoneBlockScreenHandler waystoneBlockScreenHandler && waystoneBlockScreenHandler.getWaystone().equals(getDiscoveredWaystones().get(currentWaystone))) {
                 continue;
             }
-            if (waystoneButtonStartX > 0.0D && waystoneButtonStartY > 0.0D && waystoneButtonStartX < 101.0D && waystoneButtonStartY < 18.0D && (this.handler).onButtonClick(this.client.player, currentWaystone * 2)) {
+            if (waystoneButtonStartX >= 0.0D && waystoneButtonStartY >= 0.0D && waystoneButtonStartX < 101.0D && waystoneButtonStartY < 18.0D && (this.handler).onButtonClick(this.client.player, currentWaystone * 2)) {
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 
                 NbtCompound tag = new NbtCompound();

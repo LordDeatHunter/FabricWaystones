@@ -348,4 +348,13 @@ public final class Utils {
         return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
     }
 
+    boolean isSubSequence(String mainString, String searchString) {
+        int j = 0;
+        for (int i = 0; i < mainString.length() && j < searchString.length(); ++i) {
+            if (mainString.charAt(i) == searchString.charAt(j))
+                ++j;
+            if (j == mainString.length()) return true;
+        }
+        return false;
+    }
 }

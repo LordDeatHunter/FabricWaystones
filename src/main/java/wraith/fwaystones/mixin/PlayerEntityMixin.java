@@ -18,6 +18,7 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
+import wraith.fwaystones.util.SearchType;
 import wraith.fwaystones.util.WaystonePacketHandler;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     private boolean viewDiscoveredWaystones = true;
     private boolean viewGlobalWaystones = true;
     private boolean autofocusWaystoneFields = true;
+    private SearchType waystoneSearchType = SearchType.CONTAINS;
     private int teleportCooldown = 0;
 
     private PlayerEntity _this() {
@@ -196,7 +198,8 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         customTag.put("discovered_waystones", waystones);
         customTag.putBoolean("view_discovered_waystones", this.viewDiscoveredWaystones);
         customTag.putBoolean("view_global_waystones", this.viewGlobalWaystones);
-        customTag.putBoolean("autofocusWaystoneFields", this.autofocusWaystoneFields);
+        customTag.putBoolean("autofocus_waystone_fields", this.autofocusWaystoneFields);
+        customTag.putString("waystone_search_type", this.waystoneSearchType.name());
 
         tag.put(FabricWaystones.MOD_ID, customTag);
         return tag;
@@ -246,6 +249,13 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         }
         if (tag.contains("autofocus_waystone_fields")) {
             this.autofocusWaystoneFields = tag.getBoolean("autofocus_waystone_fields");
+        }
+        if (tag.contains("waystone_search_type")) {
+            try {
+                this.waystoneSearchType = SearchType.valueOf(tag.getString("waystone_search_type"));
+            } catch (IllegalArgumentException e) {
+                FabricWaystones.LOGGER.warn("Received invalid waystone search type: " + tag.getString("waystone_search_type"));
+            }
         }
     }
 
@@ -307,6 +317,16 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void toggleAutofocusWaystoneFields() {
         autofocusWaystoneFields = !autofocusWaystoneFields;
+    }
+
+    @Override
+    public SearchType getSearchType() {
+        return waystoneSearchType;
+    }
+
+    @Override
+    public void setSearchType(SearchType searchType) {
+        this.waystoneSearchType = searchType;
     }
 
 }
