@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "fwaystones:waystone",
+    "fwaystones:desert_waystone",
+    "fwaystones:stone_brick_waystone",
+    "fwaystones:red_desert_waystone",
+    "fwaystones:nether_brick_waystone",
+    "fwaystones:red_nether_brick_waystone",
+    "fwaystones:end_stone_brick_waystone",
+    "fwaystones:deepslate_brick_waystone",
+    "fwaystones:blackstone_brick_waystone"
+  ]
+}
