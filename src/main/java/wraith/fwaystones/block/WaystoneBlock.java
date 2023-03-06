@@ -315,7 +315,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 blockEntity.updateActiveState();
             }
 
-            var screenHandlerFactory = state.createScreenHandlerFactory(world, openPos);
+            var screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
 
             if (screenHandlerFactory != null)
                 player.openHandledScreen(screenHandlerFactory);
