@@ -33,6 +33,7 @@
   "fwaystones.gui.contains_subsequence": "Search for subsequence of letters",
   "fwaystones.gui.starts_with": "Search at start of name",
   "fwaystones.gui.cost_tooltip": "Cost: %s",
+  "fwaystones.gui.dimension_tooltip": "Dimension: %s",
   "fwaystones.gui.forget_tooltip": "Forget Waystone",
   "fwaystones.waystone_tooltip.name": "§6[§eStored name§6] §3%s",
   "fwaystones.waystone_tooltip.name.arg_color": "#00AAAA",
