@@ -85,6 +85,7 @@ public final class FWConfigModel {
     public static class WorldgenSettings {
 
         public boolean generate_in_villages = true;
+        public boolean unbreakable_generated_waystones = false;
         public int min_per_village = 1;
         public int max_per_village = 1;
         public int village_waystone_weight = 2;

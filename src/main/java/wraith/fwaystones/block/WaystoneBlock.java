@@ -52,6 +52,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     public static final BooleanProperty ACTIVE = BooleanProperty.of("active");
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
+    public static final BooleanProperty GENERATED = BooleanProperty.of("generated");
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
     public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
@@ -83,7 +84,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     public WaystoneBlock(AbstractBlock.Settings settings) {
         super(settings);
-        setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, false).with(ACTIVE, false));
+        setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, false).with(ACTIVE, false).with(GENERATED, false));
     }
 
     @Nullable
@@ -111,12 +112,15 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
-        stateManager.add(HALF, FACING, MOSSY, WATERLOGGED, ACTIVE);
+        stateManager.add(HALF, FACING, MOSSY, WATERLOGGED, ACTIVE, GENERATED);
     }
 
     @Override
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         var bottomState = world.getBlockState(pos);
+        if (FabricWaystones.CONFIG.worldgen.unbreakable_generated_waystones() && state.get(GENERATED)) {
+            return 0;
+        }
         if (bottomState.getBlock() instanceof WaystoneBlock) {
             BlockPos entityPos = bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
             switch (FabricWaystones.CONFIG.permission_level_for_breaking_waystones()) {
@@ -153,7 +157,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 .with(FACING, ctx.getPlayerFacing().getOpposite())
                 .with(HALF, DoubleBlockHalf.LOWER)
                 .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
-                .with(ACTIVE, hasOwner);
+                .with(ACTIVE, hasOwner)
+                .with(GENERATED, false);
         } else {
             return null;
         }
