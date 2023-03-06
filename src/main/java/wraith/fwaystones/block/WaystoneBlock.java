@@ -16,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
+import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -321,6 +322,12 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         }
         blockEntity.markDirty();
         return ActionResult.success(false);
+    }
+
+    @Nullable
+    @Override
+    public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
+        return super.createScreenHandlerFactory(state, world, state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos);
     }
 
     @Override
