@@ -143,6 +143,7 @@
   "text.config.fwaystones/config.option.teleportation_cooldown.cooldown_ticks_from_void_totem": "Cooldown in ticks from using Void Totems",
   "text.config.fwaystones/config.option.teleportation_cooldown.cooldown_ticks_from_waystone": "Cooldown in ticks using from Waystones",
   "text.config.fwaystones/config.option.worldgen.generate_in_villages": "Should Waystones generate in villages",
+  "text.config.fwaystones/config.option.worldgen.unbreakable_generated_waystones": "Should generated Waystones be unbreakable?",
   "text.config.fwaystones/config.option.worldgen.min_per_village": "Minimum number of Waystones to generate per village",
   "text.config.fwaystones/config.option.worldgen.max_per_village": "Maximum number of Waystones to generate per village",
   "text.config.fwaystones/config.option.worldgen.village_waystone_weight": "Village Waystone weight (ignored with min/max)",
