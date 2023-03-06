@@ -6,10 +6,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
@@ -18,6 +14,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryEntry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
@@ -41,7 +40,7 @@ public final class Utils {
     public static final DecimalFormat df = new DecimalFormat("#.##");
     public static final Random random = new Random();
     private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
-        RegistryKeys.PROCESSOR_LIST, new Identifier("minecraft", "empty"));
+        Registry.STRUCTURE_PROCESSOR_LIST_KEY, new Identifier("minecraft", "empty"));
 
     private Utils() {
     }
@@ -87,11 +86,11 @@ public final class Utils {
     public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
 
         RegistryEntry<StructureProcessorList> emptyProcessorList = server.getRegistryManager()
-            .get(RegistryKeys.PROCESSOR_LIST)
+            .get(Registry.STRUCTURE_PROCESSOR_LIST_KEY)
             .entryOf(EMPTY_PROCESSOR_LIST_KEY);
 
         var poolGetter = server.getRegistryManager()
-            .get(RegistryKeys.TEMPLATE_POOL)
+            .get(Registry.STRUCTURE_POOL_KEY)
             .getOrEmpty(village);
 
         if (poolGetter.isEmpty()) {
@@ -206,7 +205,7 @@ public final class Utils {
             }
             case ITEM -> {
                 Identifier itemId = getTeleportCostItem();
-                Item item = Registries.ITEM.get(itemId);
+                Item item = Registry.ITEM.get(itemId);
                 if (!containsItem(player.getInventory(), item, amount)) {
                     player.sendMessage(Text.translatable("fwaystones.no_teleport.item"), true);
                     return false;

@@ -273,7 +273,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         this.nameField = new TextFieldWidget(this.textRenderer, this.x + 28, this.y + 106, 93, 10, Text.literal("")) {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
-                boolean bl = mouseX >= (double) this.getX() && mouseX < (double) (this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double) (this.getY() + this.height);
+                boolean bl = mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
                 if (bl && button == 1) {
                     this.setText("");
                 }
@@ -292,7 +292,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
             @Override
             public boolean isMouseOver(double mouseX, double mouseY) {
-                return isVisible() && mouseX >= (double) this.getX() && mouseX < (double) (this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double) (this.getY() + this.height);
+                return isVisible() && mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
             }
         };
         this.nameField.setMaxLength(16);

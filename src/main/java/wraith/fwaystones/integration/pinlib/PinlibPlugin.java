@@ -4,9 +4,9 @@ import com.rokoblox.pinlib.PinLib;
 import com.rokoblox.pinlib.mapmarker.MapMarker;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import wraith.fwaystones.block.WaystoneBlockEntity;
@@ -20,7 +20,7 @@ public class PinlibPlugin {
     public static long getMarkerColor(BlockView world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
         if (state != null)
-            return switch (Registries.BLOCK.getId(state.getBlock()).getPath()) {
+            return switch (Registry.BLOCK.getId(state.getBlock()).getPath()) {
                 // Always put 'L' at the end of numbers so that they are longs NOT integers and 'FF' at the start so alpha is 255.
                 case "desert_waystone" -> 0xFFE3DBB0L;
                 case "stone_brick_waystone" -> 0xFFB4B2ACL;
@@ -39,7 +39,6 @@ public class PinlibPlugin {
         BlockRegistry.WAYSTONE_BLOCKS.forEach((id, block) -> PinLib.registerMapMarkedBlock(
             block,
             () -> WAYSTONE_MAP_MARKER,
-            PinlibPlugin::getMarkerColor,
             PinlibPlugin::getMarkerColor,
             PinlibPlugin::getDisplayName
         ));

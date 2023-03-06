@@ -4,9 +4,8 @@ import io.wispforest.owo.util.TagInjector;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Material;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.util.Utils;
@@ -49,8 +48,8 @@ public final class BlockRegistry {
 
     private static void registerAndAdd(String id, Block block) {
         WAYSTONE_BLOCKS.put(id, block);
-        Registry.register(Registries.BLOCK, Utils.ID(id), block);
-        TagInjector.inject(Registries.BLOCK, miningLevelTag, block);
+        Registry.register(Registry.BLOCK, Utils.ID(id), block);
+        TagInjector.inject(Registry.BLOCK, miningLevelTag, block);
     }
 
 }
