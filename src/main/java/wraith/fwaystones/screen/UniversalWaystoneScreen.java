@@ -43,14 +43,6 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     protected boolean mousePressed;
     private TextFieldWidget searchField;
 
-    @Override
-    public void close() {
-        super.close();
-        PacketByteBuf packet = PacketByteBufs.create();
-        packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
-        ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
-    }
-
     public UniversalWaystoneScreen(ScreenHandler handler, PlayerInventory inventory, Identifier texture, Text title) {
         super(handler, inventory, title);
         this.inventory = inventory;
@@ -117,6 +109,14 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         setupButtons();
     }
 
+    @Override
+    public void close() {
+        super.close();
+        PacketByteBuf packet = PacketByteBufs.create();
+        packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
+        ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
+    }
+
     protected void setupButtons() {
         for (Button button : buttons) {
             button.setup();
@@ -160,6 +160,9 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     public void handledScreenTick() {
         if (this.searchField != null && this.searchField.isVisible()) {
             this.searchField.tick();
+            if (((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields()) {
+                this.searchField.setTextFieldFocused(true);
+            }
         }
     }
 

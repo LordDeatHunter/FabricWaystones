@@ -326,6 +326,9 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         super.handledScreenTick();
         if (this.nameField != null && this.nameField.isVisible()) {
             this.nameField.tick();
+            if (((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields()) {
+                this.nameField.setTextFieldFocused(true);
+            }
         }
     }
 
