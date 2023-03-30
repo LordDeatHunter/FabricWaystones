@@ -167,7 +167,7 @@ public final class Utils {
                     return false;
                 }
                 if (takeCost) {
-                    player.damage(DamageSource.MAGIC, amount);
+                    player.damage(player.getWorld().getDamageSources().magic(), amount);
                 }
                 return true;
             }

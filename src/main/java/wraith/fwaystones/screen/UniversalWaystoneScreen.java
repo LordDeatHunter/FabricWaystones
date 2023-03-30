@@ -58,7 +58,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 }
                 super.onClick();
                 ((UniversalWaystoneScreenHandler) handler).toggleSearchType();
-                searchField.setTextFieldFocused(((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields());
+                searchField.setFocused(((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields());
             }
 
             @Override
@@ -162,7 +162,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         if (this.searchField != null && this.searchField.isVisible()) {
             this.searchField.tick();
             if (((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields()) {
-                this.searchField.setTextFieldFocused(true);
+                this.searchField.setFocused(true);
             }
         }
     }
@@ -271,12 +271,12 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 text = Text.translatable("fwaystones.cost.xp");
             }
             case LEVEL -> {
-                this.itemRenderer.renderGuiItemIcon(new ItemStack(Items.EXPERIENCE_BOTTLE), x, y);
+                this.itemRenderer.renderGuiItemIcon(new MatrixStack(), new ItemStack(Items.EXPERIENCE_BOTTLE), x, y);
                 text = Text.translatable("fwaystones.cost.level");
             }
             case ITEM -> {
                 var item = Registries.ITEM.get(Utils.getTeleportCostItem());
-                this.itemRenderer.renderGuiItemIcon(new ItemStack(item), x, y);
+                this.itemRenderer.renderGuiItemIcon(new MatrixStack(), new ItemStack(item), x, y);
                 text = (MutableText) item.getName();
             }
             default -> text = Text.translatable("fwaystones.cost.free");

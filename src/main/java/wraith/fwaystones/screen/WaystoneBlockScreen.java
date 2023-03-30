@@ -38,7 +38,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             }
             page = Page.CONFIG;
             backgroundHeight = 125;
-            nameField.setTextFieldFocused(((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields());
+            nameField.setFocused(((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields());
             setupButtons();
         }
 
@@ -286,8 +286,10 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             }
 
             @Override
-            public boolean changeFocus(boolean lookForwards) {
-                return isVisible() && super.changeFocus(lookForwards);
+            public void setFocused(boolean lookForwards) {
+                if (isVisible()) {
+                    super.setFocused(lookForwards);
+                }
             }
 
             @Override
@@ -327,7 +329,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         if (this.nameField != null && this.nameField.isVisible()) {
             this.nameField.tick();
             if (((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields()) {
-                this.nameField.setTextFieldFocused(true);
+                this.nameField.setFocused(true);
             }
         }
     }

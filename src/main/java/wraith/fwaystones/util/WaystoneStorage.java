@@ -156,7 +156,7 @@ public class WaystoneStorage {
         } else {
             try {
                 NbtCompound compoundTag = world.getPersistentStateManager()
-                    .readNbt(ID, SharedConstants.getGameVersion().getWorldVersion());
+                    .readNbt(ID, SharedConstants.getGameVersion().getProtocolVersion());
                 state.writeNbt(compoundTag.getCompound("data"));
             } catch (IOException ignored) {
             }

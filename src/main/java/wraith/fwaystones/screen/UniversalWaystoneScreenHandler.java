@@ -114,7 +114,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         } else {
             ((ServerPlayerEntityAccessor) player).getNetworkHandler()
                 .sendPacket(new CloseScreenS2CPacket(this.syncId));
-            player.currentScreenHandler.close(player);
+            player.currentScreenHandler.onClosed(player);
             player.currentScreenHandler = player.playerScreenHandler;
         }
     }
