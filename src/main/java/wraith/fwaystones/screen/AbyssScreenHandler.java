@@ -2,7 +2,6 @@ package wraith.fwaystones.screen;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Hand;
 import wraith.fwaystones.item.AbyssWatcherItem;
 import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
