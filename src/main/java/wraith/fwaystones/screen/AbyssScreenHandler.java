@@ -14,10 +14,6 @@ public class AbyssScreenHandler extends UniversalWaystoneScreenHandler {
         updateWaystones(player);
     }
 
-    public AbyssScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
-        super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, playerInventory.player);
-    }
-
     @Override
     public void onForget(String waystone) {
     }

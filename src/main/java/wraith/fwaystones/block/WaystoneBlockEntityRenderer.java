@@ -31,8 +31,6 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
         if (entity.getCachedState().get(WaystoneBlock.ACTIVE)) {
             int lightAbove = WorldRenderer.getLightmapCoordinates(entity.getWorld(), entity.getPos().up());
             MinecraftClient.getInstance().getItemRenderer().renderItem(
-                    // stack, ModelTransformation.Mode.FIXED, lightAbove, overlay,
-                    // matrices, vertexConsumers, (int) entity.getPos().asLong());
                     stack, ModelTransformationMode.FIXED, lightAbove, overlay,
                     matrices, vertexConsumers, entity.getWorld(), (int) entity.getPos().asLong()
             );
