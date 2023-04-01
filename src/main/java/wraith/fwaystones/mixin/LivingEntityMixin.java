@@ -9,6 +9,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import org.spongepowered.asm.mixin.Mixin;
@@ -85,7 +86,7 @@ public abstract class LivingEntityMixin {
                 }
             }
         }
-        cir.setReturnValue(teleported || !source.isOutOfWorld());
+        cir.setReturnValue(teleported || !source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY));
         cir.cancel();
     }
 

@@ -15,7 +15,7 @@ import java.util.HashMap;
 public final class ItemRegistry {
 
     private static final HashMap<String, Item> ITEMS = new HashMap<>();
-    public static final ItemGroup WAYSTONE_GROUP = FabricItemGroup.builder(Utils.ID(FabricWaystones.MOD_ID)).icon(() -> new ItemStack(BlockRegistry.WAYSTONE)).entries((enabledFeatures, entries, operatorEnabled) -> ITEMS.values().stream().map(ItemStack::new).forEach(entries::add)).build();
+    public static final ItemGroup WAYSTONE_GROUP = FabricItemGroup.builder(Utils.ID(FabricWaystones.MOD_ID)).icon(() -> new ItemStack(BlockRegistry.WAYSTONE)).entries((enabledFeatures, entries) -> ITEMS.values().stream().map(ItemStack::new).forEach(entries::add)).build();
 
     private ItemRegistry() {}
 
