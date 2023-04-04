@@ -72,8 +72,8 @@ public class JourneymapPlugin implements IClientPlugin {
             .addThemeToggleButton(
                 "fwaystones.integration.journeymap.theme.on",
                 "fwaystones.integration.journeymap.theme.off",
-                "fabric_waystones_icon", // required to be in assets/journeymap/flat/icon due to themes
-                displayWaypoints.get(),
+                    Utils.ID("images/fabric_waystones_icon.png"),
+                    displayWaypoints.get(),
                 b -> {
                     b.toggle();
                     displayWaypoints.set(b.getToggled());
