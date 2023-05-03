@@ -155,7 +155,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
         if (blockPos.getY() < world.getTopY() - 1 && world.getBlockState(blockPos.up()).canReplace(ctx)) {
             return this.getDefaultState()
-                .with(FACING, ctx.getPlayerLookDirection().getOpposite())
+                .with(FACING, ctx.getHorizontalPlayerFacing().getOpposite())
                 .with(HALF, DoubleBlockHalf.LOWER)
                 .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
                 .with(ACTIVE, hasOwner)
