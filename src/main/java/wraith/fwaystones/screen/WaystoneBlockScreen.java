@@ -30,7 +30,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     private static final Identifier CONFIG_TEXTURE = Utils.ID("textures/gui/waystone_config.png");
     public Page page = Page.WAYSTONES;
     private TextFieldWidget nameField;
-    private final Button configPage = new Button(156, -17, 18, 18, 207, 0) {
+    private final Button configPage = new Button(154, 5, 18, 18, 207, 0) {
         @Override
         public void onClick() {
             if (!isVisible()) {
@@ -58,14 +58,13 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
         buttons.add(configPage);
 
-        buttons.add(new Button(156, -17, 18, 18, 177, 0) {
+        buttons.add(new Button(154, 5, 18, 18, 177, 0) {
             @Override
             public void onClick() {
                 if (!isVisible()) {
                     return;
                 }
                 page = Page.WAYSTONES;
-                backgroundHeight = 176;
                 ((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
             }
 
@@ -81,7 +80,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         });
 
         //Reset name
-        buttons.add(new Button(8, 103, 13, 13, 177, 54) {
+        buttons.add(new Button(8, backgroundHeight - 32, 13, 13, 177, 54) {
             @Override
             public void onClick() {
                 if (!isVisible()) {
@@ -103,7 +102,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         });
 
         //Set name
-        buttons.add(new ToggleableButton(128, 103, 13, 13, 190, 54, 216, 54) {
+        buttons.add(new ToggleableButton(128, backgroundHeight - 32, 13, 13, 190, 54, 203, 54) {
             @Override
             public void setup() {
                 this.tooltip = Text.translatable("fwaystones.config.tooltip.set_name");
@@ -133,7 +132,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         });
 
         //Randomize name
-        buttons.add(new Button(143, 103, 13, 13, 203, 54) {
+        buttons.add(new Button(143, backgroundHeight - 32, 13, 13, 216, 54) {
             @Override
             public void onClick() {
                 if (!isVisible()) {
@@ -155,7 +154,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         });
 
         //Global Toggle
-        buttons.add(new ToggleableButton(8, 48, 17, 17, 212, 0, 195, 0) {
+        buttons.add(new ToggleableButton(8, 64, 16, 16, 211, 0, 195, 0) {
 
             @Override
             public void setup() {
@@ -186,8 +185,8 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             }
         });
 
-        //View discovered
-        buttons.add(new ToggleableButton(8, 11, 13, 13, 177, 54, 190, 54) {
+        // View discovered
+        buttons.add(new ToggleableButton(8, 26, 13, 13, 177, 54, 190, 54) {
             @Override
             public void setup() {
                 this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewDiscoveredWaystones();
@@ -214,7 +213,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         });
 
         //View global
-        buttons.add(new ToggleableButton(8, 27, 13, 13, 177, 54, 190, 54) {
+        buttons.add(new ToggleableButton(8, 42, 13, 13, 177, 54, 190, 54) {
             @Override
             public void setup() {
                 this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewGlobalWaystones();
@@ -240,7 +239,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         });
 
         //Revoke ownership
-        buttons.add(new Button(30, 48, 17, 17, 229, 0) {
+        buttons.add(new Button(33, 66, 11, 13, 227, 0) {
             @Override
             public void onClick() {
                 super.onClick();
@@ -270,7 +269,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     protected void init() {
         super.init();
 
-        this.nameField = new TextFieldWidget(this.textRenderer, this.x + 28, this.y + 106, 93, 10, Text.literal("")) {
+        this.nameField = new TextFieldWidget(this.textRenderer, this.x + 28, this.y + backgroundHeight - 30, 93, 10, Text.literal("")) {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
                 boolean bl = mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
@@ -398,7 +397,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             RenderSystem.setShaderTexture(0, CONFIG_TEXTURE);
             this.drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
             if (canEdit()) {
-                this.drawTexture(matrices, x + 23, y + 103, 0, backgroundHeight, 103, 13);
+                this.drawTexture(matrices, x + 23, y + backgroundHeight - 33, 0, backgroundHeight, 103, 15);
             }
             renderButtons(matrices, mouseX, mouseY);
             renderButtonText(matrices);
@@ -406,7 +405,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             if (owner == null || "".equals(owner)) {
                 owner = Text.translatable("fwaystones.config.no_owner").getString();
             }
-            this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.owner", owner), this.x + 10, this.y + 75, 0x161616);
+            this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.owner", owner), this.x + 10, this.y + 10, 0x161616);
             if (this.nameField.isVisible()) {
                 this.nameField.render(matrices, mouseX, mouseY, delta);
             }
@@ -434,8 +433,8 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     private void renderButtonText(MatrixStack matrices) {
-        this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.view_discovered"), this.x + 25, this.y + 14, 0x161616);
-        this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.view_global"), this.x + 25, this.y + 30, 0x161616);
+        this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.view_discovered"), this.x + 25, this.y + 29, 0x161616);
+        this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.view_global"), this.x + 25, this.y + 45, 0x161616);
     }
 
     @Override
