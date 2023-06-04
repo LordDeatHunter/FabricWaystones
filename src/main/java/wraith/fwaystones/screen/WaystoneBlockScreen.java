@@ -37,7 +37,6 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
                 return;
             }
             page = Page.CONFIG;
-            backgroundHeight = 125;
             nameField.setTextFieldFocused(((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields());
             setupButtons();
         }
