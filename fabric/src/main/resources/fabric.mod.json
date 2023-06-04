@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "fwaystones",
+  "version": "${version}",
+  "name": "Fabric Waystones",
+  "description": "A better way of transport!",
+  "authors": [
+    "LordDeatHunter"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/fabric-waystones",
+    "sources": "https://github.com/LordDeatHunter/FabricWaystones",
+    "issues": "https://github.com/LordDeatHunter/FabricWaystones/issues"
+  },
+  "license": "MIT License",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "wraith.fwaystones.fabric.FabricWaystones"
+    ],
+    "client": [
+      "wraith.fwaystones.fabric.FabricWaystonesClient"
+    ]
+  },
+  "mixins": [
+    "fwaystones.mixins.json",
+    "fwaystones-common.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.19.2",
+    "architectury": ">=6.5.77",
+    "cloth-config": ">=8.0.75"
+  }
+}

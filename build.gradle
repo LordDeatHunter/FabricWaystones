@@ -1,88 +1,48 @@
 plugins {
-    id 'fabric-loom' version '1.1-SNAPSHOT'
-    id 'maven-publish'
+    id "architectury-plugin" version "3.4-SNAPSHOT"
+    id "dev.architectury.loom" version "1.1-SNAPSHOT" apply false
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+architectury {
+    minecraft = rootProject.minecraft_version
+}
 
-archivesBaseName = project.archives_base_name
-version = project.mod_version + "+mc" + project.minecraft_version
-group = project.maven_group
+subprojects {
+    apply plugin: "dev.architectury.loom"
 
-repositories {
-    maven { url = "https://www.cursemaven.com" }
-    maven {
-        name = "JourneyMap (Public)"
-        url = "https://jm.gserv.me/repository/maven-public/"
+    loom {
+        silentMojangMappingsLicense()
     }
-    maven {
-        name = "Modrinth"
-        url = "https://api.modrinth.com/maven"
-        content {
-            includeGroup "maven.modrinth"
-        }
-    }
-    maven { url 'https://maven.wispforest.io' }
-    maven { url 'https://jitpack.io' }
-}
 
-dependencies {
-    implementation 'org.jetbrains:annotations:22.0.0'
-
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-    modRuntimeOnly "maven.modrinth:lazydfu:0.1.3"
-
-    modCompileOnly "curse.maven:repurposed-structures-fabric-${project.rs_project_id}:${project.rs_file_id}"
-
-    modApi group: 'info.journeymap', name: 'journeymap-api', version: project.journeymap_api_version, changing: true
-    modRuntimeOnly "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id}"
-
-    modApi "maven.modrinth:pinlib:$project.pinlib_api_version"
-    modRuntimeOnly "maven.modrinth:pinlib:$project.pinlib_api_version"
-
-    annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
-    include "io.wispforest:owo-sentinel:${project.owo_version}"
-}
-
-loom {
-    accessWidenerPath = file("src/main/resources/fwaystones.accesswidener")
-}
-
-processResources {
-    inputs.property "version", project.version
-
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
+    dependencies {
+        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+        // The following line declares the mojmap mappings, you may use other mappings as well
+        mappings loom.officialMojangMappings()
+        // The following line declares the yarn mappings you may select this one as well.
+        // mappings "net.fabricmc:yarn:1.19.2+build.28:v2"
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    it.options.encoding = "UTF-8"
-    it.options.release = 17
-}
+allprojects {
+    apply plugin: "java"
+    apply plugin: "architectury-plugin"
+    apply plugin: "maven-publish"
 
-java {
-    withSourcesJar()
-}
+    archivesBaseName = rootProject.archives_base_name
+    version = rootProject.mod_version
+    group = rootProject.maven_group
 
-jar {
-    from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}" }
-    }
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
     repositories {
+        maven { url "https://maven.terraformersmc.com" }
+        maven { url "https://maven.shedaniel.me/" }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+        options.release = 17
+    }
+
+    java {
+        withSourcesJar()
     }
 }
