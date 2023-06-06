@@ -1,9 +1,9 @@
 package wraith.fwaystones.item;
 
-import net.minecraft.world.item.Item;
-
-public class VoidTotem extends Item {
+public class VoidTotem extends LocalVoidItem {
     public VoidTotem(Properties properties) {
         super(properties);
+        this.canTeleport = false;
+        this.translationName = "void_totem";
     }
 }

@@ -1,20 +1,23 @@
 package wraith.fwaystones.util;
 
+import dev.architectury.networking.NetworkManager;
+import io.netty.buffer.Unpooled;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.Waystones;
+import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
@@ -28,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WaystoneStorage {
 
-    public static final String ID = "fw_waystones";
+    public static final String ID = "fwaystones";
     private final SavedData state;
     public final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
     private final MinecraftServer server;
@@ -168,12 +171,9 @@ public class WaystoneStorage {
     }
 
     public void sendToPlayer(ServerPlayer player) {
-        /* TODO:
-            PacketByteBuf data = PacketByteBufs.create();
-            data.writeNbt(toTag(new NbtCompound()));
-            ServerPlayNetworking.send(player, WaystonePacketHandler.WAYSTONE_PACKET, data);
-        */
-
+        FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
+        data.writeNbt(toTag(new CompoundTag()));
+        NetworkManager.sendToPlayer(player, PacketHandler.WAYSTONE_PACKET, data);
     }
 
     public void removeWaystone(String hash) {
@@ -202,9 +202,9 @@ public class WaystoneStorage {
         if (server == null) {
             return;
         }
-        /*TODO:for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             ((PlayerEntityMixinAccess) player).forgetWaystone(hash);
-            }*/
+        }
     }
 
     public void removeWaystone(WaystoneBlockEntity waystone) {

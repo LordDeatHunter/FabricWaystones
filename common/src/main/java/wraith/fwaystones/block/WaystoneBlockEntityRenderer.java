@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import wraith.fwaystones.registry.ItemRegistry;
+import wraith.fwaystones.registry.ItemReg;
 
 public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<WaystoneBlockEntity> {
     public WaystoneBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
@@ -18,7 +18,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
     @Override
     public void render(WaystoneBlockEntity blockEntity, float pPartialTick, PoseStack poseStack, MultiBufferSource multiBufferSource, int light, int overlay) {
-        ItemStack stack = new ItemStack(ItemRegistry.ABYSS_WATCHER.get());
+        ItemStack stack = new ItemStack(ItemReg.ABYSS_WATCHER.get());
 
         poseStack.pushPose();
         poseStack.scale(0.5f, 0.5f, 0.5f);

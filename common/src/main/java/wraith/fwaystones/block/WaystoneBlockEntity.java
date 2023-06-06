@@ -14,7 +14,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -27,16 +26,16 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.access.WaystoneValue;
-import wraith.fwaystones.registry.BlockEntityRegistry;
+import wraith.fwaystones.registry.BlockEntityReg;
 import wraith.fwaystones.util.TeleportSources;
+import wraith.fwaystones.util.TeleportTarget;
 import wraith.fwaystones.util.Utils;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer, WaystoneValue, MenuProvider {
-
+public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer, WaystoneValue {
     public float lookingRotR = 0;
     private String name = "";
     private String hash;
@@ -49,22 +48,26 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
     private long tickDelta = 0;
 
     public WaystoneBlockEntity(BlockPos pos, BlockState state) {
-        super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY.get(), pos, state);
+        super(BlockEntityReg.WAYSTONE_BLOCK_ENTITY.get(), pos, state);
         this.name = Utils.generateWaystoneName(this.name);
     }
-    public static void ticker(Level world, BlockPos blockPos, BlockState blockState, WaystoneBlockEntity waystone) {
+
+    public static void ticker(Level level, BlockPos pos, BlockState state, WaystoneBlockEntity waystone) {
         waystone.tick();
     }
+
     public void updateActiveState() {
         if (level != null && !level.isClientSide && level.getBlockState(worldPosition).getValue(WaystoneBlock.ACTIVE) == (owner == null)) {
             level.setBlockAndUpdate(worldPosition, level.getBlockState(worldPosition).setValue(WaystoneBlock.ACTIVE, this.ownerName != null));
             level.setBlockAndUpdate(worldPosition.above(), level.getBlockState(worldPosition.above()).setValue(WaystoneBlock.ACTIVE, this.ownerName != null));
         }
     }
-    public void createHash(Level world, BlockPos pos) {
-        this.hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + world + "\">");
+
+    public void createHash(Level level, BlockPos pos) {
+        this.hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + level + "\">");
         setChanged();
     }
+
     @Override
     public WaystoneBlockEntity getEntity() {
         return this;
@@ -92,8 +95,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         this.inventory = list;
     }
 
-
-    @Override
+    @Override// TODO:
     protected AbstractContainerMenu createMenu(int syncId, Inventory inventory) {
         return null;
         /*TODO: return WaystoneBlockScreenHandler(syncId, this, player);*/
@@ -108,6 +110,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
     protected Component getDefaultName() {
         return getDisplayName();
     }
+
     @Override
     public void load(CompoundTag nbt) {
         super.load(nbt);
@@ -127,6 +130,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         this.inventory = NonNullList.withSize(nbt.getInt("inventory_size"), ItemStack.EMPTY);
         ContainerHelper.loadAllItems(nbt, inventory);
     }
+
     @Override
     protected void saveAdditional(CompoundTag nbt) {
         super.saveAdditional(nbt);
@@ -149,17 +153,20 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         ContainerHelper.saveAllItems(tag, this.inventory);
         return tag;
     }
+
     @Override
     public int getContainerSize() {
         return 0;
     }
+
     @Override
     public void setChanged() {
         super.setChanged();
-        if (level != null && level instanceof ServerLevel serverWorld) {
-            serverWorld.getChunkSource().blockChanged(worldPosition);
+        if (level != null && level instanceof ServerLevel serverLevel) {
+            serverLevel.getChunkSource().blockChanged(worldPosition);
         }
     }
+
     public NonNullList<ItemStack> getInventory() {
         return inventory;
     }
@@ -168,6 +175,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         this.inventory = inventory;
         setChanged();
     }
+
     public void setInventory(ArrayList<ItemStack> newInventory) {
         this.inventory = NonNullList.withSize(newInventory.size(), ItemStack.EMPTY);
         for (int i = 0; i < newInventory.size(); ++i) {
@@ -175,6 +183,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         }
         setChanged();
     }
+
     /* TODO: @Override
         public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity,
         PacketByteBuf packetByteBuf) {
@@ -182,6 +191,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         tag.putString("waystone_hash", this.hash);
         packetByteBuf.writeNbt(tag);
         }*/
+
     private float rotClamp(int clampTo, float value) {
         if (value >= clampTo) {
             return value - clampTo;
@@ -216,6 +226,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
             }
         }
     }
+
     private void addParticle(Player player) {
         if (level == null) {
             return;
@@ -249,6 +260,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
                     r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D, r.nextDouble() * k);
         }
     }
+
     public void tick() {
         if (level == null) {
             return;
@@ -266,14 +278,13 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
             } else {
                 lookingRotR += 2;
             }
-
             lookingRotR = rotClamp(360, lookingRotR);
         }
-
         if (tickDelta >= 360) {
             tickDelta = 0;
         }
     }
+
     @Override
     public String getWaystoneName() {
         return this.name;
@@ -297,69 +308,70 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
     public boolean teleportPlayer(Player player, boolean takeCost) {
         return teleportPlayer(player, takeCost, null);
     }
+
     public boolean teleportPlayer(Player player, boolean takeCost, TeleportSources source) {
         if (!(player instanceof ServerPlayer playerEntity)) {
             return false;
         }
-        /* TODO:
-            Direction facing = getBlockState().getValue(WaystoneBlock.FACING);
-            float x = 0;
-            float z = 0;
-            float yaw = playerEntity.getYRot();
-            switch (facing) {
-                case NORTH -> {
-                    x = 0.5f;
-                    z = -0.5f;
-                    yaw = 0;
-                }
-                case SOUTH -> {
-                    x = 0.5f;
-                    z = 1.5f;
-                    yaw = 180;
-                }
-                case EAST -> {
-                    x = 1.5f;
-                    z = 0.5f;
-                    yaw = 90;
-                }
-                case WEST -> {
-                    x = -0.5f;
-                    z = 0.5f;
-                    yaw = 270;
+        Direction facing = getBlockState().getValue(WaystoneBlock.FACING);
+        float x = 0;
+        float z = 0;
+        float yaw = playerEntity.getYRot();
+        switch (facing) {
+            case NORTH -> {
+                x = 0.5f;
+                z = -0.5f;
+                yaw = 0;
+            }
+            case SOUTH -> {
+                x = 0.5f;
+                z = 1.5f;
+                yaw = 180;
+            }
+            case EAST -> {
+                x = 1.5f;
+                z = 0.5f;
+                yaw = 90;
+            }
+            case WEST -> {
+                x = -0.5f;
+                z = 0.5f;
+                yaw = 270;
+            }
+        }
+        final float fX = x;
+        final float fZ = z;
+        final float fYaw = yaw;
+        if (playerEntity.getServer() == null) {
+            return false;
+        }
+        TeleportTarget target = new TeleportTarget(
+                new Vec3(worldPosition.getX() + fX, worldPosition.getY(), worldPosition.getZ() + fZ),
+                new Vec3(0, 0, 0),
+                fYaw,
+                0
+        );
+        if (source == null) {
+            source = Utils.getTeleportSource(playerEntity);
+        }
+        if (source == null) {
+            return false;
+        }
+        /*
+        var teleported = doTeleport(playerEntity, (ServerLevel) level, target, source, takeCost);
+        if (!teleported) {
+            return false;
+        }
+        if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
+            for (var hand : InteractionHand.values()) {
+                if (playerEntity.getItemInHand(hand).getItem() instanceof AbyssWatcherItem) {
+                    player.broadcastBreakEvent(hand);
+                    playerEntity.getItemInHand(hand).shrink(1);
+                    player.level.playSound(null, worldPosition, SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1F, 1F);
+                    break;
                 }
             }
-            final float fX = x;
-            final float fZ = z;
-            final float fYaw = yaw;
-            if (playerEntity.getServer() == null) {
-                return false;
-            }
-            TeleportTarget target = new TeleportTarget(
-                    new Vec3(worldPosition.getX() + fX, worldPosition.getY(), worldPosition.getZ() + fZ),
-                    new Vec3(0, 0, 0),
-                    fYaw,
-                    0
-            );
-            if (source == null) {
-                source = Utils.getTeleportSource(playerEntity);
-            }
-            if (source == null) {
-                return false;
-            }
-            var teleported = doTeleport(playerEntity, (ServerLevel) level, target, source, takeCost);
-            if (!teleported) {
-                return false;
-            }
-            if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
-                for (var hand : InteractionHand.values()) {
-                    if (playerEntity.getItemInHand(hand).getItem() instanceof AbyssWatcherItem) {
-                        player.broadcastBreakEvent(hand);
-                        playerEntity.getItemInHand(hand).shrink(1);
-                        player.level.playSound(null, worldPosition, SoundEvents.GLASS_BREAK, SoundSource.PLAYERS, 1F, 1F);
-                        break;
-                    }
-                }
-            }*/
+        }*/
 
         return true;
     }

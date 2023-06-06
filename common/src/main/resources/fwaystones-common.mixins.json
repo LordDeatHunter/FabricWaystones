@@ -4,9 +4,20 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
-    "MixinTitleScreen"
+    "ClientPlayerEntityMixin",
+    "ClientPlayNetworkHandlerMixin"
   ],
   "mixins": [
+    "LivingEntityMixin",
+    "MinecraftServerAccessor",
+    "PlayerEntityMixin",
+    "ServerPlayerEntityMixin",
+    "SinglePoolElementAccessor",
+    "StructurePiecesListMixin",
+    "StructurePoolAccessor",
+    "StructurePoolBasedGenerator_StructurePoolGeneratorMixin",
+    "StructurePoolBasedGeneratorMixin",
+    "StructureStartAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

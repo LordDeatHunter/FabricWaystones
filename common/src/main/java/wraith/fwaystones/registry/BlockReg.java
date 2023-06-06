@@ -9,8 +9,7 @@ import net.minecraft.world.level.material.Material;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.block.WaystoneBlock;
 
-
-public final class BlockRegistry {
+public final class BlockReg {
     public static final DeferredRegister<Block> BLOCK_REGISTRY = DeferredRegister.create(Waystones.MOD_ID, Registry.BLOCK_REGISTRY);
     //-------------------------------------------------------------------------------------------------------
     public static final RegistrySupplier<Block> BLACKSTONE_BRICK_WAYSTONE = registerWaystone("blackstone_brick_waystone");

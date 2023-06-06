@@ -1,8 +1,9 @@
 package wraith.fwaystones.util;
 
+import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
-import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import wraith.fwaystones.Waystones;
 
 import java.util.ArrayList;
@@ -12,6 +13,18 @@ import java.util.Map;
 
 @Config(name = Waystones.MOD_ID)
 public class ConfigModel implements ConfigData {
+    public static void register() {
+        AutoConfig.register(ConfigModel.class, GsonConfigSerializer::new);
+        Waystones.CONFIG = get();
+    }
+    public void reload() {
+        AutoConfig.getConfigHolder(ConfigModel.class).load();
+        Waystones.CONFIG = get();
+    }
+    public static ConfigModel get() {
+        return AutoConfig.getConfigHolder(ConfigModel.class).getConfig();
+    }
+    // ------------------------------------------------------------------------------------------------------
     public enum PermissionLevel {
         OWNER,
         OP,
@@ -27,11 +40,8 @@ public class ConfigModel implements ConfigData {
         ITEM,
         NONE
     }
-
-    @ConfigEntry.Gui.CollapsibleObject
+    // ------------------------------------------------------------------------------------------------------
     public WorldgenSettings worldgen = new WorldgenSettings();
-
-    @ConfigEntry.Gui.CollapsibleObject
     public CostSettings teleportation_cost = new CostSettings();
     public String discover_with_item = "none";
     public int take_amount_from_discover_item = 0;
@@ -56,10 +66,7 @@ public class ConfigModel implements ConfigData {
         put("minecraft:village/snowy/houses", "village_waystone");
         put("minecraft:village/taiga/houses", "village_waystone");
     }};
-
-
-
-
+    // ------------------------------------------------------------------------------------------------------
     public static class CooldownSettings {
         public int cooldown_ticks_when_hurt = 0;
         public int cooldown_ticks_from_abyss_watcher = 0;
@@ -67,7 +74,6 @@ public class ConfigModel implements ConfigData {
         public int cooldown_ticks_from_local_void = 0;
         public int cooldown_ticks_from_void_totem = 0;
         public int cooldown_ticks_from_waystone = 0;
-
     }
     public static class WorldgenSettings {
         public boolean generate_in_villages = true;
@@ -77,23 +83,11 @@ public class ConfigModel implements ConfigData {
         public int village_waystone_weight = 2;
 
     }
-
     public static class CostSettings {
-
         public CostType cost_type = CostType.LEVEL;
         public String cost_item = "minecraft:ender_pearl";
         public int base_cost = 1;
         public float cost_per_block_distance = 0F;
         public float cost_multiplier_between_dimensions = 1F;
-
-
-
-        /*
-        @ConfigEntry.Gui.RequiresRestart
-        @ConfigEntry.Gui.Tooltip
-        @ConfigEntry.BoundedDiscrete(min = 60, max = 6000)
-        public int woodpeckerDrumChance = 600;
-        @ConfigEntry.Gui.Tooltip(count = 2)*/
     }
-
 }

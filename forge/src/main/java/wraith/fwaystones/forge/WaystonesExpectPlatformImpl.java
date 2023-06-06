@@ -1,13 +1,13 @@
 package wraith.fwaystones.forge;
 
-import wraith.fwaystones.ExampleExpectPlatform;
 import net.minecraftforge.fml.loading.FMLPaths;
+import wraith.fwaystones.WaystonesExpectPlatform;
 
 import java.nio.file.Path;
 
-public class ExampleExpectPlatformImpl {
+public class WaystonesExpectPlatformImpl {
     /**
-     * This is our actual method to {@link ExampleExpectPlatform#getConfigDirectory()}.
+     * This is our actual method to {@link WaystonesExpectPlatform#getConfigDirectory()}.
      */
     public static Path getConfigDirectory() {
         return FMLPaths.CONFIGDIR.get();

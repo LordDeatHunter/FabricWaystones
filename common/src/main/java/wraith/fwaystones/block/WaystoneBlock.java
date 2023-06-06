@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -36,10 +37,11 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.Waystones;
+import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
-import wraith.fwaystones.registry.BlockEntityRegistry;
+import wraith.fwaystones.registry.BlockEntityReg;
 import wraith.fwaystones.util.Utils;
 
 public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
@@ -90,21 +92,21 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(HALF, FACING, MOSSY, WATERLOGGED, ACTIVE, GENERATED);
     }
+
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext context) {
         return state.getValue(HALF) == DoubleBlockHalf.UPPER ? VOXEL_SHAPE_TOP : VOXEL_SHAPE_BOTTOM;
     }
+
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockPos blockPos = context.getClickedPos();
         var nbt = context.getItemInHand().getTagElement("BlockEntityTag");
         boolean hasOwner = nbt != null && nbt.contains("waystone_owner");
-
-        var world = context.getLevel();
-        var fluidState = world.getFluidState(blockPos);
-
-        if (blockPos.getY() < world.getHeight() - 1 && world.getBlockState(blockPos.above()).canBeReplaced(context)) {
+        var level = context.getLevel();
+        var fluidState = level.getFluidState(blockPos);
+        if (blockPos.getY() < level.getHeight() - 1 && level.getBlockState(blockPos.above()).canBeReplaced(context)) {
             return this.defaultBlockState()
                     .setValue(FACING, context.getHorizontalDirection().getOpposite())
                     .setValue(HALF, DoubleBlockHalf.LOWER)
@@ -115,6 +117,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
             return null;
         }
     }
+
     @Override
     public float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
         var bottomState = level.getBlockState(pos);
@@ -141,8 +144,9 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
         }
         return super.getDestroyProgress(state, player, level, pos);
     }
+
     @Override
-    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+    public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         BlockPos topPos;
         BlockPos botPos;
         if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
@@ -152,48 +156,48 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
             topPos = pos.above();
             botPos = pos;
         }
-
-        if (world.getBlockEntity(botPos) instanceof WaystoneBlockEntity waystone && !player.isCreative() && player.hasCorrectToolForDrops(world.getBlockState(botPos)) && world instanceof ServerLevel) {
-            if (!world.isClientSide) {
+        if (level.getBlockEntity(botPos) instanceof WaystoneBlockEntity waystone && !player.isCreative() && player.hasCorrectToolForDrops(level.getBlockState(botPos)) && level instanceof ServerLevel) {
+            if (!level.isClientSide) {
                 ItemStack itemStack = new ItemStack(state.getBlock().asItem());
                 var compoundTag = new CompoundTag();
                 waystone.saveAdditional(compoundTag);
                 if (Waystones.CONFIG.store_waystone_data_on_sneak_break && player.isCrouching() && !compoundTag.isEmpty()) {
                     itemStack.addTagElement("BlockEntityTag", compoundTag);
                 }
-                Containers.dropItemStack(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
+                Containers.dropItemStack(level, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
                 if (waystone.getBlockState().getValue(MOSSY)) {
-                    Containers.dropItemStack(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
+                    Containers.dropItemStack(level, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
                 }
             } else {
                 waystone.unpackLootTable(player);
             }
         }
-
-        world.removeBlock(topPos, false);
-        world.removeBlock(botPos, false);
-        world.updateNeighborsAt(topPos, Blocks.AIR);
-
-        super.playerWillDestroy(world, pos, state, player);
+        level.removeBlock(topPos, false);
+        level.removeBlock(botPos, false);
+        level.updateNeighborsAt(topPos, Blocks.AIR);
+        super.playerWillDestroy(level, pos, state, player);
     }
+
     @Override
-    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @org.jetbrains.annotations.Nullable LivingEntity placer, ItemStack itemStack) {
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity player, ItemStack itemStack) {
         if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
-            super.setPlacedBy(world, pos, state, placer, itemStack);
+            super.setPlacedBy(level, pos, state, player, itemStack);
             return;
         }
-        var fluidState = world.getFluidState(pos.above());
-        world.setBlockAndUpdate(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER));
-        BlockEntity entity = world.getBlockEntity(pos);
-        /* TODO: if (placer instanceof ServerPlayer && entity instanceof WaystoneBlockEntity waystone) {
-            ForgeWaystones.WAYSTONE_STORAGE.tryAddWaystone(waystone);
-        }*/
+        var fluidState = level.getFluidState(pos.above());
+        level.setBlockAndUpdate(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER));
+        BlockEntity entity = level.getBlockEntity(pos);
+        if (player instanceof ServerPlayer && entity instanceof WaystoneBlockEntity waystone) {
+            Waystones.WAYSTONE_STORAGE.tryAddWaystone(waystone);
+        }
     }
+
     @Override
-    public RenderShape getRenderShape(BlockState pState) {
+    public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
-    @Override
+
+    @Override// TODO: ADD MARKER FOR MAPS
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.isClientSide) {
             return InteractionResult.sidedSuccess(true);
@@ -224,15 +228,11 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
         if (heldItem instanceof WaystoneScrollItem || heldItem instanceof LocalVoidItem || heldItem instanceof WaystoneDebuggerItem) {
             return InteractionResult.PASS;
         }
-
-
-        //var discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
-
+        var discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
         WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) level.getBlockEntity(openPos);
         if (blockEntity == null) {
             return InteractionResult.FAIL;
         }
-
         if (player.isCrouching() && (player.hasPermissions(2) || (Waystones.CONFIG.can_owners_redeem_payments && player.getUUID().equals(blockEntity.getOwner())))) {
             if (blockEntity.hasStorage()) {
                 Containers.dropContents(level, openPos.above(2), blockEntity.getInventory());
@@ -240,67 +240,64 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
             }
         } else {
             /* TODO: if (!Waystones.CONFIG.discover_waystone_on_map_use && FabricLoader.getInstance().isModLoaded("pinlib") && PinlibPlugin.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos))
-                return InteractionResult.SUCCESS;
-                ForgeWaystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
-                if (!discovered.contains(blockEntity.getHash())) {*/
-            if (!blockEntity.isGlobal()) {
-                var discoverItemId = Utils.getDiscoverItem();
-                if (!player.isCreative()) {
-                    var discoverItem = Registry.ITEM.get(discoverItemId);
-                    var discoverAmount = Waystones.CONFIG.take_amount_from_discover_item;
-                    if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
-                        player.displayClientMessage(Component.translatable(
-                                "fwaystones.missing_discover_item",
-                                discoverAmount,
-                                Component.translatable(discoverItem.getDescriptionId()).withStyle(style ->
-                                        style.withColor(TextColor.parseColor(Component.translatable("fwaystones.missing_discover_item.arg_color").getString()))
-                                )
-                        ), false);
-                        return InteractionResult.FAIL;
-                    } else if (discoverItem != Items.AIR) {
-                        Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
-                        player.displayClientMessage(Component.translatable(
-                                "fwaystones.discover_item_paid",
-                                discoverAmount,
-                                Component.translatable(discoverItem.getDescriptionId()).withStyle(style ->
-                                        style.withColor(TextColor.parseColor(Component.translatable("fwaystones.discover_item_paid.arg_color").getString()))
-                                )
-                        ), false);
+                return InteractionResult.SUCCESS;*/
+            Waystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
+            if (!discovered.contains(blockEntity.getHash())) {
+                if (!blockEntity.isGlobal()) {
+                    var discoverItemId = Utils.getDiscoverItem();
+                    if (!player.isCreative()) {
+                        var discoverItem = Registry.ITEM.get(discoverItemId);
+                        var discoverAmount = Waystones.CONFIG.take_amount_from_discover_item;
+                        if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
+                            player.displayClientMessage(Component.translatable(
+                                    "fwaystones.missing_discover_item",
+                                    discoverAmount,
+                                    Component.translatable(discoverItem.getDescriptionId()).withStyle(style ->
+                                            style.withColor(TextColor.parseColor(Component.translatable("fwaystones.missing_discover_item.arg_color").getString()))
+                                    )
+                            ), false);
+                            return InteractionResult.FAIL;
+                        } else if (discoverItem != Items.AIR) {
+                            Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
+                            player.displayClientMessage(Component.translatable(
+                                    "fwaystones.discover_item_paid",
+                                    discoverAmount,
+                                    Component.translatable(discoverItem.getDescriptionId()).withStyle(style ->
+                                            style.withColor(TextColor.parseColor(Component.translatable("fwaystones.discover_item_paid.arg_color").getString()))
+                                    )
+                            ), false);
+                        }
                     }
+                    player.displayClientMessage(Component.translatable(
+                            "fwaystones.discover_waystone",
+                            Component.literal(blockEntity.getWaystoneName()).withStyle(style ->
+                                    style.withColor(TextColor.parseColor(Component.translatable("fwaystones.discover_waystone.arg_color").getString()))
+                            )
+                    ), false);
                 }
-                player.displayClientMessage(Component.translatable(
-                        "fwaystones.discover_waystone",
-                        Component.literal(blockEntity.getWaystoneName()).withStyle(style ->
-                                style.withColor(TextColor.parseColor(Component.translatable("fwaystones.discover_waystone.arg_color").getString()))
-                        )
-                ), false);
+                ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
             }
-            /*TODO: ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
-                }*/
             if (blockEntity.getOwner() == null) {
                 blockEntity.setOwner(player);
             } else {
                 blockEntity.updateActiveState();
             }
-
             var screenHandlerFactory = state.getMenuProvider(level, pos);
-
             if (screenHandlerFactory != null)
                 player.openMenu(screenHandlerFactory);
         }
         blockEntity.setChanged();
         return InteractionResult.sidedSuccess(false);
     }
+
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         BlockPos newPos;
         DoubleBlockHalf verticalPosition;
-
         if (state.getBlock() != this) {
             super.onRemove(state, level, pos, newState, moved);
             return;
         }
-
         if (state.getValue(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
             newPos = pos.below();
             verticalPosition = DoubleBlockHalf.LOWER;
@@ -308,16 +305,15 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
             newPos = pos.above();
             verticalPosition = DoubleBlockHalf.UPPER;
         }
-
         if (!(newState.getBlock() instanceof WaystoneBlock)) {
             BlockPos testPos = pos;
             if (state.getValue(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
                 testPos = pos.below();
             }
-            /* TODO: BlockEntity entity = level.getBlockEntity(testPos);
-                if (!level.isClientSide && entity instanceof WaystoneBlockEntity waystone) {
-                ForgeWaystones.WAYSTONE_STORAGE.removeWaystone(waystone);
-                }*/
+            BlockEntity entity = level.getBlockEntity(testPos);
+            if (!level.isClientSide && entity instanceof WaystoneBlockEntity waystone) {
+                Waystones.WAYSTONE_STORAGE.removeWaystone(waystone);
+            }
             level.removeBlockEntity(testPos);
             level.setBlockAndUpdate(newPos, newState);
         } else {
@@ -326,10 +322,12 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
         }
         super.onRemove(state, level, pos, newState, moved);
     }
+
     @Override
     public FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
+
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         if (state.getValue(WATERLOGGED)) {
@@ -337,15 +335,18 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
         }
         return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
+
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return state.getValue(HALF) == DoubleBlockHalf.UPPER ? null : new WaystoneBlockEntity(pos, state);
     }
+
     @Nullable
     @Override
     public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
         return super.getMenuProvider(state, level, state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos);
     }
+
     @Nullable
     public static WaystoneBlockEntity getEntity(Level world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
@@ -357,9 +358,10 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
         }
         return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
     }
+
     @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> type) {
-        return createTickerHelper(type, BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY.get(), WaystoneBlockEntity::ticker);
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return createTickerHelper(type, BlockEntityReg.WAYSTONE_BLOCK_ENTITY.get(), WaystoneBlockEntity::ticker);
     }
 }

@@ -1,28 +1,39 @@
 package wraith.fwaystones.util;
 
+import com.mojang.datafixers.util.Pair;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.Waystones;
+import wraith.fwaystones.item.LocalVoidItem;
+import wraith.fwaystones.mixin.StructurePoolAccessor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
 public final class Utils {
     public static final DecimalFormat df = new DecimalFormat("#.##");
     public static final Random random = new Random();
-    /* TODO: private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
-            RegistryKeys.PROCESSOR_LIST, new Identifier("minecraft", "empty"));*/
+    private static final ResourceKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = ResourceKey.create(
+            Registry.PROCESSOR_LIST_REGISTRY, new ResourceLocation("minecraft", "empty"));
     private Utils() {}
     public static int getRandomIntInRange(int min, int max) {
         if (min == max) {
@@ -58,27 +69,27 @@ public final class Utils {
         }
         return sb.toString();
     }
-    /* TODO: public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
-        RegistryEntry<StructureProcessorList> emptyProcessorList = server.getRegistryManager()
-                .get(RegistryKeys.PROCESSOR_LIST)
-                .entryOf(EMPTY_PROCESSOR_LIST_KEY);
-        var poolGetter = server.getRegistryManager()
-                .get(RegistryKeys.TEMPLATE_POOL)
-                .getOrEmpty(village);
+    public static void addToStructurePool(MinecraftServer server, ResourceLocation village, ResourceLocation waystone, int weight) {
+        Holder<StructureProcessorList> emptyProcessorList = server.registryAccess()
+                .ownedRegistryOrThrow(Registry.PROCESSOR_LIST_REGISTRY)
+                .getHolderOrThrow(EMPTY_PROCESSOR_LIST_KEY);
+        var poolGetter = server.registryAccess()
+                .ownedRegistryOrThrow(Registry.TEMPLATE_POOL_REGISTRY)
+                .getOptional(village);
         if (poolGetter.isEmpty()) {
-            FabricWaystones.LOGGER.error("Cannot add to " + village + " as it cannot be found!");
+            Waystones.LOGGER.error("Cannot add to " + village + " as it cannot be found!");
             return;
         }
         var pool = poolGetter.get();
         var pieceList = ((StructurePoolAccessor) pool).getElements();
-        var piece = StructurePoolElement.ofProcessedSingle(waystone.toString(), emptyProcessorList).apply(StructurePool.Projection.RIGID);
+        var piece = StructurePoolElement.single(waystone.toString(), emptyProcessorList).apply(StructureTemplatePool.Projection.RIGID);
         var list = new ArrayList<>(((StructurePoolAccessor) pool).getElementCounts());
         list.add(Pair.of(piece, weight));
         ((StructurePoolAccessor) pool).setElementCounts(list);
         for (int i = 0; i < weight; ++i) {
             pieceList.add(piece);
         }
-        }*/
+    }
     //Values from https://minecraft.gamepedia.com/Experience
     public static long determineLevelXP(final Player player) {
         int level = player.experienceLevel;
@@ -102,37 +113,39 @@ public final class Utils {
         }
         return Math.round(cost);
     }
-    /* TODO: public static boolean canTeleport(Player player, String hash, boolean takeCost) {
-        FWConfigModel.CostType cost = FWConfigModel.teleportation_cost.cost_type();
-        var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
+    public static boolean canTeleport(Player player, String hash, boolean takeCost) {
+        return false;
+        /*
+        ConfigModel.CostType cost = Waystones.CONFIG.teleportation_cost.cost_type;
+        var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
-            player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
+            player.displayClientMessage(Component.translatable("fwaystones.no_teleport.invalid_waystone"), true);
             return false;
         }
-        var sourceDim = getDimensionName(player.world);
+        var sourceDim = getDimensionName(player.level);
         var destDim = waystone.getWorldName();
-        if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
-            if (FabricWaystones.CONFIG.disable_teleportation_from_dimensions().contains(sourceDim)) {
-                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
+        if (!Waystones.CONFIG.ignore_dimension_blacklists_if_same_dimension || !sourceDim.equals(destDim)) {
+            if (Waystones.CONFIG.disable_teleportation_from_dimensions.contains(sourceDim)) {
+                player.displayClientMessage(Component.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
                 return false;
             }
-            if (FabricWaystones.CONFIG.disable_teleportation_to_dimensions().contains(destDim)) {
-                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
+            if (Waystones.CONFIG.disable_teleportation_to_dimensions.contains(destDim)) {
+                player.displayClientMessage(Component.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
                 return false;
             }
         }
-        int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), sourceDim, destDim);
+        int amount = getCost(player.position(), Vec3.atCenterOf(waystone.way_getPos()), sourceDim, destDim);
         if (player.isCreative()) {
             return true;
         }
         switch (cost) {
             case HEALTH -> {
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.health"), true);
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.health"), true);
                     return false;
                 }
                 if (takeCost) {
-                    player.damage(player.getWorld().getDamageSources().magic(), amount);
+                    player.hurt(player.getLevel().getDamageSources().magic(), amount);
                 }
                 return true;
             }
@@ -204,8 +217,8 @@ public final class Utils {
             default -> {
                 return true;
             }
-        }
         }*/
+    }
     public static boolean containsItem(Inventory inventory, Item item, int maxAmount) {
         int amount = 0;
         for (ItemStack stack : inventory.items) {
@@ -270,21 +283,26 @@ public final class Utils {
         return level.dimensionTypeId().toString();
     }
 
-    /* TODO: public static TeleportSources getTeleportSource(Player player) {
-        if (player.containerMenu instanceof AbyssScreenHandler) {
-            return TeleportSources.ABYSS_WATCHER;
-        } else if (player.containerMenu instanceof PocketWormholeScreenHandler) {
-            return TeleportSources.POCKET_WORMHOLE;
-        } else if (player.containerMenu instanceof WaystoneBlockScreenHandler) {
-            return TeleportSources.WAYSTONE;
-        } else {
-            for (var hand : InteractionHand.values()) {
-                if (!(player.getItemInHand(hand).getItem() instanceof LocalVoidItem)) continue;
-                return TeleportSources.LOCAL_VOID;
-            }
+    public static TeleportSources getTeleportSource(Player player) {
+        /* TODO:
+            if (player.containerMenu instanceof AbyssScreenHandler) {
+                return TeleportSources.ABYSS_WATCHER;
+            } else if (player.containerMenu instanceof PocketWormholeScreenHandler) {
+                return TeleportSources.POCKET_WORMHOLE;
+            } else if (player.containerMenu instanceof WaystoneBlockScreenHandler) {
+                return TeleportSources.WAYSTONE;
+            } else {
+                for (var hand : InteractionHand.values()) {
+                    if (!(player.getItemInHand(hand).getItem() instanceof LocalVoidItem)) continue;
+                    return TeleportSources.LOCAL_VOID;
+                }
+            }*/
+        for (var hand : InteractionHand.values()) {
+            if (!(player.getItemInHand(hand).getItem() instanceof LocalVoidItem)) continue;
+            return TeleportSources.LOCAL_VOID;
         }
         return null;
-        }*/
+    }
 
     public static int getRandomColor() {
         return random.nextInt(0xFFFFFF);
