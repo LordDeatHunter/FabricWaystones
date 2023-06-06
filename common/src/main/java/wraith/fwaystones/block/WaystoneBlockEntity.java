@@ -1,5 +1,6 @@
 package wraith.fwaystones.block;
 
+import dev.architectury.registry.menu.MenuRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -8,25 +9,33 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.TicketType;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.Waystones;
+import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.access.WaystoneValue;
+import wraith.fwaystones.item.AbyssWatcherItem;
 import wraith.fwaystones.registry.BlockEntityReg;
+import wraith.fwaystones.screen.WaystoneMenu;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.TeleportTarget;
 import wraith.fwaystones.util.Utils;
@@ -38,7 +47,7 @@ import java.util.UUID;
 public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer, WaystoneValue {
     public float lookingRotR = 0;
     private String name = "";
-    private String hash;
+    public String hash;
     private boolean isGlobal = false;
     private UUID owner = null;
     private String ownerName = null;
@@ -95,10 +104,14 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         this.inventory = list;
     }
 
-    @Override// TODO:
+    @Override
+    public AbstractContainerMenu createMenu(int syncId, Inventory inventory, Player player) {
+        return new WaystoneMenu(syncId, this, player);
+    }
+
+    @Override
     protected AbstractContainerMenu createMenu(int syncId, Inventory inventory) {
-        return null;
-        /*TODO: return WaystoneBlockScreenHandler(syncId, this, player);*/
+        return createMenu(syncId, inventory, inventory.player);
     }
 
     @Override
@@ -137,7 +150,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         createTag(nbt);
     }
 
-    private CompoundTag createTag(CompoundTag tag) {
+    public CompoundTag createTag(CompoundTag tag) {// TODO: TEST
         tag.putString("waystone_name", this.name);
         if (this.owner != null) {
             tag.putUUID("waystone_owner", this.owner);
@@ -184,13 +197,13 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         setChanged();
     }
 
-    /* TODO: @Override
-        public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity,
-        PacketByteBuf packetByteBuf) {
-        NbtCompound tag = createTag(new NbtCompound());
-        tag.putString("waystone_hash", this.hash);
-        packetByteBuf.writeNbt(tag);
-        }*/
+    public void writeScreenOpeningData(ServerPlayer player, MenuProvider screenHandlerFactory){
+        MenuRegistry.openExtendedMenu(player, screenHandlerFactory, (buf) -> {
+            CompoundTag tag = createTag(new CompoundTag());
+            tag.putString("waystone_hash", this.hash);
+            buf.writeNbt(tag);
+        });
+    }
 
     private float rotClamp(int clampTo, float value) {
         if (value >= clampTo) {
@@ -357,7 +370,6 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         if (source == null) {
             return false;
         }
-        /*
         var teleported = doTeleport(playerEntity, (ServerLevel) level, target, source, takeCost);
         if (!teleported) {
             return false;
@@ -371,50 +383,56 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
                     break;
                 }
             }
-        }*/
+        }
 
         return true;
     }
-    /* TODO:
-        private boolean doTeleport(ServerPlayer player, ServerLevel world, TeleportTarget target, TeleportSources source, boolean takeCost) {
-            var playerAccess = (PlayerEntityMixinAccess) player;
-            var cooldown = playerAccess.getTeleportCooldown();
-            if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
-                var cooldownSeconds = Utils.df.format(cooldown / 20F);
-                player.displayClientMessage(Component.translatable(
-                        "fwaystones.no_teleport_message.cooldown",
-                        Component.literal(cooldownSeconds).withStyle(style ->
-                                style.withColor(TextColor.parseColor(Component.translatable(
-                                        "fwaystones.no_teleport_message.cooldown.arg_color").getString()))
-                        )
-                ), false);
-                return false;
-            }
-            if (source == TeleportSources.LOCAL_VOID && !FWConfigModel.free_local_void_teleport) {
-                return false;
-            }
-            if (source != TeleportSources.VOID_TOTEM && !Utils.canTeleport(player, hash, takeCost)) {
-                return false;
-            }
-            var cooldowns = FWConfigModel.teleportation_cooldown;
-            playerAccess.setTeleportCooldown(switch (source) {
-                case WAYSTONE -> cooldowns.cooldown_ticks_from_waystone;
-                case ABYSS_WATCHER -> cooldowns.cooldown_ticks_from_abyss_watcher;
-                case LOCAL_VOID -> cooldowns.cooldown_ticks_from_local_void;
-                case VOID_TOTEM -> cooldowns.cooldown_ticks_from_void_totem;
-                case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole;
-            });
-            var oldPos = player.blockPosition();
-            world.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, new ChunkPos(new BlockPos(target.position)), 1, player.getId());
-            player.level.playSound(null, oldPos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1F, 1F);
-            player.unRide();
-            FabricDimensions.teleport(player, world, target);
-            BlockPos playerPos = player.blockPosition();
-            if (!oldPos.closerThan(playerPos, 6) || !player.level.dimension().equals(world.dimension())) {
-                world.playSound(null, playerPos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1F, 1F);
-            }
-            return true;
-        }*/
+
+    private boolean doTeleport(ServerPlayer player, ServerLevel level, TeleportTarget target, TeleportSources source, boolean takeCost) {
+        Waystones.LOGGER.debug("TRY TELEPORT");
+        var playerAccess = (PlayerEntityMixinAccess) player;
+        var cooldown = playerAccess.getTeleportCooldown();
+        if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
+            var cooldownSeconds = Utils.df.format(cooldown / 20F);
+            player.displayClientMessage(Component.translatable(
+                    "fwaystones.no_teleport_message.cooldown",
+                    Component.literal(cooldownSeconds).withStyle(style ->
+                            style.withColor(TextColor.parseColor(Component.translatable(
+                                    "fwaystones.no_teleport_message.cooldown.arg_color").getString()))
+                    )
+            ), false);
+            return false;
+        }
+        if ((source == TeleportSources.LOCAL_VOID && !Waystones.CONFIG.free_local_void_teleport) || (source != TeleportSources.VOID_TOTEM && !Utils.canTeleport(player, hash, takeCost))) {
+            return false;
+        }
+        var cooldowns = Waystones.CONFIG.teleportation_cooldown;
+        playerAccess.setTeleportCooldown(switch (source) {
+            case WAYSTONE -> cooldowns.cooldown_ticks_from_waystone;
+            case ABYSS_WATCHER -> cooldowns.cooldown_ticks_from_abyss_watcher;
+            case LOCAL_VOID -> cooldowns.cooldown_ticks_from_local_void;
+            case VOID_TOTEM -> cooldowns.cooldown_ticks_from_void_totem;
+            case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole;
+        });
+        var oldPos = player.blockPosition();
+        level.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, new ChunkPos(new BlockPos(target.position)), 1, player.getId());
+        player.level.playSound(null, oldPos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1F, 1F);
+        player.unRide();
+
+        if (player.getLevel() == level) {
+            player.connection.teleport(target.position.x, target.position.y, target.position.z, target.yaw, player.getXRot());
+            player.setDeltaMovement(target.velocity);
+            player.setYHeadRot(target.yaw);
+        }else{
+            player.changeDimension(level);
+        }
+
+        BlockPos playerPos = player.blockPosition();
+        if (!oldPos.closerThan(playerPos, 6) || !player.level.dimension().equals(level.dimension())) {
+            level.playSound(null, playerPos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1F, 1F);
+        }
+        return true;
+    }
 
     public void setName(String name) {
         this.name = name;
@@ -428,6 +446,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         }
         return this.hash;
     }
+
     public byte[] getHashByteArray() {
         var hash = getHash();
         var values = hash.substring(1, hash.length() - 1).split(", ");
@@ -460,6 +479,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
     public UUID getOwner() {
         return this.owner;
     }
+
     public void setOwner(Player player) {
         if (player == null) {
             if (this.owner != null && this.level != null) {
@@ -483,7 +503,6 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         updateActiveState();
         setChanged();
     }
-
 
     public void toggleGlobal() {
         this.isGlobal = !this.isGlobal;
@@ -516,6 +535,4 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
     public boolean canTakeItemThroughFace(int pIndex, ItemStack pStack, Direction pDirection) {
         return false;
     }
-
-
 }

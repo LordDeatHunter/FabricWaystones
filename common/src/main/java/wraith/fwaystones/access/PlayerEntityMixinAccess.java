@@ -1,7 +1,7 @@
 package wraith.fwaystones.access;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.util.SearchType;
 

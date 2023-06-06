@@ -1,6 +1,7 @@
 package wraith.fwaystones.item;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -60,13 +61,13 @@ public class WaystoneDebuggerItem extends Item {
 
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity entity, InteractionHand hand) {
-        /*if (!(entity instanceof ServerPlayer player)){
+        if (!(entity instanceof ServerPlayer player2)){
             return InteractionResult.PASS;
-        }*/
-        var playerAccess = (PlayerEntityMixinAccess) player;
+        }
+        var playerAccess = (PlayerEntityMixinAccess) player2;
 
         var message = Component.literal("");
-        message.append("§6[§eNAME§6]§e=§3" + player.getName().getString());
+        message.append("§6[§eNAME§6]§e=§3" + player2.getName().getString());
         message.append("\n§6[§eKNOWN-WAYSTONES§6]§e=§3" + playerAccess.getDiscoveredCount());
         message.append("\n§6[§eCOOLDOWN§6]§e=§3" + playerAccess.getTeleportCooldown());
         player.displayClientMessage(message, false);

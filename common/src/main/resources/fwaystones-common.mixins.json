@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
+    "ClientPlayerEntityAccessor",
     "ClientPlayerEntityMixin",
     "ClientPlayNetworkHandlerMixin"
   ],
@@ -11,7 +12,9 @@
     "LivingEntityMixin",
     "MinecraftServerAccessor",
     "PlayerEntityMixin",
+    "ServerPlayerEntityAccessor",
     "ServerPlayerEntityMixin",
+
     "SinglePoolElementAccessor",
     "StructurePiecesListMixin",
     "StructurePoolAccessor",

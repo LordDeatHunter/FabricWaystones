@@ -21,7 +21,7 @@ public class Waystones {
         BlockEntityReg.BLOCKENTITY_REGISTRY.register();
         ItemReg.ITEM_REGISTRY.register();
         //CompatReg.register();
-        //MenuReg.MENU_REGISTRY.register();//CustomScreenHandlerRegistry.register();
+        MenuReg.MENU_REGISTRY.register();
         EventManager.registerServer();
         PacketHandler.registerC2SListeners();
 

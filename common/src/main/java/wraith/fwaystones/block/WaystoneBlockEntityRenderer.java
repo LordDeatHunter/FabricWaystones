@@ -13,8 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import wraith.fwaystones.registry.ItemReg;
 
 public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<WaystoneBlockEntity> {
-    public WaystoneBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
-    }
+    public WaystoneBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {}
 
     @Override
     public void render(WaystoneBlockEntity blockEntity, float pPartialTick, PoseStack poseStack, MultiBufferSource multiBufferSource, int light, int overlay) {
@@ -42,7 +41,6 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
                     (int) blockEntity.getBlockPos().asLong()
             );
         }
-
         poseStack.popPose();
     }
 }

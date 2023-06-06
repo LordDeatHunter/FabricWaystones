@@ -6,6 +6,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
 import wraith.fwaystones.registry.BlockEntityReg;
+import wraith.fwaystones.registry.ScreenReg;
 import wraith.fwaystones.util.EventManager;
 import wraith.fwaystones.util.PacketHandler;
 
@@ -14,8 +15,7 @@ import java.util.function.BiConsumer;
 public class WaystonesClient {
     public static void onInitialize(Minecraft minecraft) {
         minecraft.submit(()->{
-            //MenuRegistry.registerScreenFactory(MenuReg.ABYSS_MENU.get(), AbyssScreen::new);
-            //CustomScreenRegistry.registerScreens();
+            ScreenReg.register();
             //WaystonesModelProviderRegistry.register();
             PacketHandler.registerS2CListeners();
             EventManager.registerClient();

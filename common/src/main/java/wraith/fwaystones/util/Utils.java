@@ -3,10 +3,12 @@ package wraith.fwaystones.util;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -20,6 +22,9 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
+import wraith.fwaystones.screen.AbyssMenu;
+import wraith.fwaystones.screen.PocketWormholeMenu;
+import wraith.fwaystones.screen.WaystoneMenu;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -114,8 +119,7 @@ public final class Utils {
         return Math.round(cost);
     }
     public static boolean canTeleport(Player player, String hash, boolean takeCost) {
-        return false;
-        /*
+
         ConfigModel.CostType cost = Waystones.CONFIG.teleportation_cost.cost_type;
         var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
@@ -145,15 +149,15 @@ public final class Utils {
                     return false;
                 }
                 if (takeCost) {
-                    player.hurt(player.getLevel().getDamageSources().magic(), amount);
+                    player.hurt(DamageSource.MAGIC, amount);
                 }
                 return true;
             }
             case HUNGER -> {
-                var hungerManager = player.getHungerManager();
+                var hungerManager = player.getFoodData();
                 var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
-                if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustion() / 4F <= amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.hunger"), true);
+                if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustionLevel() / 4F <= amount) {
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.hunger"), true);
                     return false;
                 }
                 if (takeCost) {
@@ -164,34 +168,34 @@ public final class Utils {
             case EXPERIENCE -> {
                 long total = determineLevelXP(player);
                 if (total < amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.xp"), true);
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.xp"), true);
                     return false;
                 }
                 if (takeCost) {
-                    player.addExperience(-amount);
+                    player.giveExperiencePoints(-amount);
                 }
                 return true;
             }
             case LEVEL -> {
                 if (player.experienceLevel < amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.level"), true);
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.level"), true);
                     return false;
                 }
                 if (takeCost) {
-                    player.addExperienceLevels(-amount);
+                    player.giveExperienceLevels(-amount);
                 }
                 return true;
             }
             case ITEM -> {
-                Identifier itemId = getTeleportCostItem();
-                Item item = Registries.ITEM.get(itemId);
+                ResourceLocation itemId = getTeleportCostItem();
+                Item item = Registry.ITEM.get(itemId);
                 if (!containsItem(player.getInventory(), item, amount)) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.item"), true);
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.item"), true);
                     return false;
                 }
                 if (takeCost) {
                     removeItem(player.getInventory(), item, amount);
-                    if (player.world.isClient || FabricWaystones.WAYSTONE_STORAGE == null) {
+                    if (player.level.isClientSide || Waystones.WAYSTONE_STORAGE == null) {
                         return true;
                     }
                     var waystoneBE = waystone.getEntity();
@@ -202,7 +206,7 @@ public final class Utils {
                     boolean found = false;
                     for (ItemStack stack : oldInventory) {
                         if (stack.getItem() == item) {
-                            stack.increment(amount);
+                            stack.grow(amount);
                             found = true;
                             break;
                         }
@@ -217,7 +221,7 @@ public final class Utils {
             default -> {
                 return true;
             }
-        }*/
+        }
     }
     public static boolean containsItem(Inventory inventory, Item item, int maxAmount) {
         int amount = 0;
@@ -284,22 +288,18 @@ public final class Utils {
     }
 
     public static TeleportSources getTeleportSource(Player player) {
-        /* TODO:
-            if (player.containerMenu instanceof AbyssScreenHandler) {
-                return TeleportSources.ABYSS_WATCHER;
-            } else if (player.containerMenu instanceof PocketWormholeScreenHandler) {
-                return TeleportSources.POCKET_WORMHOLE;
-            } else if (player.containerMenu instanceof WaystoneBlockScreenHandler) {
-                return TeleportSources.WAYSTONE;
-            } else {
-                for (var hand : InteractionHand.values()) {
-                    if (!(player.getItemInHand(hand).getItem() instanceof LocalVoidItem)) continue;
-                    return TeleportSources.LOCAL_VOID;
-                }
-            }*/
-        for (var hand : InteractionHand.values()) {
-            if (!(player.getItemInHand(hand).getItem() instanceof LocalVoidItem)) continue;
-            return TeleportSources.LOCAL_VOID;
+
+        if (player.containerMenu instanceof AbyssMenu) {
+            return TeleportSources.ABYSS_WATCHER;
+        } else if (player.containerMenu instanceof PocketWormholeMenu) {
+            return TeleportSources.POCKET_WORMHOLE;
+        } else if (player.containerMenu instanceof WaystoneMenu) {
+            return TeleportSources.WAYSTONE;
+        } else {
+            for (var hand : InteractionHand.values()) {
+                if (!(player.getItemInHand(hand).getItem() instanceof LocalVoidItem)) continue;
+                return TeleportSources.LOCAL_VOID;
+            }
         }
         return null;
     }

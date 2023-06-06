@@ -9,10 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Containers;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
+import net.minecraft.world.*;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -76,46 +73,38 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
         VOXEL_SHAPE_TOP = Shapes.or(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2).optimize();
         VOXEL_SHAPE_BOTTOM = Shapes.or(vs1_1, vs2_1, vs3_1).optimize();
     }
+
     public WaystoneBlock(Properties properties) {
         super(properties);
-        registerDefaultState(this.stateDefinition.any()
-                .setValue(HALF, DoubleBlockHalf.LOWER)
-                .setValue(FACING, Direction.NORTH)
-                .setValue(MOSSY, false)
-                .setValue(WATERLOGGED, false)
-                .setValue(ACTIVE, false)
-                .setValue(GENERATED, false)
-        );
+        registerDefaultState(this.stateDefinition.any().setValue(HALF, DoubleBlockHalf.LOWER).setValue(FACING, Direction.NORTH).setValue(MOSSY, false).setValue(WATERLOGGED, false).setValue(ACTIVE, false).setValue(GENERATED, false));
+    }
+
+    @Nullable
+    public static WaystoneBlockEntity getEntity(Level world, BlockPos pos) {
+        BlockState state = world.getBlockState(pos);
+        if (!(state.getBlock() instanceof WaystoneBlock)) {
+            return null;
+        }
+        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+            pos = pos.below();
+        }
+        return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
+    }
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return state.getValue(HALF) == DoubleBlockHalf.UPPER ? null : new WaystoneBlockEntity(pos, state);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return createTickerHelper(type, BlockEntityReg.WAYSTONE_BLOCK_ENTITY.get(), WaystoneBlockEntity::ticker);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(HALF, FACING, MOSSY, WATERLOGGED, ACTIVE, GENERATED);
-    }
-
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext context) {
-        return state.getValue(HALF) == DoubleBlockHalf.UPPER ? VOXEL_SHAPE_TOP : VOXEL_SHAPE_BOTTOM;
-    }
-
-    @Nullable
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockPos blockPos = context.getClickedPos();
-        var nbt = context.getItemInHand().getTagElement("BlockEntityTag");
-        boolean hasOwner = nbt != null && nbt.contains("waystone_owner");
-        var level = context.getLevel();
-        var fluidState = level.getFluidState(blockPos);
-        if (blockPos.getY() < level.getHeight() - 1 && level.getBlockState(blockPos.above()).canBeReplaced(context)) {
-            return this.defaultBlockState()
-                    .setValue(FACING, context.getHorizontalDirection().getOpposite())
-                    .setValue(HALF, DoubleBlockHalf.LOWER)
-                    .setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER)
-                    .setValue(ACTIVE, hasOwner)
-                    .setValue(GENERATED, false);
-        } else {
-            return null;
-        }
     }
 
     @Override
@@ -143,6 +132,31 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
             }
         }
         return super.getDestroyProgress(state, player, level, pos);
+    }
+
+    @Nullable
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        BlockPos blockPos = context.getClickedPos();
+        var nbt = context.getItemInHand().getTagElement("BlockEntityTag");
+        boolean hasOwner = nbt != null && nbt.contains("waystone_owner");
+        var level = context.getLevel();
+        var fluidState = level.getFluidState(blockPos);
+        if (blockPos.getY() < level.getHeight() - 1 && level.getBlockState(blockPos.above()).canBeReplaced(context)) {
+            return this.defaultBlockState()
+                    .setValue(FACING, context.getHorizontalDirection().getOpposite())
+                    .setValue(HALF, DoubleBlockHalf.LOWER)
+                    .setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER)
+                    .setValue(ACTIVE, hasOwner)
+                    .setValue(GENERATED, false);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext context) {
+        return state.getValue(HALF) == DoubleBlockHalf.UPPER ? VOXEL_SHAPE_TOP : VOXEL_SHAPE_BOTTOM;
     }
 
     @Override
@@ -196,6 +210,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
+
 
     @Override// TODO: ADD MARKER FOR MAPS
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
@@ -282,9 +297,15 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
             } else {
                 blockEntity.updateActiveState();
             }
-            var screenHandlerFactory = state.getMenuProvider(level, pos);
-            if (screenHandlerFactory != null)
-                player.openMenu(screenHandlerFactory);
+            BlockPos menupos = state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos;
+            var screenHandlerFactory = state.getMenuProvider(level, menupos);
+            if (screenHandlerFactory != null){
+
+                BlockEntity entity = level.getBlockEntity(menupos);
+                if(entity instanceof WaystoneBlockEntity data) {
+                    data.writeScreenOpeningData((ServerPlayer) player, screenHandlerFactory);
+                }
+            }
         }
         blockEntity.setChanged();
         return InteractionResult.sidedSuccess(false);
@@ -334,34 +355,5 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
             level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
         return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
-    }
-
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return state.getValue(HALF) == DoubleBlockHalf.UPPER ? null : new WaystoneBlockEntity(pos, state);
-    }
-
-    @Nullable
-    @Override
-    public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
-        return super.getMenuProvider(state, level, state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos);
-    }
-
-    @Nullable
-    public static WaystoneBlockEntity getEntity(Level world, BlockPos pos) {
-        BlockState state = world.getBlockState(pos);
-        if (!(state.getBlock() instanceof WaystoneBlock)) {
-            return null;
-        }
-        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
-            pos = pos.below();
-        }
-        return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return createTickerHelper(type, BlockEntityReg.WAYSTONE_BLOCK_ENTITY.get(), WaystoneBlockEntity::ticker);
     }
 }
