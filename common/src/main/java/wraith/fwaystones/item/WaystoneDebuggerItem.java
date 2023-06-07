@@ -44,15 +44,16 @@ public class WaystoneDebuggerItem extends Item {
         var ownerName = waystone.getOwnerName();
 
         var message = Component.literal("");
-        message.append("§6[§eNAME§6]§e=§3" + waystone.getWaystoneName());
-        message.append("\n§6[§eGLOBAL§6]§e=§3" + waystone.isGlobal());
-        message.append("\n§6[§eHASH§6]§e=§3" + waystone.getHexHash());
-        message.append("\n§6[§eCOLOR§6]§e=§3" + waystone.getColor());
+        message.append(Component.translatable("fwaystones.debug.msg.splitter"));
+        message.append("\n"+Component.translatable("fwaystones.debug.msg.name").getString()+waystone.getWaystoneName());
+        message.append("\n"+Component.translatable("fwaystones.debug.msg.global").getString()+waystone.isGlobal());
+        message.append("\n"+Component.translatable("fwaystones.debug.msg.hash").getString()+waystone.getHexHash());
+        message.append("\n"+Component.translatable("fwaystones.debug.msg.color").getString()+waystone.getColor());
         if (owner != null && ownerName != null) {
-            message.append("\n§6[§eOWNER-UUID§6]§e=§3" + waystone.getOwner());
-            message.append("\n§6[§eOWNER-NAME§6]§e=§3" + waystone.getOwnerName());
+            message.append("\n"+Component.translatable("fwaystones.debug.msg.owner_uuid").getString()+waystone.getOwner());
+            message.append("\n"+Component.translatable("fwaystones.debug.msg.owner_name").getString()+waystone.getOwnerName());
         } else {
-            message.append("\n§6[§eNO-OWNER§6]");
+            message.append("\n"+Component.translatable("fwaystones.debug.msg.no_owner").getString());
         }
         player.displayClientMessage(message, false);
 
@@ -67,9 +68,10 @@ public class WaystoneDebuggerItem extends Item {
         var playerAccess = (PlayerEntityMixinAccess) player2;
 
         var message = Component.literal("");
-        message.append("§6[§eNAME§6]§e=§3" + player2.getName().getString());
-        message.append("\n§6[§eKNOWN-WAYSTONES§6]§e=§3" + playerAccess.getDiscoveredCount());
-        message.append("\n§6[§eCOOLDOWN§6]§e=§3" + playerAccess.getTeleportCooldown());
+        message.append(Component.translatable("fwaystones.debug.msg.splitter"));
+        message.append("\n"+Component.translatable("fwaystones.debug.msg.name").getString()+player2.getName().getString());
+        message.append("\n"+Component.translatable("fwaystones.debug.msg.known_waystones").getString()+playerAccess.getDiscoveredCount());
+        message.append("\n"+Component.translatable("fwaystones.debug.msg.cooldown").getString()+playerAccess.getTeleportCooldown());
         player.displayClientMessage(message, false);
 
         return super.interactLivingEntity(stack, player, entity, hand);

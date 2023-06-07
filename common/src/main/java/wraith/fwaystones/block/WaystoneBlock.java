@@ -80,15 +80,15 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
     }
 
     @Nullable
-    public static WaystoneBlockEntity getEntity(Level world, BlockPos pos) {
-        BlockState state = world.getBlockState(pos);
+    public static WaystoneBlockEntity getEntity(Level level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
         if (!(state.getBlock() instanceof WaystoneBlock)) {
             return null;
         }
         if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
             pos = pos.below();
         }
-        return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
+        return level.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
     }
 
     @Override
@@ -300,7 +300,6 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
             BlockPos menupos = state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos;
             var screenHandlerFactory = state.getMenuProvider(level, menupos);
             if (screenHandlerFactory != null){
-
                 BlockEntity entity = level.getBlockEntity(menupos);
                 if(entity instanceof WaystoneBlockEntity data) {
                     data.writeScreenOpeningData((ServerPlayer) player, screenHandlerFactory);

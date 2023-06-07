@@ -28,13 +28,19 @@ configurations {
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:${rootProject.forge_version}"
-    // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
-    modApi "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
-
+    forge "net.minecraftforge:forge:${forge_version}"
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+    // Development QOL
+    //modLocalRuntime("mezz.jei:jei-${minecraft_version}-forge:${jei_forge_version}")
+    // if you would like to add integration with JEI, uncomment this line.
+    //modCompileOnly("mezz.jei:jei-${minecraft_version}:${jei_forge_version}:api")
+    // Remove the next line if you don't want to depend on the API
+    modApi "dev.architectury:architectury-forge:${architectury_version}"
+    modApi "me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}"
+    // Test with JourneyMap in dev
+    modLocalRuntime("maven.modrinth:journeymap:${journeymap_version}-forge")
+    modCompileOnly("info.journeymap:journeymap-api:${journeymap_api_version}-SNAPSHOT") // for some reason this is needed explicitly
 }
 
 processResources {

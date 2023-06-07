@@ -21,6 +21,7 @@ import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
+import wraith.fwaystones.integration.event.WaystoneEvents;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -177,7 +178,7 @@ public class WaystoneStorage {
     }
 
     public void removeWaystone(String hash) {
-        // TODO: WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
+        WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
         WAYSTONES.remove(hash);
         forgetForAllPlayers(hash);
         loadOrSaveWaystones(true);
@@ -215,7 +216,7 @@ public class WaystoneStorage {
         if (WAYSTONES.containsKey(hash)) {
             WaystoneValue waystone = WAYSTONES.get(hash);
             waystone.getEntity().setName(name);
-            // TODO: WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(hash);
+            WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(hash);
             loadOrSaveWaystones(true);
         }
     }

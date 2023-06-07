@@ -155,7 +155,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             ResourceLocation resourceLocation2,
             Optional<StructureTemplatePool> optional2,
             MutableObject<Object> mutableObject3,
-            //boolean bl3, WARNING: REMOVED FOR COMPAT
+            //boolean bl3, WARNING: REMOVED FOR FABRIC COMPAT
             List<StructurePoolElement> list
     ) {
         if (!Waystones.CONFIG.worldgen.generate_in_villages ||

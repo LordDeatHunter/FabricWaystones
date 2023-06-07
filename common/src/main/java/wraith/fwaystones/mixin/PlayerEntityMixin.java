@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlockEntity;
+import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.util.PacketHandler;
 import wraith.fwaystones.util.SearchType;
 
@@ -75,7 +76,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Override
     public void discoverWaystone(String hash, boolean sync) {
-        //WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(hash);
+        WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(hash);
         discoveredWaystones.add(hash);
         if (sync) {
             syncData();
@@ -110,7 +111,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
                 waystone.setOwner(null);
             }
         }
-        //TODO: WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
+        WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
         discoveredWaystones.remove(hash);
         if (sync) {
             syncData();
@@ -229,9 +230,9 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
                     .filter(hashes::contains)
                     .forEach(hash -> {
                         discoveredWaystones.add(hash);
-                        /*if (!oldDiscovered.contains(hash)) {
+                        if (!oldDiscovered.contains(hash)) {
                             WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(hash);
-                        }*/
+                        }
                     });
         }
         if (tag.contains("view_global_waystones")) {
@@ -297,8 +298,8 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void forgetAllWaystones() {
         discoveredWaystones.clear();
-        //WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
-        ////discoveredWaystones.forEach(hash -> forgetWaystone(hash, false));
+        WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
+        //discoveredWaystones.forEach(hash -> forgetWaystone(hash, false));
         syncData();
     }
 
