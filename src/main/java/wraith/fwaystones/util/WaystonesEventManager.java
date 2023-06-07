@@ -47,7 +47,7 @@ public class WaystonesEventManager {
                     if (player == null || FabricWaystones.WAYSTONE_STORAGE == null) {
                         return 1;
                     }
-                    var dimension = Utils.getDimensionName(player.world);
+                    var dimension = Utils.getDimensionName(player.getWorld());
                     FabricWaystones.WAYSTONE_STORAGE.removeWorldWaystones(dimension);
                     player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3Removed all waystones from " + dimension + "!"), false);
                     return 1;

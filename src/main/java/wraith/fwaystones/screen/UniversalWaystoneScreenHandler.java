@@ -50,7 +50,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     }
 
     public void updateWaystones(PlayerEntity player) {
-        if (!player.world.isClient) {
+        if (!player.getWorld().isClient) {
             return;
         }
         this.sortedWaystones = new ArrayList<>();
@@ -70,7 +70,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
 
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
-        if (!player.world.isClient) {
+        if (!player.getWorld().isClient) {
             return false;
         }
 
@@ -109,7 +109,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         if (player == null) {
             return;
         }
-        if (player.world.isClient) {
+        if (player.getWorld().isClient) {
             closeOnClient();
         } else {
             ((ServerPlayerEntityAccessor) player).getNetworkHandler()

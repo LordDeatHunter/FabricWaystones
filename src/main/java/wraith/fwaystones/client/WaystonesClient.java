@@ -70,15 +70,17 @@ public class WaystonesClient implements ClientModInitializer {
             if (client.player == null) {
                 return;
             }
-            client.particleManager.addEmitter(client.player, ParticleTypes.TOTEM_OF_UNDYING, 30);
-            handler.getWorld().playSound(client.player.getX(), client.player.getY(), client.player.getZ(), SoundEvents.ITEM_TOTEM_USE, client.player.getSoundCategory(), 1.0F, 1.0F, false);
-            for (int i = 0; i < client.player.getInventory().size(); ++i) {
-                ItemStack playerStack = client.player.getInventory().getStack(i);
-                if (playerStack.getItem() == ItemRegistry.get("void_totem")) {
-                    client.gameRenderer.showFloatingItem(playerStack);
-                    break;
+            client.execute(() -> {
+                client.particleManager.addEmitter(client.player, ParticleTypes.TOTEM_OF_UNDYING, 30);
+                handler.getWorld().playSound(client.player.getX(), client.player.getY(), client.player.getZ(), SoundEvents.ITEM_TOTEM_USE, client.player.getSoundCategory(), 1.0F, 1.0F, false);
+                for (int i = 0; i < client.player.getInventory().size(); ++i) {
+                    ItemStack playerStack = client.player.getInventory().getStack(i);
+                    if (playerStack.getItem() == ItemRegistry.get("void_totem")) {
+                        client.gameRenderer.showFloatingItem(playerStack);
+                        break;
+                    }
                 }
-            }
+            });
         });
     }
 

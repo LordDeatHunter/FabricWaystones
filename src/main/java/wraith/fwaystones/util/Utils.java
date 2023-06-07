@@ -144,7 +144,7 @@ public final class Utils {
             player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
             return false;
         }
-        var sourceDim = getDimensionName(player.world);
+        var sourceDim = getDimensionName(player.getWorld());
         var destDim = waystone.getWorldName();
         if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
             if (FabricWaystones.CONFIG.disable_teleportation_from_dimensions().contains(sourceDim)) {
@@ -214,7 +214,7 @@ public final class Utils {
                 if (takeCost) {
                     removeItem(player.getInventory(), item, amount);
 
-                    if (player.world.isClient || FabricWaystones.WAYSTONE_STORAGE == null) {
+                    if (player.getWorld().isClient || FabricWaystones.WAYSTONE_STORAGE == null) {
                         return true;
                     }
                     var waystoneBE = waystone.getEntity();

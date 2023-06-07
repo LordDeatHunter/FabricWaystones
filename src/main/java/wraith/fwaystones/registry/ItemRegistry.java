@@ -2,9 +2,13 @@ package wraith.fwaystones.registry;
 
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.text.Text;
 import net.minecraft.util.Rarity;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.item.*;
@@ -15,7 +19,7 @@ import java.util.HashMap;
 public final class ItemRegistry {
 
     private static final HashMap<String, Item> ITEMS = new HashMap<>();
-    public static final ItemGroup WAYSTONE_GROUP = FabricItemGroup.builder(Utils.ID(FabricWaystones.MOD_ID)).icon(() -> new ItemStack(BlockRegistry.WAYSTONE)).entries((enabledFeatures, entries) -> ITEMS.values().stream().map(ItemStack::new).forEach(entries::add)).build();
+    public static final ItemGroup WAYSTONE_GROUP = FabricItemGroup.builder().icon(() -> new ItemStack(BlockRegistry.WAYSTONE)).displayName(Text.translatable("itemGroup.fwaystones.fwaystones")).entries((enabledFeatures, entries) -> ITEMS.values().stream().map(ItemStack::new).forEach(entries::add)).build();
 
     private ItemRegistry() {}
 
@@ -27,6 +31,7 @@ public final class ItemRegistry {
         if (!ITEMS.isEmpty()) {
             return;
         }
+        Registry.register(Registries.ITEM_GROUP, Utils.ID(FabricWaystones.MOD_ID), WAYSTONE_GROUP);
         registerItem("waystone", new WaystoneItem(BlockRegistry.WAYSTONE, new FabricItemSettings()));
         registerItem("desert_waystone", new WaystoneItem(BlockRegistry.DESERT_WAYSTONE, new FabricItemSettings()));
         registerItem("red_desert_waystone", new WaystoneItem(BlockRegistry.RED_DESERT_WAYSTONE, new FabricItemSettings()));

@@ -1,5 +1,6 @@
 package wraith.fwaystones.screen;
 
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.ScreenHandler;
@@ -13,17 +14,19 @@ public class AbyssScreen extends UniversalWaystoneScreen {
     private static final Identifier TEXTURE = Utils.ID("textures/gui/abyss.png");
 
     public AbyssScreen(ScreenHandler handler, PlayerInventory inventory, Text title) {
-        super(handler, inventory, TEXTURE, title);
+        super(handler, inventory, title);
+        texture = TEXTURE;
+    }
+
+
+    @Override
+    protected void renderCostText(DrawContext context, int x, int y, MutableText text) {
+        renderCostText(context, x, y, text, 0x7E3483);
     }
 
     @Override
-    protected void renderCostText(MatrixStack matrices, int x, int y, MutableText text) {
-        renderCostText(matrices, x, y, text, 0x7E3483);
-    }
-
-    @Override
-    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
-        this.textRenderer.draw(matrices, this.title, (float) this.titleX, (float) this.titleY, 0x7E3483);
+    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
+        context.drawText(textRenderer, this.title, this.titleX, this.titleY, 0x7E3483, false);
     }
 
 }
