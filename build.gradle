@@ -1,69 +1,43 @@
+buildscript {
+    configurations.classpath {
+        // don't cache changing modules at all
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
 plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT"
     id "dev.architectury.loom" version "1.1-SNAPSHOT" apply false
+    //id "io.github.juuxel.loom-quiltflower" version "1.7.+" apply false
 }
 
 architectury {
-    minecraft = minecraft_version
+    minecraft = rootProject.minecraft_version
 }
 
 subprojects {
     apply plugin: "dev.architectury.loom"
+    //apply plugin: "io.github.juuxel.loom-quiltflower"
+
+    version = rootProject.mod_version + "+${rootProject.minecraft_version}"
 
     loom {
         silentMojangMappingsLicense()
     }
-    repositories {
-        mavenCentral()
-        maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
-        maven {
-            // location of the maven that hosts JEI files before January 2023
-            name = "Progwml6's maven"
-            url = "https://dvs1.progwml6.com/files/maven/"
-        }
-        maven {
-            // location of the maven that hosts JEI files since January 2023
-            name = "Jared's maven"
-            url = "https://maven.blamejared.com/"
-        }
-        maven {
-            // location of a maven mirror for JEI files, as a fallback
-            name = "ModMaven"
-            url = "https://modmaven.dev"
-        }
-        maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
-        maven { url = "https://maven.quiltmc.org/repository/release" } // Quilt Mappings
-        maven { url = "https://jm.gserv.me/repository/maven-public/" } // JourneyMap API
-        maven { url = "https://api.modrinth.com/maven" } // LazyDFU, JourneyMap
-        maven { url = "https://maven.terraformersmc.com" } //
-        maven { url = "https://www.cursemaven.com" }
-    }
-    dependencies {
-        minecraft "com.mojang:minecraft:${minecraft_version}"
-        // layered mappings - Mojmap names, parchment and QM docs and parameters
-        mappings(loom.layered {
-            it.parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip")
-            it.officialMojangMappings { nameSyntheticMembers = false }
-        })
 
-        // The following line declares the mojmap mappings, you may use other mappings as well
-        //mappings loom.officialMojangMappings()
-        // The following line declares the yarn mappings you may select this one as well.
-        // mappings "net.fabricmc:yarn:1.19.2+build.28:v2"
+    dependencies {
+        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+        mappings loom.officialMojangMappings() // Maps Minecraft so we can tell what classes are what - official mappings
+        //mappings "net.fabricmc:yarn:${rootProject.yarn_mappings}:v2"
     }
 }
 
 allprojects {
     apply plugin: "java"
     apply plugin: "architectury-plugin"
-    apply plugin: "maven-publish"
 
-    archivesBaseName = archives_base_name
-    version = mod_version
-    group = maven_group
-
-    repositories {
-    }
+    archivesBaseName = rootProject.archives_base_name
+    group = rootProject.maven_group
 
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"

@@ -27,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.access.StructurePoolBasedGenerator_StructurePoolGeneratorAccess;
-import wraith.fwaystones.util.WaystonesWorldgen;
+import wraith.fwaystones.util.Worldgen;
 
 import java.util.Iterator;
 import java.util.List;
@@ -116,7 +116,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     ) {
         if (!Waystones.CONFIG.worldgen.generate_in_villages ||
                 maxWaystoneCount < 0 ||
-                !WaystonesWorldgen.VANILLA_VILLAGES.containsKey(resourceLocation)) {
+                !Worldgen.VANILLA_VILLAGES.containsKey(resourceLocation)) {
             return;
         }
         list.removeIf(element -> limitWaystonePieceSpawning(pieces, maxWaystoneCount, element));
@@ -160,7 +160,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     ) {
         if (!Waystones.CONFIG.worldgen.generate_in_villages ||
                 maxWaystoneCount < 0 ||
-                !WaystonesWorldgen.VANILLA_VILLAGES.containsKey(resourceLocation)) {
+                !Worldgen.VANILLA_VILLAGES.containsKey(resourceLocation)) {
             return;
         }
         list.removeIf(element -> limitWaystonePieceSpawning(pieces, maxWaystoneCount, element));

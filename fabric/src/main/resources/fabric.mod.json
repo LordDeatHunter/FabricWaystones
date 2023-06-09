@@ -17,20 +17,19 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "wraith.fwaystones.fabric.FabricWaystones"
+      "wraith.fwaystones.fabric.Waystones"
     ],
     "client": [
-      "wraith.fwaystones.fabric.FabricWaystonesClient"
+      "wraith.fwaystones.fabric.WaystonesClient"
     ]
   },
   "mixins": [
-    "fwaystones.mixins.json",
     "fwaystones-common.mixins.json"
   ],
   "depends": {
     "fabric": "*",
-    "minecraft": ">=1.19.2",
-    "architectury": ">=6.5.77",
-    "cloth-config": ">=8.0.75"
+    "minecraft": ">=1.19.4",
+    "architectury": ">=8.1.79",
+    "cloth-config": ">=10.0.96"
   }
 }

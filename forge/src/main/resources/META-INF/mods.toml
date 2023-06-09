@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[43,)"
+loaderVersion = "[45,)"
 #issueTrackerURL = ""
 license = "MIT License"
 
@@ -14,28 +14,20 @@ logoFile = "icon.png"
 [[dependencies.fwaystones]]
 modId = "forge"
 mandatory = true
-versionRange = "[43,)"
+versionRange = "[45,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.fwaystones]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.19.2,)"
+versionRange = "[1.19.4,)"
 ordering = "NONE"
-side = "BOTH"
-
-[[dependencies.fwaystones]]
-modId = "architectury"
-mandatory = true
-versionRange = "[6.5.77,)"
-ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.fwaystones]]
 modId = "cloth_config"
 mandatory = true
-versionRange = "[8,)"
+versionRange = "[10,)"
 ordering = "AFTER"
 side = "BOTH"
-

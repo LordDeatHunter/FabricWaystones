@@ -1,6 +1,5 @@
 package wraith.fwaystones.util;
 
-
 import dev.architectury.networking.NetworkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -12,13 +11,12 @@ import net.minecraft.world.item.ItemStack;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
-import wraith.fwaystones.registry.ItemReg;
-import wraith.fwaystones.screen.Universalmenu;
+import wraith.fwaystones.registry.ItemRegistry;
 
 import java.util.HashSet;
 import java.util.UUID;
 
-public class PacketHandler {
+public final class PacketHandler {
 	public static final ResourceLocation FORGET_WAYSTONE = Utils.ID("forget_waystone");
 	public static final ResourceLocation REMOVE_WAYSTONE_OWNER = Utils.ID("remove_waystone_owner");
 	public static final ResourceLocation RENAME_WAYSTONE = Utils.ID("rename_waystone");
@@ -35,10 +33,10 @@ public class PacketHandler {
 	public static void registerS2CListeners() {
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, WAYSTONE_PACKET, (buffer, context) -> {
 			var nbt = buffer.readNbt();
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				if (Waystones.WAYSTONE_STORAGE == null) {
-					Waystones.WAYSTONE_STORAGE = new WaystoneStorage(null);
+					Waystones.WAYSTONE_STORAGE = new Storage(null);
 				}
 				Waystones.WAYSTONE_STORAGE.fromTag(nbt);
 				if (player == null) {
@@ -51,15 +49,15 @@ public class PacketHandler {
 					}
 				}
 				((PlayerEntityMixinAccess) player).forgetWaystones(toForget);
-				if (player.containerMenu instanceof Universalmenu) {
+				/*if (player.containerMenu instanceof Universalmenu) {
 					((Universalmenu) player.containerMenu).updateWaystones(player);
-				}
+				}*/
 			});
 		});
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, SYNC_PLAYER, (buffer, context) -> {
 			CompoundTag tag = buffer.readNbt();
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				if (player != null) {
 					((PlayerEntityMixinAccess) player).fromTagW(tag);
 				}
@@ -70,23 +68,25 @@ public class PacketHandler {
 			if (player == null) {
 				return;
 			}
-			//TODO: client.particleManager.addEmitter(player, ParticleTypes.TOTEM_OF_UNDYING, 30);
-			player.getLevel().playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.TOTEM_USE, player.getSoundSource(), 1.0F, 1.0F);
-			for (int i = 0; i < player.getInventory().getContainerSize(); ++i) {
-				ItemStack playerStack = player.getInventory().getItem(i);
-				if (playerStack.getItem() == ItemReg.VOID_TOTEM.get()) {
-					//TODO: client.gameRenderer.showFloatingItem(playerStack);
-					break;
+			context.queue(()->{
+				//TODO: client.particleManager.addEmitter(player, ParticleTypes.TOTEM_OF_UNDYING, 30);
+				player.getLevel().playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.TOTEM_USE, player.getSoundSource(), 1.0F, 1.0F);
+				for (int i = 0; i < player.getInventory().getContainerSize(); ++i) {
+					ItemStack playerStack = player.getInventory().getItem(i);
+					if (playerStack.getItem() == ItemRegistry.VOID_TOTEM.get()) {
+						//TODO: client.gameRenderer.showFloatingItem(playerStack);
+						break;
+					}
 				}
-			}
+			});
 		});
 	}
 
 	public static void registerC2SListeners() {
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, REMOVE_WAYSTONE_OWNER, (buffer, context) -> {
 			CompoundTag tag = buffer.readNbt();
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
 					return;
 				}
@@ -99,8 +99,8 @@ public class PacketHandler {
 		});
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, WAYSTONE_GUI_SLOT_CLICK, (buffer, context) -> {
 			CompoundTag tag = buffer.readNbt();
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				if (tag == null || !tag.contains("sync_id") || !tag.contains("clicked_slot")) {
 					return;
 				}
@@ -119,8 +119,8 @@ public class PacketHandler {
 			String name = tag.getString("waystone_name");
 			String hash = tag.getString("waystone_hash");
 			UUID owner = tag.getUUID("waystone_owner");
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				if (Waystones.WAYSTONE_STORAGE.containsHash(hash) &&
 						((player.getUUID().equals(owner) &&
 								owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
@@ -149,8 +149,8 @@ public class PacketHandler {
 			if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
 				return;
 			}
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				var permissionLevel = Waystones.CONFIG.global_mode_toggle_permission_levels;
 				UUID owner = tag.getUUID("waystone_owner");
 				String hash = tag.getString("waystone_hash");
