@@ -1,6 +1,6 @@
 modLoader = "javafml"
-loaderVersion = "[43,)"
-#issueTrackerURL = ""
+loaderVersion = "[45,)"
+issueTrackerURL="https://github.com/LordDeatHunter/FabricWaystones/issues"
 license = "MIT License"
 
 [[mods]]
@@ -14,28 +14,27 @@ logoFile = "icon.png"
 [[dependencies.fwaystones]]
 modId = "forge"
 mandatory = true
-versionRange = "[43,)"
+versionRange = "[45,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.fwaystones]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.19.2,)"
+versionRange = "[1.19.4,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.fwaystones]]
 modId = "architectury"
 mandatory = true
-versionRange = "[6.5.77,)"
+versionRange = "[8.1.79,)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.fwaystones]]
 modId = "cloth_config"
 mandatory = true
-versionRange = "[8,)"
+versionRange = "[10.0.96,)"
 ordering = "AFTER"
 side = "BOTH"
-

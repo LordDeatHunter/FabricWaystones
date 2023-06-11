@@ -27,14 +27,14 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         if (level.isClientSide) {
             return InteractionResultHolder.success(stack);
         }
-        if (Waystones.WAYSTONE_STORAGE == null) {
+        if (Waystones.STORAGE == null) {
             return InteractionResultHolder.fail(stack);
         }
         int learned = 0;
         HashSet<String> toLearn = new HashSet<>();
-        for (String hash : Waystones.WAYSTONE_STORAGE.getAllHashes()) {
+        for (String hash : Waystones.STORAGE.getAllHashes()) {
             if (!((PlayerEntityMixinAccess) player).hasDiscoveredWaystone(hash)) {
-                var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
+                var waystone = Waystones.STORAGE.getWaystoneEntity(hash);
                 if (waystone != null && waystone.getOwner() == null) {
                     waystone.setOwner(player);
                 }
@@ -75,8 +75,8 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         super.appendHoverText(stack, level, tooltip, context);
         tooltip.add(Component.translatable("fwaystones.scroll.infinite"));
         int count = -1;
-        if (Waystones.WAYSTONE_STORAGE != null) {
-            count = Waystones.WAYSTONE_STORAGE.getCount();
+        if (Waystones.STORAGE != null) {
+            count = Waystones.STORAGE.getCount();
         }
         if (count != -1) {
             tooltip.add(Component.translatable(

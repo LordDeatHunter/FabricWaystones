@@ -9,7 +9,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import wraith.fwaystones.Waystones;
-import wraith.fwaystones.screen.PocketWormholeMenu;
+import wraith.fwaystones.screen.AbyssScreenHandler;
+import wraith.fwaystones.screen.PocketWormholeScreenHandler;
+
 
 public class PocketWormholeItem extends Item {
     private static final Component TITLE = Component.translatable("container." + Waystones.MOD_ID + ".pocket_wormhole");
@@ -21,9 +23,10 @@ public class PocketWormholeItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (!level.isClientSide()){
-            player.openMenu(new SimpleMenuProvider((id, inventory, player2) -> new PocketWormholeMenu(id, inventory), TITLE));
+            player.openMenu(new SimpleMenuProvider((id, inventory, player2) -> new PocketWormholeScreenHandler(id, inventory), TITLE));
             return InteractionResultHolder.consume(player.getItemInHand(hand));
         }
-        return super.use(level, player, hand);
+        return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
 }
+

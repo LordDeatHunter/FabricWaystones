@@ -25,15 +25,15 @@ import wraith.fwaystones.util.Utils;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-public abstract class Universalmenu extends AbstractContainerMenu {
+public abstract class UniversalWaystoneScreenHandler extends AbstractContainerMenu {
 
 	protected final Player player;
 	protected ArrayList<String> sortedWaystones = new ArrayList<>();
 	protected ArrayList<String> filteredWaystones = new ArrayList<>();
 	protected String filter = "";
 
-	protected Universalmenu(
-			MenuType<? extends Universalmenu> type, int syncId,
+	protected UniversalWaystoneScreenHandler(
+			MenuType<? extends UniversalWaystoneScreenHandler> type, int syncId,
 			Player player) {
 		super(type, syncId);
 		this.player = player;
@@ -50,7 +50,7 @@ public abstract class Universalmenu extends AbstractContainerMenu {
 	}
 
 	public void updateWaystones(Player player) {
-		if (!player.level.isClientSide) {
+		if (!player.getLevel().isClientSide) {
 			return;
 		}
 		this.sortedWaystones = new ArrayList<>();
@@ -58,40 +58,36 @@ public abstract class Universalmenu extends AbstractContainerMenu {
 			this.sortedWaystones.addAll(((PlayerAccess) player).getHashesSorted());
 		}
 		if (((PlayerEntityMixinAccess) player).shouldViewGlobalWaystones()) {
-			for (String waystone : Waystones.WAYSTONE_STORAGE.getGlobals()) {
+			for (String waystone : Waystones.STORAGE.getGlobals()) {
 				if (!this.sortedWaystones.contains(waystone)) {
 					this.sortedWaystones.add(waystone);
 				}
 			}
 		}
-		this.sortedWaystones.sort(Comparator.comparing(a -> Waystones.WAYSTONE_STORAGE.getName(a)));
+		this.sortedWaystones.sort(Comparator.comparing(a -> Waystones.STORAGE.getName(a)));
 		filterWaystones();
 	}
 
 	@Override
 	public boolean clickMenuButton(Player player, int id) {
-		if (!player.level.isClientSide) {
+		if (!player.getLevel().isClientSide) {
 			return false;
 		}
-		Waystones.LOGGER.warn("BUTTON CLICKED 1");
+
 		int waystoneID = Math.floorDiv(id, 2);
 		if (waystoneID >= this.filteredWaystones.size()) {
 			return false;
 		}
-		Waystones.LOGGER.warn("BUTTON CLICKED 2");
 
 		String waystone = this.filteredWaystones.get(waystoneID);
 		if (waystone == null) {
 			return false;
 		}
-		Waystones.LOGGER.warn("BUTTON CLICKED 3");
-
 		FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
 		CompoundTag tag = new CompoundTag();
 		tag.putString("waystone_hash", waystone);
 		data.writeNbt(tag);
 
-		Waystones.LOGGER.warn("BUTTON CLICKED 4");
 		if (id % 2 != 0) {
 			this.sortedWaystones.remove(waystone);
 			this.filteredWaystones.remove(waystone);
@@ -100,14 +96,11 @@ public abstract class Universalmenu extends AbstractContainerMenu {
 			updateWaystones(player);
 			NetworkManager.sendToServer(PacketHandler.FORGET_WAYSTONE, data);
 		} else {
-			Waystones.LOGGER.warn("BUTTON CLICKED 5");
 			if (Utils.canTeleport(player, waystone, false)) {
-				Waystones.LOGGER.warn("BUTTON CLICKED 6");
 				NetworkManager.sendToServer(PacketHandler.TELEPORT_TO_WAYSTONE, data);
 			}
 			closeScreen();
 		}
-		Waystones.LOGGER.warn("BUTTON CLICKED 7");
 		return true;
 	}
 
@@ -115,7 +108,7 @@ public abstract class Universalmenu extends AbstractContainerMenu {
 		if (player == null) {
 			return;
 		}
-		if (player.level.isClientSide) {
+		if (player.getLevel().isClientSide) {
 			closeOnClient();
 		} else {
 			((ServerPlayerEntityAccessor) player).getNetworkHandler()
@@ -128,7 +121,6 @@ public abstract class Universalmenu extends AbstractContainerMenu {
 	protected void closeOnClient() {
 		((ClientPlayerEntityAccessor) player).getNetworkHandler()
 				.send(new ServerboundContainerClosePacket(this.containerId));
-
 		setCarried(ItemStack.EMPTY);
 		player.containerMenu = player.inventoryMenu;
 		Minecraft.getInstance().setScreen(null);
@@ -157,12 +149,13 @@ public abstract class Universalmenu extends AbstractContainerMenu {
 		this.filteredWaystones.clear();
 		var searchType = ((PlayerEntityMixinAccess) player).getSearchType();
 		for (String waystone : this.sortedWaystones) {
-			String name = Waystones.WAYSTONE_STORAGE.getName(waystone).toLowerCase();
+			String name = Waystones.STORAGE.getName(waystone).toLowerCase();
 			if ("".equals(this.filter) || searchType.match(name, filter)) {
 				filteredWaystones.add(waystone);
 			}
 		}
 	}
+
 
 	@Override
 	public ItemStack quickMoveStack(Player player, int index) {
@@ -180,4 +173,5 @@ public abstract class Universalmenu extends AbstractContainerMenu {
 	public Component getSearchTypeTooltip() {
 		return Component.translatable("fwaystones.gui." + (((PlayerEntityMixinAccess) player).getSearchType().name().toLowerCase()));
 	}
+
 }

@@ -24,7 +24,7 @@ import wraith.fwaystones.util.Utils;
 
 import java.util.UUID;
 
-public class WaystoneScreen extends UniversalScreen{
+public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
 	private static final ResourceLocation TEXTURE = Utils.ID("textures/gui/waystone.png");
 	private static final ResourceLocation CONFIG_TEXTURE = Utils.ID("textures/gui/waystone_config.png");
@@ -37,7 +37,9 @@ public class WaystoneScreen extends UniversalScreen{
 				return;
 			}
 			page = Page.CONFIG;
-			nameField.setFocus(((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields());
+			texture = CONFIG_TEXTURE;
+			((UniversalWaystoneScreenHandler) menu).updateWaystones(inventory.player);
+			nameField.setFocused(((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields());
 			setupButtons();
 		}
 
@@ -52,8 +54,9 @@ public class WaystoneScreen extends UniversalScreen{
 		}
 	};
 
-	public WaystoneScreen(AbstractContainerMenu handler, Inventory inventory, Component title) {
-		super(handler, inventory, TEXTURE, title);
+	public WaystoneBlockScreen(AbstractContainerMenu handler, Inventory inventory, Component title) {
+		super(handler, inventory, title);
+		texture = TEXTURE;
 
 		buttons.add(configPage);
 
@@ -64,7 +67,8 @@ public class WaystoneScreen extends UniversalScreen{
 					return;
 				}
 				page = Page.WAYSTONES;
-				((Universalmenu) handler).updateWaystones(inventory.player);
+				texture = TEXTURE;
+				((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
 			}
 
 			@Override
@@ -79,7 +83,7 @@ public class WaystoneScreen extends UniversalScreen{
 		});
 
 		//Reset name
-		buttons.add(new Button(8, imageWidth - 32, 13, 13, 177, 54) {
+		buttons.add(new Button(8, imageHeight - 32, 13, 13, 177, 54) {
 			@Override
 			public void onClick() {
 				if (!isVisible()) {
@@ -105,7 +109,7 @@ public class WaystoneScreen extends UniversalScreen{
 			@Override
 			public void setup() {
 				this.tooltip = Component.translatable("fwaystones.config.tooltip.set_name");
-				boolean settable = !((WaystoneMenu) handler).getName().equals(nameField.getValue());
+				boolean settable = !((WaystoneBlockScreenHandler) handler).getName().equals(nameField.getValue());
 				if (toggled == settable) {
 					toggle();
 				}
@@ -122,7 +126,7 @@ public class WaystoneScreen extends UniversalScreen{
 					return;
 				}
 				rename();
-				boolean settable = !((WaystoneMenu) handler).getName().equals(nameField.getValue());
+				boolean settable = !((WaystoneBlockScreenHandler) handler).getName().equals(nameField.getValue());
 				if (toggled == settable) {
 					toggle();
 				}
@@ -157,7 +161,7 @@ public class WaystoneScreen extends UniversalScreen{
 
 			@Override
 			public void setup() {
-				this.toggled = ((WaystoneMenu) handler).isGlobal();
+				this.toggled = ((WaystoneBlockScreenHandler) handler).isGlobal();
 				setupTooltip();
 			}
 
@@ -167,7 +171,7 @@ public class WaystoneScreen extends UniversalScreen{
 					return;
 				}
 				super.onClick();
-				((WaystoneMenu) handler).toggleGlobal();
+				((WaystoneBlockScreenHandler) handler).toggleGlobal();
 
 				setupTooltip();
 			}
@@ -198,7 +202,7 @@ public class WaystoneScreen extends UniversalScreen{
 				}
 				super.onClick();
 				((PlayerEntityMixinAccess) inventory.player).toggleViewDiscoveredWaystones();
-				((Universalmenu) handler).updateWaystones(inventory.player);
+				((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
 				FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
 				packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new CompoundTag()));
 				NetworkManager.sendToServer(PacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
@@ -225,7 +229,7 @@ public class WaystoneScreen extends UniversalScreen{
 				}
 				super.onClick();
 				((PlayerEntityMixinAccess) inventory.player).toggleViewGlobalWaystones();
-				((Universalmenu) handler).updateWaystones(inventory.player);
+				((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
 				FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
 				packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new CompoundTag()));
 				NetworkManager.sendToServer(PacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
@@ -244,17 +248,17 @@ public class WaystoneScreen extends UniversalScreen{
 				super.onClick();
 				FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
 				CompoundTag tag = new CompoundTag();
-				tag.putString("waystone_hash", ((WaystoneMenu) handler).getWaystone());
-				UUID owner = ((WaystoneMenu) handler).getOwner();
+				tag.putString("waystone_hash", ((WaystoneBlockScreenHandler) handler).getWaystone());
+				UUID owner = ((WaystoneBlockScreenHandler) handler).getOwner();
 				tag.putUUID("waystone_owner", owner);
 				packet.writeNbt(tag);
 				NetworkManager.sendToServer(PacketHandler.REMOVE_WAYSTONE_OWNER, packet);
-				((WaystoneMenu) handler).removeOwner();
+				((WaystoneBlockScreenHandler) handler).removeOwner();
 			}
 
 			@Override
 			public boolean isVisible() {
-				return canEdit() && page == Page.CONFIG && ((WaystoneMenu) handler).hasOwner();
+				return canEdit() && page == Page.CONFIG && ((WaystoneBlockScreenHandler) handler).hasOwner();
 			}
 
 			@Override
@@ -271,7 +275,7 @@ public class WaystoneScreen extends UniversalScreen{
 		this.nameField = new EditBox(this.font, this.leftPos + 28, this.topPos + imageHeight - 30, 93, 10, Component.literal("")) {
 			@Override
 			public boolean mouseClicked(double mouseX, double mouseY, int button) {
-				boolean bl = mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
+				boolean bl = mouseX >= (double) this.getX() && mouseX < (double) (this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double) (this.getY() + this.height);
 				if (bl && button == 1) {
 					this.setValue("");
 				}
@@ -292,17 +296,17 @@ public class WaystoneScreen extends UniversalScreen{
 
 			@Override
 			public boolean isMouseOver(double mouseX, double mouseY) {
-				return isVisible() && mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
+				return isVisible() && mouseX >= (double) this.getX() && mouseX < (double) (this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double) (this.getY() + this.height);
 			}
 		};
 		this.nameField.setMaxLength(16);
 		this.nameField.setTextColor(0xFFFFFF);
 		this.nameField.setBordered(false);
 		this.nameField.setCanLoseFocus(true);
-		String waystone = Waystones.WAYSTONE_STORAGE.getName(((WaystoneMenu) menu).getWaystone());
+		String waystone = Waystones.STORAGE.getName(((WaystoneBlockScreenHandler) menu).getWaystone());
 		this.nameField.setValue(waystone == null ? "" : waystone);
 		this.nameField.setResponder((s) -> {
-			boolean settable = !((WaystoneMenu) menu).getName().equals(s);
+			boolean settable = !((WaystoneBlockScreenHandler) menu).getName().equals(s);
 			// TODO: unhardcode this
 			ToggleableButton button = ((ToggleableButton) buttons.get(5));
 			if (button.isToggled() == settable) {
@@ -318,7 +322,7 @@ public class WaystoneScreen extends UniversalScreen{
 	}
 
 	private boolean canEdit() {
-		return ((WaystoneMenu) menu).isOwner(inventory.player) || inventory.player.hasPermissions(2);
+		return ((WaystoneBlockScreenHandler) menu).isOwner(inventory.player) || inventory.player.hasPermissions(2);
 	}
 
 	@Override
@@ -327,15 +331,15 @@ public class WaystoneScreen extends UniversalScreen{
 		if (this.nameField != null && this.nameField.isVisible()) {
 			this.nameField.tick();
 			if (((PlayerEntityMixinAccess) minecraft.player).autofocusWaystoneFields()) {
-				this.nameField.setFocus(true);
+				this.nameField.setFocused(true);
 			}
 		}
 	}
 
 	@Override
-	public void render(PoseStack matrices, int mouseX, int mouseY, float delta) {
-		super.render(matrices, mouseX, mouseY, delta);
-		this.renderTooltip(matrices, mouseX, mouseY);
+	public void render(PoseStack context, int mouseX, int mouseY, float delta) {
+		super.render(context, mouseX, mouseY, delta);
+		this.renderTooltip(context, mouseX, mouseY);
 	}
 
 	@Override
@@ -389,38 +393,38 @@ public class WaystoneScreen extends UniversalScreen{
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrices, float delta, int mouseX, int mouseY) {
+	protected void renderBg(PoseStack context, float delta, int mouseX, int mouseY) {
 		if (page == Page.WAYSTONES) {
-			super.renderBg(matrices, delta, mouseX, mouseY);
+			super.renderBg(context, delta, mouseX, mouseY);
 		} else {
-			this.renderBackground(matrices);
+			this.renderBackground(context);
 			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 			RenderSystem.setShaderTexture(0, CONFIG_TEXTURE);
-			this.blit(matrices, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
+			this.blit(context, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
 			if (canEdit()) {
-				this.blit(matrices, leftPos + 23, topPos + imageHeight - 33, 0, imageHeight, 103, 15);
+				this.blit(context, leftPos + 23, topPos + imageWidth - 33, 0, imageHeight, 103, 15);
 			}
-			renderButtons(matrices, mouseX, mouseY);
-			renderButtonText(matrices);
-			String owner = ((WaystoneMenu) menu).getOwnerName();
+			renderButtons(context, mouseX, mouseY);
+			renderButtonText(context);
+			String owner = ((WaystoneBlockScreenHandler) menu).getOwnerName();
 			if (owner == null || "".equals(owner)) {
 				owner = Component.translatable("fwaystones.config.no_owner").getString();
 			}
-			this.font.draw(matrices, Component.translatable("fwaystones.config.owner", owner), this.leftPos + 10, this.topPos + 10, 0x161616);
+			this.font.draw(context, Component.translatable("fwaystones.config.owner", owner), this.leftPos + 10, this.topPos + 10, 0x161616);
 			if (this.nameField.isVisible()) {
-				this.nameField.render(matrices, mouseX, mouseY, delta);
+				this.nameField.render(context, mouseX, mouseY, delta);
 			}
-			renderButtonTooltips(matrices, mouseX, mouseY);
+			renderButtonTooltips(context, mouseX, mouseY);
 		}
 	}
 
 	@Override
-	protected void renderWaystoneBackground(PoseStack matrixStack, int mouseX, int mouseY, int x, int y, int m) {
+	protected void renderWaystoneBackground(PoseStack context, int mouseX, int mouseY, int x, int y, int m) {
 		for (int n = this.scrollOffset; n < m && n < getDiscoveredCount(); ++n) {
 			int o = n - this.scrollOffset;
 			int r = y + o * 18 + 2;
 			int s = this.imageHeight;
-			if (((WaystoneMenu) menu).getWaystone().equals(getDiscoveredWaystones().get(n))) {
+			if (((WaystoneBlockScreenHandler) menu).getWaystone().equals(getDiscoveredWaystones().get(n))) {
 				s += 18;
 			} else if (mouseX >= x && mouseY >= r && mouseX < x + 101 && mouseY < r + 18) {
 				if (mouseClicked) {
@@ -429,19 +433,19 @@ public class WaystoneScreen extends UniversalScreen{
 					s += 36;
 				}
 			}
-			this.blit(matrixStack, x, r - 1, 0, s, 101, 18);
+			this.blit(context, x, r - 1, 0, s, 101, 18);
 		}
 	}
 
-	private void renderButtonText(PoseStack matrices) {
-		this.font.draw(matrices, Component.translatable("fwaystones.config.view_discovered"), this.leftPos + 25, this.topPos + 29, 0x161616);
-		this.font.draw(matrices, Component.translatable("fwaystones.config.view_global"), this.leftPos + 25, this.topPos + 45, 0x161616);
+	private void renderButtonText(PoseStack context) {
+		this.font.draw(context, Component.translatable("fwaystones.config.view_discovered"), this.leftPos + 25, this.topPos + 29, 0x161616);
+		this.font.draw(context, Component.translatable("fwaystones.config.view_global"), this.leftPos + 25, this.topPos + 45, 0x161616);
 	}
 
 	@Override
-	protected void renderLabels(PoseStack matrices, int mouseX, int mouseY) {
+	protected void renderLabels(PoseStack context, int mouseX, int mouseY) {
 		if (page == Page.WAYSTONES) {
-			this.font.draw(matrices, ((WaystoneMenu) menu).getName(), this.titleLabelX, this.titleLabelY, 4210752);
+			this.font.draw(context, ((WaystoneBlockScreenHandler) menu).getName(), this.titleLabelX, this.titleLabelY, 4210752);
 		}
 	}
 
@@ -492,15 +496,16 @@ public class WaystoneScreen extends UniversalScreen{
 			return;
 		}
 		String name = this.nameField.getValue();
-		String hash = ((WaystoneMenu) menu).getWaystone();
-		UUID owner = ((WaystoneMenu) menu).getOwner();
+		String hash = ((WaystoneBlockScreenHandler) menu).getWaystone();
+		UUID owner = ((WaystoneBlockScreenHandler) menu).getOwner();
 
 		if (name == null) {
 			name = "";
 		}
-		((WaystoneMenu) menu).setName(name);
+		((WaystoneBlockScreenHandler) menu).setName(name);
 
 		FriendlyByteBuf data = new FriendlyByteBuf(Unpooled.buffer());
+
 		CompoundTag tag = new CompoundTag();
 		tag.putString("waystone_name", name);
 		tag.putString("waystone_hash", hash);
@@ -508,6 +513,7 @@ public class WaystoneScreen extends UniversalScreen{
 			tag.putUUID("waystone_owner", owner);
 		}
 		data.writeNbt(tag);
+
 		NetworkManager.sendToServer(PacketHandler.RENAME_WAYSTONE, data);
 	}
 
@@ -515,6 +521,5 @@ public class WaystoneScreen extends UniversalScreen{
 		WAYSTONES,
 		CONFIG
 	}
-
 
 }

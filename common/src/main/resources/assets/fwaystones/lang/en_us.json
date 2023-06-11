@@ -99,7 +99,6 @@
   "fwaystones.no_teleport.level": "§c§lYou lack the required XP to travel",
   "fwaystones.no_teleport.item": "§c§lYou lack the required items to travel",
   "itemGroup.fwaystones.fwaystones": "Waystones",
-
   "fwaystones.debug.debugger_tooltip1": "§6[§e?§6] §3What are we testing today?",
   "fwaystones.debug.debugger_tooltip2": "§6[§e?§6] §3What needs testing?",
   "fwaystones.debug.debugger_tooltip3": "§6[§e?§6] §3Anything broken?",
@@ -111,14 +110,9 @@
   "fwaystones.debug.msg.color": "§6[§eCOLOR§6]§e=§3",
   "fwaystones.debug.msg.owner_uuid": "§6[§eOWNER-UUID§6]§e=§3",
   "fwaystones.debug.msg.owner_name": "§6[§eOWNER-NAME§6]§e=§3",
-  "fwaystones.debug.msg.no_owner": "§6[§eNO-OWNER§6]§e=§4n/a",
+  "fwaystones.debug.msg.no_owner": "§6[§eNO-OWNER§6]",
   "fwaystones.debug.msg.known_waystones": "§6[§eKNOWN-WAYSTONES§6]§e=§3",
   "fwaystones.debug.msg.cooldown": "§6[§eCOOLDOWN§6]§e=§3",
-
-
-
-
-
   "fwaystones.integration.journeymap.category": "Fabric-Waystones",
   "fwaystones.integration.journeymap.category.tooltip": "Fabric-Waystones Journeymap Properties",
   "fwaystones.integration.journeymap.enable": "Enable",
@@ -129,7 +123,6 @@
   "fwaystones.integration.journeymap.theme.on.tooltip": "Hide Waystone waypoint display",
   "fwaystones.integration.journeymap.theme.off": "Show Waystones",
   "fwaystones.integration.journeymap.theme.off.tooltip": "Show Waystone waypoint display",
-
   "text.config.fwaystones/config.category.worldgen": "Worldgen Options",
   "text.config.fwaystones/config.category.teleportation_cost": "Cost of teleportation",
   "text.config.fwaystones/config.option.discover_with_item": "Item used for discovering Waystones",

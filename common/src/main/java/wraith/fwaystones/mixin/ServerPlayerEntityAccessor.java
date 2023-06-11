@@ -10,4 +10,5 @@ public interface ServerPlayerEntityAccessor {
 
 	@Accessor("connection")
 	ServerGamePacketListenerImpl getNetworkHandler();
+
 }

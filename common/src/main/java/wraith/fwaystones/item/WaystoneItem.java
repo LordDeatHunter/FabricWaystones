@@ -16,6 +16,7 @@ public class WaystoneItem extends BlockItem {
     public WaystoneItem(Block block, Properties properties) {
         super(block, properties);
     }
+
     @Override
     public void appendHoverText(@NotNull ItemStack stack, Level level, @NotNull List<Component> tooltip, @NotNull TooltipFlag context) {
         super.appendHoverText(stack, level, tooltip, context);

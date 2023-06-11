@@ -8,13 +8,14 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.block.WaystoneBlockEntity;
-import wraith.fwaystones.registry.MenuReg;
+import wraith.fwaystones.registry.MenuRegister;
 import wraith.fwaystones.util.PacketHandler;
 
 import java.util.UUID;
 import java.util.function.Function;
 
-public class WaystoneMenu extends Universalmenu{
+public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
+
 	private final boolean isClient;
 	private String name;
 	private String hash;
@@ -23,21 +24,21 @@ public class WaystoneMenu extends Universalmenu{
 	private Function<Player, Boolean> canUse = null;
 	private String ownerName = "";
 
-	public WaystoneMenu(int syncId, WaystoneBlockEntity waystoneEntity, Player player) {
-		super(MenuReg.WAYSTONE_MENU.get(), syncId, player);
+	public WaystoneBlockScreenHandler(int syncId, WaystoneBlockEntity waystoneEntity, Player player) {
+		super(MenuRegister.WAYSTONE_MENU.get(), syncId, player);
 		this.hash = waystoneEntity.getHash();
 		this.name = waystoneEntity.getWaystoneName();
 		this.owner = waystoneEntity.getOwner();
 		this.isGlobal = waystoneEntity.isGlobal();
 		this.canUse = waystoneEntity::canAccess;
-		this.isClient = player.level.isClientSide;
+		this.isClient = player.getLevel().isClientSide;
 		this.ownerName = waystoneEntity.getOwnerName();
 		updateWaystones(player);
 	}
 
-	public WaystoneMenu(int syncId, Inventory playerInventory, FriendlyByteBuf buf) {
-		super(MenuReg.WAYSTONE_MENU.get(), syncId, playerInventory.player);
-		this.isClient = playerInventory.player.level.isClientSide;
+	public WaystoneBlockScreenHandler(int syncId, Inventory playerInventory, FriendlyByteBuf buf) {
+		super(MenuRegister.WAYSTONE_MENU.get(), syncId, playerInventory.player);
+		this.isClient = playerInventory.player.getLevel().isClientSide;
 		CompoundTag tag = buf.readNbt();
 		if (tag != null) {
 			this.hash = tag.getString("waystone_hash");
@@ -63,10 +64,10 @@ public class WaystoneMenu extends Universalmenu{
 	@Override
 	public void updateWaystones(Player player) {
 		super.updateWaystones(player);
-		if (!player.level.isClientSide) {
+		if (!player.getLevel().isClientSide) {
 			return;
 		}
-		if (!Waystones.WAYSTONE_STORAGE.containsHash(this.hash)) {
+		if (!Waystones.STORAGE.containsHash(this.hash)) {
 			closeScreen();
 		}
 	}
@@ -127,4 +128,5 @@ public class WaystoneMenu extends Universalmenu{
 	public boolean hasOwner() {
 		return this.owner != null;
 	}
+
 }

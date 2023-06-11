@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface StructurePiecesListAccess {
 
-    void setPieces(List<StructurePiece> pieces);
+	void setPieces(List<StructurePiece> pieces);
 
 }

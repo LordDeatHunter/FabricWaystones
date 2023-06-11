@@ -1,21 +1,11 @@
 package wraith.fwaystones.forge;
 
-import dev.architectury.registry.menu.ExtendedMenuProvider;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.network.NetworkHooks;
-import wraith.fwaystones.WaystonesExpectPlatform;
-
-import java.nio.file.Path;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 public class WaystonesExpectPlatformImpl {
-    public static void openExtendedMenu(ServerPlayer player, ExtendedMenuProvider provider) {
-        NetworkHooks.openScreen(player, provider, provider::saveExtraData);
-    }
-    /**
-     * This is our actual method to {@link WaystonesExpectPlatform#getConfigDirectory()}.
-     */
-    public static Path getConfigDirectory() {
-        return FMLPaths.CONFIGDIR.get();
-    }
+	public static boolean pinlibTryUseOnMarkableBlock(ItemStack item, Level level, BlockPos openPos) {
+		return false;
+	}
 }

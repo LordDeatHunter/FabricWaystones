@@ -51,8 +51,8 @@ public class LocalVoidItem extends Item {
             stack.removeTagKey(Waystones.MOD_ID);
         } else if (canTeleport) {
             String hash = tag.getString(Waystones.MOD_ID);
-            if (Waystones.WAYSTONE_STORAGE != null) {
-                WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
+            if (Waystones.STORAGE != null) {
+                WaystoneBlockEntity waystone = Waystones.STORAGE.getWaystoneEntity(hash);
                 if (waystone == null) {
                     stack.removeTagKey(Waystones.MOD_ID);
                 } else if (waystone.teleportPlayer(player, !Waystones.CONFIG.free_local_void_teleport) && !player.isCreative() && Waystones.CONFIG.consume_local_void_on_use) {
@@ -85,7 +85,7 @@ public class LocalVoidItem extends Item {
         String name = null;
 
         var hash = getBoundWaystone(stack);
-        if (hash != null) name = Waystones.WAYSTONE_STORAGE.getName(hash);
+        if (hash != null) name = Waystones.STORAGE.getName(hash);
         if (name == null) {
             tooltip.add(Component.translatable("fwaystones." + translationName + ".empty_tooltip"));
             return;

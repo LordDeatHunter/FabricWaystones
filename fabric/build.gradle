@@ -19,49 +19,26 @@ configurations {
     developmentFabric.extendsFrom common
 }
 
-configurations.configureEach {
-    resolutionStrategy.eachDependency {
-        if (requested.module.name == "fabric-loader") {
-            useVersion(fabric_loader_version)
-        }
-    }
-}
-
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+
+    modImplementation("net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}")
+    modApi("net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}")
+    // Mandatory Dependencies
+    modApi("dev.architectury:architectury-fabric:${rootProject.architectury_version}")
+    modApi("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}")
+    // Optional Dependencies
+    modCompileOnly("com.terraformersmc:modmenu:${rootProject.mod_menu_version}")
+    modRuntimeOnly("com.terraformersmc:modmenu:${rootProject.mod_menu_version}")
+
+    modRuntimeOnly("maven.modrinth:journeymap:${rootProject.journeymap_version}-fabric")// Test with JourneyMap in dev
+    modCompileOnly("info.journeymap:journeymap-api:${rootProject.journeymap_api_version}-fabric-SNAPSHOT")// API is a JiJ on fabric, add manually
+    modRuntimeOnly("info.journeymap:journeymap-api:${rootProject.journeymap_api_version}-fabric-SNAPSHOT") // API is a JiJ on fabric, add manually
+
+    modApi("maven.modrinth:pinlib:$rootProject.pinlib_api_version")
+    modRuntimeOnly("maven.modrinth:pinlib:$rootProject.pinlib_api_version")
+
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
-    modApi("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"){ exclude group: 'net.fabricmc', module: 'fabric-loader' }
-
-    // Remove the next line if you don't want to depend on the API
-    modApi("dev.architectury:architectury-fabric:${architectury_version}"){ exclude group: 'net.fabricmc', module: 'fabric-loader' }
-    modApi("me.shedaniel.cloth:cloth-config-fabric:${cloth_config_version}"){ exclude group: 'net.fabricmc', module: 'fabric-loader' }
-
-
-    // Development QOL
-    modLocalRuntime("maven.modrinth:lazydfu:${lazydfu_version}")
-    modLocalRuntime("com.terraformersmc:modmenu:${modmenu_version}")
-
-    // Recipe Viewers - Create Fabric supports JEI, REI, and EMI.
-    // See root gradle.properties to choose which to use at runtime.
-    switch (fabric_recipe_viewer.toLowerCase(Locale.ROOT)) {
-        case "jei": modLocalRuntime("mezz.jei:jei-${minecraft_version}-fabric:${jei_fabric_version}"); break
-        case "rei": modLocalRuntime("me.shedaniel:RoughlyEnoughItems-fabric:${rei_version}"); break
-        case "emi": modLocalRuntime("dev.emi:emi:${emi_version}"); break
-        case "disabled": break
-        default: println("Unknown recipe viewer specified: ${fabric_recipe_viewer}. Must be JEI, REI, EMI, or disabled.")
-    }
-    // if you would like to add integration with them, uncomment them here.
-    //modCompileOnly("mezz.jei:jei-${minecraft_version}-fabric:${jei_fabric_version}")
-    //modCompileOnly("mezz.jei:jei-${minecraft_version}-common:${jei_fabric_version}")
-    //modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}")
-    //modCompileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}")
-    //modCompileOnly("dev.emi:emi:${emi_version}")
-
-    modLocalRuntime("maven.modrinth:journeymap:${journeymap_version}-fabric") // Test with JourneyMap in dev
-    modLocalRuntime("info.journeymap:journeymap-api:${journeymap_api_version}-fabric-SNAPSHOT") // API is a JiJ on fabric, add manually
-
-    modCompileOnly("info.journeymap:journeymap-api:${journeymap_api_version}-fabric-SNAPSHOT") // for some reason this is needed explicitly
 }
 
 processResources {
@@ -99,19 +76,5 @@ sourcesJar {
 components.java {
     withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
         skip()
-    }
-}
-
-publishing {
-    publications {
-        mavenFabric(MavenPublication) {
-            artifactId = rootProject.archives_base_name + "-" + project.name
-            from components.java
-        }
-    }
-
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
     }
 }

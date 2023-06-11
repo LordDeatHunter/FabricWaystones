@@ -1,9 +1,11 @@
 package wraith.fwaystones.util;
 
-
 import dev.architectury.networking.NetworkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -12,13 +14,13 @@ import net.minecraft.world.item.ItemStack;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
-import wraith.fwaystones.registry.ItemReg;
-import wraith.fwaystones.screen.Universalmenu;
+import wraith.fwaystones.registry.ItemRegister;
+import wraith.fwaystones.screen.UniversalWaystoneScreenHandler;
 
 import java.util.HashSet;
 import java.util.UUID;
 
-public class PacketHandler {
+public final class PacketHandler {
 	public static final ResourceLocation FORGET_WAYSTONE = Utils.ID("forget_waystone");
 	public static final ResourceLocation REMOVE_WAYSTONE_OWNER = Utils.ID("remove_waystone_owner");
 	public static final ResourceLocation RENAME_WAYSTONE = Utils.ID("rename_waystone");
@@ -35,31 +37,31 @@ public class PacketHandler {
 	public static void registerS2CListeners() {
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, WAYSTONE_PACKET, (buffer, context) -> {
 			var nbt = buffer.readNbt();
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
-				if (Waystones.WAYSTONE_STORAGE == null) {
-					Waystones.WAYSTONE_STORAGE = new WaystoneStorage(null);
+				if (Waystones.STORAGE == null) {
+					Waystones.STORAGE = new WaystoneStorage(null);
 				}
-				Waystones.WAYSTONE_STORAGE.fromTag(nbt);
+				Waystones.STORAGE.fromTag(nbt);
 				if (player == null) {
 					return;
 				}
 				HashSet<String> toForget = new HashSet<>();
 				for (String hash : ((PlayerEntityMixinAccess) player).getDiscoveredWaystones()) {
-					if (!Waystones.WAYSTONE_STORAGE.containsHash(hash)) {
+					if (!Waystones.STORAGE.containsHash(hash)) {
 						toForget.add(hash);
 					}
 				}
 				((PlayerEntityMixinAccess) player).forgetWaystones(toForget);
-				if (player.containerMenu instanceof Universalmenu) {
-					((Universalmenu) player.containerMenu).updateWaystones(player);
+				if (player.containerMenu instanceof UniversalWaystoneScreenHandler) {
+					((UniversalWaystoneScreenHandler) player.containerMenu).updateWaystones(player);
 				}
 			});
 		});
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, SYNC_PLAYER, (buffer, context) -> {
 			CompoundTag tag = buffer.readNbt();
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				if (player != null) {
 					((PlayerEntityMixinAccess) player).fromTagW(tag);
 				}
@@ -70,37 +72,39 @@ public class PacketHandler {
 			if (player == null) {
 				return;
 			}
-			//TODO: client.particleManager.addEmitter(player, ParticleTypes.TOTEM_OF_UNDYING, 30);
-			player.getLevel().playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.TOTEM_USE, player.getSoundSource(), 1.0F, 1.0F);
-			for (int i = 0; i < player.getInventory().getContainerSize(); ++i) {
-				ItemStack playerStack = player.getInventory().getItem(i);
-				if (playerStack.getItem() == ItemReg.VOID_TOTEM.get()) {
-					//TODO: client.gameRenderer.showFloatingItem(playerStack);
-					break;
+			context.queue(()->{
+				Minecraft.getInstance().particleEngine.createTrackingEmitter(player, ParticleTypes.TOTEM_OF_UNDYING, 30);
+				player.getLevel().playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.TOTEM_USE, player.getSoundSource(), 1.0F, 1.0F);
+				for (int i = 0; i < player.getInventory().getContainerSize(); ++i) {
+					ItemStack playerStack = player.getInventory().getItem(i);
+					if (playerStack.getItem() == ItemRegister.VOID_TOTEM.get()) {
+						Minecraft.getInstance().gameRenderer.displayItemActivation(playerStack);
+						break;
+					}
 				}
-			}
+			});
 		});
 	}
 
 	public static void registerC2SListeners() {
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, REMOVE_WAYSTONE_OWNER, (buffer, context) -> {
 			CompoundTag tag = buffer.readNbt();
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
 					return;
 				}
 				String hash = tag.getString("waystone_hash");
 				UUID owner = tag.getUUID("waystone_owner");
 				if ((player.getUUID().equals(owner) || player.hasPermissions(2))) {
-					Waystones.WAYSTONE_STORAGE.setOwner(hash, null);
+					Waystones.STORAGE.setOwner(hash, null);
 				}
 			});
 		});
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, WAYSTONE_GUI_SLOT_CLICK, (buffer, context) -> {
 			CompoundTag tag = buffer.readNbt();
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				if (tag == null || !tag.contains("sync_id") || !tag.contains("clicked_slot")) {
 					return;
 				}
@@ -119,13 +123,13 @@ public class PacketHandler {
 			String name = tag.getString("waystone_name");
 			String hash = tag.getString("waystone_hash");
 			UUID owner = tag.getUUID("waystone_owner");
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
-				if (Waystones.WAYSTONE_STORAGE.containsHash(hash) &&
+				if (Waystones.STORAGE.containsHash(hash) &&
 						((player.getUUID().equals(owner) &&
-								owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
+								owner.equals(Waystones.STORAGE.getWaystoneEntity(hash).getOwner())) ||
 								player.hasPermissions(2))) {
-					Waystones.WAYSTONE_STORAGE.renameWaystone(hash, name);
+					Waystones.STORAGE.renameWaystone(hash, name);
 				}
 			});
 		});
@@ -149,8 +153,8 @@ public class PacketHandler {
 			if (tag == null || !tag.contains("waystone_hash") || !tag.contains("waystone_owner")) {
 				return;
 			}
+			Player player = context.getPlayer();
 			context.queue(()->{
-				Player player = context.getPlayer();
 				var permissionLevel = Waystones.CONFIG.global_mode_toggle_permission_levels;
 				UUID owner = tag.getUUID("waystone_owner");
 				String hash = tag.getString("waystone_hash");
@@ -164,13 +168,13 @@ public class PacketHandler {
 						}
 					}
 					case OWNER -> {
-						if (!player.getUUID().equals(owner) || !owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) {
+						if (!player.getUUID().equals(owner) || !owner.equals(Waystones.STORAGE.getWaystoneEntity(hash).getOwner())) {
 							return;
 						}
 					}
 				}
-				if (Waystones.WAYSTONE_STORAGE.containsHash(hash)) {
-					Waystones.WAYSTONE_STORAGE.toggleGlobal(hash);
+				if (Waystones.STORAGE.containsHash(hash)) {
+					Waystones.STORAGE.toggleGlobal(hash);
 				}
 			});
 		});
@@ -190,12 +194,12 @@ public class PacketHandler {
 					return;
 				}
 				String hash = tag.getString("waystone_hash");
-				var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
+				var waystone = Waystones.STORAGE.getWaystoneEntity(hash);
 				if (waystone == null) {
 					return;
 				}
 				if (waystone.getLevel() != null && !(waystone.getLevel().getBlockState(waystone.getBlockPos()).getBlock() instanceof WaystoneBlock)) {
-					Waystones.WAYSTONE_STORAGE.removeWaystone(hash);
+					Waystones.STORAGE.removeWaystone(hash);
 					waystone.getLevel().removeBlockEntity(waystone.getBlockPos());
 				} else {
 					waystone.teleportPlayer(context.getPlayer(), true);

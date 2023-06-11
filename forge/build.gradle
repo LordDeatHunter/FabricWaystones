@@ -9,13 +9,11 @@ architectury {
 
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
-
     forge {
         convertAccessWideners = true
         extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
 
         mixinConfig "fwaystones-common.mixins.json"
-        mixinConfig "fwaystones.mixins.json"
     }
 }
 
@@ -28,19 +26,18 @@ configurations {
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:${forge_version}"
+    forge "net.minecraftforge:forge:${rootProject.forge_version}"
+    // Mandatory Dependencies
+    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
+    modApi("me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}") {
+        exclude(module: "fabric-api")
+    }
+    // Optional Dependencies
+    modRuntimeOnly("maven.modrinth:journeymap:${rootProject.journeymap_version}-forge")
+    modCompileOnly("info.journeymap:journeymap-api:${rootProject.journeymap_api_version}-SNAPSHOT")
+
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
-    // Development QOL
-    //modLocalRuntime("mezz.jei:jei-${minecraft_version}-forge:${jei_forge_version}")
-    // if you would like to add integration with JEI, uncomment this line.
-    //modCompileOnly("mezz.jei:jei-${minecraft_version}:${jei_forge_version}:api")
-    // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury-forge:${architectury_version}"
-    modApi "me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}"
-    // Test with JourneyMap in dev
-    modLocalRuntime("maven.modrinth:journeymap:${journeymap_version}-forge")
-    modCompileOnly("info.journeymap:journeymap-api:${journeymap_api_version}-SNAPSHOT") // for some reason this is needed explicitly
 }
 
 processResources {
@@ -49,14 +46,21 @@ processResources {
     filesMatching("META-INF/mods.toml") {
         expand "version": project.version
     }
+    //// Minify json resources
+    //// https://stackoverflow.com/questions/41028030/gradle-minimize-json-resources-in-processresources#41029113
+    //doLast {
+    //    fileTree(mapOf("dir" to outputs.files.asPath, "includes" to listOf("**/*.json", "**/*.mcmeta"))).forEach {
+    //        file: File -> file.writeText(groovy.json.JsonOutput.toJson(groovy.json.JsonSlurper().parse(file)))
+    //    }
+    //}
 }
 
 shadowJar {
-    exclude "fabric.mod.json"
-    exclude "architectury.common.json"
-
     configurations = [project.configurations.shadowCommon]
     classifier "dev-shadow"
+    //relocate 'net.fabricmc', 'wraith.fwaystones.fabric'
+    exclude "fabric.mod.json"
+    exclude "architectury.common.json"
 }
 
 remapJar {
@@ -78,19 +82,5 @@ sourcesJar {
 components.java {
     withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
         skip()
-    }
-}
-
-publishing {
-    publications {
-        mavenForge(MavenPublication) {
-            artifactId = rootProject.archives_base_name + "-" + project.name
-            from components.java
-        }
-    }
-
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
     }
 }

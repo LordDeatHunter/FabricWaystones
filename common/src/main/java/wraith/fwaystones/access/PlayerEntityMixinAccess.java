@@ -1,7 +1,7 @@
 package wraith.fwaystones.access;
 
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.util.SearchType;
 
@@ -11,53 +11,57 @@ import java.util.Set;
 
 public interface PlayerEntityMixinAccess extends PlayerAccess {
 
-    void discoverWaystone(WaystoneBlockEntity waystone);
+	void discoverWaystone(WaystoneBlockEntity waystone);
 
-    void discoverWaystone(String hash);
+	void discoverWaystone(String hash);
 
-    void discoverWaystone(String hash, boolean sync);
+	void discoverWaystone(String hash, boolean sync);
 
-    boolean hasDiscoveredWaystone(WaystoneBlockEntity waystone);
+	boolean hasDiscoveredWaystone(WaystoneBlockEntity waystone);
 
-    void forgetWaystone(WaystoneBlockEntity waystone);
+	void forgetWaystone(WaystoneBlockEntity waystone);
 
-    void forgetWaystone(String hash);
+	void forgetWaystone(String hash);
 
-    void forgetWaystone(String hash, boolean sync);
+	void forgetWaystone(String hash, boolean sync);
 
-    void syncData();
+	void syncData();
 
-    Set<String> getDiscoveredWaystones();
+	Set<String> getDiscoveredWaystones();
 
-    ArrayList<String> getWaystonesSorted();
+	ArrayList<String> getWaystonesSorted();
 
-    void learnWaystones(Player player);
+	void learnWaystones(Player player);
 
-    void fromTagW(CompoundTag tag);
+	void fromTagW(CompoundTag tag);
 
-    CompoundTag toTagW(CompoundTag tag);
+	CompoundTag toTagW(CompoundTag tag);
 
-    boolean shouldViewGlobalWaystones();
+	boolean shouldViewGlobalWaystones();
 
-    boolean shouldViewDiscoveredWaystones();
+	boolean shouldViewDiscoveredWaystones();
 
-    void toggleViewGlobalWaystones();
+	void toggleViewGlobalWaystones();
 
-    void toggleViewDiscoveredWaystones();
+	void toggleViewDiscoveredWaystones();
 
-    boolean hasDiscoveredWaystone(String hash);
+	boolean hasDiscoveredWaystone(String hash);
 
-    void discoverWaystones(HashSet<String> toLearn);
+	void discoverWaystones(HashSet<String> toLearn);
 
-    void forgetWaystones(HashSet<String> toForget);
+	void forgetWaystones(HashSet<String> toForget);
 
-    int getTeleportCooldown();
+	int getTeleportCooldown();
 
-    void setTeleportCooldown(int cooldown);
+	void setTeleportCooldown(int cooldown);
 
-    void forgetAllWaystones();
-    boolean autofocusWaystoneFields();
-    void toggleAutofocusWaystoneFields();
-    SearchType getSearchType();
-    void setSearchType(SearchType searchType);
+	void forgetAllWaystones();
+
+	boolean autofocusWaystoneFields();
+
+	void toggleAutofocusWaystoneFields();
+
+	SearchType getSearchType();
+
+	void setSearchType(SearchType searchType);
 }

@@ -5,19 +5,20 @@ import wraith.fwaystones.block.WaystoneBlockEntity;
 
 public interface WaystoneValue {
 
-    WaystoneBlockEntity getEntity();
+	WaystoneBlockEntity getEntity();
 
-    String getWaystoneName();
+	String getWaystoneName();
 
-    BlockPos way_getPos();
+	BlockPos way_getPos();
 
-    String getWorldName();
+	String getWorldName();
 
-    boolean isGlobal();
+	boolean isGlobal();
 
-    String getHash();
+	String getHash();
 
-    int getColor();
+	int getColor();
 
-    void setColor(int color);
+	void setColor(int color);
+
 }
