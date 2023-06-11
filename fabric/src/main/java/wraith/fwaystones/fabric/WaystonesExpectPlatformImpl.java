@@ -1,15 +1,15 @@
 package wraith.fwaystones.fabric;
 
-import wraith.fwaystones.WaystonesExpectPlatform;
 import net.fabricmc.loader.api.FabricLoader;
-
-import java.nio.file.Path;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import wraith.fwaystones.fabric.integration.pinlib.PinlibPlugin;
 
 public class WaystonesExpectPlatformImpl {
-    /**
-     * This is our actual method to {@link WaystonesExpectPlatform#getConfigDirectory()}.
-     */
-    public static Path getConfigDirectory() {
-        return FabricLoader.getInstance().getConfigDir();
-    }
+	public static boolean pinlibTryUseOnMarkableBlock(ItemStack item, Level level, BlockPos openPos) {
+		// TODO: Mixin error
+		//  return FabricLoader.getInstance().isModLoaded("pinlib") && PinlibPlugin.tryUseOnMarkableBlock(item, level, openPos);
+		return false;
+	}
 }

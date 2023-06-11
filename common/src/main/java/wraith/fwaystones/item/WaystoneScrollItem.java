@@ -34,7 +34,7 @@ public class WaystoneScrollItem extends Item {
         if (level.isClientSide) {
             return InteractionResultHolder.success(stack);
         }
-        if (Waystones.WAYSTONE_STORAGE == null) {
+        if (Waystones.STORAGE == null) {
             return InteractionResultHolder.fail(stack);
         }
         CompoundTag tag = stack.getTag();
@@ -46,8 +46,8 @@ public class WaystoneScrollItem extends Item {
         HashSet<String> toLearn = new HashSet<>();
         for (int i = 0; i < list.size(); ++i) {
             String hash = list.getString(i);
-            if (Waystones.WAYSTONE_STORAGE.containsHash(hash) && !((PlayerEntityMixinAccess) player).hasDiscoveredWaystone(hash)) {
-                var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
+            if (Waystones.STORAGE.containsHash(hash) && !((PlayerEntityMixinAccess) player).hasDiscoveredWaystone(hash)) {
+                var waystone = Waystones.STORAGE.getWaystoneEntity(hash);
                 if (waystone != null && waystone.getOwner() == null) {
                     waystone.setOwner(player);
                 }
@@ -114,8 +114,8 @@ public class WaystoneScrollItem extends Item {
         }
         int size = tag.getList(Waystones.MOD_ID, Tag.TAG_STRING).size();
         HashSet<String> waystones = null;
-        if (Waystones.WAYSTONE_STORAGE != null) {
-            waystones = Waystones.WAYSTONE_STORAGE.getAllHashes();
+        if (Waystones.STORAGE != null) {
+            waystones = Waystones.STORAGE.getAllHashes();
         }
         if (waystones != null) {
             tooltip.add(Component.translatable(

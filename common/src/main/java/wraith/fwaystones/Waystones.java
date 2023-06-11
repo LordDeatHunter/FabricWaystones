@@ -2,33 +2,29 @@ package wraith.fwaystones;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import wraith.fwaystones.registry.BlockEntityRegistry;
-import wraith.fwaystones.registry.BlockRegistry;
-import wraith.fwaystones.registry.ItemRegistry;
-import wraith.fwaystones.registry.TabRegistry;
+import wraith.fwaystones.registry.BlockEntityRegister;
+import wraith.fwaystones.registry.BlockRegister;
+import wraith.fwaystones.registry.ItemRegister;
+import wraith.fwaystones.registry.MenuRegister;
 import wraith.fwaystones.util.EventManager;
 import wraith.fwaystones.util.PacketHandler;
-import wraith.fwaystones.util.Storage;
-import wraith.fwaystones.util.TODO_ConfigModel;
+import wraith.fwaystones.util.WaystoneStorage;
+import wraith.fwaystones.util.Config;
 
 public class Waystones {
     public static final String MOD_ID = "fwaystones";
-    public static TODO_ConfigModel CONFIG;
-    public static Storage WAYSTONE_STORAGE;
+    public static Config CONFIG;
+    public static WaystoneStorage STORAGE;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID.toUpperCase());
-    //public static final Supplier<Registries> REGISTRIES = Suppliers.memoize(() -> Registries.get(MOD_ID));
     public static void init() {
-        TODO_ConfigModel.register();
+        Config.register();
 
-        BlockRegistry.BLOCK_REGISTRY.register();
-        BlockEntityRegistry.BLOCKENTITY_REGISTRY.register();
-        ItemRegistry.ITEM_REGISTRY.register();
-        TabRegistry.register();
+        BlockRegister.BLOCK_REGISTRY.register();
+        BlockEntityRegister.BLOCKENTITY_REGISTRY.register();
+        ItemRegister.ITEM_REGISTRY.register();
         //CompatReg.register();
-        //MenuReg.MENU_REGISTRY.register();
+        MenuRegister.MENU_REGISTRY.register();
         EventManager.registerServer();
         PacketHandler.registerC2SListeners();
-
-        System.out.println(WaystonesExpectPlatform.getConfigDirectory().toAbsolutePath().normalize().toString());
     }
 }

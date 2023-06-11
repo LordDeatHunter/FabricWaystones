@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.item.VoidTotem;
-import wraith.fwaystones.registry.ItemRegistry;
+import wraith.fwaystones.registry.ItemRegister;
 import wraith.fwaystones.util.PacketHandler;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
@@ -50,7 +50,7 @@ public abstract class LivingEntityMixin {
 		ItemStack stack = null;
 		for (InteractionHand hand : InteractionHand.values()) {
 			var currentStack = getItemInHand(hand);
-			if (currentStack.getItem() != ItemRegistry.VOID_TOTEM.get()) continue;
+			if (currentStack.getItem() != ItemRegister.VOID_TOTEM.get()) continue;
 			stack = currentStack.copy();
 			currentStack.shrink(1);
 			break;
@@ -78,7 +78,7 @@ public abstract class LivingEntityMixin {
 				}
 			}
 			if (hash != null) {
-				var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
+				var waystone = Waystones.STORAGE.getWaystoneEntity(hash);
 				if (waystone != null) {
 					player.fallDistance = 0;
 					waystone.teleportPlayer(player, false, TeleportSources.VOID_TOTEM);

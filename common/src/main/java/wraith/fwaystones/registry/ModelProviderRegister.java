@@ -14,7 +14,7 @@ import wraith.fwaystones.item.WaystoneScrollItem;
 import wraith.fwaystones.util.Utils;
 
 @Environment(EnvType.CLIENT)
-public final class ModelProviderRegistry {
+public final class ModelProviderRegister {
 	public static void register() {
 		ItemPropertiesRegistry.registerGeneric(Utils.ID("has_learned"),
 				(ItemStack itemStack, ClientLevel clientLevel, LivingEntity livingEntity, int seed) -> {

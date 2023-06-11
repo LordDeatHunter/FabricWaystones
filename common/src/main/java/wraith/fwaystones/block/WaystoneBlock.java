@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -40,10 +41,11 @@ import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
-import wraith.fwaystones.registry.BlockEntityRegistry;
+import wraith.fwaystones.registry.BlockEntityRegister;
 import wraith.fwaystones.util.Utils;
 
-//@SuppressWarnings("deprecation")
+import static wraith.fwaystones.WaystonesExpectPlatform.pinlibTryUseOnMarkableBlock;
+
 public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 
 	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
@@ -103,7 +105,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-		return createTickerHelper(type, BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY.get(), WaystoneBlockEntity::ticker);
+		return createTickerHelper(type, BlockEntityRegister.WAYSTONE_BLOCK_ENTITY.get(), WaystoneBlockEntity::ticker);
 	}
 
 	@Override
@@ -211,7 +213,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
 		level.setBlockAndUpdate(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER));
 		BlockEntity entity = level.getBlockEntity(pos);
 		if (placer instanceof ServerPlayer && entity instanceof WaystoneBlockEntity waystone) {
-			Waystones.WAYSTONE_STORAGE.tryAddWaystone(waystone);
+			Waystones.STORAGE.tryAddWaystone(waystone);
 		}
 	}
 
@@ -265,10 +267,10 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
 				blockEntity.setInventory(NonNullList.withSize(0, ItemStack.EMPTY));
 			}
 		} else {
-			/* TODO: if (!FabricWaystones.CONFIG.discover_waystone_on_map_use() && FabricLoader.getInstance().isModLoaded("pinlib") && PinlibPlugin.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos))
-				return ActionResult.SUCCESS;*/
-
-			Waystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
+			 if (!Waystones.CONFIG.discover_waystone_on_map_use && pinlibTryUseOnMarkableBlock(player.getItemInHand(hand), level, openPos)){
+				 return InteractionResult.SUCCESS;
+			 }
+			Waystones.STORAGE.tryAddWaystone(blockEntity);
 			if (!discovered.contains(blockEntity.getHash())) {
 				if (!blockEntity.isGlobal()) {
 					var discoverItemId = Utils.getDiscoverItem();
@@ -309,21 +311,24 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
 			} else {
 				blockEntity.updateActiveState();
 			}
-
-			/*var screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
-
-			if (screenHandlerFactory != null)
-				player.openHandledScreen(screenHandlerFactory);*/
+			BlockPos menupos = state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos;
+			var screenHandlerFactory = state.getMenuProvider(level, pos);
+			if (screenHandlerFactory != null){
+				BlockEntity entity = level.getBlockEntity(menupos);
+				if(entity instanceof WaystoneBlockEntity data) {
+					data.writeScreenOpeningData((ServerPlayer) player, screenHandlerFactory);
+				}
+			}
 		}
 		blockEntity.setChanged();
 		return InteractionResult.sidedSuccess(false);
 	}
 
-	/*@Nullable
+	@Nullable
 	@Override
-	public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
-		return super.createScreenHandlerFactory(state, world, state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos);
-	}*/
+	public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+		return super.getMenuProvider(state, level, state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos);
+	}
 
 	@Override
 	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
@@ -350,7 +355,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
 			}
 			BlockEntity entity = level.getBlockEntity(testPos);
 			if (!level.isClientSide && entity instanceof WaystoneBlockEntity waystone) {
-				Waystones.WAYSTONE_STORAGE.removeWaystone(waystone);
+				Waystones.STORAGE.removeWaystone(waystone);
 			}
 			level.removeBlockEntity(testPos);
 			level.setBlockAndUpdate(newPos, newState);
@@ -365,11 +370,11 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
 		return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
 	}
 
-	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
 		if (state.getValue(WATERLOGGED)) {
-			world.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
+			level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
 		}
-		return super.updateShape(state, direction, neighborState, world, pos, neighborPos);
+		return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
 	}
 
 }

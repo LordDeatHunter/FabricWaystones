@@ -11,7 +11,7 @@ public interface WaystoneValue {
 
 	BlockPos way_getPos();
 
-	String getLevelName();
+	String getWorldName();
 
 	boolean isGlobal();
 
@@ -20,4 +20,5 @@ public interface WaystoneValue {
 	int getColor();
 
 	void setColor(int color);
+
 }

@@ -1,5 +1,6 @@
 package wraith.fwaystones.block;
 
+import dev.architectury.registry.menu.MenuRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -17,6 +18,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +34,8 @@ import wraith.fwaystones.Waystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.item.AbyssWatcherItem;
-import wraith.fwaystones.registry.BlockEntityRegistry;
+import wraith.fwaystones.registry.BlockEntityRegister;
+import wraith.fwaystones.screen.WaystoneBlockScreenHandler;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
 
@@ -40,7 +43,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer, /*ExtendedScreenHandlerFactory,*/ WaystoneValue {
+public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer, WaystoneValue {
 
 	public float lookingRotR = 0;
 	private String name = "";
@@ -54,7 +57,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 	private long tickDelta = 0;
 
 	public WaystoneBlockEntity(BlockPos pos, BlockState state) {
-		super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY.get(), pos, state);
+		super(BlockEntityRegister.WAYSTONE_BLOCK_ENTITY.get(), pos, state);
 		this.name = Utils.generateWaystoneName(this.name);
 	}
 
@@ -102,14 +105,13 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 	}
 
 	@Override
-	public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
-		// TODO: return new WaystoneBlockScreenHandler(syncId, this, player);
-		return null;
+	public AbstractContainerMenu createMenu(int syncId, Inventory inventory, Player player) {
+		return new WaystoneBlockScreenHandler(syncId, this, player);
 	}
 
 	@Override
-	protected AbstractContainerMenu createMenu(int syncId, Inventory playerInventory) {
-		return createMenu(syncId, playerInventory, playerInventory.player);
+	protected AbstractContainerMenu createMenu(int syncId, Inventory inventory) {
+		return createMenu(syncId, inventory, inventory.player);
 	}
 
 	@Override
@@ -173,8 +175,8 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 	@Override
 	public void setChanged() {
 		super.setChanged();
-		if (level != null && level instanceof ServerLevel serverWorld) {
-			serverWorld.getChunkSource().blockChanged(worldPosition);
+		if (level != null && level instanceof ServerLevel serverLevel) {
+			serverLevel.getChunkSource().blockChanged(worldPosition);
 		}
 	}
 
@@ -195,13 +197,13 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 		setChanged();
 	}
 
-	/*@Override
-	public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity,
-									   PacketByteBuf packetByteBuf) {
-		NbtCompound tag = createTag(new NbtCompound());
-		tag.putString("waystone_hash", this.hash);
-		packetByteBuf.writeNbt(tag);// saveAdditional
-	}*/
+	public void writeScreenOpeningData(ServerPlayer player, MenuProvider screenHandlerFactory) {
+		MenuRegistry.openExtendedMenu(player, screenHandlerFactory, (buf) -> {
+			CompoundTag tag = createTag(new CompoundTag());
+			tag.putString("waystone_hash", this.hash);
+			buf.writeNbt(tag);
+		});
+	}
 
 	private float rotClamp(int clampTo, float value) {
 		if (value >= clampTo) {
@@ -245,12 +247,9 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 		var r = level.getRandom();
 		Vec3 playerPos = player.position();
 		ParticleOptions p = (r.nextInt(10) > 7) ? ParticleTypes.ENCHANT : ParticleTypes.PORTAL;
-
 		int j = r.nextInt(2) * 2 - 1;
 		int k = r.nextInt(2) * 2 - 1;
-
 		double y = this.getBlockPos().getY() + 1;
-
 		int rd = r.nextInt(10);
 		if (rd > 5) {
 			if (p == ParticleTypes.ENCHANT) {
@@ -289,10 +288,8 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 			} else {
 				lookingRotR += 2;
 			}
-
 			lookingRotR = rotClamp(360, lookingRotR);
 		}
-
 		if (tickDelta >= 360) {
 			tickDelta = 0;
 		}
@@ -309,7 +306,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 	}
 
 	@Override
-	public String getLevelName() {
+	public String getWorldName() {
 		return level == null ? "" : Utils.getDimensionName(level);
 	}
 
@@ -352,25 +349,18 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 				yaw = 270;
 			}
 		}
-		final float fX = x;
-		final float fZ = z;
-		final float fYaw = yaw;
 		if (playerEntity.getServer() == null) {
 			return false;
 		}
-		TeleportTarget target = new TeleportTarget(
-				new Vec3(worldPosition.getX() + fX, worldPosition.getY(), worldPosition.getZ() + fZ),
-				new Vec3(0, 0, 0),
-				fYaw,
-				0
-		);
+		Vec3 position = new Vec3(worldPosition.getX() + x, worldPosition.getY(), worldPosition.getZ() + z);
+
 		if (source == null) {
 			source = Utils.getTeleportSource(playerEntity);
 		}
 		if (source == null) {
 			return false;
 		}
-		var teleported = doTeleport(playerEntity, (ServerLevel) level, target, source, takeCost);
+		var teleported = doTeleport(playerEntity, (ServerLevel) level, position, yaw, source, takeCost);
 		if (!teleported) {
 			return false;
 		}
@@ -387,7 +377,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 		return true;
 	}
 
-	private boolean doTeleport(ServerPlayer player, ServerLevel world, TeleportTarget target, TeleportSources source, boolean takeCost) {
+	private boolean doTeleport(ServerPlayer player, ServerLevel level, Vec3 position, float yaw, TeleportSources source, boolean takeCost) {
 		var playerAccess = (PlayerEntityMixinAccess) player;
 		var cooldown = playerAccess.getTeleportCooldown();
 		if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
@@ -416,14 +406,16 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 			case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole;
 		});
 		var oldPos = player.blockPosition();
-		world.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, new ChunkPos(BlockPos.containing(target.position)), 1, player.getId());
+		level.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, new ChunkPos(BlockPos.containing(position)), 1, player.getId());
 		player.getLevel().playSound(null, oldPos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1F, 1F);
-		player.unRide();
-		// TODO: FabricDimensions.teleport(player, world, target);
-		BlockPos playerPos = player.blockPosition();
 
-		if (!oldPos.closerThan(playerPos, 6) || !player.getLevel().dimension().location().toString().equals(world.dimension().location().toString())) {
-			world.playSound(null, playerPos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1F, 1F);
+		if (!player.getLevel().isClientSide && Thread.currentThread() == (player.getLevel()).getServer().getRunningThread()){
+			player.teleportTo(level, position.x, position.y, position.z, yaw, player.getXRot());
+		}
+
+		BlockPos playerPos = player.blockPosition();
+		if (!oldPos.closerThan(playerPos, 6) || !player.getLevel().dimension().location().toString().equals(level.dimension().location().toString())) {
+			level.playSound(null, playerPos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1F, 1F);
 		}
 		return true;
 	}
@@ -506,41 +498,22 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 	public String getOwnerName() {
 		return this.ownerName;
 	}
-
 	public void setItemInSlot(int i, ItemStack itemStack) {
 		this.inventory.set(i, itemStack);
 	}
-
 	public boolean hasStorage() {
 		return !this.inventory.isEmpty();
 	}
-
 	@Override
 	public int[] getSlotsForFace(Direction side) {
 		return new int[0];
 	}
-
 	@Override
 	public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction dir) {
 		return false;
 	}
-
 	@Override
 	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction dir) {
 		return false;
-	}
-
-	private class TeleportTarget {
-		public final Vec3 position;
-		public final Vec3 velocity;
-		public final float yaw;
-		public final float pitch;
-
-		public TeleportTarget(Vec3 position, Vec3 velocity, float yaw, float pitch) {
-			this.position = position;
-			this.velocity = velocity;
-			this.yaw = yaw;
-			this.pitch = pitch;
-		}
 	}
 }

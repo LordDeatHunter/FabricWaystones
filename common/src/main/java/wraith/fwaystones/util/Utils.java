@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -19,7 +20,11 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProc
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.Waystones;
+import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
+import wraith.fwaystones.screen.AbyssScreenHandler;
+import wraith.fwaystones.screen.PocketWormholeScreenHandler;
+import wraith.fwaystones.screen.WaystoneBlockScreenHandler;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -30,13 +35,12 @@ import java.util.Arrays;
 import java.util.Random;
 
 public final class Utils {
+
 	public static final DecimalFormat df = new DecimalFormat("#.##");
 	public static final Random random = new Random();
-	private static final ResourceKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = ResourceKey.create(
-			Registries.PROCESSOR_LIST, new ResourceLocation("minecraft", "empty"));
+	private static final ResourceKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = ResourceKey.create(Registries.PROCESSOR_LIST, new ResourceLocation("minecraft", "empty"));
 
-	private Utils() {
-	}
+	private Utils() {}
 
 	public static int getRandomIntInRange(int min, int max) {
 		if (min == max) {
@@ -130,14 +134,14 @@ public final class Utils {
 	}
 
 	public static boolean canTeleport(Player player, String hash, boolean takeCost) {
-		TODO_ConfigModel.CostType cost = Waystones.CONFIG.teleportation_cost.cost_type;
-		var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneData(hash);
+		Config.CostType cost = Waystones.CONFIG.teleportation_cost.cost_type;
+		var waystone = Waystones.STORAGE.getWaystoneData(hash);
 		if (waystone == null) {
 			player.displayClientMessage(Component.translatable("fwaystones.no_teleport.invalid_waystone"), true);
 			return false;
 		}
 		var sourceDim = getDimensionName(player.getLevel());
-		var destDim = waystone.getLevelName();
+		var destDim = waystone.getWorldName();
 		if (!Waystones.CONFIG.ignore_dimension_blacklists_if_same_dimension || !sourceDim.equals(destDim)) {
 			if (Waystones.CONFIG.disable_teleportation_from_dimensions.contains(sourceDim)) {
 				player.displayClientMessage(Component.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
@@ -206,7 +210,7 @@ public final class Utils {
 				if (takeCost) {
 					removeItem(player.getInventory(), item, amount);
 
-					if (player.getLevel().isClientSide || Waystones.WAYSTONE_STORAGE == null) {
+					if (player.getLevel().isClientSide || Waystones.STORAGE == null) {
 						return true;
 					}
 					var waystoneBE = waystone.getEntity();
@@ -298,12 +302,11 @@ public final class Utils {
 		return "";
 	}
 
-	public static String getDimensionName(Level level) {
-		return level.dimension().location().toString();
+	public static String getDimensionName(Level Level) {
+		return Level.dimension().location().toString();
 	}
 
 	public static TeleportSources getTeleportSource(Player player) {
-		/*
 		if (player.containerMenu instanceof AbyssScreenHandler) {
 			return TeleportSources.ABYSS_WATCHER;
 		} else if (player.containerMenu instanceof PocketWormholeScreenHandler) {
@@ -316,7 +319,6 @@ public final class Utils {
 				return TeleportSources.LOCAL_VOID;
 			}
 		}
-		*/
 		return null;
 	}
 
@@ -326,7 +328,7 @@ public final class Utils {
 
 	@Nullable
 	public static ResourceLocation getTeleportCostItem() {
-		if (Waystones.CONFIG.teleportation_cost.cost_type == TODO_ConfigModel.CostType.ITEM) {
+		if (Waystones.CONFIG.teleportation_cost.cost_type == Config.CostType.ITEM) {
 			String[] item = Waystones.CONFIG.teleportation_cost.cost_item.split(":");
 			return (item.length == 2) ? new ResourceLocation(item[0], item[1]) : new ResourceLocation(item[0]);
 		}

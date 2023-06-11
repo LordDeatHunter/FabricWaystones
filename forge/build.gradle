@@ -25,19 +25,19 @@ configurations {
     developmentForge.extendsFrom common
 }
 
-repositories {
-    maven { url 'https://maven.shedaniel.me/' }
-}
-
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
-    // Remove the next line if you don't want to depend on the API
+    // Mandatory Dependencies
     modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
+    modApi("me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}") {
+        exclude(module: "fabric-api")
+    }
+    // Optional Dependencies
+    modRuntimeOnly("maven.modrinth:journeymap:${rootProject.journeymap_version}-forge")
+    modCompileOnly("info.journeymap:journeymap-api:${rootProject.journeymap_api_version}-SNAPSHOT")
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
-
-    modApi("me.shedaniel.cloth:cloth-config-forge:${project.cloth_config_version}")
 }
 
 processResources {
@@ -46,6 +46,13 @@ processResources {
     filesMatching("META-INF/mods.toml") {
         expand "version": project.version
     }
+    //// Minify json resources
+    //// https://stackoverflow.com/questions/41028030/gradle-minimize-json-resources-in-processresources#41029113
+    //doLast {
+    //    fileTree(mapOf("dir" to outputs.files.asPath, "includes" to listOf("**/*.json", "**/*.mcmeta"))).forEach {
+    //        file: File -> file.writeText(groovy.json.JsonOutput.toJson(groovy.json.JsonSlurper().parse(file)))
+    //    }
+    //}
 }
 
 shadowJar {
@@ -77,4 +84,3 @@ components.java {
         skip()
     }
 }
-

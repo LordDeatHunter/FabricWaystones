@@ -7,11 +7,10 @@ loom {
 }
 
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
+    modImplementation("net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}")
     // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury:${rootProject.architectury_version}"
-
-    modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
-        exclude(group: "net.fabricmc.fabric-api")
-    }
+    modApi("dev.architectury:architectury:${rootProject.architectury_version}")
+    modApi("me.shedaniel.cloth:cloth-config:${rootProject.cloth_config_version}")
+    modCompileOnly("info.journeymap:journeymap-api:${rootProject.journeymap_api_version}-fabric-SNAPSHOT")
 }

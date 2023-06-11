@@ -21,22 +21,20 @@ import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
+import wraith.fwaystones.integration.event.WaystoneEvents;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Storage {
+public class WaystoneStorage {
 
-	public static final String ID = "fwaystones";
+	public static final String ID = "fw_waystones";
 	private final SavedData state;
 	public final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
 	private final MinecraftServer server;
 
-	public Storage(MinecraftServer server) {
+	public WaystoneStorage(MinecraftServer server) {
 		if (server == null) {
 			this.server = null;
 			this.state = null;
@@ -44,7 +42,7 @@ public class Storage {
 		}
 		this.server = server;
 
-		var pState = new SavedData(){
+		var pState = new SavedData() {
 			@Override
 			public CompoundTag save(CompoundTag tag) {
 				return toTag(tag);
@@ -103,7 +101,7 @@ public class Storage {
 			waystoneTag.putInt("color", entity.getColor());
 			BlockPos pos = entity.way_getPos();
 			waystoneTag.putIntArray("position", Arrays.asList(pos.getX(), pos.getY(), pos.getZ()));
-			waystoneTag.putString("dimension", entity.getLevelName());
+			waystoneTag.putString("dimension", entity.getWorldName());
 
 			waystones.add(waystoneTag);
 		}
@@ -178,7 +176,7 @@ public class Storage {
 	}
 
 	public void removeWaystone(String hash) {
-		// TODO: WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
+		WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
 		WAYSTONES.remove(hash);
 		forgetForAllPlayers(hash);
 		loadOrSaveWaystones(true);
@@ -189,7 +187,7 @@ public class Storage {
 			return;
 		}
 		WAYSTONES.forEach((hash, waystone) -> {
-			if (waystone.getLevelName().equals(dimension)) {
+			if (waystone.getWorldName().equals(dimension)) {
 				var entity = waystone.getEntity();
 				if (entity != null) {
 					entity.setOwner(null);
@@ -216,7 +214,7 @@ public class Storage {
 		if (WAYSTONES.containsKey(hash)) {
 			WaystoneValue waystone = WAYSTONES.get(hash);
 			waystone.getEntity().setName(name);
-			// TODO: WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(hash);
+			WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(hash);
 			loadOrSaveWaystones(true);
 		}
 	}
@@ -289,7 +287,7 @@ public class Storage {
 		final boolean isGlobal;
 		int color;
 		WaystoneBlockEntity entity;
-		Level level;
+		Level world;
 
 		Lazy(String name, BlockPos pos, String hash, String dimension, int color, boolean global) {
 			this.name = name;
@@ -306,13 +304,13 @@ public class Storage {
 				return null;
 			}
 			if (this.entity == null) {
-				for (ServerLevel level : server.getAllLevels()) {
-					if (Utils.getDimensionName(level).equals(dimension)) {
-						WaystoneBlockEntity entity = WaystoneBlock.getEntity(level, pos);
+				for (ServerLevel world : server.getAllLevels()) {
+					if (Utils.getDimensionName(world).equals(dimension)) {
+						WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, pos);
 						if (entity != null) {
 							tryAddWaystone(entity); // should allow this instance to be GCed
 							this.entity = entity;
-							this.level = level;
+							this.world = world;
 						}
 						break;
 					}
@@ -332,7 +330,7 @@ public class Storage {
 		}
 
 		@Override
-		public String getLevelName() {
+		public String getWorldName() {
 			return this.dimension;
 		}
 

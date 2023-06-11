@@ -1,6 +1,6 @@
 modLoader = "javafml"
 loaderVersion = "[45,)"
-#issueTrackerURL = ""
+issueTrackerURL="https://github.com/LordDeatHunter/FabricWaystones/issues"
 license = "MIT License"
 
 [[mods]]
@@ -26,8 +26,15 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.fwaystones]]
+modId = "architectury"
+mandatory = true
+versionRange = "[8.1.79,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.fwaystones]]
 modId = "cloth_config"
 mandatory = true
-versionRange = "[10,)"
+versionRange = "[10.0.96,)"
 ordering = "AFTER"
 side = "BOTH"

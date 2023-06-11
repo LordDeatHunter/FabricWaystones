@@ -2,7 +2,6 @@ package wraith.fwaystones.util;
 
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
-import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import wraith.fwaystones.Waystones;
 
@@ -11,18 +10,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Config(name = Waystones.MOD_ID)
-public class TODO_ConfigModel implements ConfigData {
+@me.shedaniel.autoconfig.annotation.Config(name = Waystones.MOD_ID)
+public class Config implements ConfigData {
 	public static void register() {
-		AutoConfig.register(TODO_ConfigModel.class, GsonConfigSerializer::new);
+		AutoConfig.register(Config.class, GsonConfigSerializer::new);
 		Waystones.CONFIG = get();
 	}
 	public void reload() {
-		AutoConfig.getConfigHolder(TODO_ConfigModel.class).load();
+		AutoConfig.getConfigHolder(Config.class).load();
 		Waystones.CONFIG = get();
 	}
-	public static TODO_ConfigModel get() {
-		return AutoConfig.getConfigHolder(TODO_ConfigModel.class).getConfig();
+	public static Config get() {
+		return AutoConfig.getConfigHolder(Config.class).getConfig();
 	}
 	// ------------------------------------------------------------------------------------------------------
 	public enum PermissionLevel {

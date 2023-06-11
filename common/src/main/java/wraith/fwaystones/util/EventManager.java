@@ -14,37 +14,38 @@ import wraith.fwaystones.access.PlayerEntityMixinAccess;
 public class EventManager {
 	public static void registerClient(){
 		ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player->{
-			if (Waystones.WAYSTONE_STORAGE == null) {
-				Waystones.WAYSTONE_STORAGE = new Storage(null);
+			if (Waystones.STORAGE == null) {
+				Waystones.STORAGE = new WaystoneStorage(null);
 			}
 		});
 		ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player->{
-			if (Waystones.WAYSTONE_STORAGE == null) {
+			if (Waystones.STORAGE == null) {
 				Waystones.LOGGER.error("CLIENT : The Waystone storage is null. This is likely caused by a crash.");
 				return;
 			}
-			Waystones.WAYSTONE_STORAGE.loadOrSaveWaystones(true);
-			Waystones.WAYSTONE_STORAGE = null;
+			Waystones.STORAGE.loadOrSaveWaystones(true);
+			Waystones.STORAGE = null;
 		});
 	}
 	public static void registerServer(){
 		LifecycleEvent.SERVER_STARTED.register((server)->{
-			if (Waystones.WAYSTONE_STORAGE == null) {
-				Waystones.WAYSTONE_STORAGE = new Storage(server);
+			if (Waystones.STORAGE == null) {
+				Waystones.STORAGE = new WaystoneStorage(server);
 			}
 		});
 		LifecycleEvent.SERVER_STOPPED.register((server)->{
-			if (Waystones.WAYSTONE_STORAGE == null) {
+			if (Waystones.STORAGE == null) {
 				if (server.isDedicatedServer())
 					Waystones.LOGGER.error("SERVER : The Waystone storage is null. This is likely caused by a crash.");
 				return;
 			}
-			Waystones.WAYSTONE_STORAGE.loadOrSaveWaystones(true);
-			Waystones.WAYSTONE_STORAGE = null;
+			Waystones.STORAGE.loadOrSaveWaystones(true);
+			Waystones.STORAGE = null;
 		});
-		PlayerEvent.PLAYER_JOIN.register(player -> Waystones.WAYSTONE_STORAGE.sendToPlayer(player));
+		PlayerEvent.PLAYER_JOIN.register(player -> Waystones.STORAGE.sendToPlayer(player));
 		LifecycleEvent.SERVER_STARTING.register(Worldgen::registerVanillaVillageWorldgen);
-		/*TODO: ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> FabricWaystones.CONFIG.load());
+		/** TODO: Datapack Reload Event
+		 * ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> FabricWaystones.CONFIG.load());
 		 * ConfigModel.reload()
 		 * */
 		PlayerEvent.PLAYER_RESPAWN.register((newPlayer, conqueredEnd) -> ((PlayerEntityMixinAccess) newPlayer).syncData());
@@ -54,10 +55,10 @@ public class EventManager {
 						.requires(sources -> sources.hasPermission(1))
 						.executes(context -> {
 							ServerPlayer player = context.getSource().getPlayer();
-							if (player == null || Waystones.WAYSTONE_STORAGE == null)
+							if (player == null || Waystones.STORAGE == null)
 								return 1;
 							var dimension = Utils.getDimensionName(player.level);
-							Waystones.WAYSTONE_STORAGE.removeWorldWaystones(dimension);
+							Waystones.STORAGE.removeWorldWaystones(dimension);
 							player.displayClientMessage(Component.literal("§6[§eFabric Waystones§6] §3Removed all waystones from " + dimension + "!"), false);
 							return 1;
 						})

@@ -56,8 +56,12 @@ public interface PlayerEntityMixinAccess extends PlayerAccess {
 	void setTeleportCooldown(int cooldown);
 
 	void forgetAllWaystones();
+
 	boolean autofocusWaystoneFields();
+
 	void toggleAutofocusWaystoneFields();
+
 	SearchType getSearchType();
+
 	void setSearchType(SearchType searchType);
 }

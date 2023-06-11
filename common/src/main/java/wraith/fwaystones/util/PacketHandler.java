@@ -3,6 +3,9 @@ package wraith.fwaystones.util;
 import dev.architectury.networking.NetworkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -11,7 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import wraith.fwaystones.Waystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
-import wraith.fwaystones.registry.ItemRegistry;
+import wraith.fwaystones.registry.ItemRegister;
+import wraith.fwaystones.screen.UniversalWaystoneScreenHandler;
 
 import java.util.HashSet;
 import java.util.UUID;
@@ -35,23 +39,23 @@ public final class PacketHandler {
 			var nbt = buffer.readNbt();
 			Player player = context.getPlayer();
 			context.queue(()->{
-				if (Waystones.WAYSTONE_STORAGE == null) {
-					Waystones.WAYSTONE_STORAGE = new Storage(null);
+				if (Waystones.STORAGE == null) {
+					Waystones.STORAGE = new WaystoneStorage(null);
 				}
-				Waystones.WAYSTONE_STORAGE.fromTag(nbt);
+				Waystones.STORAGE.fromTag(nbt);
 				if (player == null) {
 					return;
 				}
 				HashSet<String> toForget = new HashSet<>();
 				for (String hash : ((PlayerEntityMixinAccess) player).getDiscoveredWaystones()) {
-					if (!Waystones.WAYSTONE_STORAGE.containsHash(hash)) {
+					if (!Waystones.STORAGE.containsHash(hash)) {
 						toForget.add(hash);
 					}
 				}
 				((PlayerEntityMixinAccess) player).forgetWaystones(toForget);
-				/*if (player.containerMenu instanceof Universalmenu) {
-					((Universalmenu) player.containerMenu).updateWaystones(player);
-				}*/
+				if (player.containerMenu instanceof UniversalWaystoneScreenHandler) {
+					((UniversalWaystoneScreenHandler) player.containerMenu).updateWaystones(player);
+				}
 			});
 		});
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, SYNC_PLAYER, (buffer, context) -> {
@@ -69,12 +73,12 @@ public final class PacketHandler {
 				return;
 			}
 			context.queue(()->{
-				//TODO: client.particleManager.addEmitter(player, ParticleTypes.TOTEM_OF_UNDYING, 30);
+				Minecraft.getInstance().particleEngine.createTrackingEmitter(player, ParticleTypes.TOTEM_OF_UNDYING, 30);
 				player.getLevel().playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.TOTEM_USE, player.getSoundSource(), 1.0F, 1.0F);
 				for (int i = 0; i < player.getInventory().getContainerSize(); ++i) {
 					ItemStack playerStack = player.getInventory().getItem(i);
-					if (playerStack.getItem() == ItemRegistry.VOID_TOTEM.get()) {
-						//TODO: client.gameRenderer.showFloatingItem(playerStack);
+					if (playerStack.getItem() == ItemRegister.VOID_TOTEM.get()) {
+						Minecraft.getInstance().gameRenderer.displayItemActivation(playerStack);
 						break;
 					}
 				}
@@ -93,7 +97,7 @@ public final class PacketHandler {
 				String hash = tag.getString("waystone_hash");
 				UUID owner = tag.getUUID("waystone_owner");
 				if ((player.getUUID().equals(owner) || player.hasPermissions(2))) {
-					Waystones.WAYSTONE_STORAGE.setOwner(hash, null);
+					Waystones.STORAGE.setOwner(hash, null);
 				}
 			});
 		});
@@ -121,11 +125,11 @@ public final class PacketHandler {
 			UUID owner = tag.getUUID("waystone_owner");
 			Player player = context.getPlayer();
 			context.queue(()->{
-				if (Waystones.WAYSTONE_STORAGE.containsHash(hash) &&
+				if (Waystones.STORAGE.containsHash(hash) &&
 						((player.getUUID().equals(owner) &&
-								owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
+								owner.equals(Waystones.STORAGE.getWaystoneEntity(hash).getOwner())) ||
 								player.hasPermissions(2))) {
-					Waystones.WAYSTONE_STORAGE.renameWaystone(hash, name);
+					Waystones.STORAGE.renameWaystone(hash, name);
 				}
 			});
 		});
@@ -164,13 +168,13 @@ public final class PacketHandler {
 						}
 					}
 					case OWNER -> {
-						if (!player.getUUID().equals(owner) || !owner.equals(Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) {
+						if (!player.getUUID().equals(owner) || !owner.equals(Waystones.STORAGE.getWaystoneEntity(hash).getOwner())) {
 							return;
 						}
 					}
 				}
-				if (Waystones.WAYSTONE_STORAGE.containsHash(hash)) {
-					Waystones.WAYSTONE_STORAGE.toggleGlobal(hash);
+				if (Waystones.STORAGE.containsHash(hash)) {
+					Waystones.STORAGE.toggleGlobal(hash);
 				}
 			});
 		});
@@ -190,12 +194,12 @@ public final class PacketHandler {
 					return;
 				}
 				String hash = tag.getString("waystone_hash");
-				var waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
+				var waystone = Waystones.STORAGE.getWaystoneEntity(hash);
 				if (waystone == null) {
 					return;
 				}
 				if (waystone.getLevel() != null && !(waystone.getLevel().getBlockState(waystone.getBlockPos()).getBlock() instanceof WaystoneBlock)) {
-					Waystones.WAYSTONE_STORAGE.removeWaystone(hash);
+					Waystones.STORAGE.removeWaystone(hash);
 					waystone.getLevel().removeBlockEntity(waystone.getBlockPos());
 				} else {
 					waystone.teleportPlayer(context.getPlayer(), true);

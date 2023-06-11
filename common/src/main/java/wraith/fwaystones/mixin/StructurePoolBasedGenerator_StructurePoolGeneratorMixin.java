@@ -1,9 +1,10 @@
 package wraith.fwaystones.mixin;
 
-
 import dev.architectury.injectables.annotations.PlatformOnly;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.block.Rotation;
@@ -95,8 +96,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             BlockPos blockPos,
             Rotation rotation,
             StructureTemplatePool.Projection projection,
-            boolean bl2,
-            MutableObject<VoxelShape> mutableObject2,
+            boolean bl2, MutableObject<VoxelShape> mutableObject2,
             BoundingBox boundingBox,
             int j,
             Iterator var15,
@@ -106,20 +106,20 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             BlockPos blockPos3,
             int k,
             int l,
-            ResourceLocation resourceLocation,
-            Optional<StructureTemplatePool> optional,
-            ResourceLocation resourceLocation2,
-            Optional<StructureTemplatePool> optional2,
+            ResourceKey<StructureTemplatePool> resourceKey,
+            Optional<Holder.Reference<StructureTemplatePool>> optional,
+            Holder holder,
+            Holder<StructureTemplatePool> holder2,
             MutableObject<Object> mutableObject3,
             boolean bl3,
-            List<StructurePoolElement> list
+            List list
     ) {
         if (!Waystones.CONFIG.worldgen.generate_in_villages ||
                 maxWaystoneCount < 0 ||
-                !Worldgen.VANILLA_VILLAGES.containsKey(resourceLocation)) {
+                !Worldgen.VANILLA_VILLAGES.containsKey(resourceKey.location())) {
             return;
         }
-        list.removeIf(element -> limitWaystonePieceSpawning(pieces, maxWaystoneCount, element));
+        list.removeIf(element -> limitWaystonePieceSpawning(pieces, maxWaystoneCount, (StructurePoolElement) element));
     }
 
     @SuppressWarnings("all")
@@ -128,42 +128,41 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false),
             locals = LocalCapture.CAPTURE_FAILSOFT)
     private void fabricwaystones_limitWaystonePieceSpawning(
-            PoolElementStructurePiece arg,
+            PoolElementStructurePiece poolElementStructurePiece,
             MutableObject<VoxelShape> mutableObject,
             int i,
             boolean bl,
-            LevelHeightAccessor arg2,
-            RandomState arg3,
+            LevelHeightAccessor levelHeightAccessor,
+            RandomState randomState,
             CallbackInfo ci,
             StructurePoolElement structurePoolElement,
             BlockPos blockPos,
             Rotation rotation,
             StructureTemplatePool.Projection projection,
-            boolean bl2,
-            MutableObject<VoxelShape> mutableObject2,
+            boolean bl2, MutableObject<VoxelShape> mutableObject2,
             BoundingBox boundingBox,
             int j,
             Iterator var15,
-            StructureTemplate.StructureBlockInfo structureBlockInfo2,
+            StructureTemplate.StructureBlockInfo structureBlockInfo,
             Direction direction,
             BlockPos blockPos2,
             BlockPos blockPos3,
             int k,
             int l,
-            ResourceLocation resourceLocation,
-            Optional<StructureTemplatePool> optional,
-            ResourceLocation resourceLocation2,
-            Optional<StructureTemplatePool> optional2,
+            ResourceKey<StructureTemplatePool> resourceKey,
+            Optional<Holder.Reference<StructureTemplatePool>> optional,
+            Holder holder,
+            Holder<StructureTemplatePool> holder2,
             MutableObject<Object> mutableObject3,
             //boolean bl3, WARNING: REMOVED FOR FABRIC COMPAT
-            List<StructurePoolElement> list
+            List list
     ) {
         if (!Waystones.CONFIG.worldgen.generate_in_villages ||
                 maxWaystoneCount < 0 ||
-                !Worldgen.VANILLA_VILLAGES.containsKey(resourceLocation)) {
+                !Worldgen.VANILLA_VILLAGES.containsKey(resourceKey.location())) {
             return;
         }
-        list.removeIf(element -> limitWaystonePieceSpawning(pieces, maxWaystoneCount, element));
+        list.removeIf(element -> limitWaystonePieceSpawning(pieces, maxWaystoneCount, (StructurePoolElement) element));
     }
 
 

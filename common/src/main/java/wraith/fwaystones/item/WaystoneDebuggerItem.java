@@ -43,8 +43,7 @@ public class WaystoneDebuggerItem extends Item {
         var owner = waystone.getOwner();
         var ownerName = waystone.getOwnerName();
 
-        var message = Component.literal("");
-        message.append(Component.translatable("fwaystones.debug.msg.splitter"));
+        var message = Component.translatable("fwaystones.debug.msg.splitter");
         message.append("\n"+Component.translatable("fwaystones.debug.msg.name").getString()+waystone.getWaystoneName());
         message.append("\n"+Component.translatable("fwaystones.debug.msg.global").getString()+waystone.isGlobal());
         message.append("\n"+Component.translatable("fwaystones.debug.msg.hash").getString()+waystone.getHexHash());
