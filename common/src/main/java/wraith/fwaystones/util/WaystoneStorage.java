@@ -80,10 +80,11 @@ public class WaystoneStorage {
 			String name = waystoneTag.getString("name");
 			String hash = waystoneTag.getString("hash");
 			String dimension = waystoneTag.getString("dimension");
+			String resourcepath = waystoneTag.getString("resourcepath");
 			int[] coordinates = waystoneTag.getIntArray("position");
 			int color = waystoneTag.contains("color", Tag.TAG_INT) ? waystoneTag.getInt("color") : Utils.getRandomColor();
 			BlockPos pos = new BlockPos(coordinates[0], coordinates[1], coordinates[2]);
-			WAYSTONES.put(hash, new Lazy(name, pos, hash, dimension, color, globals.contains(hash)));
+			WAYSTONES.put(hash, new Lazy(name, pos, hash, dimension, color, globals.contains(hash), resourcepath));
 		}
 	}
 
@@ -102,6 +103,7 @@ public class WaystoneStorage {
 			BlockPos pos = entity.way_getPos();
 			waystoneTag.putIntArray("position", Arrays.asList(pos.getX(), pos.getY(), pos.getZ()));
 			waystoneTag.putString("dimension", entity.getWorldName());
+			waystoneTag.putString("resourcepath", entity.getResourcePath());
 
 			waystones.add(waystoneTag);
 		}
@@ -285,17 +287,19 @@ public class WaystoneStorage {
 		final String hash;
 		final String dimension;
 		final boolean isGlobal;
+		final String resourcepath;
 		int color;
 		WaystoneBlockEntity entity;
 		Level world;
 
-		Lazy(String name, BlockPos pos, String hash, String dimension, int color, boolean global) {
+		Lazy(String name, BlockPos pos, String hash, String dimension, int color, boolean global, String resourcepath) {
 			this.name = name;
 			this.pos = pos;
 			this.hash = hash;
 			this.dimension = dimension;
 			this.color = color;
 			this.isGlobal = global;
+			this.resourcepath = resourcepath;
 		}
 
 		@Override
@@ -353,5 +357,11 @@ public class WaystoneStorage {
 		public boolean isGlobal() {
 			return this.isGlobal;
 		}
+
+		@Override
+		public String getResourcePath() {
+			return this.resourcepath;
+		}
+
 	}
 }

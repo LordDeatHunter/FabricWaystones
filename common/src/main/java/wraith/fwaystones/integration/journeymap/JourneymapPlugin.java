@@ -9,12 +9,12 @@ import journeymap.client.api.display.Waypoint;
 import journeymap.client.api.event.ClientEvent;
 import journeymap.client.api.event.RegistryEvent;
 import journeymap.client.api.event.RegistryEvent.RegistryType;
-import journeymap.client.api.event.fabric.FullscreenDisplayEvent;
 import journeymap.client.api.model.MapImage;
 import journeymap.client.api.option.BooleanOption;
 import journeymap.client.api.option.OptionCategory;
 import org.jetbrains.annotations.NotNull;
 import wraith.fwaystones.Waystones;
+import wraith.fwaystones.WaystonesExpectPlatform;
 import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.util.Utils;
 
@@ -164,7 +164,8 @@ public class JourneymapPlugin implements IClientPlugin {
 		if (waystone == null) {
 			return;
 		}
-		var icon = new MapImage(Utils.ID("images/waystone.png"), 16, 16);
+		String waystoneType = Waystones.CONFIG.journeymap_waypoint_same_icon && waystone.getResourcePath().contains("waystone") ? waystone.getResourcePath() : "waystone";
+		var icon = new MapImage(Utils.ID("images/"+waystoneType+".png"), 16, 16);
 
 		var waypoint = new Waypoint(
 				getModId(),

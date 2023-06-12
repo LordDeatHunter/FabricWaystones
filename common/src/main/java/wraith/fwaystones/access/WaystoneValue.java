@@ -21,4 +21,6 @@ public interface WaystoneValue {
 
 	void setColor(int color);
 
+	String getResourcePath();
+
 }

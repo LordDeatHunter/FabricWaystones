@@ -6,6 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -55,10 +56,12 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 	private Integer color;
 	private float turningSpeedR = 2;
 	private long tickDelta = 0;
+	private String resourcepath;
 
 	public WaystoneBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityRegister.WAYSTONE_BLOCK_ENTITY.get(), pos, state);
 		this.name = Utils.generateWaystoneName(this.name);
+		this.resourcepath = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
 	}
 
 	public static void ticker(Level level, BlockPos blockPos, BlockState blockState, WaystoneBlockEntity waystone) {
@@ -515,5 +518,9 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 	@Override
 	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction dir) {
 		return false;
+	}
+
+	public String getResourcePath(){
+		return this.resourcepath;
 	}
 }
