@@ -45,6 +45,7 @@ public class Config implements ConfigData {
 	public String discover_with_item = "none";
 	public int take_amount_from_discover_item = 0;
 	public boolean consume_infinite_knowledge_scroll_on_use = false;
+	public boolean journeymap_waypoint_same_icon = true;
 	public boolean consume_local_void_on_use = true;
 	public boolean free_local_void_teleport = true;
 	public boolean store_waystone_data_on_sneak_break = true;
