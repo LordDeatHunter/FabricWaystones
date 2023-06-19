@@ -1,0 +1,86 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+}
+
+architectury {
+    platformSetupLoomIde()
+    forge()
+}
+
+loom {
+    accessWidenerPath = project(":common").loom.accessWidenerPath
+    forge {
+        convertAccessWideners = true
+        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+
+        mixinConfig "fwaystones-common.mixins.json"
+    }
+}
+
+configurations {
+    common
+    shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
+}
+
+dependencies {
+    forge "net.minecraftforge:forge:${rootProject.forge_version}"
+    // Mandatory Dependencies
+    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
+    modApi("me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}") {
+        exclude(module: "fabric-api")
+    }
+    // Optional Dependencies
+    modRuntimeOnly("maven.modrinth:journeymap:${rootProject.journeymap_version}-forge")
+    modCompileOnly("info.journeymap:journeymap-api:${rootProject.journeymap_api_version}-SNAPSHOT")
+
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("META-INF/mods.toml") {
+        expand "version": project.version
+    }
+    //// Minify json resources
+    //// https://stackoverflow.com/questions/41028030/gradle-minimize-json-resources-in-processresources#41029113
+    //doLast {
+    //    fileTree(mapOf("dir" to outputs.files.asPath, "includes" to listOf("**/*.json", "**/*.mcmeta"))).forEach {
+    //        file: File -> file.writeText(groovy.json.JsonOutput.toJson(groovy.json.JsonSlurper().parse(file)))
+    //    }
+    //}
+}
+
+shadowJar {
+    configurations = [project.configurations.shadowCommon]
+    classifier "dev-shadow"
+    //relocate 'net.fabricmc', 'wraith.fwaystones.fabric'
+    exclude "fabric.mod.json"
+    exclude "architectury.common.json"
+}
+
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    classifier null
+}
+
+jar {
+    classifier "dev"
+}
+
+sourcesJar {
+    def commonSources = project(":common").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
