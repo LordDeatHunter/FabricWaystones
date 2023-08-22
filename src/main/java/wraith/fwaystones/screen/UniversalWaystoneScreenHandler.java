@@ -63,6 +63,8 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
                     this.sortedWaystones.add(waystone);
                 }
             }
+        } else {
+            this.sortedWaystones.removeIf(FabricWaystones.WAYSTONE_STORAGE::isGlobal);
         }
         this.sortedWaystones.sort(Comparator.comparing(a -> FabricWaystones.WAYSTONE_STORAGE.getName(a)));
         filterWaystones();

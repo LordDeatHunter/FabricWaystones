@@ -250,6 +250,10 @@ public class WaystoneStorage {
             .map(Map.Entry::getKey).toList();
     }
 
+    public boolean isGlobal(String hash) {
+        return WAYSTONES.containsKey(hash) && WAYSTONES.get(hash).isGlobal();
+    }
+
     public void toggleGlobal(String hash) {
         WaystoneBlockEntity waystone = getWaystoneEntity(hash);
         if (waystone == null) {
