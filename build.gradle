@@ -40,8 +40,8 @@ dependencies {
 
     modCompileOnly "curse.maven:repurposed-structures-fabric-${project.rs_project_id}:${project.rs_file_id}"
 
-//    modApi group: 'info.journeymap', name: 'journeymap-api', version: project.journeymap_api_version, changing: true
-//    modRuntimeOnly "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id}"
+    modApi group: 'info.journeymap', name: 'journeymap-api', version: project.journeymap_api_version, changing: true
+    modRuntimeOnly "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id}"
 
     modApi "maven.modrinth:pinlib:$project.pinlib_api_version"
     modRuntimeOnly "maven.modrinth:pinlib:$project.pinlib_api_version"
