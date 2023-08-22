@@ -1,7 +1,6 @@
 package wraith.fwaystones.util;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -33,7 +32,6 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Random;
 
 public final class Utils {
@@ -63,7 +61,7 @@ public final class Utils {
     }
 
     public static String generateWaystoneName(String id) {
-        return id == null || "".equals(id) ? generateUniqueId() : id;
+        return id == null || id.isEmpty() ? generateUniqueId() : id;
     }
 
     private static String generateUniqueId() {
@@ -128,9 +126,12 @@ public final class Utils {
 
     public static int getCost(Vec3d startPos, Vec3d endPos, String startDim, String endDim) {
         var config = FabricWaystones.CONFIG.teleportation_cost;
+        if (config.cost_type().equals(FWConfigModel.CostType.NONE)) {
+            return 0;
+        }
         float cost = config.base_cost();
         if (startDim.equals(endDim)) {
-            cost += Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.cost_per_block_distance();
+            cost += (float) (Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.cost_per_block_distance());
         } else {
             cost *= config.cost_multiplier_between_dimensions();
         }
@@ -301,7 +302,7 @@ public final class Utils {
         try {
             return Arrays.toString(MessageDigest.getInstance("SHA-256").digest(data.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            FabricWaystones.LOGGER.error(e.getMessage());
         }
         return "";
     }

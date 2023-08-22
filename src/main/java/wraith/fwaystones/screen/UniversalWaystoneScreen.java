@@ -25,6 +25,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
+import wraith.fwaystones.util.FWConfigModel;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.util.WaystonePacketHandler;
 
@@ -185,7 +186,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         this.renderWaystoneBackground(context, mouseX, mouseY, this.x + 36, this.y + 39, n);
         this.renderForgetButtons(context, mouseX, mouseY, this.x + 24, this.y + 45);
         renderButtons(context, mouseX, mouseY);
-        this.renderCostItem(context, this.x + 40, this.y + 136);
+        this.renderCostItem(context, this.x + 23, this.y + 136);
         this.renderWaystoneNames(context, this.x + 36, this.y + 40, n);
         this.renderWaystoneTooltips(context, mouseX, mouseY, this.x + 36, this.y + 39, n);
         this.renderWaystoneAmount(context, this.x + 10, this.y + 160);
@@ -257,15 +258,15 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         MutableText text;
         switch (config.cost_type()) {
             case HEALTH -> {
-                context.drawTexture(texture, x + 4, y + 4, 186, 15, 9, 9);
+                context.drawTexture(texture, x, y + 4, 186, 15, 9, 9);
                 text = Text.translatable("fwaystones.cost.health");
             }
             case HUNGER -> {
-                context.drawTexture(texture, x + 4, y + 4, 177, 24, 9, 9);
+                context.drawTexture(texture, x, y + 4, 177, 24, 9, 9);
                 text = Text.translatable("fwaystones.cost.hunger");
             }
             case EXPERIENCE -> {
-                context.drawTexture(texture, x + 4, y + 4, 177, 15, 9, 9);
+                context.drawTexture(texture, x, y + 4, 177, 15, 9, 9);
                 text = Text.translatable("fwaystones.cost.xp");
             }
             case LEVEL -> {
@@ -277,7 +278,10 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 context.drawItemInSlot(textRenderer, new ItemStack(item), x, y);
                 text = (MutableText) item.getName();
             }
-            default -> text = Text.translatable("fwaystones.cost.free");
+            default -> {
+                context.drawTexture(texture, x, y + 4, 186, 24, 9, 9);
+                text = Text.translatable("fwaystones.cost.free");
+            }
         }
 
         renderCostText(context, x, y, text);
@@ -288,7 +292,10 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected void renderCostText(DrawContext context, int x, int y, MutableText text, int color) {
-        context.drawText(textRenderer, text.append(Text.literal(": " + FabricWaystones.CONFIG.teleportation_cost.base_cost())), x + 20, y + 5, color, false);
+        if (!FabricWaystones.CONFIG.teleportation_cost.cost_type().equals(FWConfigModel.CostType.NONE)) {
+            text = text.append(Text.literal(": " + FabricWaystones.CONFIG.teleportation_cost.base_cost()));
+        }
+        context.drawText(textRenderer, text, x + 16, y + 5, color, false);
     }
 
     @Override
@@ -349,7 +356,8 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             var startDim = Utils.getDimensionName(client.player.getWorld());
             var endDim = waystoneData.getWorldName();
             List<Text> tooltipContents = new ArrayList<>();
-            tooltipContents.add(Text.translatable("fwaystones.gui.cost_tooltip", Utils.getCost(Vec3d.ofCenter(waystoneData.way_getPos()), client.player.getPos(), startDim, endDim)));
+            var cost = Utils.getCost(Vec3d.ofCenter(waystoneData.way_getPos()), client.player.getPos(), startDim, endDim);
+            tooltipContents.add(Text.translatable("fwaystones.gui.cost_tooltip", cost == 0 ? Text.translatable("fwaystones.cost.free").getString() : cost));
             if (hasShiftDown()) {
                 tooltipContents.add(Text.translatable("fwaystones.gui.dimension_tooltip", waystoneData.getWorldName()));
             }
