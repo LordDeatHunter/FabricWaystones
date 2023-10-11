@@ -402,10 +402,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             ), false);
             return false;
         }
-        if (source == TeleportSources.LOCAL_VOID && !FabricWaystones.CONFIG.free_local_void_teleport()) {
-            return false;
-        }
-        if (source != TeleportSources.VOID_TOTEM && !Utils.canTeleport(player, hash, takeCost)) {
+        if (!Utils.canTeleport(player, hash, source, takeCost)) {
             return false;
         }
         var cooldowns = FabricWaystones.CONFIG.teleportation_cooldown;

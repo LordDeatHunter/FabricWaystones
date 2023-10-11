@@ -138,7 +138,7 @@ public final class Utils {
         return Math.round(cost);
     }
 
-    public static boolean canTeleport(PlayerEntity player, String hash, boolean takeCost) {
+    public static boolean canTeleport(PlayerEntity player, String hash, TeleportSources source, boolean takeCost) {
         FWConfigModel.CostType cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
@@ -147,6 +147,9 @@ public final class Utils {
         }
         var sourceDim = getDimensionName(player.getWorld());
         var destDim = waystone.getWorldName();
+        if (source == TeleportSources.VOID_TOTEM) {
+            return true;
+        }
         if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
             if (FabricWaystones.CONFIG.disable_teleportation_from_dimensions().contains(sourceDim)) {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
@@ -156,6 +159,9 @@ public final class Utils {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
                 return false;
             }
+        }
+        if (source == TeleportSources.LOCAL_VOID && FabricWaystones.CONFIG.free_local_void_teleport()) {
+            return true;
         }
         int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), sourceDim, destDim);
         if (player.isCreative()) {

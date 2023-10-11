@@ -19,6 +19,7 @@ import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.mixin.ClientPlayerEntityAccessor;
 import wraith.fwaystones.mixin.ServerPlayerEntityAccessor;
 import wraith.fwaystones.util.SearchType;
+import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.util.WaystonePacketHandler;
 
@@ -99,7 +100,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
             updateWaystones(player);
             ClientPlayNetworking.send(WaystonePacketHandler.FORGET_WAYSTONE, data);
         } else {
-            if (Utils.canTeleport(player, waystone, false)) {
+            if (Utils.canTeleport(player, waystone, Utils.getTeleportSource(player), false)) {
                 ClientPlayNetworking.send(WaystonePacketHandler.TELEPORT_TO_WAYSTONE, data);
             }
             closeScreen();
