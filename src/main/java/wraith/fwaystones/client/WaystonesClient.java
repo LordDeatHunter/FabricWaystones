@@ -46,12 +46,12 @@ public class WaystonesClient implements ClientModInitializer {
                     return;
                 }
                 HashSet<String> toForget = new HashSet<>();
-                for (String hash : ((PlayerEntityMixinAccess) client.player).getDiscoveredWaystones()) {
+                for (String hash : ((PlayerEntityMixinAccess) client.player).fabricWaystones$getDiscoveredWaystones()) {
                     if (!FabricWaystones.WAYSTONE_STORAGE.containsHash(hash)) {
                         toForget.add(hash);
                     }
                 }
-                ((PlayerEntityMixinAccess) client.player).forgetWaystones(toForget);
+                ((PlayerEntityMixinAccess) client.player).fabricWaystones$forgetWaystones(toForget);
 
                 if (client.player.currentScreenHandler instanceof UniversalWaystoneScreenHandler) {
                     ((UniversalWaystoneScreenHandler) client.player.currentScreenHandler).updateWaystones(client.player);
@@ -62,7 +62,7 @@ public class WaystonesClient implements ClientModInitializer {
             NbtCompound tag = data.readNbt();
             client.execute(() -> {
                 if (client.player != null) {
-                    ((PlayerEntityMixinAccess) client.player).fromTagW(tag);
+                    ((PlayerEntityMixinAccess) client.player).fabricWaystones$fromTagW(tag);
                 }
             });
         });

@@ -76,10 +76,10 @@ public final class WaystonePacketHandler {
                 return;
             }
             String hash = tag.getString("waystone_hash");
-            server.execute(() -> ((PlayerEntityMixinAccess) player).forgetWaystone(hash));
+            server.execute(() -> ((PlayerEntityMixinAccess) player).fabricWaystones$forgetWaystone(hash));
         });
         ServerPlayNetworking.registerGlobalReceiver(REQUEST_PLAYER_SYNC, (server, player, networkHandler, data, sender) ->
-            server.execute(((PlayerEntityMixinAccess) player)::syncData)
+            server.execute(((PlayerEntityMixinAccess) player)::fabricWaystones$syncData)
         );
         ServerPlayNetworking.registerGlobalReceiver(TOGGLE_GLOBAL_WAYSTONE, (server, player, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();
@@ -111,7 +111,7 @@ public final class WaystonePacketHandler {
         });
         ServerPlayNetworking.registerGlobalReceiver(SYNC_PLAYER_FROM_CLIENT, (server, player, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();
-            server.execute(() -> ((PlayerEntityMixinAccess) player).fromTagW(tag));
+            server.execute(() -> ((PlayerEntityMixinAccess) player).fabricWaystones$fromTagW(tag));
         });
         ServerPlayNetworking.registerGlobalReceiver(TELEPORT_TO_WAYSTONE, (server, player, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();

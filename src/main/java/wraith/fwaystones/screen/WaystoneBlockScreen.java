@@ -1,6 +1,5 @@
 package wraith.fwaystones.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
@@ -39,7 +38,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             page = Page.CONFIG;
             texture = CONFIG_TEXTURE;
             ((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
-            nameField.setFocused(((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields());
+            nameField.setFocused(((PlayerEntityMixinAccess) inventory.player).fabricWaystones$autofocusWaystoneFields());
             setupButtons();
         }
 
@@ -192,7 +191,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         buttons.add(new ToggleableButton(8, 26, 13, 13, 177, 54, 190, 54) {
             @Override
             public void setup() {
-                this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewDiscoveredWaystones();
+                this.toggled = ((PlayerEntityMixinAccess) inventory.player).fabricWaystones$shouldViewDiscoveredWaystones();
             }
 
             @Override
@@ -201,10 +200,10 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
                     return;
                 }
                 super.onClick();
-                ((PlayerEntityMixinAccess) inventory.player).toggleViewDiscoveredWaystones();
+                ((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toggleViewDiscoveredWaystones();
                 ((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
                 PacketByteBuf packet = PacketByteBufs.create();
-                packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
+                packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toTagW(new NbtCompound()));
                 ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
             }
 
@@ -219,7 +218,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         buttons.add(new ToggleableButton(8, 42, 13, 13, 177, 54, 190, 54) {
             @Override
             public void setup() {
-                this.toggled = ((PlayerEntityMixinAccess) inventory.player).shouldViewGlobalWaystones();
+                this.toggled = ((PlayerEntityMixinAccess) inventory.player).fabricWaystones$shouldViewGlobalWaystones();
             }
 
             @Override
@@ -228,10 +227,10 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
                     return;
                 }
                 super.onClick();
-                ((PlayerEntityMixinAccess) inventory.player).toggleViewGlobalWaystones();
+                ((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toggleViewGlobalWaystones();
                 ((UniversalWaystoneScreenHandler) handler).updateWaystones(inventory.player);
                 PacketByteBuf packet = PacketByteBufs.create();
-                packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
+                packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toTagW(new NbtCompound()));
                 ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
             }
 
@@ -329,8 +328,8 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     public void handledScreenTick() {
         super.handledScreenTick();
         if (this.nameField != null && this.nameField.isVisible()) {
-            this.nameField.tick();
-            if (((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields()) {
+//            this.nameField.tick();
+            if (((PlayerEntityMixinAccess) client.player).fabricWaystones$autofocusWaystoneFields()) {
                 this.nameField.setFocused(true);
             }
         }
@@ -397,7 +396,6 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         if (page == Page.WAYSTONES) {
             super.drawBackground(context, delta, mouseX, mouseY);
         } else {
-            this.renderBackground(context);
             context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             context.drawTexture(CONFIG_TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
             if (canEdit()) {
@@ -482,11 +480,11 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (page == Page.WAYSTONES) {
-            return super.mouseScrolled(mouseX, mouseY, amount);
+            return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         } else {
-            return super.superMouseScrolled(mouseX, mouseY, amount);
+            return super.superMouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
         }
     }
 

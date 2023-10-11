@@ -54,10 +54,10 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
             return;
         }
         this.sortedWaystones = new ArrayList<>();
-        if (((PlayerEntityMixinAccess) player).shouldViewDiscoveredWaystones()) {
-            this.sortedWaystones.addAll(((PlayerAccess) player).getHashesSorted());
+        if (((PlayerEntityMixinAccess) player).fabricWaystones$shouldViewDiscoveredWaystones()) {
+            this.sortedWaystones.addAll(((PlayerAccess) player).fabricWaystones$getHashesSorted());
         }
-        if (((PlayerEntityMixinAccess) player).shouldViewGlobalWaystones()) {
+        if (((PlayerEntityMixinAccess) player).fabricWaystones$shouldViewGlobalWaystones()) {
             for (String waystone : FabricWaystones.WAYSTONE_STORAGE.getGlobals()) {
                 if (!this.sortedWaystones.contains(waystone)) {
                     this.sortedWaystones.add(waystone);
@@ -95,7 +95,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
             this.sortedWaystones.remove(waystone);
             this.filteredWaystones.remove(waystone);
             onForget(waystone);
-            ((PlayerEntityMixinAccess) player).forgetWaystone(waystone);
+            ((PlayerEntityMixinAccess) player).fabricWaystones$forgetWaystone(waystone);
             updateWaystones(player);
             ClientPlayNetworking.send(WaystonePacketHandler.FORGET_WAYSTONE, data);
         } else {
@@ -150,7 +150,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
 
     public void filterWaystones() {
         this.filteredWaystones.clear();
-        var searchType = ((PlayerEntityMixinAccess) player).getSearchType();
+        var searchType = ((PlayerEntityMixinAccess) player).fabricWaystones$getSearchType();
         for (String waystone : this.sortedWaystones) {
             String name = FabricWaystones.WAYSTONE_STORAGE.getName(waystone).toLowerCase();
             if ("".equals(this.filter) || searchType.match(name, filter)) {
@@ -167,14 +167,14 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
 
     public void toggleSearchType() {
         var playerAccess = (PlayerEntityMixinAccess) player;
-        var searchType = playerAccess.getSearchType();
+        var searchType = playerAccess.fabricWaystones$getSearchType();
         var searchValues = SearchType.values();
-        playerAccess.setSearchType(searchValues[(searchType.ordinal() + 1) % searchValues.length]);
+        playerAccess.fabricWaystones$setSearchType(searchValues[(searchType.ordinal() + 1) % searchValues.length]);
         filterWaystones();
     }
 
     public Text getSearchTypeTooltip() {
-        return Text.translatable("fwaystones.gui." + (((PlayerEntityMixinAccess) player).getSearchType().name().toLowerCase()));
+        return Text.translatable("fwaystones.gui." + (((PlayerEntityMixinAccess) player).fabricWaystones$getSearchType().name().toLowerCase()));
     }
 
 }

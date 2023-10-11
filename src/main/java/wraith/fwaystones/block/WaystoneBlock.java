@@ -108,7 +108,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return checkType(type, BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, WaystoneBlockEntity::ticker);
+        return validateTicker(type, BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, WaystoneBlockEntity::ticker);
     }
 
     @Override
@@ -257,7 +257,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             return ActionResult.PASS;
         }
 
-        var discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
+        var discovered = ((PlayerEntityMixinAccess) player).fabricWaystones$getDiscoveredWaystones();
 
         WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
         if (blockEntity == null) {
@@ -307,7 +307,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                         )
                     ), false);
                 }
-                ((PlayerEntityMixinAccess) player).discoverWaystone(blockEntity);
+                ((PlayerEntityMixinAccess) player).fabricWaystones$discoverWaystone(blockEntity);
             }
             if (blockEntity.getOwner() == null) {
                 blockEntity.setOwner(player);

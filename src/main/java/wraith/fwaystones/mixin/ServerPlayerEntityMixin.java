@@ -12,7 +12,7 @@ public class ServerPlayerEntityMixin {
 
     @Inject(method = "copyFrom", at = @At("HEAD"))
     public void copyFrom(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
-        ((PlayerEntityMixinAccess) this).learnWaystones(oldPlayer);
+        ((PlayerEntityMixinAccess) this).fabricWaystones$learnWaystones(oldPlayer);
     }
 
 }

@@ -25,7 +25,7 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
     public ArrayList<String> getWaystonesSorted() {
         ArrayList<String> waystones = new ArrayList<>();
         HashSet<String> toRemove = new HashSet<>();
-        var discoveredWaystones = ((PlayerEntityMixinAccess) this).getDiscoveredWaystones();
+        var discoveredWaystones = ((PlayerEntityMixinAccess) this).fabricWaystones$getDiscoveredWaystones();
         for (String hash : discoveredWaystones) {
             if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash)) {
                 waystones.add(FabricWaystones.WAYSTONE_STORAGE.getName(hash));
@@ -43,10 +43,10 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
 
 
     @Override
-    public ArrayList<String> getHashesSorted() {
+    public ArrayList<String> fabricWaystones$getHashesSorted() {
         ArrayList<String> waystones = new ArrayList<>();
         HashSet<String> toRemove = new HashSet<>();
-        var discoveredWaystones = ((PlayerEntityMixinAccess) this).getDiscoveredWaystones();
+        var discoveredWaystones = ((PlayerEntityMixinAccess) this).fabricWaystones$getDiscoveredWaystones();
         for (String hash : discoveredWaystones) {
             if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash)) {
                 waystones.add(hash);
@@ -63,8 +63,8 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
     }
 
     @Override
-    public int getDiscoveredCount() {
-        return ((PlayerEntityMixinAccess) this).getDiscoveredCount();
+    public int fabricWaystones$getDiscoveredCount() {
+        return ((PlayerEntityMixinAccess) this).fabricWaystones$getDiscoveredCount();
     }
 
 }

@@ -37,7 +37,7 @@ public class WaystonesEventManager {
         ServerLifecycleEvents.SERVER_STARTING.register(WaystonesWorldgen::registerVanillaVillageWorldgen);
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> FabricWaystones.CONFIG.load());
 
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).syncData());
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).fabricWaystones$syncData());
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal(FabricWaystones.MOD_ID)
             .then(CommandManager.literal("delete")
@@ -59,7 +59,7 @@ public class WaystonesEventManager {
                     if (player == null) {
                         return 1;
                     }
-                    ((PlayerEntityMixinAccess) player).forgetAllWaystones();
+                    ((PlayerEntityMixinAccess) player).fabricWaystones$forgetAllWaystones();
                     player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten!"), false);
                     return 1;
                 })
@@ -74,7 +74,7 @@ public class WaystonesEventManager {
                         if (target == null) {
                             return 1;
                         }
-                        ((PlayerEntityMixinAccess) target).forgetAllWaystones();
+                        ((PlayerEntityMixinAccess) target).fabricWaystones$forgetAllWaystones();
                         player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
                         return 1;
                     })

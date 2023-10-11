@@ -11,53 +11,53 @@ import java.util.Set;
 
 public interface PlayerEntityMixinAccess extends PlayerAccess {
 
-    void discoverWaystone(WaystoneBlockEntity waystone);
+    void fabricWaystones$discoverWaystone(WaystoneBlockEntity waystone);
 
-    void discoverWaystone(String hash);
+    void fabricWaystones$discoverWaystone(String hash);
 
-    void discoverWaystone(String hash, boolean sync);
+    void fabricWaystones$discoverWaystone(String hash, boolean sync);
 
-    boolean hasDiscoveredWaystone(WaystoneBlockEntity waystone);
+    boolean fabricWaystones$hasDiscoveredWaystone(WaystoneBlockEntity waystone);
 
-    void forgetWaystone(WaystoneBlockEntity waystone);
+    void fabricWaystones$forgetWaystone(WaystoneBlockEntity waystone);
 
-    void forgetWaystone(String hash);
+    void fabricWaystones$forgetWaystone(String hash);
 
-    void forgetWaystone(String hash, boolean sync);
+    void fabricWaystones$forgetWaystone(String hash, boolean sync);
 
-    void syncData();
+    void fabricWaystones$syncData();
 
-    Set<String> getDiscoveredWaystones();
+    Set<String> fabricWaystones$getDiscoveredWaystones();
 
-    ArrayList<String> getWaystonesSorted();
+    ArrayList<String> fabricWaystones$getWaystonesSorted();
 
-    void learnWaystones(PlayerEntity player);
+    void fabricWaystones$learnWaystones(PlayerEntity player);
 
-    void fromTagW(NbtCompound tag);
+    void fabricWaystones$fromTagW(NbtCompound tag);
 
-    NbtCompound toTagW(NbtCompound tag);
+    NbtCompound fabricWaystones$toTagW(NbtCompound tag);
 
-    boolean shouldViewGlobalWaystones();
+    boolean fabricWaystones$shouldViewGlobalWaystones();
 
-    boolean shouldViewDiscoveredWaystones();
+    boolean fabricWaystones$shouldViewDiscoveredWaystones();
 
-    void toggleViewGlobalWaystones();
+    void fabricWaystones$toggleViewGlobalWaystones();
 
-    void toggleViewDiscoveredWaystones();
+    void fabricWaystones$toggleViewDiscoveredWaystones();
 
-    boolean hasDiscoveredWaystone(String hash);
+    boolean fabricWaystones$hasDiscoveredWaystone(String hash);
 
-    void discoverWaystones(HashSet<String> toLearn);
+    void fabricWaystones$discoverWaystones(HashSet<String> toLearn);
 
-    void forgetWaystones(HashSet<String> toForget);
+    void fabricWaystones$forgetWaystones(HashSet<String> toForget);
 
-    int getTeleportCooldown();
+    int fabricWaystones$getTeleportCooldown();
 
-    void setTeleportCooldown(int cooldown);
+    void fabricWaystones$setTeleportCooldown(int cooldown);
 
-    void forgetAllWaystones();
-    boolean autofocusWaystoneFields();
-    void toggleAutofocusWaystoneFields();
-    SearchType getSearchType();
-    void setSearchType(SearchType searchType);
+    void fabricWaystones$forgetAllWaystones();
+    boolean fabricWaystones$autofocusWaystoneFields();
+    void fabricWaystones$toggleAutofocusWaystoneFields();
+    SearchType fabricWaystones$getSearchType();
+    void fabricWaystones$setSearchType(SearchType searchType);
 }

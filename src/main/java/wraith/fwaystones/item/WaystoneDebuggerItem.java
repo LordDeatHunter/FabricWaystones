@@ -70,8 +70,8 @@ public class WaystoneDebuggerItem extends Item {
 
         var message = Text.literal("");
         message.append("§6[§eNAME§6]§e=§3" + player.getName().getString());
-        message.append("\n§6[§eKNOWN-WAYSTONES§6]§e=§3" + playerAccess.getDiscoveredCount());
-        message.append("\n§6[§eCOOLDOWN§6]§e=§3" + playerAccess.getTeleportCooldown());
+        message.append("\n§6[§eKNOWN-WAYSTONES§6]§e=§3" + playerAccess.fabricWaystones$getDiscoveredCount());
+        message.append("\n§6[§eCOOLDOWN§6]§e=§3" + playerAccess.fabricWaystones$getTeleportCooldown());
         user.sendMessage(message, false);
 
         return super.useOnEntity(stack, user, entity, hand);

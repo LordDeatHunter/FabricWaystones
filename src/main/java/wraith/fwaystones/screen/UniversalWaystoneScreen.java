@@ -57,7 +57,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 }
                 super.onClick();
                 ((UniversalWaystoneScreenHandler) handler).toggleSearchType();
-                searchField.setFocused(((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields());
+                searchField.setFocused(((PlayerEntityMixinAccess) client.player).fabricWaystones$autofocusWaystoneFields());
             }
 
             @Override
@@ -80,7 +80,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         buttons.add(new ToggleableButton(24, 26, 8, 11, 177, 33, 185, 33) {
             @Override
             public void setup() {
-                this.toggled = ((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields();
+                this.toggled = ((PlayerEntityMixinAccess) inventory.player).fabricWaystones$autofocusWaystoneFields();
                 setupTooltip();
             }
 
@@ -95,7 +95,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                     return;
                 }
                 super.onClick();
-                ((PlayerEntityMixinAccess) inventory.player).toggleAutofocusWaystoneFields();
+                ((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toggleAutofocusWaystoneFields();
                 setupTooltip();
             }
 
@@ -113,7 +113,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     public void close() {
         super.close();
         PacketByteBuf packet = PacketByteBufs.create();
-        packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
+        packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toTagW(new NbtCompound()));
         ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
     }
 
@@ -159,8 +159,8 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     @Override
     public void handledScreenTick() {
         if (this.searchField != null && this.searchField.isVisible()) {
-            this.searchField.tick();
-            if (((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields()) {
+//            this.searchField.tick();
+            if (((PlayerEntityMixinAccess) client.player).fabricWaystones$autofocusWaystoneFields()) {
                 this.searchField.setFocused(true);
             }
         }
@@ -176,7 +176,6 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        this.renderBackground(context);
         context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         context.drawTexture(texture, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
         int k = (int) (75.0F * this.scrollAmount);
@@ -457,10 +456,10 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (this.shouldScroll()) {
             int i = this.getMaxScroll();
-            this.scrollAmount = (float) ((double) this.scrollAmount - amount / (double) i);
+            this.scrollAmount = (float) ((double) this.scrollAmount - verticalAmount / (double) i);
             this.scrollAmount = MathHelper.clamp(this.scrollAmount, 0.0F, 1.0F);
             this.scrollOffset = (int) ((double) (this.scrollAmount * (float) i) + 0.5D);
         }
@@ -502,8 +501,8 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         return ((UniversalWaystoneScreenHandler) handler).getSearchedWaystones();
     }
 
-    protected boolean superMouseScrolled(double mouseX, double mouseY, double amount) {
-        return super.mouseScrolled(mouseX, mouseY, amount);
+    protected boolean superMouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     protected boolean superMouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 @Modmenu(modId = FabricWaystones.MOD_ID)
 @Sync(Option.SyncMode.OVERRIDE_CLIENT)
 @Config(name = "fwaystones/config", wrapperName = "FWConfig")
