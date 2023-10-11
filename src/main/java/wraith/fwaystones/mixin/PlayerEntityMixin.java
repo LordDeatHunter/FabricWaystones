@@ -209,6 +209,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         customTag.putBoolean("view_global_waystones", this.viewGlobalWaystones);
         customTag.putBoolean("autofocus_waystone_fields", this.autofocusWaystoneFields);
         customTag.putString("waystone_search_type", this.waystoneSearchType.name());
+        customTag.putInt("teleportCooldown", this.teleportCooldown);
 
         tag.put(FabricWaystones.MOD_ID, customTag);
         return tag;
@@ -258,6 +259,9 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         }
         if (tag.contains("autofocus_waystone_fields")) {
             this.autofocusWaystoneFields = tag.getBoolean("autofocus_waystone_fields");
+        }
+        if (tag.contains("teleportCooldown")) {
+            this.teleportCooldown = tag.getInt("teleportCooldown");
         }
         if (tag.contains("waystone_search_type")) {
             try {
