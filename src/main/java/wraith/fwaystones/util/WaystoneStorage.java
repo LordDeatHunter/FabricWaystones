@@ -101,9 +101,14 @@ public class WaystoneStorage {
             tag = new NbtCompound();
         }
         NbtList waystones = new NbtList();
+        HashSet<String> invalid  = new HashSet<>();
         for (Map.Entry<String, WaystoneValue> waystone : WAYSTONES.entrySet()) {
             String hash = waystone.getKey();
             WaystoneValue entity = waystone.getValue();
+            if (!entity.getEntity().getHash().equals(hash)) {
+                invalid.add(hash);
+                continue;
+            }
             NbtCompound waystoneTag = new NbtCompound();
             waystoneTag.putString("hash", hash);
             waystoneTag.putString("name", entity.getWaystoneName());
@@ -216,6 +221,14 @@ public class WaystoneStorage {
 
     public void removeWaystone(WaystoneBlockEntity waystone) {
         removeWaystone(waystone.getHash());
+    }
+
+    public boolean removeIfInvalid(String hash) {
+        if (WAYSTONES.containsKey(hash) && getWaystoneEntity(hash) == null) {
+            removeWaystone(hash);
+            return true;
+        }
+        return false;
     }
 
     public void renameWaystone(String hash, String name) {
