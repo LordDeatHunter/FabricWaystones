@@ -72,7 +72,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public void createHash(World world, BlockPos pos) {
-        this.hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + world + "\">");
+        this.hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + Utils.getDimensionName(world) + "\">");
         markDirty();
     }
 
