@@ -138,6 +138,32 @@ public final class Utils {
         return Math.round(cost);
     }
 
+    public static boolean canTeleportFromDimension(String sourceDim) {
+        if (FabricWaystones.CONFIG.disable_teleportation_from_dimensions().contains(sourceDim)) {
+            return false;
+        }
+        final String namespace = sourceDim.split(":")[0];
+        return FabricWaystones.CONFIG.disable_teleportation_from_dimensions().stream().noneMatch(blacklistedDim -> {
+            if (blacklistedDim.equals(sourceDim)) return true;
+            String[] paths = blacklistedDim.split(":");
+            if (paths.length != 2) return false;
+            return paths[0].equals(namespace) && paths[1].equals("*");
+        });
+    }
+
+    public static boolean canTeleportToDimension(String destDim) {
+        if (FabricWaystones.CONFIG.disable_teleportation_to_dimensions().contains(destDim)) {
+            return false;
+        }
+        final String namespace = destDim.split(":")[0];
+        return FabricWaystones.CONFIG.disable_teleportation_to_dimensions().stream().noneMatch(blacklistedDim -> {
+            if (blacklistedDim.equals(destDim)) return true;
+            String[] paths = blacklistedDim.split(":");
+            if (paths.length != 2) return false;
+            return paths[0].equals(namespace) && paths[1].equals("*");
+        });
+    }
+
     public static boolean canTeleport(PlayerEntity player, String hash, TeleportSources source, boolean takeCost) {
         FWConfigModel.CostType cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
@@ -151,11 +177,11 @@ public final class Utils {
             return true;
         }
         if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
-            if (FabricWaystones.CONFIG.disable_teleportation_from_dimensions().contains(sourceDim)) {
+            if (!canTeleportFromDimension(sourceDim)) {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
                 return false;
             }
-            if (FabricWaystones.CONFIG.disable_teleportation_to_dimensions().contains(destDim)) {
+            if (canTeleportToDimension(destDim)) {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
                 return false;
             }
