@@ -32,6 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public final class Utils {
@@ -138,29 +139,19 @@ public final class Utils {
         return Math.round(cost);
     }
 
-    public static boolean canTeleportFromDimension(String sourceDim) {
-        if (FabricWaystones.CONFIG.disable_teleportation_from_dimensions().contains(sourceDim)) {
-            return false;
-        }
-        final String namespace = sourceDim.split(":")[0];
-        return FabricWaystones.CONFIG.disable_teleportation_from_dimensions().stream().noneMatch(blacklistedDim -> {
-            if (blacklistedDim.equals(sourceDim)) return true;
-            String[] paths = blacklistedDim.split(":");
-            if (paths.length != 2) return false;
-            return paths[0].equals(namespace) && paths[1].equals("*");
-        });
-    }
+    public static boolean isDimensionBlacklisted(String dim, boolean isSource) {
+        List<String> blacklist = isSource ? FabricWaystones.CONFIG.disable_teleportation_from_dimensions() : FabricWaystones.CONFIG.disable_teleportation_to_dimensions();
 
-    public static boolean canTeleportToDimension(String destDim) {
-        if (FabricWaystones.CONFIG.disable_teleportation_to_dimensions().contains(destDim)) {
-            return false;
+        if (blacklist.contains(dim)) {
+            return true;
         }
-        final String namespace = destDim.split(":")[0];
-        return FabricWaystones.CONFIG.disable_teleportation_to_dimensions().stream().noneMatch(blacklistedDim -> {
-            if (blacklistedDim.equals(destDim)) return true;
+
+        String dimNamespace = dim.split(":")[0];
+        return blacklist.stream().anyMatch(blacklistedDim -> {
+            if (blacklistedDim.equals(dim) || blacklistedDim.equals("*")) return true;
             String[] paths = blacklistedDim.split(":");
             if (paths.length != 2) return false;
-            return paths[0].equals(namespace) && paths[1].equals("*");
+            return paths[0].equals(dimNamespace) && paths[1].equals("*");
         });
     }
 
@@ -177,11 +168,11 @@ public final class Utils {
             return true;
         }
         if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
-            if (!canTeleportFromDimension(sourceDim)) {
+            if (isDimensionBlacklisted(sourceDim, true)) {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
                 return false;
             }
-            if (canTeleportToDimension(destDim)) {
+            if (isDimensionBlacklisted(destDim, false)) {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
                 return false;
             }
