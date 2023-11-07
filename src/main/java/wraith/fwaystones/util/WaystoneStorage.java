@@ -49,7 +49,7 @@ public class WaystoneStorage {
 
         state = this.server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(type, ID);
 
-        loadOrSaveWaystones(false);
+        loadWaystones();
     }
 
     private PersistentState createState() {
@@ -101,7 +101,7 @@ public class WaystoneStorage {
             tag = new NbtCompound();
         }
         NbtList waystones = new NbtList();
-        HashSet<String> invalid  = new HashSet<>();
+        HashSet<String> invalid = new HashSet<>();
         for (Map.Entry<String, WaystoneValue> waystone : WAYSTONES.entrySet()) {
             String hash = waystone.getKey();
             WaystoneValue entity = waystone.getValue();
@@ -129,16 +129,16 @@ public class WaystoneStorage {
         return tag;
     }
 
-    public boolean hasWaystone(WaystoneBlockEntity waystone) {
-        return WAYSTONES.containsValue(waystone);
-    }
-
     public void tryAddWaystone(WaystoneBlockEntity waystone) {
-        if (waystone == null || hasWaystone(waystone)) {
+        if (waystone == null) {
             return;
         }
+        if (WAYSTONES.containsValue(waystone)) {
+            return;
+        }
+        boolean alreadyExists = WAYSTONES.containsKey(waystone.getHash());
         WAYSTONES.put(waystone.getHash(), waystone);
-        loadOrSaveWaystones(true);
+        saveWaystones(!alreadyExists);
     }
 
     public void addWaystones(HashSet<WaystoneBlockEntity> waystones) {
@@ -150,26 +150,32 @@ public class WaystoneStorage {
             }
         }
         if (added) {
-            loadOrSaveWaystones(true);
+            saveWaystones(true);
         }
     }
 
-    public void loadOrSaveWaystones(boolean save) {
+    public void saveWaystones(boolean sync) {
         if (server == null) {
             return;
         }
         ServerWorld world = server.getWorld(ServerWorld.OVERWORLD);
 
-        if (save) {
-            state.markDirty();
+        state.markDirty();
+        if (sync) {
             sendToAllPlayers();
-        } else {
-            try {
-                NbtCompound compoundTag = world.getPersistentStateManager().readNbt(ID, DataFixTypes.LEVEL, SharedConstants.getGameVersion().getProtocolVersion());
-                state.writeNbt(compoundTag.getCompound("data"));
-            } catch (IOException ignored) {
-            }
         }
+        world.getPersistentStateManager().save();
+    }
+
+    public void loadWaystones() {
+        if (server == null) {
+            return;
+        }
+        ServerWorld world = server.getWorld(ServerWorld.OVERWORLD);
+        try {
+            NbtCompound compoundTag = world.getPersistentStateManager().readNbt(ID, DataFixTypes.LEVEL, SharedConstants.getGameVersion().getProtocolVersion());
+            state.writeNbt(compoundTag.getCompound("data"));
+        } catch (IOException ignored) {}
         world.getPersistentStateManager().save();
     }
 
@@ -191,8 +197,8 @@ public class WaystoneStorage {
     public void removeWaystone(String hash) {
         WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
         WAYSTONES.remove(hash);
+        saveWaystones(false);
         forgetForAllPlayers(hash);
-        loadOrSaveWaystones(true);
     }
 
     public void removeWorldWaystones(String dimension) {
@@ -236,14 +242,14 @@ public class WaystoneStorage {
             WaystoneValue waystone = WAYSTONES.get(hash);
             waystone.getEntity().setName(name);
             WaystoneEvents.RENAME_WAYSTONE_EVENT.invoker().onUpdate(hash);
-            loadOrSaveWaystones(true);
+            saveWaystones(true);
         }
     }
 
     public void recolorWaystone(String hash, int color) {
         if (WAYSTONES.containsKey(hash)) {
             WAYSTONES.get(hash).setColor(color);
-            loadOrSaveWaystones(true);
+            saveWaystones(true);
         }
     }
 

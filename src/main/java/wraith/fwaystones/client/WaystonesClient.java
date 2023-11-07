@@ -95,7 +95,7 @@ public class WaystonesClient implements ClientModInitializer {
                 FabricWaystones.LOGGER.error("The Waystone storage is null. This is likely caused by a crash.");
                 return;
             }
-            FabricWaystones.WAYSTONE_STORAGE.loadOrSaveWaystones(true);
+            FabricWaystones.WAYSTONE_STORAGE.saveWaystones(false);
             FabricWaystones.WAYSTONE_STORAGE = null;
         });
     }

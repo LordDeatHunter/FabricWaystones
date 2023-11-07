@@ -218,8 +218,11 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     @Override
     public void fabricWaystones$learnWaystones(PlayerEntity player) {
         discoveredWaystones.clear();
+        int oldCount = fabricWaystones$getDiscoveredCount();
         ((PlayerEntityMixinAccess) player).fabricWaystones$getDiscoveredWaystones().forEach(hash -> fabricWaystones$discoverWaystone(hash, false));
-        fabricWaystones$syncData();
+        if (oldCount != fabricWaystones$getDiscoveredCount()) {
+            fabricWaystones$syncData();
+        }
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
@@ -305,17 +308,24 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             return;
         }
         toLearn.forEach(hash -> fabricWaystones$discoverWaystone(hash, false));
-        fabricWaystones$syncData();
+        if (!toLearn.isEmpty()) {
+            fabricWaystones$syncData();
+        }
     }
 
     @Override
     public void fabricWaystones$forgetWaystones(HashSet<String> toForget) {
         toForget.forEach(hash -> this.fabricWaystones$forgetWaystone(hash, false));
-        fabricWaystones$syncData();
+        if (!toForget.isEmpty()) {
+            fabricWaystones$syncData();
+        }
     }
 
     @Override
     public void fabricWaystones$forgetAllWaystones() {
+        if (discoveredWaystones.isEmpty()) {
+            return;
+        }
         discoveredWaystones.clear();
         WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
         fabricWaystones$syncData();

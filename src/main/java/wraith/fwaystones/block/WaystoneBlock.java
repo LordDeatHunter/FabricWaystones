@@ -28,6 +28,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
@@ -47,6 +48,8 @@ import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
 import wraith.fwaystones.registry.BlockEntityRegistry;
 import wraith.fwaystones.util.Utils;
+
+import java.util.Set;
 
 @SuppressWarnings("deprecation")
 public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
@@ -257,8 +260,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             return ActionResult.PASS;
         }
 
-        var discovered = ((PlayerEntityMixinAccess) player).fabricWaystones$getDiscoveredWaystones();
-
         WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
         if (blockEntity == null) {
             return ActionResult.FAIL;
@@ -269,57 +270,61 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
             }
-        } else {
-            if (!FabricWaystones.CONFIG.discover_waystone_on_map_use() && FabricLoader.getInstance().isModLoaded("pinlib") && PinlibPlugin.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos))
-                return ActionResult.SUCCESS;
-
-            FabricWaystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
-            if (!discovered.contains(blockEntity.getHash())) {
-                if (!blockEntity.isGlobal()) {
-                    var discoverItemId = Utils.getDiscoverItem();
-                    if (!player.isCreative()) {
-                        var discoverItem = Registries.ITEM.get(discoverItemId);
-                        var discoverAmount = FabricWaystones.CONFIG.take_amount_from_discover_item();
-                        if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
-                            player.sendMessage(Text.translatable(
-                                "fwaystones.missing_discover_item",
-                                discoverAmount,
-                                Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                    style.withColor(TextColor.parse(Text.translatable("fwaystones.missing_discover_item.arg_color").getString()))
-                                )
-                            ), false);
-                            return ActionResult.FAIL;
-                        } else if (discoverItem != Items.AIR) {
-                            Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
-                            player.sendMessage(Text.translatable(
-                                "fwaystones.discover_item_paid",
-                                discoverAmount,
-                                Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                    style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_item_paid.arg_color").getString()))
-                                )
-                            ), false);
-                        }
-                    }
-                    player.sendMessage(Text.translatable(
-                        "fwaystones.discover_waystone",
-                        Text.literal(blockEntity.getWaystoneName()).styled(style ->
-                            style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_waystone.arg_color").getString()))
-                        )
-                    ), false);
-                }
-                ((PlayerEntityMixinAccess) player).fabricWaystones$discoverWaystone(blockEntity);
-            }
-            if (blockEntity.getOwner() == null) {
-                blockEntity.setOwner(player);
-            } else {
-                blockEntity.updateActiveState();
-            }
-
-            var screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
-
-            if (screenHandlerFactory != null)
-                player.openHandledScreen(screenHandlerFactory);
+            return ActionResult.success(false);
         }
+        if (!FabricWaystones.CONFIG.discover_waystone_on_map_use() && FabricLoader.getInstance().isModLoaded("pinlib") && PinlibPlugin.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos))
+            return ActionResult.SUCCESS;
+
+        FabricWaystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
+        PlayerEntityMixinAccess playerAccess = (PlayerEntityMixinAccess) player;
+        Set<String> discovered = playerAccess.fabricWaystones$getDiscoveredWaystones();
+        if (!discovered.contains(blockEntity.getHash())) {
+            if (!blockEntity.isGlobal()) {
+                Identifier discoverItemId = Utils.getDiscoverItem();
+                if (!player.isCreative()) {
+                    Item discoverItem = Registries.ITEM.get(discoverItemId);
+                    int discoverAmount = FabricWaystones.CONFIG.take_amount_from_discover_item();
+                    if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
+                        player.sendMessage(Text.translatable(
+                            "fwaystones.missing_discover_item",
+                            discoverAmount,
+                            Text.translatable(discoverItem.getTranslationKey()).styled(style ->
+                                style.withColor(TextColor.parse(Text.translatable("fwaystones.missing_discover_item.arg_color").getString()))
+                            )
+                        ), false);
+                        return ActionResult.FAIL;
+                    } else if (discoverItem != Items.AIR) {
+                        Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
+                        player.sendMessage(Text.translatable(
+                            "fwaystones.discover_item_paid",
+                            discoverAmount,
+                            Text.translatable(discoverItem.getTranslationKey()).styled(style ->
+                                style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_item_paid.arg_color").getString()))
+                            )
+                        ), false);
+                    }
+                }
+                player.sendMessage(Text.translatable(
+                    "fwaystones.discover_waystone",
+                    Text.literal(blockEntity.getWaystoneName()).styled(style ->
+                        style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_waystone.arg_color").getString()))
+                    )
+                ), false);
+            }
+            playerAccess.fabricWaystones$discoverWaystone(blockEntity);
+        }
+        if (blockEntity.getOwner() == null) {
+            blockEntity.setOwner(player);
+        } else {
+            blockEntity.updateActiveState();
+        }
+
+        NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
+
+        if (screenHandlerFactory != null) {
+            player.openHandledScreen(screenHandlerFactory);
+        }
+
         blockEntity.markDirty();
         return ActionResult.success(false);
     }
