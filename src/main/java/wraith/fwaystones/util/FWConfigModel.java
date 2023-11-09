@@ -45,6 +45,44 @@ public final class FWConfigModel {
         put("minecraft:village/savanna/houses", "village_waystone");
         put("minecraft:village/snowy/houses", "village_waystone");
         put("minecraft:village/taiga/houses", "village_waystone");
+
+        put("ctov:village/beach/house", "desert_village_waystone");
+        put("ctov:village/christmas/house", "village_waystone");
+        put("ctov:village/desert/house", "desert_village_waystone");
+        put("ctov:village/desert_oasis/house", "desert_village_waystone");
+        put("ctov:village/halloween/house", "village_waystone");
+        put("ctov:village/jungle/house", "mossy_stone_brick_village_waystone");
+        put("ctov:village/jungle_tree/house", "mossy_stone_brick_village_waystone");
+        put("ctov:village/mesa/house", "red_desert_village_waystone");
+        put("ctov:village/mesa_fortified/house", "red_desert_village_waystone");
+        put("ctov:village/mountain/house", "village_waystone");
+        put("ctov:village/mountain_alpine/house", "village_waystone");
+        put("ctov:village/mushroom/house", "village_waystone");
+        put("ctov:village/plains/house", "village_waystone");
+        put("ctov:village/plains_fortified/house", "village_waystone");
+        put("ctov:village/savanna/house", "village_waystone");
+        put("ctov:village/savanna_na/house", "village_waystone");
+        put("ctov:village/snowy_igloo/house", "village_waystone");
+        put("ctov:village/swamp/house", "village_waystone");
+        put("ctov:village/swamp_fortified/house", "village_waystone");
+        put("ctov:village/taiga/house", "village_waystone");
+        put("ctov:village/taiga_fortified/house", "village_waystone");
+        put("ctov:village/underground/house", "stone_brick_village_waystone");
+
+        put("kaisyn:village/badlands_pueblo/houses", "village_waystone");
+        put("kaisyn:village/beach_lighthouse/side", "village_waystone");
+        put("kaisyn:village/birch_forest_romanian/houses", "village_waystone");
+        put("kaisyn:village/exclusives/classic/houses", "village_waystone");
+        put("kaisyn:village/exclusives/iberian/houses", "village_waystone");
+        put("kaisyn:village/exclusives/mediterranean/houses/regular", "village_waystone");
+        put("kaisyn:village/exclusives/nilotic/houses", "village_waystone");
+        put("kaisyn:village/exclusives/rustic/houses", "village_waystone");
+        put("kaisyn:village/exclusives/swedish/houses", "village_waystone");
+        put("kaisyn:village/exclusives/tudor/houses", "village_waystone");
+        put("kaisyn:village/exclusives/wandering_trader_camp/side", "village_waystone");
+        put("kaisyn:village/flower_forest_japanese/houses", "village_waystone");
+        put("kaisyn:village/grove_villager_outpost/decor", "village_waystone");
+        put("kaisyn:village/jungle_tribal/houses", "village_waystone");
     }};
 
     public enum PermissionLevel {
