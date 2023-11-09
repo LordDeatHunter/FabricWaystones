@@ -328,7 +328,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     public void handledScreenTick() {
         super.handledScreenTick();
         if (this.nameField != null && this.nameField.isVisible()) {
-//            this.nameField.tick();
+            this.nameField.tick();
             if (((PlayerEntityMixinAccess) client.player).fabricWaystones$autofocusWaystoneFields()) {
                 this.nameField.setFocused(true);
             }
@@ -480,11 +480,11 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (page == Page.WAYSTONES) {
-            return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+            return super.mouseScrolled(mouseX, mouseY, amount);
         } else {
-            return super.superMouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+            return super.superMouseScrolled(mouseX, mouseY, amount);
         }
     }
 

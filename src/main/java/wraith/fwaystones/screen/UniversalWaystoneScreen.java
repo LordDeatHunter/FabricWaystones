@@ -456,10 +456,10 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (this.shouldScroll()) {
             int i = this.getMaxScroll();
-            this.scrollAmount = (float) ((double) this.scrollAmount - verticalAmount / (double) i);
+            this.scrollAmount = (float) ((double) this.scrollAmount - amount / (double) i);
             this.scrollAmount = MathHelper.clamp(this.scrollAmount, 0.0F, 1.0F);
             this.scrollOffset = (int) ((double) (this.scrollAmount * (float) i) + 0.5D);
         }
@@ -501,8 +501,8 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         return ((UniversalWaystoneScreenHandler) handler).getSearchedWaystones();
     }
 
-    protected boolean superMouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    protected boolean superMouseScrolled(double mouseX, double mouseY, double amount) {
+        return super.mouseScrolled(mouseX, mouseY, amount);
     }
 
     protected boolean superMouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
