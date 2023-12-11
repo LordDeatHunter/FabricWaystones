@@ -101,12 +101,10 @@ public class WaystoneStorage {
             tag = new NbtCompound();
         }
         NbtList waystones = new NbtList();
-        HashSet<String> invalid = new HashSet<>();
         for (Map.Entry<String, WaystoneValue> waystone : WAYSTONES.entrySet()) {
             String hash = waystone.getKey();
             WaystoneValue entity = waystone.getValue();
-            if (!entity.getEntity().getHash().equals(hash)) {
-                invalid.add(hash);
+            if (!entity.getHash().equals(hash)) {
                 continue;
             }
             NbtCompound waystoneTag = new NbtCompound();
