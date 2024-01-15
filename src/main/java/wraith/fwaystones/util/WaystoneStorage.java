@@ -5,10 +5,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
+import net.minecraft.nbt.*;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -97,11 +94,20 @@ public class WaystoneStorage {
                 continue;
             }
             String name = waystoneTag.getString("name");
-            String hash = waystoneTag.getString("hash");
             String dimension = waystoneTag.getString("dimension");
+            String nbtHash = waystoneTag.getString("hash");
+
             int[] coordinates = waystoneTag.getIntArray("position");
             int color = waystoneTag.contains("color", NbtElement.INT_TYPE) ? waystoneTag.getInt("color") : Utils.getRandomColor();
             BlockPos pos = new BlockPos(coordinates[0], coordinates[1], coordinates[2]);
+            String hash = WaystoneBlockEntity.createHashString(dimension, pos);
+
+            // Migrate global hashes from old hash method to new.
+            if (!hash.equals(nbtHash) && globals.contains(nbtHash)) {
+                globals.remove(nbtHash);
+                globals.add(hash);
+            }
+
             WAYSTONES.put(hash, new Lazy(name, pos, hash, dimension, color, globals.contains(hash)));
         }
     }
