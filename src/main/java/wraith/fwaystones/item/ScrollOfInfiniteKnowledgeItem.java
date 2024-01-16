@@ -49,7 +49,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
                 text = Text.translatable(
                     "fwaystones.learned.infinite.multiple",
                     Text.literal(String.valueOf(learned)).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.infinite.multiple.arg_color").getString()))
+                        style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.infinite.multiple.arg_color").getString()).get().left().get())
                     )
                 );
             } else {
@@ -83,7 +83,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
             tooltip.add(Text.translatable(
                 "fwaystones.scroll.infinite_tooltip",
                 Text.literal(String.valueOf(count)).styled(style ->
-                    style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.infinite_tooltip.arg_color").getString()))
+                    style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.infinite_tooltip.arg_color").getString()).get().left().get())
                 )
             ));
         }

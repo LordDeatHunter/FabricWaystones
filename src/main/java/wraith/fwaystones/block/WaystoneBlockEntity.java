@@ -94,7 +94,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    protected DefaultedList<ItemStack> getInvStackList() {
+    protected DefaultedList<ItemStack> method_11282() {
+        // getInvStackList
         return this.inventory;
     }
 
@@ -397,7 +398,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 "fwaystones.no_teleport_message.cooldown",
                 Text.literal(cooldownSeconds).styled(style ->
                     style.withColor(TextColor.parse(Text.translatable(
-                        "fwaystones.no_teleport_message.cooldown.arg_color").getString()))
+                        "fwaystones.no_teleport_message.cooldown.arg_color").getString()).get().left().get())
                 )
             ), false);
             return false;

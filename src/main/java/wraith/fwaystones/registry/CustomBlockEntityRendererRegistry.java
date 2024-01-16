@@ -1,12 +1,12 @@
 package wraith.fwaystones.registry;
 
-import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
 
 public final class CustomBlockEntityRendererRegistry {
 
     public static void RegisterBlockEntityRenderers() {
-        BlockEntityRendererRegistry.register(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, WaystoneBlockEntityRenderer::new);
+        BlockEntityRendererFactories.register(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, WaystoneBlockEntityRenderer::new);
     }
 
 }
