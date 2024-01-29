@@ -64,6 +64,15 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         waystone.tick();
     }
 
+    public static String createHashString(String dimensionName, BlockPos pos) {
+        return Utils.getSHA256(
+                "<POS X:" + pos.getX() +
+                        ", Y:" + pos.getY() +
+                        ", Z:" + pos.getZ() +
+                        ", WORLD: \">" + dimensionName + "\">"
+        );
+    }
+
     public void updateActiveState() {
         if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (owner == null)) {
             world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, this.ownerName != null));
@@ -72,7 +81,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public void createHash(World world, BlockPos pos) {
-        this.hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + Utils.getDimensionName(world) + "\">");
+        this.hash = createHashString(Utils.getDimensionName(world), pos);
         markDirty();
     }
 
