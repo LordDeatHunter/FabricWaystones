@@ -70,7 +70,7 @@ public abstract class LivingEntityMixin {
             var hash = VoidTotem.getBoundWaystone(stack);
             if (hash == null) {
                 // If no such waystone exists, get a random discovered waystone
-                var discovered = ((PlayerEntityMixinAccess) player).getDiscoveredWaystones();
+                var discovered = ((PlayerEntityMixinAccess) player).fabricWaystones$getDiscoveredWaystones();
                 if (!discovered.isEmpty()) {
                     var list = new ArrayList<>(discovered);
                     hash = list.get(Utils.random.nextInt(list.size()));

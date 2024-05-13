@@ -26,6 +26,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
+import wraith.fwaystones.util.FWConfigModel;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.util.WaystonePacketHandler;
 
@@ -36,7 +37,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
     protected final PlayerInventory inventory;
     protected final ArrayList<Button> buttons = new ArrayList<>();
-    private final Identifier texture;
+    protected Identifier texture;
     protected float scrollAmount;
     protected boolean mouseClicked;
     protected int scrollOffset;
@@ -44,10 +45,9 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     protected boolean mousePressed;
     private TextFieldWidget searchField;
 
-    public UniversalWaystoneScreen(ScreenHandler handler, PlayerInventory inventory, Identifier texture, Text title) {
+    public UniversalWaystoneScreen(ScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.inventory = inventory;
-        this.texture = texture;
         this.backgroundWidth = 177;
         this.backgroundHeight = 176;
         buttons.add(new Button(140, 25, 13, 13, 225, 0) {
@@ -58,7 +58,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 }
                 super.onClick();
                 ((UniversalWaystoneScreenHandler) handler).toggleSearchType();
-                searchField.setTextFieldFocused(((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields());
+                searchField.setTextFieldFocused(((PlayerEntityMixinAccess) client.player).fabricWaystones$autofocusWaystoneFields());
             }
 
             @Override
@@ -81,7 +81,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         buttons.add(new ToggleableButton(24, 26, 8, 11, 177, 33, 185, 33) {
             @Override
             public void setup() {
-                this.toggled = ((PlayerEntityMixinAccess) inventory.player).autofocusWaystoneFields();
+                this.toggled = ((PlayerEntityMixinAccess) inventory.player).fabricWaystones$autofocusWaystoneFields();
                 setupTooltip();
             }
 
@@ -96,7 +96,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                     return;
                 }
                 super.onClick();
-                ((PlayerEntityMixinAccess) inventory.player).toggleAutofocusWaystoneFields();
+                ((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toggleAutofocusWaystoneFields();
                 setupTooltip();
             }
 
@@ -114,7 +114,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     public void close() {
         super.close();
         PacketByteBuf packet = PacketByteBufs.create();
-        packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).toTagW(new NbtCompound()));
+        packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toTagW(new NbtCompound()));
         ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
     }
 
@@ -132,7 +132,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     protected void init() {
         super.init();
 
-        this.searchField = new TextFieldWidget(this.textRenderer, this.x + 37, this.y + 27, 93, 10, Text.literal("")) {
+        this.searchField = new TextFieldWidget(textRenderer, this.x + 37, this.y + 27, 93, 10, Text.literal("")) {
             @Override
             public boolean mouseClicked(double mouseX, double mouseY, int button) {
                 boolean bl = mouseX >= (double) this.x && mouseX < (double) (this.x + this.width) && mouseY >= (double) this.y && mouseY < (double) (this.y + this.height);
@@ -161,7 +161,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     public void handledScreenTick() {
         if (this.searchField != null && this.searchField.isVisible()) {
             this.searchField.tick();
-            if (((PlayerEntityMixinAccess) client.player).autofocusWaystoneFields()) {
+            if (((PlayerEntityMixinAccess) client.player).fabricWaystones$autofocusWaystoneFields()) {
                 this.searchField.setTextFieldFocused(true);
             }
         }
@@ -180,15 +180,15 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         this.renderBackground(matrices);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, texture);
-        this.drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
         int k = (int) (75.0F * this.scrollAmount);
-        this.drawTexture(matrices, x + 141, y + 40 + k, 177 + (this.shouldScroll() ? 0 : 11), 0, 11, 15);
+        drawTexture(matrices, x + 141, y + 40 + k, 177 + (this.shouldScroll() ? 0 : 11), 0, 11, 15);
         int n = this.scrollOffset + 5;
         // TODO: Merge some of these
         this.renderWaystoneBackground(matrices, mouseX, mouseY, this.x + 36, this.y + 39, n);
         this.renderForgetButtons(matrices, mouseX, mouseY, this.x + 24, this.y + 45);
         renderButtons(matrices, mouseX, mouseY);
-        this.renderCostItem(matrices, this.x + 40, this.y + 136);
+        this.renderCostItem(matrices, this.x + 23, this.y + 136);
         this.renderWaystoneNames(matrices, this.x + 36, this.y + 40, n);
         this.renderWaystoneTooltips(matrices, mouseX, mouseY, this.x + 36, this.y + 39, n);
         this.renderWaystoneAmount(matrices, this.x + 10, this.y + 160);
@@ -202,6 +202,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             if (!button.isVisible() || !button.hasToolTip() || !button.isInBounds(mouseX - this.x, mouseY - this.y)) {
                 continue;
             }
+
             this.renderTooltip(matrices, button.tooltip(), mouseX, mouseY);
         }
     }
@@ -220,7 +221,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             if (button.isInBounds(mouseX - this.x, mouseY - this.y)) {
                 v += button.getHeight() * (this.mousePressed ? 1 : 2);
             }
-            this.drawTexture(matrices, this.x + button.getX(), this.y + button.getY(), u, v, button.getWidth(), button.getHeight());
+            drawTexture(matrices, this.x + button.getX(), this.y + button.getY(), u, v, button.getWidth(), button.getHeight());
         }
     }
 
@@ -259,15 +260,15 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         MutableText text;
         switch (config.cost_type()) {
             case HEALTH -> {
-                this.drawTexture(matrices, x + 4, y + 4, 186, 15, 9, 9);
+                drawTexture(matrices, x, y + 4, 186, 15, 9, 9);
                 text = Text.translatable("fwaystones.cost.health");
             }
             case HUNGER -> {
-                this.drawTexture(matrices, x + 4, y + 4, 177, 24, 9, 9);
+                drawTexture(matrices, x, y + 4, 177, 24, 9, 9);
                 text = Text.translatable("fwaystones.cost.hunger");
             }
             case EXPERIENCE -> {
-                this.drawTexture(matrices, x + 4, y + 4, 177, 15, 9, 9);
+                drawTexture(matrices, x, y + 4, 177, 15, 9, 9);
                 text = Text.translatable("fwaystones.cost.xp");
             }
             case LEVEL -> {
@@ -279,7 +280,10 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 this.itemRenderer.renderGuiItemIcon(new ItemStack(item), x, y);
                 text = (MutableText) item.getName();
             }
-            default -> text = Text.translatable("fwaystones.cost.free");
+            default -> {
+                drawTexture(matrices, x, y + 4, 186, 24, 9, 9);
+                text = Text.translatable("fwaystones.cost.free");
+            }
         }
 
         renderCostText(matrices, x, y, text);
@@ -290,12 +294,15 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     }
 
     protected void renderCostText(MatrixStack matrices, int x, int y, MutableText text, int color) {
-        this.textRenderer.draw(matrices, text.append(Text.literal(": " + FabricWaystones.CONFIG.teleportation_cost.base_cost())), x + 20, y + 5, color);
+        if (!FabricWaystones.CONFIG.teleportation_cost.cost_type().equals(FWConfigModel.CostType.NONE)) {
+            text = text.append(Text.literal(": " + FabricWaystones.CONFIG.teleportation_cost.base_cost()));
+        }
+        this.textRenderer.draw(matrices, text, x + 16, y + 5, color);
     }
 
     @Override
     protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
-        this.textRenderer.draw(matrices, this.title, (float) this.titleX, (float) this.titleY, 4210752);
+        this.textRenderer.draw(matrices, this.title, this.titleX, this.titleY, 4210752);
     }
 
 
@@ -309,7 +316,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             } else if (mouseX >= x && mouseY >= r && mouseX < x + 8 && mouseY < r + 8) {
                 v += 8 * (mouseClicked ? 1 : 2);
             }
-            this.drawTexture(matrixStack, x, r, 199, v, 8, 8);
+            drawTexture(matrixStack, x, r, 199, v, 8, 8);
         }
     }
 
@@ -332,7 +339,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             if (mouseX >= x && mouseY >= r && mouseX < x + 101 && mouseY < r + 18) {
                 s += mouseClicked ? 18 : 36;
             }
-            this.drawTexture(matrixStack, x, r - 1, 0, s, 101, 18);
+            drawTexture(matrixStack, x, r - 1, 0, s, 101, 18);
         }
     }
 
@@ -348,10 +355,11 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             if (waystoneData == null) {
                 continue;
             }
-            var startDim = Utils.getDimensionName(client.player.world);
+            var startDim = Utils.getDimensionName(client.player.getWorld());
             var endDim = waystoneData.getWorldName();
             List<Text> tooltipContents = new ArrayList<>();
-            tooltipContents.add(Text.translatable("fwaystones.gui.cost_tooltip", Utils.getCost(Vec3d.ofCenter(waystoneData.way_getPos()), client.player.getPos(), startDim, endDim)));
+            int cost = Utils.getCost(Vec3d.ofCenter(waystoneData.way_getPos()), client.player.getPos(), startDim, endDim);
+            tooltipContents.add(Text.translatable("fwaystones.gui.cost_tooltip", cost == 0 ? Text.translatable("fwaystones.cost.free").getString() : String.valueOf(cost)));
             if (hasShiftDown()) {
                 tooltipContents.add(Text.translatable("fwaystones.gui.dimension_tooltip", waystoneData.getWorldName()));
             }
@@ -368,7 +376,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             int r = y + o * 18 + 2;
 
             String name = FabricWaystones.WAYSTONE_STORAGE.getName(waystones.get(n));
-            this.textRenderer.draw(matrices, name, x + 5f, r - 1 + 5f, 0x161616);
+            this.textRenderer.draw(matrices, name, x + 5, r - 1 + 5, 0x161616);
         }
     }
 

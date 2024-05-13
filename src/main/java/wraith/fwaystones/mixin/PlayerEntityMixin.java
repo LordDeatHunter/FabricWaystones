@@ -11,6 +11,7 @@ import net.minecraft.nbt.NbtString;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -30,13 +31,20 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mixin(PlayerEntity.class)
 public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
+    @Unique
     private final Set<String> discoveredWaystones = ConcurrentHashMap.newKeySet();
+    @Unique
     private boolean viewDiscoveredWaystones = true;
+    @Unique
     private boolean viewGlobalWaystones = true;
+    @Unique
     private boolean autofocusWaystoneFields = true;
+    @Unique
     private SearchType waystoneSearchType = SearchType.CONTAINS;
+    @Unique
     private int teleportCooldown = 0;
 
+    @Unique
     private PlayerEntity _this() {
         return (PlayerEntity) (Object) this;
     }
@@ -54,57 +62,57 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (source == DamageSource.OUT_OF_WORLD) {
             return;
         }
-        setTeleportCooldown(FabricWaystones.CONFIG.teleportation_cooldown.cooldown_ticks_when_hurt());
+        fabricWaystones$setTeleportCooldown(FabricWaystones.CONFIG.teleportation_cooldown.cooldown_ticks_when_hurt());
     }
 
     @Override
-    public int getTeleportCooldown() {
+    public int fabricWaystones$getTeleportCooldown() {
         return teleportCooldown;
     }
 
     @Override
-    public void setTeleportCooldown(int cooldown) {
+    public void fabricWaystones$setTeleportCooldown(int cooldown) {
         if (cooldown > 0) {
             this.teleportCooldown = cooldown;
         }
     }
 
     @Override
-    public void discoverWaystone(WaystoneBlockEntity waystone) {
-        discoverWaystone(waystone.getHash());
+    public void fabricWaystones$discoverWaystone(WaystoneBlockEntity waystone) {
+        fabricWaystones$discoverWaystone(waystone.getHash());
     }
 
     @Override
-    public void discoverWaystone(String hash) {
-        discoverWaystone(hash, true);
+    public void fabricWaystones$discoverWaystone(String hash) {
+        fabricWaystones$discoverWaystone(hash, true);
     }
 
     @Override
-    public void discoverWaystone(String hash, boolean sync) {
+    public void fabricWaystones$discoverWaystone(String hash, boolean sync) {
         WaystoneEvents.DISCOVER_WAYSTONE_EVENT.invoker().onUpdate(hash);
         discoveredWaystones.add(hash);
         if (sync) {
-            syncData();
+            fabricWaystones$syncData();
         }
     }
 
     @Override
-    public boolean hasDiscoveredWaystone(WaystoneBlockEntity waystone) {
+    public boolean fabricWaystones$hasDiscoveredWaystone(WaystoneBlockEntity waystone) {
         return discoveredWaystones.contains(waystone.getHash());
     }
 
     @Override
-    public void forgetWaystone(WaystoneBlockEntity waystone) {
-        forgetWaystone(waystone.getHash());
+    public void fabricWaystones$forgetWaystone(WaystoneBlockEntity waystone) {
+        fabricWaystones$forgetWaystone(waystone.getHash());
     }
 
     @Override
-    public void forgetWaystone(String hash) {
-        forgetWaystone(hash, true);
+    public void fabricWaystones$forgetWaystone(String hash) {
+        fabricWaystones$forgetWaystone(hash, true);
     }
 
     @Override
-    public void forgetWaystone(String hash, boolean sync) {
+    public void fabricWaystones$forgetWaystone(String hash, boolean sync) {
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
         var player = _this();
         if (waystone != null) {
@@ -119,32 +127,32 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(hash);
         discoveredWaystones.remove(hash);
         if (sync) {
-            syncData();
+            fabricWaystones$syncData();
         }
     }
 
     @Override
-    public void syncData() {
+    public void fabricWaystones$syncData() {
         if (!(_this() instanceof ServerPlayerEntity serverPlayerEntity)) {
             return;
         }
         PacketByteBuf packet = PacketByteBufs.create();
-        packet.writeNbt(toTagW(new NbtCompound()));
+        packet.writeNbt(fabricWaystones$toTagW(new NbtCompound()));
         ServerPlayNetworking.send(serverPlayerEntity, WaystonePacketHandler.SYNC_PLAYER, packet);
     }
 
     @Override
-    public Set<String> getDiscoveredWaystones() {
+    public Set<String> fabricWaystones$getDiscoveredWaystones() {
         return discoveredWaystones;
     }
 
     @Override
-    public int getDiscoveredCount() {
+    public int fabricWaystones$getDiscoveredCount() {
         return discoveredWaystones.size();
     }
 
     @Override
-    public ArrayList<String> getWaystonesSorted() {
+    public ArrayList<String> fabricWaystones$getWaystonesSorted() {
         ArrayList<String> waystones = new ArrayList<>();
         HashSet<String> toRemove = new HashSet<>();
         for (String hash : discoveredWaystones) {
@@ -163,7 +171,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
     @Override
-    public ArrayList<String> getHashesSorted() {
+    public ArrayList<String> fabricWaystones$getHashesSorted() {
         ArrayList<String> waystones = new ArrayList<>();
         HashSet<String> toRemove = new HashSet<>();
         for (String hash : discoveredWaystones) {
@@ -185,11 +193,11 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Inject(method = "writeCustomDataToNbt", at = @At("RETURN"))
     public void writeCustomDataToNbt(NbtCompound tag, CallbackInfo ci) {
-        toTagW(tag);
+        fabricWaystones$toTagW(tag);
     }
 
     @Override
-    public NbtCompound toTagW(NbtCompound tag) {
+    public NbtCompound fabricWaystones$toTagW(NbtCompound tag) {
         NbtCompound customTag = new NbtCompound();
         NbtList waystones = new NbtList();
         for (String waystone : discoveredWaystones) {
@@ -200,25 +208,29 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         customTag.putBoolean("view_global_waystones", this.viewGlobalWaystones);
         customTag.putBoolean("autofocus_waystone_fields", this.autofocusWaystoneFields);
         customTag.putString("waystone_search_type", this.waystoneSearchType.name());
+        customTag.putInt("teleportCooldown", this.teleportCooldown);
 
         tag.put(FabricWaystones.MOD_ID, customTag);
         return tag;
     }
 
     @Override
-    public void learnWaystones(PlayerEntity player) {
+    public void fabricWaystones$learnWaystones(PlayerEntity player) {
         discoveredWaystones.clear();
-        ((PlayerEntityMixinAccess) player).getDiscoveredWaystones().forEach(hash -> discoverWaystone(hash, false));
-        syncData();
+        int oldCount = fabricWaystones$getDiscoveredCount();
+        ((PlayerEntityMixinAccess) player).fabricWaystones$getDiscoveredWaystones().forEach(hash -> fabricWaystones$discoverWaystone(hash, false));
+        if (oldCount != fabricWaystones$getDiscoveredCount()) {
+            fabricWaystones$syncData();
+        }
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
     public void readCustomDataFromNbt(NbtCompound tag, CallbackInfo ci) {
-        fromTagW(tag);
+        fabricWaystones$fromTagW(tag);
     }
 
     @Override
-    public void fromTagW(NbtCompound tag) {
+    public void fabricWaystones$fromTagW(NbtCompound tag) {
         if (!tag.contains(FabricWaystones.MOD_ID)) {
             return;
         }
@@ -250,6 +262,9 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (tag.contains("autofocus_waystone_fields")) {
             this.autofocusWaystoneFields = tag.getBoolean("autofocus_waystone_fields");
         }
+        if (tag.contains("teleportCooldown")) {
+            this.teleportCooldown = tag.getInt("teleportCooldown");
+        }
         if (tag.contains("waystone_search_type")) {
             try {
                 this.waystoneSearchType = SearchType.valueOf(tag.getString("waystone_search_type"));
@@ -260,72 +275,78 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
     @Override
-    public boolean shouldViewGlobalWaystones() {
+    public boolean fabricWaystones$shouldViewGlobalWaystones() {
         return this.viewGlobalWaystones;
     }
 
     @Override
-    public boolean shouldViewDiscoveredWaystones() {
+    public boolean fabricWaystones$shouldViewDiscoveredWaystones() {
         return this.viewDiscoveredWaystones;
     }
 
     @Override
-    public void toggleViewGlobalWaystones() {
+    public void fabricWaystones$toggleViewGlobalWaystones() {
         this.viewGlobalWaystones = !this.viewGlobalWaystones;
-        syncData();
+        fabricWaystones$syncData();
     }
 
     @Override
-    public void toggleViewDiscoveredWaystones() {
+    public void fabricWaystones$toggleViewDiscoveredWaystones() {
         this.viewDiscoveredWaystones = !this.viewDiscoveredWaystones;
-        syncData();
+        fabricWaystones$syncData();
     }
 
     @Override
-    public boolean hasDiscoveredWaystone(String hash) {
+    public boolean fabricWaystones$hasDiscoveredWaystone(String hash) {
         return this.discoveredWaystones.contains(hash);
     }
 
     @Override
-    public void discoverWaystones(HashSet<String> toLearn) {
+    public void fabricWaystones$discoverWaystones(HashSet<String> toLearn) {
         if (FabricWaystones.WAYSTONE_STORAGE == null) {
             return;
         }
-        toLearn.forEach(hash -> discoverWaystone(hash, false));
-        syncData();
+        toLearn.forEach(hash -> fabricWaystones$discoverWaystone(hash, false));
+        if (!toLearn.isEmpty()) {
+            fabricWaystones$syncData();
+        }
     }
 
     @Override
-    public void forgetWaystones(HashSet<String> toForget) {
-        toForget.forEach(hash -> this.forgetWaystone(hash, false));
-        syncData();
+    public void fabricWaystones$forgetWaystones(HashSet<String> toForget) {
+        toForget.forEach(hash -> this.fabricWaystones$forgetWaystone(hash, false));
+        if (!toForget.isEmpty()) {
+            fabricWaystones$syncData();
+        }
     }
 
     @Override
-    public void forgetAllWaystones() {
+    public void fabricWaystones$forgetAllWaystones() {
+        if (discoveredWaystones.isEmpty()) {
+            return;
+        }
         discoveredWaystones.clear();
         WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
-        //discoveredWaystones.forEach(hash -> forgetWaystone(hash, false));
-        syncData();
+        fabricWaystones$syncData();
     }
 
     @Override
-    public boolean autofocusWaystoneFields() {
+    public boolean fabricWaystones$autofocusWaystoneFields() {
         return autofocusWaystoneFields;
     }
 
     @Override
-    public void toggleAutofocusWaystoneFields() {
+    public void fabricWaystones$toggleAutofocusWaystoneFields() {
         autofocusWaystoneFields = !autofocusWaystoneFields;
     }
 
     @Override
-    public SearchType getSearchType() {
+    public SearchType fabricWaystones$getSearchType() {
         return waystoneSearchType;
     }
 
     @Override
-    public void setSearchType(SearchType searchType) {
+    public void fabricWaystones$setSearchType(SearchType searchType) {
         this.waystoneSearchType = searchType;
     }
 

@@ -13,8 +13,10 @@ public class AbyssScreen extends UniversalWaystoneScreen {
     private static final Identifier TEXTURE = Utils.ID("textures/gui/abyss.png");
 
     public AbyssScreen(ScreenHandler handler, PlayerInventory inventory, Text title) {
-        super(handler, inventory, TEXTURE, title);
+        super(handler, inventory, title);
+        texture = TEXTURE;
     }
+
 
     @Override
     protected void renderCostText(MatrixStack matrices, int x, int y, MutableText text) {

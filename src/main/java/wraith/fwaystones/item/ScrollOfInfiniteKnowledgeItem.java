@@ -34,7 +34,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         int learned = 0;
         HashSet<String> toLearn = new HashSet<>();
         for (String hash : FabricWaystones.WAYSTONE_STORAGE.getAllHashes()) {
-            if (!((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(hash)) {
+            if (!((PlayerEntityMixinAccess) user).fabricWaystones$hasDiscoveredWaystone(hash)) {
                 var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone != null && waystone.getOwner() == null) {
                     waystone.setOwner(user);
@@ -55,7 +55,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
             } else {
                 text = Text.translatable("fwaystones.learned.infinite.single");
             }
-            ((PlayerEntityMixinAccess) user).discoverWaystones(toLearn);
+            ((PlayerEntityMixinAccess) user).fabricWaystones$discoverWaystones(toLearn);
             if (!user.isCreative() && FabricWaystones.CONFIG.consume_infinite_knowledge_scroll_on_use()) {
                 stack.decrement(1);
             }

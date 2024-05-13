@@ -21,5 +21,4 @@ public final class CustomScreenHandlerRegistry {
         POCKET_WORMHOLE_SCREEN = Registry.register(Registry.SCREEN_HANDLER, Utils.ID("pocket_wormhole"), new ScreenHandlerType<>(PocketWormholeScreenHandler::new));
         ABYSS_SCREEN_HANDLER = Registry.register(Registry.SCREEN_HANDLER, Utils.ID("abyss"), new ScreenHandlerType<>(AbyssScreenHandler::new));
     }
-
 }

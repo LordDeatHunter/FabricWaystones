@@ -35,6 +35,9 @@ public final class WaystonePacketHandler {
                 }
                 String hash = tag.getString("waystone_hash");
                 UUID owner = tag.getUuid("waystone_owner");
+                if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(hash)) {
+                    return;
+                }
                 if ((player.getUuid().equals(owner) || player.hasPermissionLevel(2))) {
                     FabricWaystones.WAYSTONE_STORAGE.setOwner(hash, null);
                 }
@@ -62,6 +65,9 @@ public final class WaystonePacketHandler {
             String hash = tag.getString("waystone_hash");
             UUID owner = tag.getUuid("waystone_owner");
             server.execute(() -> {
+                if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(hash)) {
+                    return;
+                }
                 if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash) &&
                     ((player.getUuid().equals(owner) &&
                         owner.equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash).getOwner())) ||
@@ -76,10 +82,13 @@ public final class WaystonePacketHandler {
                 return;
             }
             String hash = tag.getString("waystone_hash");
-            server.execute(() -> ((PlayerEntityMixinAccess) player).forgetWaystone(hash));
+            if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(hash)) {
+                return;
+            }
+            server.execute(() -> ((PlayerEntityMixinAccess) player).fabricWaystones$forgetWaystone(hash));
         });
         ServerPlayNetworking.registerGlobalReceiver(REQUEST_PLAYER_SYNC, (server, player, networkHandler, data, sender) ->
-            server.execute(((PlayerEntityMixinAccess) player)::syncData)
+            server.execute(((PlayerEntityMixinAccess) player)::fabricWaystones$syncData)
         );
         ServerPlayNetworking.registerGlobalReceiver(TOGGLE_GLOBAL_WAYSTONE, (server, player, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();
@@ -90,6 +99,9 @@ public final class WaystonePacketHandler {
                 var permissionLevel = FabricWaystones.CONFIG.global_mode_toggle_permission_levels();
                 UUID owner = tag.getUuid("waystone_owner");
                 String hash = tag.getString("waystone_hash");
+                if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(hash)) {
+                    return;
+                }
                 switch (permissionLevel) {
                     case NONE:
                         return;
@@ -111,7 +123,7 @@ public final class WaystonePacketHandler {
         });
         ServerPlayNetworking.registerGlobalReceiver(SYNC_PLAYER_FROM_CLIENT, (server, player, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();
-            server.execute(() -> ((PlayerEntityMixinAccess) player).fromTagW(tag));
+            server.execute(() -> ((PlayerEntityMixinAccess) player).fabricWaystones$fromTagW(tag));
         });
         ServerPlayNetworking.registerGlobalReceiver(TELEPORT_TO_WAYSTONE, (server, player, networkHandler, data, sender) -> {
             NbtCompound tag = data.readNbt();
@@ -123,10 +135,10 @@ public final class WaystonePacketHandler {
                     return;
                 }
                 String hash = tag.getString("waystone_hash");
-                var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
-                if (waystone == null) {
+                if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(hash)) {
                     return;
                 }
+                var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos()).getBlock() instanceof WaystoneBlock)) {
                     FabricWaystones.WAYSTONE_STORAGE.removeWaystone(hash);
                     waystone.getWorld().removeBlockEntity(waystone.getPos());

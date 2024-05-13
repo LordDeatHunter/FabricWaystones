@@ -46,12 +46,12 @@ public class WaystonesClient implements ClientModInitializer {
                     return;
                 }
                 HashSet<String> toForget = new HashSet<>();
-                for (String hash : ((PlayerEntityMixinAccess) client.player).getDiscoveredWaystones()) {
+                for (String hash : ((PlayerEntityMixinAccess) client.player).fabricWaystones$getDiscoveredWaystones()) {
                     if (!FabricWaystones.WAYSTONE_STORAGE.containsHash(hash)) {
                         toForget.add(hash);
                     }
                 }
-                ((PlayerEntityMixinAccess) client.player).forgetWaystones(toForget);
+                ((PlayerEntityMixinAccess) client.player).fabricWaystones$forgetWaystones(toForget);
 
                 if (client.player.currentScreenHandler instanceof UniversalWaystoneScreenHandler) {
                     ((UniversalWaystoneScreenHandler) client.player.currentScreenHandler).updateWaystones(client.player);
@@ -62,7 +62,7 @@ public class WaystonesClient implements ClientModInitializer {
             NbtCompound tag = data.readNbt();
             client.execute(() -> {
                 if (client.player != null) {
-                    ((PlayerEntityMixinAccess) client.player).fromTagW(tag);
+                    ((PlayerEntityMixinAccess) client.player).fabricWaystones$fromTagW(tag);
                 }
             });
         });
@@ -70,15 +70,17 @@ public class WaystonesClient implements ClientModInitializer {
             if (client.player == null) {
                 return;
             }
-            client.particleManager.addEmitter(client.player, ParticleTypes.TOTEM_OF_UNDYING, 30);
-            handler.getWorld().playSound(client.player.getX(), client.player.getY(), client.player.getZ(), SoundEvents.ITEM_TOTEM_USE, client.player.getSoundCategory(), 1.0F, 1.0F, false);
-            for (int i = 0; i < client.player.getInventory().size(); ++i) {
-                ItemStack playerStack = client.player.getInventory().getStack(i);
-                if (playerStack.getItem() == ItemRegistry.get("void_totem")) {
-                    client.gameRenderer.showFloatingItem(playerStack);
-                    break;
+            client.execute(() -> {
+                client.particleManager.addEmitter(client.player, ParticleTypes.TOTEM_OF_UNDYING, 30);
+                handler.getWorld().playSound(client.player.getX(), client.player.getY(), client.player.getZ(), SoundEvents.ITEM_TOTEM_USE, client.player.getSoundCategory(), 1.0F, 1.0F, false);
+                for (int i = 0; i < client.player.getInventory().size(); ++i) {
+                    ItemStack playerStack = client.player.getInventory().getStack(i);
+                    if (playerStack.getItem() == ItemRegistry.get("void_totem")) {
+                        client.gameRenderer.showFloatingItem(playerStack);
+                        break;
+                    }
                 }
-            }
+            });
         });
     }
 
@@ -93,7 +95,7 @@ public class WaystonesClient implements ClientModInitializer {
                 FabricWaystones.LOGGER.error("The Waystone storage is null. This is likely caused by a crash.");
                 return;
             }
-            FabricWaystones.WAYSTONE_STORAGE.loadOrSaveWaystones(true);
+            FabricWaystones.WAYSTONE_STORAGE.saveWaystones(false);
             FabricWaystones.WAYSTONE_STORAGE = null;
         });
     }

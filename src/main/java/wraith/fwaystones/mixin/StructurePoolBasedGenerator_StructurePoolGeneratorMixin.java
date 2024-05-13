@@ -118,4 +118,5 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
         final boolean hasMaxWaystones = villageWaystoneCount >= maxWaystoneCount;
         list.removeIf(element -> hasMaxWaystones == isWaystone(element));
     }
+
 }

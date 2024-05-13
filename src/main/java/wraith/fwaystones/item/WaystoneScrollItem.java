@@ -47,7 +47,7 @@ public class WaystoneScrollItem extends Item {
         HashSet<String> toLearn = new HashSet<>();
         for (int i = 0; i < list.size(); ++i) {
             String hash = list.getString(i);
-            if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash) && !((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(hash)) {
+            if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash) && !((PlayerEntityMixinAccess) user).fabricWaystones$hasDiscoveredWaystone(hash)) {
                 var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone != null && waystone.getOwner() == null) {
                     waystone.setOwner(user);
@@ -68,7 +68,7 @@ public class WaystoneScrollItem extends Item {
             } else {
                 text = Text.translatable("fwaystones.learned.single");
             }
-            ((PlayerEntityMixinAccess) user).discoverWaystones(toLearn);
+            ((PlayerEntityMixinAccess) user).fabricWaystones$discoverWaystones(toLearn);
             if (!user.isCreative()) {
                 stack.decrement(1);
             }
@@ -88,7 +88,7 @@ public class WaystoneScrollItem extends Item {
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
         if (context.getWorld().getBlockState(context.getBlockPos()).getBlock() instanceof WaystoneBlock && context.getPlayer() != null) {
-            var discovered = ((PlayerEntityMixinAccess) context.getPlayer()).getDiscoveredWaystones();
+            var discovered = ((PlayerEntityMixinAccess) context.getPlayer()).fabricWaystones$getDiscoveredWaystones();
 
             ItemStack stack = context.getStack();
 

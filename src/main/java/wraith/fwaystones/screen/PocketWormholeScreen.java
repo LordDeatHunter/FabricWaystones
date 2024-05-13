@@ -14,7 +14,8 @@ public class PocketWormholeScreen extends UniversalWaystoneScreen {
     private static final Identifier TEXTURE = Utils.ID("textures/gui/pocket_wormhole.png");
 
     public PocketWormholeScreen(ScreenHandler handler, PlayerInventory inventory, Text title) {
-        super(handler, inventory, TEXTURE, title);
+        super(handler, inventory, title);
+        texture = TEXTURE;
     }
 
     @Override
@@ -27,6 +28,5 @@ public class PocketWormholeScreen extends UniversalWaystoneScreen {
     protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
         this.textRenderer.draw(matrices, this.title, (float) this.titleX, (float) this.titleY, 0x7E3483);
     }
-
 
 }

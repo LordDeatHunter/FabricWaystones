@@ -2,7 +2,6 @@ package wraith.fwaystones.block;
 
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -11,6 +10,7 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
@@ -64,6 +64,15 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         waystone.tick();
     }
 
+    public static String createHashString(String dimensionName, BlockPos pos) {
+        return Utils.getSHA256(
+            "<POS X:" + pos.getX() +
+                ", Y:" + pos.getY() +
+                ", Z:" + pos.getZ() +
+                ", WORLD: \">" + dimensionName + "\">"
+        );
+    }
+
     public void updateActiveState() {
         if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (owner == null)) {
             world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, this.ownerName != null));
@@ -72,7 +81,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public void createHash(World world, BlockPos pos) {
-        this.hash = Utils.getSHA256("<POS X:" + pos.getX() + ", Y:" + pos.getY() + ", Z:" + pos.getZ() + ", WORLD: \">" + world + "\">");
+        this.hash = createHashString(Utils.getDimensionName(world), pos);
         markDirty();
     }
 
@@ -138,7 +147,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (nbt.contains("waystone_owner_name")) {
             this.ownerName = nbt.getString("waystone_owner_name");
         }
-        this.color = nbt.contains("color", NbtType.INT) ? nbt.getInt("color") : null;
+        this.color = nbt.contains("color", NbtElement.INT_TYPE) ? nbt.getInt("color") : null;
         this.inventory = DefaultedList.ofSize(nbt.getInt("inventory_size"), ItemStack.EMPTY);
         Inventories.readNbt(nbt, inventory);
     }
@@ -380,7 +389,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 if (playerEntity.getStackInHand(hand).getItem() instanceof AbyssWatcherItem) {
                     player.sendToolBreakStatus(hand);
                     playerEntity.getStackInHand(hand).decrement(1);
-                    player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
+                    player.getWorld().playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
                     break;
                 }
             }
@@ -390,7 +399,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target, TeleportSources source, boolean takeCost) {
         var playerAccess = (PlayerEntityMixinAccess) player;
-        var cooldown = playerAccess.getTeleportCooldown();
+        var cooldown = playerAccess.fabricWaystones$getTeleportCooldown();
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
             player.sendMessage(Text.translatable(
@@ -402,14 +411,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             ), false);
             return false;
         }
-        if (source == TeleportSources.LOCAL_VOID && !FabricWaystones.CONFIG.free_local_void_teleport()) {
-            return false;
-        }
-        if (source != TeleportSources.VOID_TOTEM && !Utils.canTeleport(player, hash, takeCost)) {
+        if (!Utils.canTeleport(player, hash, source, takeCost)) {
             return false;
         }
         var cooldowns = FabricWaystones.CONFIG.teleportation_cooldown;
-        playerAccess.setTeleportCooldown(switch (source) {
+        playerAccess.fabricWaystones$setTeleportCooldown(switch (source) {
             case WAYSTONE -> cooldowns.cooldown_ticks_from_waystone();
             case ABYSS_WATCHER -> cooldowns.cooldown_ticks_from_abyss_watcher();
             case LOCAL_VOID -> cooldowns.cooldown_ticks_from_local_void();
@@ -418,12 +424,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         });
         var oldPos = player.getBlockPos();
         world.getChunkManager().addTicket(ChunkTicketType.POST_TELEPORT, new ChunkPos(new BlockPos(target.position)), 1, player.getId());
-        player.world.playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         player.detach();
         FabricDimensions.teleport(player, world, target);
         BlockPos playerPos = player.getBlockPos();
 
-        if (!oldPos.isWithinDistance(playerPos, 6) || !player.world.getRegistryKey().equals(world.getRegistryKey())) {
+        if (!oldPos.isWithinDistance(playerPos, 6) || !player.getWorld().getRegistryKey().equals(world.getRegistryKey())) {
             world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         }
         return true;
