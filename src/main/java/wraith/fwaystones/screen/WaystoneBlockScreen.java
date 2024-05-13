@@ -1,12 +1,13 @@
 package wraith.fwaystones.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
@@ -328,7 +329,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     public void handledScreenTick() {
         super.handledScreenTick();
         if (this.nameField != null && this.nameField.isVisible()) {
-//            this.nameField.tick();
+            this.nameField.tick();
             if (((PlayerEntityMixinAccess) client.player).fabricWaystones$autofocusWaystoneFields()) {
                 this.nameField.setFocused(true);
             }
@@ -336,9 +337,9 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        this.drawMouseoverTooltip(context, mouseX, mouseY);
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        super.render(matrices, mouseX, mouseY, delta);
+        this.drawMouseoverTooltip(matrices, mouseX, mouseY);
     }
 
     @Override
@@ -392,31 +393,32 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
+    protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
         if (page == Page.WAYSTONES) {
-            super.drawBackground(context, delta, mouseX, mouseY);
+            super.drawBackground(matrices, delta, mouseX, mouseY);
         } else {
-            context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            context.drawTexture(CONFIG_TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.setShaderTexture(0, CONFIG_TEXTURE);
+            drawTexture(matrices, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
             if (canEdit()) {
-                context.drawTexture(CONFIG_TEXTURE, x + 23, y + backgroundHeight - 33, 0, backgroundHeight, 103, 15);
+                drawTexture(matrices, x + 23, y + backgroundHeight - 33, 0, backgroundHeight, 103, 15);
             }
-            renderButtons(context, mouseX, mouseY);
-            renderButtonText(context);
+            renderButtons(matrices, mouseX, mouseY);
+            renderButtonText(matrices);
             String owner = ((WaystoneBlockScreenHandler) handler).getOwnerName();
-            if (owner == null || "".equals(owner)) {
+            if (owner == null || owner.isEmpty()) {
                 owner = Text.translatable("fwaystones.config.no_owner").getString();
             }
-            context.drawText(textRenderer, Text.translatable("fwaystones.config.owner", owner), this.x + 10, this.y + 10, 0x161616, false);
+            this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.owner", owner), this.x + 10, this.y + 10, 0x161616);
             if (this.nameField.isVisible()) {
-                this.nameField.render(context, mouseX, mouseY, delta);
+                this.nameField.render(matrices, mouseX, mouseY, delta);
             }
-            renderButtonTooltips(context, mouseX, mouseY);
+            renderButtonTooltips(matrices, mouseX, mouseY);
         }
     }
 
     @Override
-    protected void renderWaystoneBackground(DrawContext context, int mouseX, int mouseY, int x, int y, int m) {
+    protected void renderWaystoneBackground(MatrixStack matrices, int mouseX, int mouseY, int x, int y, int m) {
         for (int n = this.scrollOffset; n < m && n < getDiscoveredCount(); ++n) {
             int o = n - this.scrollOffset;
             int r = y + o * 18 + 2;
@@ -430,19 +432,19 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
                     s += 36;
                 }
             }
-            context.drawTexture(TEXTURE, x, r - 1, 0, s, 101, 18);
+            drawTexture(matrices, x, r - 1, 0, s, 101, 18);
         }
     }
 
-    private void renderButtonText(DrawContext context) {
-        context.drawText(textRenderer, Text.translatable("fwaystones.config.view_discovered"), this.x + 25, this.y + 29, 0x161616, false);
-        context.drawText(textRenderer, Text.translatable("fwaystones.config.view_global"), this.x + 25, this.y + 45, 0x161616, false);
+    private void renderButtonText(MatrixStack matrices) {
+        this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.view_discovered"), this.x + 25, this.y + 29, 0x161616);
+        this.textRenderer.draw(matrices, Text.translatable("fwaystones.config.view_global"), this.x + 25, this.y + 45, 0x161616);
     }
 
     @Override
-    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
+    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
         if (page == Page.WAYSTONES) {
-            context.drawText(textRenderer, ((WaystoneBlockScreenHandler) handler).getName(), this.titleX, this.titleY, 4210752, false);
+            this.textRenderer.draw(matrices, ((WaystoneBlockScreenHandler) handler).getName(), this.titleX, this.titleY, 4210752);
         }
     }
 
@@ -480,11 +482,11 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (page == Page.WAYSTONES) {
-            return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+            return super.mouseScrolled(mouseX, mouseY, amount);
         } else {
-            return super.superMouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+            return super.superMouseScrolled(mouseX, mouseY, amount);
         }
     }
 

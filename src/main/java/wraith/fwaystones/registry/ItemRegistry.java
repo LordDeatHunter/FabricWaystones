@@ -19,7 +19,14 @@ import java.util.HashMap;
 public final class ItemRegistry {
 
     private static final HashMap<String, Item> ITEMS = new HashMap<>();
-    public static final ItemGroup WAYSTONE_GROUP = FabricItemGroup.builder().icon(() -> new ItemStack(BlockRegistry.WAYSTONE)).displayName(Text.translatable("itemGroup.fwaystones.fwaystones")).entries((enabledFeatures, entries) -> ITEMS.values().stream().map(ItemStack::new).forEach(entries::add)).build();
+    public static final ItemGroup WAYSTONE_GROUP = FabricItemGroup.builder(Utils.ID(FabricWaystones.MOD_ID))
+        .icon(() -> new ItemStack(BlockRegistry.WAYSTONE))
+        .displayName(Text.translatable("itemGroup.fwaystones.fwaystones"))
+        .entries((enabledFeatures, entries) -> ITEMS.values()
+            .stream()
+            .map(ItemStack::new)
+            .forEach(entries::add))
+        .build();
 
     private ItemRegistry() {}
 
@@ -31,7 +38,6 @@ public final class ItemRegistry {
         if (!ITEMS.isEmpty()) {
             return;
         }
-        Registry.register(Registries.ITEM_GROUP, Utils.ID(FabricWaystones.MOD_ID), WAYSTONE_GROUP);
         registerItem("waystone", new WaystoneItem(BlockRegistry.WAYSTONE, new FabricItemSettings()));
         registerItem("desert_waystone", new WaystoneItem(BlockRegistry.DESERT_WAYSTONE, new FabricItemSettings()));
         registerItem("red_desert_waystone", new WaystoneItem(BlockRegistry.RED_DESERT_WAYSTONE, new FabricItemSettings()));

@@ -4,6 +4,7 @@ import io.wispforest.owo.util.TagInjector;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.MapColor;
+import net.minecraft.block.Material;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -15,15 +16,15 @@ import java.util.HashMap;
 
 public final class BlockRegistry {
 
-    public static final Block BLACKSTONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.create().mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block DEEPSLATE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.create().mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block DESERT_WAYSTONE = new WaystoneBlock(FabricBlockSettings.create().mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block ENDSTONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.create().mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block NETHER_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.create().mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block RED_DESERT_WAYSTONE = new WaystoneBlock(FabricBlockSettings.create().mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block RED_NETHER_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.create().mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block STONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.create().mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block WAYSTONE = new WaystoneBlock(FabricBlockSettings.create().mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block BLACKSTONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block DEEPSLATE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block DESERT_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block ENDSTONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block NETHER_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block RED_DESERT_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block RED_NETHER_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block STONE_BRICK_WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block WAYSTONE = new WaystoneBlock(FabricBlockSettings.of(Material.STONE).mapColor(MapColor.STONE_GRAY).requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
     public static final HashMap<String, Block> WAYSTONE_BLOCKS = new HashMap<>();
     private static Identifier miningLevelTag;
 

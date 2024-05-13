@@ -34,7 +34,6 @@ public class WaystoneStorage {
     public final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
     private final PersistentState state;
     private final MinecraftServer server;
-    PersistentState.Type<PersistentState> type = new PersistentState.Type<>(this::createState, this::stateFromNbt, DataFixTypes.LEVEL);
 
     public WaystoneStorage(MinecraftServer server) {
         if (server == null) {
@@ -44,24 +43,20 @@ public class WaystoneStorage {
         }
         this.server = server;
 
-        state = this.server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(type, ID);
-
-        loadWaystones();
-    }
-
-    private PersistentState createState() {
-        return new PersistentState() {
+        var pState = new PersistentState() {
             @Override
             public NbtCompound writeNbt(NbtCompound tag) {
                 return toTag(tag);
             }
         };
-    }
+        state = this.server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(
+            nbtCompound -> {
+                fromTag(nbtCompound);
+                return pState;
+            },
+            () -> pState, ID);
 
-    private PersistentState stateFromNbt(NbtCompound nbt) {
-        PersistentState state = this.createState();
-        fromTag(nbt);
-        return state;
+        loadWaystones();
     }
 
     public void fromTag(NbtCompound tag) {
@@ -177,7 +172,8 @@ public class WaystoneStorage {
         }
         ServerWorld world = server.getWorld(ServerWorld.OVERWORLD);
         try {
-            NbtCompound compoundTag = world.getPersistentStateManager().readNbt(ID, DataFixTypes.LEVEL, SharedConstants.getGameVersion().getProtocolVersion());
+            NbtCompound compoundTag = world.getPersistentStateManager()
+                .readNbt(ID, SharedConstants.getGameVersion().getProtocolVersion());
             state.writeNbt(compoundTag.getCompound("data"));
         } catch (IOException ignored) {}
         world.getPersistentStateManager().save();
