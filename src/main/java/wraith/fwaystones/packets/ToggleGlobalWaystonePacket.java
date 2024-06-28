@@ -21,7 +21,7 @@ public record ToggleGlobalWaystonePacket(UUID owner, String waystone) implements
         return PACKET_ID;
     }
 
-    public static ServerPlayNetworking.PlayPayloadHandler<ToggleGlobalWaystonePacket> getPlayPayloadHandler() {
+    public static ServerPlayNetworking.PlayPayloadHandler<ToggleGlobalWaystonePacket> getServerPlayHandler() {
         return (payload, context) -> context.server().execute(() -> {
             if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(payload.waystone())) {
                 return;

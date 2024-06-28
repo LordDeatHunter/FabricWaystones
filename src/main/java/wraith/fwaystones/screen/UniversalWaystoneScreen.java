@@ -25,6 +25,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
+import wraith.fwaystones.packets.SyncPlayerFromClientPacket;
+import wraith.fwaystones.packets.WaystoneGUISlotClickPacket;
 import wraith.fwaystones.util.FWConfigModel;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.packets.WaystonePacketHandler;
@@ -112,9 +114,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
     @Override
     public void close() {
         super.close();
-        PacketByteBuf packet = PacketByteBufs.create();
-        packet.writeNbt(((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toTagW(new NbtCompound()));
-        ClientPlayNetworking.send(WaystonePacketHandler.SYNC_PLAYER_FROM_CLIENT, packet);
+        ClientPlayNetworking.send(new SyncPlayerFromClientPacket(((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toTagW(new NbtCompound())));
     }
 
     protected void setupButtons() {
@@ -422,12 +422,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_ANVIL_BREAK, 1.0F));
                 this.scrollOffset = Math.max(0, this.scrollOffset - 1);
 
-                NbtCompound tag = new NbtCompound();
-                tag.putInt("sync_id", handler.syncId);
-                tag.putInt("clicked_slot", currentWaystone * 2 + 1);
-                PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
-
-                ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
+                ClientPlayNetworking.send(new WaystoneGUISlotClickPacket(handler.syncId, currentWaystone * 2 + 1));
 
                 return true;
             }
@@ -437,12 +432,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             if (waystoneButtonStartX >= 0.0D && waystoneButtonStartY >= 0.0D && waystoneButtonStartX < 101.0D && waystoneButtonStartY < 18.0D && (this.handler).onButtonClick(this.client.player, currentWaystone * 2)) {
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 
-                NbtCompound tag = new NbtCompound();
-                tag.putInt("sync_id", handler.syncId);
-                tag.putInt("clicked_slot", currentWaystone * 2);
-                PacketByteBuf packet = PacketByteBufs.create().writeNbt(tag);
-
-                ClientPlayNetworking.send(WaystonePacketHandler.WAYSTONE_GUI_SLOT_CLICK, packet);
+                ClientPlayNetworking.send(new WaystoneGUISlotClickPacket(handler.syncId, currentWaystone * 2));
                 return true;
             }
         }

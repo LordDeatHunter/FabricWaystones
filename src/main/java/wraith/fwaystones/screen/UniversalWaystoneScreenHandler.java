@@ -18,6 +18,8 @@ import wraith.fwaystones.access.PlayerAccess;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.mixin.ClientPlayerEntityAccessor;
 import wraith.fwaystones.mixin.ServerPlayerEntityAccessor;
+import wraith.fwaystones.packets.ForgetWaystonePacket;
+import wraith.fwaystones.packets.TeleportToWaystonePacket;
 import wraith.fwaystones.util.SearchType;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.packets.WaystonePacketHandler;
@@ -86,21 +88,16 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
             return false;
         }
 
-        PacketByteBuf data = PacketByteBufs.create();
-        NbtCompound tag = new NbtCompound();
-        tag.putString("waystone_hash", waystone);
-        data.writeNbt(tag);
-
         if (id % 2 != 0) {
             this.sortedWaystones.remove(waystone);
             this.filteredWaystones.remove(waystone);
             onForget(waystone);
             ((PlayerEntityMixinAccess) player).fabricWaystones$forgetWaystone(waystone);
             updateWaystones(player);
-            ClientPlayNetworking.send(WaystonePacketHandler.FORGET_WAYSTONE, data);
+            ClientPlayNetworking.send(new ForgetWaystonePacket(waystone));
         } else {
             if (Utils.canTeleport(player, waystone, Utils.getTeleportSource(player), false)) {
-                ClientPlayNetworking.send(WaystonePacketHandler.TELEPORT_TO_WAYSTONE, data);
+                ClientPlayNetworking.send(new TeleportToWaystonePacket(waystone));
             }
             closeScreen();
         }

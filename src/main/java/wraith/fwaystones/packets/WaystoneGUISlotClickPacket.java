@@ -19,7 +19,7 @@ public record WaystoneGUISlotClickPacket(int syncId, int clickedSlot) implements
         return PACKET_ID;
     }
 
-    public static ServerPlayNetworking.PlayPayloadHandler<WaystoneGUISlotClickPacket> getPlayPayloadHandler() {
+    public static ServerPlayNetworking.PlayPayloadHandler<WaystoneGUISlotClickPacket> getServerPlayHandler() {
         return (payload, context) -> context.server().execute(() -> {
             if (context.player().currentScreenHandler.syncId == payload.syncId()) {
                 context.player().currentScreenHandler.onButtonClick(context.player(), payload.clickedSlot());

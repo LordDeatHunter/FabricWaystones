@@ -21,7 +21,7 @@ public record RemoveWaystoneOwnerPacket(UUID owner, String waystone) implements 
         return PACKET_ID;
     }
 
-    public static ServerPlayNetworking.PlayPayloadHandler<RemoveWaystoneOwnerPacket> getPlayPayloadHandler() {
+    public static ServerPlayNetworking.PlayPayloadHandler<RemoveWaystoneOwnerPacket> getServerPlayHandler() {
         return (payload, context) -> context.server().execute(() -> {
             String hash = payload.waystone();
             UUID owner = payload.owner();

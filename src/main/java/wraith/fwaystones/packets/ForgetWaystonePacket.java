@@ -17,7 +17,7 @@ public record ForgetWaystonePacket(String waystoneHash) implements CustomPayload
         return PACKET_ID;
     }
 
-    public static ServerPlayNetworking.PlayPayloadHandler<ForgetWaystonePacket> getPlayPayloadHandler() {
+    public static ServerPlayNetworking.PlayPayloadHandler<ForgetWaystonePacket> getServerPlayHandler() {
         return (payload, context) -> context.server().execute(() -> {
             if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(payload.waystoneHash())) {
                 return;

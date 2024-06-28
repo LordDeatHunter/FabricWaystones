@@ -22,7 +22,7 @@ public record RenameWaystonePacket(UUID owner, String waystone, String name) imp
         return PACKET_ID;
     }
 
-    public static ServerPlayNetworking.PlayPayloadHandler<RenameWaystonePacket> getPlayPayloadHandler() {
+    public static ServerPlayNetworking.PlayPayloadHandler<RenameWaystonePacket> getServerPlayHandler() {
         return (payload, context) -> context.server().execute(() -> {
             if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(payload.waystone())) {
                 return;

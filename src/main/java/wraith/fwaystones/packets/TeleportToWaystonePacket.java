@@ -17,7 +17,7 @@ public record TeleportToWaystonePacket(String waystone) implements CustomPayload
         return PACKET_ID;
     }
 
-    public static ServerPlayNetworking.PlayPayloadHandler<TeleportToWaystonePacket> getPlayPayloadHandler() {
+    public static ServerPlayNetworking.PlayPayloadHandler<TeleportToWaystonePacket> getServerPlayHandler() {
         return (payload, context) -> context.server().execute(() -> {
             if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(payload.waystone())) {
                 return;

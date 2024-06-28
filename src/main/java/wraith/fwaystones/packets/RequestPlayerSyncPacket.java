@@ -16,7 +16,7 @@ public record RequestPlayerSyncPacket() implements CustomPayload{
         return PACKET_ID;
     }
 
-    public static ServerPlayNetworking.PlayPayloadHandler<RequestPlayerSyncPacket> getPlayPayloadHandler() {
+    public static ServerPlayNetworking.PlayPayloadHandler<RequestPlayerSyncPacket> getServerPlayHandler() {
         return (payload, context) -> {
             context.server().execute(((PlayerEntityMixinAccess) context.player())::fabricWaystones$syncData);
         };

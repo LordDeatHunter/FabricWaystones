@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.ClientPlayerEntityMixinAccess;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
+import wraith.fwaystones.packets.RequestPlayerSyncPacket;
 import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
 
     @Override
     public void requestSync() {
-        ClientPlayNetworking.send(WaystonePacketHandler.REQUEST_PLAYER_SYNC, PacketByteBufs.create());
+        ClientPlayNetworking.send(new RequestPlayerSyncPacket());
     }
 
     @Override

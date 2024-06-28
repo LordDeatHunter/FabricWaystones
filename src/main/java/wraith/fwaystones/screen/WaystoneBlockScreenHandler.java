@@ -8,6 +8,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlockEntity;
+import wraith.fwaystones.packets.ToggleGlobalWaystonePacket;
 import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
 import wraith.fwaystones.packets.WaystonePacketHandler;
 
@@ -85,14 +86,7 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
         if (!isClient) {
             return;
         }
-        PacketByteBuf packet = PacketByteBufs.create();
-        NbtCompound tag = new NbtCompound();
-        tag.putString("waystone_hash", this.hash);
-        if (this.owner != null) {
-            tag.putUuid("waystone_owner", this.owner);
-        }
-        packet.writeNbt(tag);
-        ClientPlayNetworking.send(WaystonePacketHandler.TOGGLE_GLOBAL_WAYSTONE, packet);
+        ClientPlayNetworking.send(new ToggleGlobalWaystonePacket(this.owner, this.hash));
         this.isGlobal = !this.isGlobal;
     }
 
