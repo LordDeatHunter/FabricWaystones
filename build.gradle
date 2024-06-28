@@ -27,8 +27,6 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
-def localLibsDir = file("$rootDir/libs")
-
 dependencies {
     implementation 'org.jetbrains:annotations:22.0.0'
 
@@ -48,10 +46,8 @@ dependencies {
     modApi "maven.modrinth:pinlib:$project.pinlib_api_version"
     modRuntimeOnly "maven.modrinth:pinlib:$project.pinlib_api_version"
 
-//    annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
-//    include "io.wispforest:owo-sentinel:${project.owo_version}"
-    annotationProcessor files("$localLibsDir/owo-lib-${project.owo_version}-sources.jar")
-
+    annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
+    include "io.wispforest:owo-sentinel:${project.owo_version}"
 }
 
 loom {
