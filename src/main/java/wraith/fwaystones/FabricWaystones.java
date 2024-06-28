@@ -1,13 +1,13 @@
 package wraith.fwaystones;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wraith.fwaystones.packets.*;
 import wraith.fwaystones.registry.*;
 import wraith.fwaystones.util.FWConfig;
-import wraith.fwaystones.packets.WaystonePacketHandler;
 import wraith.fwaystones.util.WaystoneStorage;
 import wraith.fwaystones.util.WaystonesEventManager;
 
@@ -38,6 +38,7 @@ public class FabricWaystones implements ModInitializer {
         CompatRegistry.init();
         CustomScreenHandlerRegistry.registerScreenHandlers();
         WaystonesEventManager.registerEvents();
+        WaystonePacketHandler.registerPackets();
         WaystonePacketHandler.registerPacketHandlers();
 
 //        if (FabricLoader.getInstance().isModLoaded("pinlib")) {

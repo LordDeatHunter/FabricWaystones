@@ -47,7 +47,6 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
-import wraith.fwaystones.integration.pinlib.PinlibPlugin;
 import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
@@ -272,8 +271,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             }
             return ActionResult.success(false);
         }
-        if (!FabricWaystones.CONFIG.discover_waystone_on_map_use() && FabricLoader.getInstance().isModLoaded("pinlib") && PinlibPlugin.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos))
-            return ActionResult.SUCCESS;
+//        if (!FabricWaystones.CONFIG.discover_waystone_on_map_use() && FabricLoader.getInstance().isModLoaded("pinlib") && PinlibPlugin.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos))
+//            return ActionResult.SUCCESS;
 
         FabricWaystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
         PlayerEntityMixinAccess playerAccess = (PlayerEntityMixinAccess) player;

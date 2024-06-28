@@ -39,7 +39,11 @@ public class WaystoneScrollItem extends Item {
         if (FabricWaystones.WAYSTONE_STORAGE == null) {
             return TypedActionResult.fail(stack);
         }
-        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
+        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (component == null) {
+            return null;
+        }
+        NbtCompound tag = component.getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return TypedActionResult.fail(stack);
         }
@@ -110,7 +114,11 @@ public class WaystoneScrollItem extends Item {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         super.appendTooltip(stack, context, tooltip, type);
-        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
+        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (component == null) {
+            return;
+        }
+        NbtCompound tag = component.getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return;
         }
@@ -131,7 +139,11 @@ public class WaystoneScrollItem extends Item {
 
     @Override
     public String getTranslationKey(ItemStack stack) {
-        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
+        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (component == null) {
+            return null;
+        }
+        NbtCompound tag = component.getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return "item.fwaystones.empty_scroll";
         }

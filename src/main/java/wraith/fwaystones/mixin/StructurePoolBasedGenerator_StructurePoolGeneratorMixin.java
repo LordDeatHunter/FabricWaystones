@@ -62,7 +62,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     }
 
     @Inject(method = "generatePiece", at = @At(value = "HEAD"))
-    private void fabricwaystones_startGeneratePiece(PoolStructurePiece piece, MutableObject<VoxelShape> pieceShape, int minY, boolean modifyBoundingBox, HeightLimitView world, NoiseConfig noiseConfig, StructurePoolAliasLookup aliasLookup, CallbackInfo ci) {
+    private void fabricwaystones_startGeneratePiece(PoolStructurePiece piece, MutableObject<VoxelShape> pieceShape, int minY, boolean modifyBoundingBox, HeightLimitView world, NoiseConfig noiseConfig, StructurePoolAliasLookup aliasLookup, StructureLiquidSettings liquidSettings, CallbackInfo ci) {
     }
 
     @Inject(method = "generatePiece",

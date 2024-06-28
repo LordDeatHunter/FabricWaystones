@@ -15,7 +15,7 @@ import wraith.fwaystones.FabricWaystones;
 import java.util.UUID;
 
 public record WaystoneDataPacket(String hash, String name, UUID owner, boolean isGlobal, boolean canUse, boolean isClient, String ownerName) implements CustomPayload {
-    public static final Id<WaystoneDataPacket> PACKET_ID = new Id<>(Identifier.of(FabricWaystones.MOD_ID, "forget_waystone"));
+    public static final Id<WaystoneDataPacket> PACKET_ID = new Id<>(Identifier.of(FabricWaystones.MOD_ID, "waystone_packet"));
     public static final PacketCodec<RegistryByteBuf, WaystoneDataPacket> PACKET_CODEC = PacketCodec.of(WaystoneDataPacket::write, WaystoneDataPacket::new);
 
     public WaystoneDataPacket(RegistryByteBuf buf) {

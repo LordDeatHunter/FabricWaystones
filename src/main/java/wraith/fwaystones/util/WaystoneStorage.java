@@ -1,12 +1,10 @@
 package wraith.fwaystones.util;
 
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.*;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -21,7 +19,6 @@ import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
-import wraith.fwaystones.packets.WaystonePacketHandler;
 import wraith.fwaystones.packets.client.WaystonePacket;
 
 import java.io.IOException;
@@ -196,7 +193,8 @@ public class WaystoneStorage {
     }
 
     public void sendToPlayer(ServerPlayerEntity player) {
-        ServerPlayNetworking.send(player, new WaystonePacket(toTag(new NbtCompound())));
+        WaystonePacket packet = new WaystonePacket(toTag(null));
+        ServerPlayNetworking.send(player, packet);
     }
 
     public void removeWaystone(String hash) {

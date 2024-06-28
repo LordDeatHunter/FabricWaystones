@@ -33,7 +33,11 @@ public class LocalVoidItem extends Item {
         if (!(stack.getItem() instanceof LocalVoidItem)) {
             return null;
         }
-        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
+        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (component == null) {
+            return null;
+        }
+        NbtCompound tag = component.getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return null;
         }
@@ -46,7 +50,11 @@ public class LocalVoidItem extends Item {
             return TypedActionResult.pass(user.getStackInHand(hand));
         }
         ItemStack stack = user.getStackInHand(hand);
-        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
+        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (component == null) {
+            return null;
+        }
+        NbtCompound tag = component.getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return canTeleport ? TypedActionResult.pass(stack) : TypedActionResult.fail(stack);
         }

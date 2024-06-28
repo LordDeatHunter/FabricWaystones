@@ -8,7 +8,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,7 +21,6 @@ import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.packets.client.SyncPlayerPacket;
 import wraith.fwaystones.util.SearchType;
-import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.util.ArrayList;
 import java.util.Comparator;

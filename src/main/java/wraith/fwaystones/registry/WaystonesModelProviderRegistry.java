@@ -22,11 +22,9 @@ public final class WaystonesModelProviderRegistry {
                     return 0f;
                 }
                 if (stack.getItem() instanceof WaystoneScrollItem) {
-                    NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
-                    return tag == null || !tag.contains(FabricWaystones.MOD_ID) || tag.getList(FabricWaystones.MOD_ID, NbtElement.STRING_TYPE).isEmpty() ? 0 : 1;
+                    return 1f;
                 } else if (stack.getItem() instanceof LocalVoidItem) {
-                    NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
-                    return tag == null || !tag.contains(FabricWaystones.MOD_ID) ? 0 : 1;
+                    return 1f;
                 }
                 return 0f;
             }

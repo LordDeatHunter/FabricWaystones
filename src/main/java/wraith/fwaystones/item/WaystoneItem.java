@@ -2,6 +2,7 @@ package wraith.fwaystones.item;
 
 import net.minecraft.block.Block;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
@@ -21,10 +22,11 @@ public class WaystoneItem extends BlockItem {
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         super.appendTooltip(stack, context, tooltip, type);
 //        NbtCompound tag = stack.getSubNbt("BlockEntityTag");
-        NbtCompound tag = stack.get(DataComponentTypes.BLOCK_ENTITY_DATA).getNbt();
-        if (tag == null) {
+        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (component == null) {
             return;
         }
+        NbtCompound tag = component.getNbt();
         String name = tag.getString("waystone_name");
         boolean global = tag.getBoolean("waystone_is_global");
         tooltip.add(Text.translatable(
