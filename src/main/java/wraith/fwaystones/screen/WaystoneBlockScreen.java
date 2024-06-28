@@ -28,7 +28,7 @@ import java.util.UUID;
 
 public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
-    private static final Identifier TEXTURE = Utils.ID("textures/gui/waystoneHash.png");
+    private static final Identifier TEXTURE = Utils.ID("textures/gui/waystone.png");
     private static final Identifier CONFIG_TEXTURE = Utils.ID("textures/gui/waystone_config.png");
     public Page page = Page.WAYSTONES;
     private TextFieldWidget nameField;

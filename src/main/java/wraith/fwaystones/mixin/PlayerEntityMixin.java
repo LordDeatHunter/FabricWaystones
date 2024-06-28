@@ -269,7 +269,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             try {
                 this.waystoneSearchType = SearchType.valueOf(tag.getString("waystone_search_type"));
             } catch (IllegalArgumentException e) {
-                FabricWaystones.LOGGER.warn("Received invalid waystoneHash search type: " + tag.getString("waystone_search_type"));
+                FabricWaystones.LOGGER.warn("Received invalid waystone search type: " + tag.getString("waystone_search_type"));
             }
         }
     }

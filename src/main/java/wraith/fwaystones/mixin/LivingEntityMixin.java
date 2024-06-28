@@ -68,10 +68,10 @@ public abstract class LivingEntityMixin {
         if (player instanceof ServerPlayerEntity serverPlayer) {
             PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
             ServerPlayNetworking.send(serverPlayer, new VoidRevivePacket(packet.readNbt()));
-            // Try to get the stored waystoneHash
+            // Try to get the stored waystone
             var hash = VoidTotem.getBoundWaystone(stack);
             if (hash == null) {
-                // If no such waystoneHash exists, get a random discovered waystoneHash
+                // If no such waystone exists, get a random discovered waystone
                 var discovered = ((PlayerEntityMixinAccess) player).fabricWaystones$getDiscoveredWaystones();
                 if (!discovered.isEmpty()) {
                     var list = new ArrayList<>(discovered);

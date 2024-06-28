@@ -14,7 +14,7 @@ public record ToggleGlobalWaystonePacket(UUID owner, String waystone) implements
     public static final CustomPayload.Id<ToggleGlobalWaystonePacket> PACKET_ID = new CustomPayload.Id<>(Identifier.of(FabricWaystones.MOD_ID, "toggle_global_waystone"));
     public static final Codec<ToggleGlobalWaystonePacket> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Uuids.CODEC.fieldOf("owner").forGetter(ToggleGlobalWaystonePacket::owner),
-            Codec.STRING.fieldOf("waystoneHash").forGetter(ToggleGlobalWaystonePacket::waystone)
+            Codec.STRING.fieldOf("waystone").forGetter(ToggleGlobalWaystonePacket::waystone)
     ).apply(instance, ToggleGlobalWaystonePacket::new));
 
     public CustomPayload.Id<ToggleGlobalWaystonePacket> getId() {

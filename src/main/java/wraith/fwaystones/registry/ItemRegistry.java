@@ -31,7 +31,7 @@ public final class ItemRegistry {
             return;
         }
         Registry.register(Registries.ITEM_GROUP, Utils.ID(FabricWaystones.MOD_ID), WAYSTONE_GROUP);
-        registerItem("waystoneHash", new WaystoneItem(BlockRegistry.WAYSTONE, new Item.Settings()));
+        registerItem("waystone", new WaystoneItem(BlockRegistry.WAYSTONE, new Item.Settings()));
         registerItem("desert_waystone", new WaystoneItem(BlockRegistry.DESERT_WAYSTONE, new Item.Settings()));
         registerItem("red_desert_waystone", new WaystoneItem(BlockRegistry.RED_DESERT_WAYSTONE, new Item.Settings()));
         registerItem("stone_brick_waystone", new WaystoneItem(BlockRegistry.STONE_BRICK_WAYSTONE, new Item.Settings()));

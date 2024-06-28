@@ -14,7 +14,7 @@ public record RemoveWaystoneOwnerPacket(UUID owner, String waystone) implements 
     public static final CustomPayload.Id<RemoveWaystoneOwnerPacket> PACKET_ID = new CustomPayload.Id<>(Identifier.of(FabricWaystones.MOD_ID, "remove_waystone_owner"));
     public static final Codec<RemoveWaystoneOwnerPacket> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Uuids.CODEC.fieldOf("owner").forGetter(RemoveWaystoneOwnerPacket::owner),
-            Codec.STRING.fieldOf("waystoneHash").forGetter(RemoveWaystoneOwnerPacket::waystone)
+            Codec.STRING.fieldOf("waystone").forGetter(RemoveWaystoneOwnerPacket::waystone)
     ).apply(instance, RemoveWaystoneOwnerPacket::new));
 
     public CustomPayload.Id<RemoveWaystoneOwnerPacket> getId() {

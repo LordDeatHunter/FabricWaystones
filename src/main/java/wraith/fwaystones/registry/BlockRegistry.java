@@ -36,7 +36,7 @@ public final class BlockRegistry {
             default -> "fabric:needs_tool_level_" + miningLevel;
         });
 
-        registerAndAdd("waystoneHash", WAYSTONE);
+        registerAndAdd("waystone", WAYSTONE);
         registerAndAdd("desert_waystone", DESERT_WAYSTONE);
         registerAndAdd("stone_brick_waystone", STONE_BRICK_WAYSTONE);
         registerAndAdd("red_desert_waystone", RED_DESERT_WAYSTONE);

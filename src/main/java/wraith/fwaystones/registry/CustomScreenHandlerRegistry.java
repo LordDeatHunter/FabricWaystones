@@ -24,7 +24,7 @@ public final class CustomScreenHandlerRegistry {
 
     public static void registerScreenHandlers() {
         WAYSTONE_SCREEN = Registry.register(Registries.SCREEN_HANDLER,
-                Utils.ID("waystoneHash"),
+                Utils.ID("waystone"),
                 new ExtendedScreenHandlerType<>(WaystoneBlockScreenHandler::new, WaystoneDataPacket.PACKET_CODEC));
 
         POCKET_WORMHOLE_SCREEN = Registry.register(Registries.SCREEN_HANDLER,

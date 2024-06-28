@@ -28,7 +28,7 @@ public final class WaystonesWorldgen {
 
     public static void registerVillage(MinecraftServer server, Identifier village, Identifier waystone) {
         if (FabricWaystones.CONFIG.worldgen.generate_in_villages()) {
-            FabricWaystones.LOGGER.info("Adding waystoneHash " + waystone.toString() + " to village " + village.toString());
+            FabricWaystones.LOGGER.info("Adding waystone " + waystone.toString() + " to village " + village.toString());
             Utils.addToStructurePool(server, village, waystone, FabricWaystones.CONFIG.worldgen.village_waystone_weight());
         }
     }

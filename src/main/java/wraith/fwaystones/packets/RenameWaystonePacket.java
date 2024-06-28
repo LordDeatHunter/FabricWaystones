@@ -14,7 +14,7 @@ public record RenameWaystonePacket(UUID owner, String waystone, String name) imp
     public static final CustomPayload.Id<RenameWaystonePacket> PACKET_ID = new CustomPayload.Id<>(Identifier.of(FabricWaystones.MOD_ID, "waystone_gui_slot_click"));
     public static final Codec<RenameWaystonePacket> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Uuids.CODEC.fieldOf("owner").forGetter(RenameWaystonePacket::owner),
-            Codec.STRING.fieldOf("waystoneHash").forGetter(RenameWaystonePacket::waystone),
+            Codec.STRING.fieldOf("waystone").forGetter(RenameWaystonePacket::waystone),
             Codec.STRING.fieldOf("name").forGetter(RenameWaystonePacket::name)
     ).apply(instance, RenameWaystonePacket::new));
 

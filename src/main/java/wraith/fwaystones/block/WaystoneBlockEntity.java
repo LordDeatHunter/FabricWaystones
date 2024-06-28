@@ -115,7 +115,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public Text getDisplayName() {
-        return Text.translatable("container." + FabricWaystones.MOD_ID + ".waystoneHash");
+        return Text.translatable("container." + FabricWaystones.MOD_ID + ".waystone");
     }
 
     @Override
