@@ -1,6 +1,7 @@
 package wraith.fwaystones.item;
 
 import net.minecraft.block.Block;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
@@ -19,7 +20,8 @@ public class WaystoneItem extends BlockItem {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         super.appendTooltip(stack, context, tooltip, type);
-        NbtCompound tag = stack.getSubNbt("BlockEntityTag");
+//        NbtCompound tag = stack.getSubNbt("BlockEntityTag");
+        NbtCompound tag = stack.get(DataComponentTypes.BLOCK_ENTITY_DATA).getNbt();
         if (tag == null) {
             return;
         }

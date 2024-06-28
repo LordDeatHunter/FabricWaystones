@@ -48,7 +48,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
                 text = Text.translatable(
                     "fwaystones.learned.infinite.multiple",
                     Text.literal(String.valueOf(learned)).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.infinite.multiple.arg_color").getString()).get().left().get())
+                        style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.infinite.multiple.arg_color").getString()).getOrThrow())
                     )
                 );
             } else {

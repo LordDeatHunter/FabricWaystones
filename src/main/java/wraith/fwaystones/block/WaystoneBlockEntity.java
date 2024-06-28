@@ -12,7 +12,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryWrapper;
@@ -205,14 +204,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             setItemInSlot(i, newInventory.get(i));
         }
         markDirty();
-    }
-
-    @Override
-    public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity,
-                                       PacketByteBuf packetByteBuf) {
-        NbtCompound tag = createTag(new NbtCompound());
-        tag.putString("waystone_hash", this.hash);
-        packetByteBuf.writeNbt(tag);
     }
 
     private float rotClamp(int clampTo, float value) {
@@ -431,7 +422,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         world.getChunkManager().addTicket(ChunkTicketType.POST_TELEPORT, new ChunkPos(BlockPos.ofFloored(target.pos())), 1, player.getId());
         player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         player.detach();
-        FabricDimensions.teleport(player, world, target);
+        player.teleportTo(target);
         BlockPos playerPos = player.getBlockPos();
 
         if (!oldPos.isWithinDistance(playerPos, 6) || !player.getWorld().getRegistryKey().equals(world.getRegistryKey())) {
@@ -540,6 +531,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
         return false;
+    }
+
+    @Override
+    public WaystoneDataPacket getScreenOpeningData(ServerPlayerEntity player) {
+        return new WaystoneDataPacket(this.hash, this.name, this.owner, this.isGlobal, this.canAccess(player), player.getWorld().isClient, this.ownerName);
     }
 
 }

@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.item.VoidTotem;
+import wraith.fwaystones.packets.client.VoidRevivePacket;
 import wraith.fwaystones.registry.ItemRegistry;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
@@ -66,7 +67,7 @@ public abstract class LivingEntityMixin {
         var teleported = false;
         if (player instanceof ServerPlayerEntity serverPlayer) {
             PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
-            ServerPlayNetworking.send(serverPlayer, WaystonePacketHandler.VOID_REVIVE, packet);
+            ServerPlayNetworking.send(serverPlayer, new VoidRevivePacket(packet.readNbt()));
             // Try to get the stored waystoneHash
             var hash = VoidTotem.getBoundWaystone(stack);
             if (hash == null) {

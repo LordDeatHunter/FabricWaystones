@@ -3,6 +3,7 @@ package wraith.fwaystones.mixin;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.structure.PoolStructurePiece;
+import net.minecraft.structure.StructureLiquidSettings;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePool;
@@ -67,7 +68,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     @Inject(method = "generatePiece",
         at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false),
         locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece, MutableObject<VoxelShape> pieceShape, int minY, boolean modifyBoundingBox, HeightLimitView world, NoiseConfig noiseConfig, StructurePoolAliasLookup aliasLookup,
+    private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece, MutableObject<VoxelShape> pieceShape, int minY, boolean modifyBoundingBox, HeightLimitView world, NoiseConfig noiseConfig, StructurePoolAliasLookup aliasLookup, StructureLiquidSettings liquidSettings,
                                                             CallbackInfo ci,
                                                             StructurePoolElement structurePoolElement,
                                                             BlockPos blockPos,
@@ -77,7 +78,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                                                             MutableObject<VoxelShape> mutableObject,
                                                             BlockBox blockBox,
                                                             int i,
-                                                            Iterator var15,
+                                                            Iterator var17,
                                                             StructureTemplate.StructureBlockInfo structureBlockInfo,
                                                             Direction direction,
                                                             BlockPos blockPos2,

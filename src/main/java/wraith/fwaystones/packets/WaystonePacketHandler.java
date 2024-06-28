@@ -13,7 +13,6 @@ import java.util.UUID;
 public final class WaystonePacketHandler {
 
     public static final Identifier SYNC_PLAYER = Utils.ID("sync_player");
-    public static final Identifier VOID_REVIVE = Utils.ID("void_totem_revive");
     public static final Identifier WAYSTONE_PACKET = Utils.ID("waystone_packet");
 
     private WaystonePacketHandler() {

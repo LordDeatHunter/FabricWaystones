@@ -7,7 +7,10 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.component.Component;
+import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
@@ -197,7 +200,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 var compoundTag = new NbtCompound();
                 waystone.writeNbt(compoundTag, waystone.getWorld().getRegistryManager());
                 if (FabricWaystones.CONFIG.store_waystone_data_on_sneak_break() && player.isSneaking() && !compoundTag.isEmpty()) {
-                    itemStack.set(DataComponentTypes.BLOCK_ENTITY_DATA, DataComponentTypes.BLOCK_ENTITY_DATA);
+                    itemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(compoundTag));
                 }
                 ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
                 if (waystone.getCachedState().get(MOSSY)) {

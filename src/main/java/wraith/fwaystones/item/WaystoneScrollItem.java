@@ -1,5 +1,7 @@
 package wraith.fwaystones.item;
 
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -37,7 +39,7 @@ public class WaystoneScrollItem extends Item {
         if (FabricWaystones.WAYSTONE_STORAGE == null) {
             return TypedActionResult.fail(stack);
         }
-        NbtCompound tag = stack.getNbt();
+        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return TypedActionResult.fail(stack);
         }
@@ -61,7 +63,7 @@ public class WaystoneScrollItem extends Item {
                 text = Text.translatable(
                     "fwaystones.learned.multiple",
                     Text.literal(String.valueOf(learned)).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.multiple.arg_color").getString()).get().left().get())
+                        style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.multiple.arg_color").getString()).getOrThrow())
                     )
                 );
             } else {
@@ -73,7 +75,7 @@ public class WaystoneScrollItem extends Item {
             }
         } else {
             text = Text.translatable("fwaystones.learned.none");
-            stack.setNbt(null);
+            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
         }
         user.sendMessage(text, false);
 
@@ -100,7 +102,7 @@ public class WaystoneScrollItem extends Item {
                 list.add(NbtString.of(hash));
             }
             tag.put(FabricWaystones.MOD_ID, list);
-            stack.setNbt(tag);
+            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(tag));
         }
         return super.useOnBlock(context);
     }
@@ -108,7 +110,7 @@ public class WaystoneScrollItem extends Item {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         super.appendTooltip(stack, context, tooltip, type);
-        NbtCompound tag = stack.getNbt();
+        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return;
         }
@@ -129,7 +131,7 @@ public class WaystoneScrollItem extends Item {
 
     @Override
     public String getTranslationKey(ItemStack stack) {
-        NbtCompound tag = stack.getNbt();
+        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return "item.fwaystones.empty_scroll";
         }

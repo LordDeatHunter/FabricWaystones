@@ -7,6 +7,7 @@ import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.*;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -21,6 +22,7 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.packets.WaystonePacketHandler;
+import wraith.fwaystones.packets.client.WaystonePacket;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -53,13 +55,13 @@ public class WaystoneStorage {
     private PersistentState createState() {
         return new PersistentState() {
             @Override
-            public NbtCompound writeNbt(NbtCompound tag) {
-                return toTag(tag);
+            public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+                return toTag(nbt);
             }
         };
     }
 
-    private PersistentState stateFromNbt(NbtCompound nbt) {
+    private PersistentState stateFromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         PersistentState state = this.createState();
         fromTag(nbt);
         return state;
@@ -179,7 +181,7 @@ public class WaystoneStorage {
         ServerWorld world = server.getWorld(ServerWorld.OVERWORLD);
         try {
             NbtCompound compoundTag = world.getPersistentStateManager().readNbt(ID, DataFixTypes.LEVEL, SharedConstants.getGameVersion().getProtocolVersion());
-            state.writeNbt(compoundTag.getCompound("data"));
+            state.writeNbt(compoundTag.getCompound("data"), world.getRegistryManager());
         } catch (IOException ignored) {}
         world.getPersistentStateManager().save();
     }
@@ -194,9 +196,7 @@ public class WaystoneStorage {
     }
 
     public void sendToPlayer(ServerPlayerEntity player) {
-        PacketByteBuf data = PacketByteBufs.create();
-        data.writeNbt(toTag(new NbtCompound()));
-        ServerPlayNetworking.send(player, WaystonePacketHandler.WAYSTONE_PACKET, data);
+        ServerPlayNetworking.send(player, new WaystonePacket(toTag(new NbtCompound())));
     }
 
     public void removeWaystone(String hash) {

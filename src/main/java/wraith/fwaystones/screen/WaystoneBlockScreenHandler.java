@@ -1,16 +1,15 @@
 package wraith.fwaystones.screen;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlockEntity;
+import wraith.fwaystones.block.WaystoneDataPacket;
 import wraith.fwaystones.packets.ToggleGlobalWaystonePacket;
 import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
-import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -52,6 +51,18 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
             }
             this.isGlobal = tag.getBoolean("waystone_is_global");
         }
+        updateWaystones(player);
+    }
+
+    public WaystoneBlockScreenHandler(int syncId, PlayerInventory playerInventory, WaystoneDataPacket waystoneDataPacket) {
+        super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, playerInventory.player);
+        this.isClient = playerInventory.player.getWorld().isClient;
+        this.hash = waystoneDataPacket.hash();
+        this.name = waystoneDataPacket.name();
+        this.owner = waystoneDataPacket.owner();
+        this.isGlobal = waystoneDataPacket.isGlobal();
+        this.canUse = player -> waystoneDataPacket.canUse();
+        this.ownerName = waystoneDataPacket.ownerName();
         updateWaystones(player);
     }
 

@@ -1,5 +1,7 @@
 package wraith.fwaystones.item;
 
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -31,7 +33,7 @@ public class LocalVoidItem extends Item {
         if (!(stack.getItem() instanceof LocalVoidItem)) {
             return null;
         }
-        NbtCompound tag = stack.getNbt();
+        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return null;
         }
@@ -44,23 +46,24 @@ public class LocalVoidItem extends Item {
             return TypedActionResult.pass(user.getStackInHand(hand));
         }
         ItemStack stack = user.getStackInHand(hand);
-        NbtCompound tag = stack.getNbt();
+        NbtCompound tag = stack.get(DataComponentTypes.CUSTOM_DATA).getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return canTeleport ? TypedActionResult.pass(stack) : TypedActionResult.fail(stack);
         }
         if (user.isSneaking()) {
-            stack.removeSubNbt(FabricWaystones.MOD_ID);
+            tag.remove(FabricWaystones.MOD_ID);
         } else if (canTeleport) {
             String hash = tag.getString(FabricWaystones.MOD_ID);
             if (FabricWaystones.WAYSTONE_STORAGE != null) {
                 WaystoneBlockEntity waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone == null) {
-                    stack.removeSubNbt(FabricWaystones.MOD_ID);
+                    tag.remove(FabricWaystones.MOD_ID);
                 } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.free_local_void_teleport()) && !user.isCreative() && FabricWaystones.CONFIG.consume_local_void_on_use()) {
                     stack.decrement(1);
                 }
             }
         }
+        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(tag));
         if (stack.isEmpty()) {
             user.setStackInHand(hand, ItemStack.EMPTY);
         }
@@ -75,7 +78,7 @@ public class LocalVoidItem extends Item {
             ItemStack stack = context.getStack();
             NbtCompound tag = new NbtCompound();
             tag.putString(FabricWaystones.MOD_ID, entity.getHash());
-            stack.setNbt(tag);
+            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(tag));
         }
         return super.useOnBlock(context);
     }

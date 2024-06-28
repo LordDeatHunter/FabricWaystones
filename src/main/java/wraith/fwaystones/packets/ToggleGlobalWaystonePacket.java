@@ -32,7 +32,7 @@ public record ToggleGlobalWaystonePacket(UUID owner, String waystone) implements
                 case NONE:
                     return;
                 case OP:
-                    if (!player.hasPermissionLevel(2)) {
+                    if (!context.player().hasPermissionLevel(2)) {
                         return;
                     }
                     break;

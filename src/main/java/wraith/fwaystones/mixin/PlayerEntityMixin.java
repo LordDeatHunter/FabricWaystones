@@ -20,6 +20,7 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
+import wraith.fwaystones.packets.client.SyncPlayerPacket;
 import wraith.fwaystones.util.SearchType;
 import wraith.fwaystones.packets.WaystonePacketHandler;
 
@@ -137,9 +138,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (!(_this() instanceof ServerPlayerEntity serverPlayerEntity)) {
             return;
         }
-        PacketByteBuf packet = PacketByteBufs.create();
-        packet.writeNbt(fabricWaystones$toTagW(new NbtCompound()));
-        ServerPlayNetworking.send(serverPlayerEntity, WaystonePacketHandler.SYNC_PLAYER, packet);
+        ServerPlayNetworking.send(serverPlayerEntity, new SyncPlayerPacket(fabricWaystones$toTagW(new NbtCompound())));
     }
 
     @Override
