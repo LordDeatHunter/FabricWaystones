@@ -16,7 +16,7 @@ import wraith.fwaystones.registry.CustomScreenRegistry;
 import wraith.fwaystones.registry.ItemRegistry;
 import wraith.fwaystones.registry.WaystonesModelProviderRegistry;
 import wraith.fwaystones.screen.UniversalWaystoneScreenHandler;
-import wraith.fwaystones.util.WaystonePacketHandler;
+import wraith.fwaystones.packets.WaystonePacketHandler;
 import wraith.fwaystones.util.WaystoneStorage;
 
 import java.util.HashSet;

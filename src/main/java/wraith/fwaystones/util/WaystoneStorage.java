@@ -20,6 +20,7 @@ import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
+import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.io.IOException;
 import java.util.Arrays;

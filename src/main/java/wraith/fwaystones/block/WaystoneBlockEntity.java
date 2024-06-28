@@ -1,19 +1,21 @@
 package wraith.fwaystones.block;
 
-import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ChunkTicketType;
@@ -103,17 +105,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    protected DefaultedList<ItemStack> method_11282() {
-        // getInvStackList
-        return this.inventory;
-    }
-
-    @Override
-    protected void setInvStackList(DefaultedList<ItemStack> list) {
-        this.inventory = list;
-    }
-
-    @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
         return new WaystoneBlockScreenHandler(syncId, this, player);
     }
@@ -125,7 +116,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public Text getDisplayName() {
-        return Text.translatable("container." + FabricWaystones.MOD_ID + ".waystone");
+        return Text.translatable("container." + FabricWaystones.MOD_ID + ".waystoneHash");
     }
 
     @Override
@@ -134,8 +125,18 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
+    protected DefaultedList<ItemStack> getHeldStacks() {
+        return this.inventory;
+    }
+
+    @Override
+    protected void setHeldStacks(DefaultedList<ItemStack> inventory) {
+        this.inventory = inventory;
+    }
+
+    @Override
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
+        super.readNbt(nbt, lookup);
         if (nbt.contains("waystone_name")) {
             this.name = nbt.getString("waystone_name");
         }
@@ -150,12 +151,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         }
         this.color = nbt.contains("color", NbtElement.INT_TYPE) ? nbt.getInt("color") : null;
         this.inventory = DefaultedList.ofSize(nbt.getInt("inventory_size"), ItemStack.EMPTY);
-        Inventories.readNbt(nbt, inventory);
+        Inventories.readNbt(nbt, inventory, lookup);
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt) {
-        super.writeNbt(nbt);
+    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
+        super.writeNbt(nbt, lookup);
         createTag(nbt);
     }
 
@@ -172,7 +173,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             tag.putInt("color", this.color);
         }
         tag.putInt("inventory_size", this.inventory.size());
-        Inventories.writeNbt(tag, this.inventory);
+        Inventories.writeNbt(tag, this.inventory, world.getRegistryManager());
         return tag;
     }
 
@@ -370,10 +371,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             return false;
         }
         TeleportTarget target = new TeleportTarget(
+            playerEntity.getServerWorld(),
             new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
             new Vec3d(0, 0, 0),
             fYaw,
-            0
+            0,
+            TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET
         );
         if (source == null) {
             source = Utils.getTeleportSource(playerEntity);
@@ -387,8 +390,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         }
         if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
             for (var hand : Hand.values()) {
-                if (playerEntity.getStackInHand(hand).getItem() instanceof AbyssWatcherItem) {
-                    player.sendToolBreakStatus(hand);
+                Item handItem = playerEntity.getStackInHand(hand).getItem();
+                if (handItem instanceof AbyssWatcherItem) {
+                    player.sendEquipmentBreakStatus(handItem, hand.equals(Hand.MAIN_HAND) ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
                     playerEntity.getStackInHand(hand).decrement(1);
                     player.getWorld().playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
                     break;
@@ -407,7 +411,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 "fwaystones.no_teleport_message.cooldown",
                 Text.literal(cooldownSeconds).styled(style ->
                     style.withColor(TextColor.parse(Text.translatable(
-                        "fwaystones.no_teleport_message.cooldown.arg_color").getString()).get().left().get())
+                        "fwaystones.no_teleport_message.cooldown.arg_color").getString()).getOrThrow())
                 )
             ), false);
             return false;
@@ -424,7 +428,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole();
         });
         var oldPos = player.getBlockPos();
-        world.getChunkManager().addTicket(ChunkTicketType.POST_TELEPORT, new ChunkPos(BlockPos.ofFloored(target.position)), 1, player.getId());
+        world.getChunkManager().addTicket(ChunkTicketType.POST_TELEPORT, new ChunkPos(BlockPos.ofFloored(target.pos())), 1, player.getId());
         player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         player.detach();
         FabricDimensions.teleport(player, world, target);

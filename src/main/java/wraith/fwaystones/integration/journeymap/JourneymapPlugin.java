@@ -60,7 +60,7 @@ public class JourneymapPlugin implements IClientPlugin {
     }
 
     /**
-     * Adds a themeable button in the fullscreen map to toggle waystone waypoint display.
+     * Adds a themeable button in the fullscreen map to toggle waystoneHash waypoint display.
      *
      * @param addonButtonDisplayEvent - the event
      */

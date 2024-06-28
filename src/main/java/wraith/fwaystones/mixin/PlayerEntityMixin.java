@@ -21,7 +21,7 @@ import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.util.SearchType;
-import wraith.fwaystones.util.WaystonePacketHandler;
+import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -270,7 +270,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             try {
                 this.waystoneSearchType = SearchType.valueOf(tag.getString("waystone_search_type"));
             } catch (IllegalArgumentException e) {
-                FabricWaystones.LOGGER.warn("Received invalid waystone search type: " + tag.getString("waystone_search_type"));
+                FabricWaystones.LOGGER.warn("Received invalid waystoneHash search type: " + tag.getString("waystone_search_type"));
             }
         }
     }

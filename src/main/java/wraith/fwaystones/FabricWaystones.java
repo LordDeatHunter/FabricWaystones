@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import wraith.fwaystones.integration.pinlib.PinlibPlugin;
 import wraith.fwaystones.registry.*;
 import wraith.fwaystones.util.FWConfig;
-import wraith.fwaystones.util.WaystonePacketHandler;
+import wraith.fwaystones.packets.WaystonePacketHandler;
 import wraith.fwaystones.util.WaystoneStorage;
 import wraith.fwaystones.util.WaystonesEventManager;
 

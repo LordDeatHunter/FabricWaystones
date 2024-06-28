@@ -23,7 +23,7 @@ import wraith.fwaystones.item.VoidTotem;
 import wraith.fwaystones.registry.ItemRegistry;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
-import wraith.fwaystones.util.WaystonePacketHandler;
+import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.util.ArrayList;
 
@@ -67,10 +67,10 @@ public abstract class LivingEntityMixin {
         if (player instanceof ServerPlayerEntity serverPlayer) {
             PacketByteBuf packet = new PacketByteBuf(Unpooled.buffer());
             ServerPlayNetworking.send(serverPlayer, WaystonePacketHandler.VOID_REVIVE, packet);
-            // Try to get the stored waystone
+            // Try to get the stored waystoneHash
             var hash = VoidTotem.getBoundWaystone(stack);
             if (hash == null) {
-                // If no such waystone exists, get a random discovered waystone
+                // If no such waystoneHash exists, get a random discovered waystoneHash
                 var discovered = ((PlayerEntityMixinAccess) player).fabricWaystones$getDiscoveredWaystones();
                 if (!discovered.isEmpty()) {
                     var list = new ArrayList<>(discovered);

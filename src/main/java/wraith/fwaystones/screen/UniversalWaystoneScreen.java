@@ -27,7 +27,7 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.util.FWConfigModel;
 import wraith.fwaystones.util.Utils;
-import wraith.fwaystones.util.WaystonePacketHandler;
+import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.util.ArrayList;
 import java.util.List;

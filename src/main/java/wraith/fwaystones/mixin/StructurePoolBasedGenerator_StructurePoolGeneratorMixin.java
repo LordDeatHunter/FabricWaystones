@@ -50,7 +50,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             && ((SinglePoolElementAccessor) singlePoolElement)
             .getLocation()
             .left()
-            .orElse(new Identifier("empty"))
+            .orElse(Identifier.of("empty"))
             .getNamespace()
             .equals(FabricWaystones.MOD_ID);
     }
@@ -103,7 +103,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                 && ((SinglePoolElementAccessor) singlePoolElement)
                 .getLocation()
                 .left()
-                .orElse(new Identifier("empty"))
+                .orElse(Identifier.of("empty"))
                 .getNamespace()
                 .equals(FabricWaystones.MOD_ID)
             )

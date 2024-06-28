@@ -1,14 +1,12 @@
 package wraith.fwaystones.item;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -19,8 +17,8 @@ public class WaystoneItem extends BlockItem {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
-        super.appendTooltip(stack, world, tooltip, context);
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+        super.appendTooltip(stack, context, tooltip, type);
         NbtCompound tag = stack.getSubNbt("BlockEntityTag");
         if (tag == null) {
             return;
@@ -30,7 +28,7 @@ public class WaystoneItem extends BlockItem {
         tooltip.add(Text.translatable(
             "fwaystones.waystone_tooltip.name",
             Text.literal(name).styled(style ->
-                style.withColor(TextColor.parse(Text.translatable("fwaystones.waystone_tooltip.name.arg_color").getString()).get().left().get())
+                style.withColor(TextColor.parse(Text.translatable("fwaystones.waystone_tooltip.name.arg_color").getString()).getOrThrow())
             )
         ));
         tooltip.add(Text.translatable("fwaystones.waystone_tooltip.global").append(" ")

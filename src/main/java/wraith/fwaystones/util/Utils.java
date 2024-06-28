@@ -40,7 +40,7 @@ public final class Utils {
     public static final DecimalFormat df = new DecimalFormat("#.##");
     public static final Random random = new Random();
     private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
-        RegistryKeys.PROCESSOR_LIST, new Identifier("minecraft", "empty"));
+        RegistryKeys.PROCESSOR_LIST, Identifier.of("minecraft", "empty"));
 
     private Utils() {
     }
@@ -58,7 +58,7 @@ public final class Utils {
     }
 
     public static Identifier ID(String id) {
-        return new Identifier(FabricWaystones.MOD_ID, id);
+        return Identifier.of(FabricWaystones.MOD_ID, id);
     }
 
     public static String generateWaystoneName(String id) {
@@ -358,7 +358,7 @@ public final class Utils {
     public static Identifier getTeleportCostItem() {
         if (FabricWaystones.CONFIG.teleportation_cost.cost_type() == FWConfigModel.CostType.ITEM) {
             String[] item = FabricWaystones.CONFIG.teleportation_cost.cost_item().split(":");
-            return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
+            return (item.length == 2) ? Identifier.of(item[0], item[1]) : Identifier.of(item[0]);
         }
         return null;
     }
@@ -370,7 +370,7 @@ public final class Utils {
             return null;
         }
         String[] item = discoverStr.split(":");
-        return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
+        return (item.length == 2) ? Identifier.of(item[0], item[1]) : Identifier.of(item[0]);
     }
 
     public static boolean isSubSequence(String mainString, String searchString) {

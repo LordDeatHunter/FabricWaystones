@@ -21,14 +21,14 @@ public final class WaystonesWorldgen {
         WAYSTONE_STRUCTURES.add(Utils.ID("stone_brick_village_waystone"));
         WAYSTONE_STRUCTURES.add(Utils.ID("village_waystone"));
 
-        FabricWaystones.CONFIG.add_waystone_structure_piece().forEach((identifier, originalStructure) -> VANILLA_VILLAGES.put(new Identifier(identifier), Utils.ID(originalStructure)));
+        FabricWaystones.CONFIG.add_waystone_structure_piece().forEach((identifier, originalStructure) -> VANILLA_VILLAGES.put(Identifier.of(identifier), Utils.ID(originalStructure)));
     }
 
     private WaystonesWorldgen() {}
 
     public static void registerVillage(MinecraftServer server, Identifier village, Identifier waystone) {
         if (FabricWaystones.CONFIG.worldgen.generate_in_villages()) {
-            FabricWaystones.LOGGER.info("Adding waystone " + waystone.toString() + " to village " + village.toString());
+            FabricWaystones.LOGGER.info("Adding waystoneHash " + waystone.toString() + " to village " + village.toString());
             Utils.addToStructurePool(server, village, waystone, FabricWaystones.CONFIG.worldgen.village_waystone_weight());
         }
     }

@@ -22,7 +22,7 @@ public final class BlockEntityRegistry {
     ).build(null);
 
     public static void registerBlockEntities() {
-        Registry.register(Registries.BLOCK_ENTITY_TYPE, Utils.ID("waystone"), WAYSTONE_BLOCK_ENTITY);
+        Registry.register(Registries.BLOCK_ENTITY_TYPE, Utils.ID("waystoneHash"), WAYSTONE_BLOCK_ENTITY);
     }
 
 }

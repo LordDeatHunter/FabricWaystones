@@ -7,6 +7,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
@@ -156,7 +157,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         BlockPos blockPos = ctx.getBlockPos();
 
-        var nbt = ctx.getStack().getSubNbt("BlockEntityTag");
+        var nbt = ctx.getStack().get(DataComponentTypes.BLOCK_ENTITY_DATA);
         boolean hasOwner = nbt != null && nbt.contains("waystone_owner");
         var world = ctx.getWorld();
         var fluidState = world.getFluidState(blockPos);
@@ -194,9 +195,9 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             if (!world.isClient) {
                 ItemStack itemStack = new ItemStack(state.getBlock().asItem());
                 var compoundTag = new NbtCompound();
-                waystone.writeNbt(compoundTag);
+                waystone.writeNbt(compoundTag, waystone.getWorld().getRegistryManager());
                 if (FabricWaystones.CONFIG.store_waystone_data_on_sneak_break() && player.isSneaking() && !compoundTag.isEmpty()) {
-                    itemStack.setSubNbt("BlockEntityTag", compoundTag);
+                    itemStack.set(DataComponentTypes.BLOCK_ENTITY_DATA, DataComponentTypes.BLOCK_ENTITY_DATA);
                 }
                 ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
                 if (waystone.getCachedState().get(MOSSY)) {
@@ -233,14 +234,17 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         return BlockRenderType.MODEL;
     }
 
+
+    //    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (world.isClient) {
             return ActionResult.success(true);
         }
         BlockPos openPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
         BlockState topState = world.getBlockState(openPos.up());
         BlockState bottomState = world.getBlockState(openPos);
+        Hand hand = player.getActiveHand();
         Item heldItem = player.getStackInHand(hand).getItem();
         if (heldItem == Items.VINE) {
             if (!topState.get(MOSSY)) {
@@ -250,18 +254,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     player.getStackInHand(hand).decrement(1);
                 }
             }
-            return ActionResult.PASS;
-        }
-        if (heldItem == Items.SHEARS) {
-            if (topState.get(MOSSY)) {
-                world.setBlockState(openPos.up(), topState.with(MOSSY, false));
-                world.setBlockState(openPos, bottomState.with(MOSSY, false));
-                var dropPos = openPos.up(2);
-                ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, new ItemStack(Items.VINE));
-            }
-            return ActionResult.PASS;
-        }
-        if (heldItem instanceof WaystoneScrollItem || heldItem instanceof LocalVoidItem || heldItem instanceof WaystoneDebuggerItem) {
             return ActionResult.PASS;
         }
 
@@ -294,7 +286,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                             "fwaystones.missing_discover_item",
                             discoverAmount,
                             Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                style.withColor(TextColor.parse(Text.translatable("fwaystones.missing_discover_item.arg_color").getString()).get().left().get())
+                                style.withColor(TextColor.parse(Text.translatable("fwaystones.missing_discover_item.arg_color").getString()).getOrThrow())
                             )
                         ), false);
                         return ActionResult.FAIL;
@@ -304,7 +296,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                             "fwaystones.discover_item_paid",
                             discoverAmount,
                             Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_item_paid.arg_color").getString()).get().left().get())
+                                style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_item_paid.arg_color").getString()).getOrThrow())
                             )
                         ), false);
                     }
@@ -312,7 +304,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 player.sendMessage(Text.translatable(
                     "fwaystones.discover_waystone",
                     Text.literal(blockEntity.getWaystoneName()).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_waystone.arg_color").getString()).get().left().get())
+                        style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_waystone.arg_color").getString()).getOrThrow())
                     )
                 ), false);
             }

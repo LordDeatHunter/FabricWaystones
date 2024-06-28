@@ -15,7 +15,7 @@ import wraith.fwaystones.util.Utils;
 
 public class PinlibPlugin {
 
-    public static final MapMarker WAYSTONE_MAP_MARKER = PinLib.createDynamicMarker(Utils.ID("waystone"));
+    public static final MapMarker WAYSTONE_MAP_MARKER = PinLib.createDynamicMarker(Utils.ID("waystoneHash"));
 
     public static long getMarkerColor(BlockView world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);

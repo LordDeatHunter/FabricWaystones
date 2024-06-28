@@ -9,7 +9,7 @@ import net.minecraft.network.PacketByteBuf;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
-import wraith.fwaystones.util.WaystonePacketHandler;
+import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.util.UUID;
 import java.util.function.Function;
