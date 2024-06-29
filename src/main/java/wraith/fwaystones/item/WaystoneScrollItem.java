@@ -141,7 +141,7 @@ public class WaystoneScrollItem extends Item {
     public String getTranslationKey(ItemStack stack) {
         NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (component == null) {
-            return null;
+            return "item.fwaystones.empty_scroll";
         }
         NbtCompound tag = component.getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
