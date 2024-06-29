@@ -107,6 +107,8 @@ public class WaystoneScrollItem extends Item {
             }
             tag.put(FabricWaystones.MOD_ID, list);
             stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(tag));
+
+            context.getPlayer().setStackInHand(context.getHand(), stack);
         }
         return super.useOnBlock(context);
     }
