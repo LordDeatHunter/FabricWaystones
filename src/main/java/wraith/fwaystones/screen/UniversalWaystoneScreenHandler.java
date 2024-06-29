@@ -1,18 +1,16 @@
 package wraith.fwaystones.screen;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
 import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.NotNull;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerAccess;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
@@ -20,9 +18,10 @@ import wraith.fwaystones.mixin.ClientPlayerEntityAccessor;
 import wraith.fwaystones.mixin.ServerPlayerEntityAccessor;
 import wraith.fwaystones.packets.ForgetWaystonePacket;
 import wraith.fwaystones.packets.TeleportToWaystonePacket;
+import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
 import wraith.fwaystones.util.SearchType;
+import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
-import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,12 +32,14 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     protected ArrayList<String> sortedWaystones = new ArrayList<>();
     protected ArrayList<String> filteredWaystones = new ArrayList<>();
     protected String filter = "";
+    protected ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type;
 
     protected UniversalWaystoneScreenHandler(
         ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type, int syncId,
         PlayerEntity player) {
         super(type, syncId);
         this.player = player;
+        this.type = type;
         for (int y = 0; y < 3; ++y) {
             for (int x = 0; x < 9; ++x) {
                 this.addSlot(
@@ -96,12 +97,27 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
             updateWaystones(player);
             ClientPlayNetworking.send(new ForgetWaystonePacket(waystone));
         } else {
-            if (Utils.canTeleport(player, waystone, Utils.getTeleportSource(player), false)) {
-                ClientPlayNetworking.send(new TeleportToWaystonePacket(waystone));
+            TeleportSources source = getTeleportSource(player);
+            if (Utils.canTeleport(player, waystone, source, false)) {
+                ClientPlayNetworking.send(new TeleportToWaystonePacket(waystone, source.name()));
             }
             closeScreen();
         }
         return true;
+    }
+
+    private static @NotNull TeleportSources getTeleportSource(PlayerEntity player) {
+        TeleportSources source;
+        if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.WAYSTONE_SCREEN)) {
+            source = TeleportSources.ABYSS_WATCHER;
+        } else if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.POCKET_WORMHOLE_SCREEN)) {
+            source = TeleportSources.POCKET_WORMHOLE;
+        } else if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.WAYSTONE_SCREEN)) {
+            source = TeleportSources.WAYSTONE;
+        } else {
+            source = TeleportSources.LOCAL_VOID;
+        }
+        return source;
     }
 
     protected void closeScreen() {

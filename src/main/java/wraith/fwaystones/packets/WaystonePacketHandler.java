@@ -1,24 +1,17 @@
 package wraith.fwaystones.packets;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.sound.SoundEvents;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.packets.client.SyncPlayerPacket;
 import wraith.fwaystones.packets.client.VoidRevivePacket;
 import wraith.fwaystones.packets.client.WaystonePacket;
-import wraith.fwaystones.registry.ItemRegistry;
-import wraith.fwaystones.screen.UniversalWaystoneScreenHandler;
-import wraith.fwaystones.util.WaystoneStorage;
+import wraith.fwaystones.util.TeleportSources;
 
-import java.util.HashSet;
 import java.util.UUID;
 
 public final class WaystonePacketHandler {
@@ -33,7 +26,7 @@ public final class WaystonePacketHandler {
         PayloadTypeRegistry.playC2S().register(RenameWaystonePacket.PACKET_ID, RenameWaystonePacket.PACKET_CODEC);
         PayloadTypeRegistry.playC2S().register(RequestPlayerSyncPacket.PACKET_ID, RequestPlayerSyncPacket.PACKET_CODEC);
         PayloadTypeRegistry.playC2S().register(ToggleGlobalWaystonePacket.PACKET_ID, ToggleGlobalWaystonePacket.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(TeleportToWaystonePacket.PACKET_ID, TeleportToWaystonePacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(TeleportToWaystonePacket.PACKET_ID, TeleportToWaystonePacket.PACKET_CODEC);
         PayloadTypeRegistry.playC2S().register(SyncPlayerFromClientPacket.PACKET_ID, SyncPlayerFromClientPacket.CODEC);
 
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER)
@@ -120,7 +113,7 @@ public final class WaystonePacketHandler {
                 FabricWaystones.WAYSTONE_STORAGE.removeWaystone(payload.waystone());
                 waystone.getWorld().removeBlockEntity(waystone.getPos());
             } else {
-                waystone.teleportPlayer(context.player(), true);
+                waystone.teleportPlayer(context.player(), true, payload.getSource());
             }
         });
     }

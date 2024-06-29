@@ -370,9 +370,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET
         );
         if (source == null) {
-            source = Utils.getTeleportSource(playerEntity);
-        }
-        if (source == null) {
             return false;
         }
         var teleported = doTeleport(playerEntity, (ServerWorld) world, target, source, takeCost);

@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
+import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
 import wraith.fwaystones.screen.AbyssScreenHandler;
 import wraith.fwaystones.screen.PocketWormholeScreenHandler;
 import wraith.fwaystones.screen.WaystoneBlockScreenHandler;
@@ -332,22 +333,6 @@ public final class Utils {
 
     public static String getDimensionName(World world) {
         return world.getRegistryKey().getValue().toString();
-    }
-
-    public static TeleportSources getTeleportSource(PlayerEntity player) {
-        if (player.currentScreenHandler instanceof AbyssScreenHandler) {
-            return TeleportSources.ABYSS_WATCHER;
-        } else if (player.currentScreenHandler instanceof PocketWormholeScreenHandler) {
-            return TeleportSources.POCKET_WORMHOLE;
-        } else if (player.currentScreenHandler instanceof WaystoneBlockScreenHandler) {
-            return TeleportSources.WAYSTONE;
-        } else {
-            for (var hand : Hand.values()) {
-                if (!(player.getStackInHand(hand).getItem() instanceof LocalVoidItem)) continue;
-                return TeleportSources.LOCAL_VOID;
-            }
-        }
-        return null;
     }
 
     public static int getRandomColor() {
