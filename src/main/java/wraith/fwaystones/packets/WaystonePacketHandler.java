@@ -62,13 +62,7 @@ public final class WaystonePacketHandler {
                 return;
             }
 
-            var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(payload.waystoneHash());
-            if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos()).getBlock() instanceof WaystoneBlock)) {
-                FabricWaystones.WAYSTONE_STORAGE.removeWaystone(payload.waystoneHash());
-                waystone.getWorld().removeBlockEntity(waystone.getPos());
-            } else {
-                waystone.teleportPlayer(context.player(), true);
-            }
+            context.server().execute(() -> ((PlayerEntityMixinAccess) context.player()).fabricWaystones$forgetWaystone(payload.waystoneHash()));
         });
     }
 
@@ -121,7 +115,13 @@ public final class WaystonePacketHandler {
                 return;
             }
 
-            context.server().execute(() -> ((PlayerEntityMixinAccess) context.player()).fabricWaystones$forgetWaystone(payload.waystone()));
+            var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(payload.waystone());
+            if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos()).getBlock() instanceof WaystoneBlock)) {
+                FabricWaystones.WAYSTONE_STORAGE.removeWaystone(payload.waystone());
+                waystone.getWorld().removeBlockEntity(waystone.getPos());
+            } else {
+                waystone.teleportPlayer(context.player(), true);
+            }
         });
     }
 
