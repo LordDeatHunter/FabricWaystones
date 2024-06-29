@@ -53,7 +53,7 @@ public class LocalVoidItem extends Item {
         ItemStack stack = user.getStackInHand(hand);
         NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (component == null) {
-            return null;
+            return TypedActionResult.fail(stack);
         }
         NbtCompound tag = component.getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
