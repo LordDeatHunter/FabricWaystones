@@ -36,8 +36,6 @@ dependencies {
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modRuntimeOnly "maven.modrinth:lazydfu:0.1.3"
-
     modCompileOnly "curse.maven:repurposed-structures-fabric-${project.rs_project_id}:${project.rs_file_id}"
 
     modApi group: 'info.journeymap', name: 'journeymap-api-fabric', version: project.journeymap_api_version, changing: true
