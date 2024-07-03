@@ -1,11 +1,11 @@
 package wraith.fwaystones;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wraith.fwaystones.integration.pinlib.PinlibPlugin;
+import wraith.fwaystones.packets.WaystonePacketHandler;
 import wraith.fwaystones.registry.*;
 import wraith.fwaystones.util.FWConfig;
 import wraith.fwaystones.util.WaystoneStorage;
