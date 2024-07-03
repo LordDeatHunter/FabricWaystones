@@ -4,7 +4,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import wraith.fwaystones.integration.pinlib.PinlibPlugin;
 import wraith.fwaystones.packets.WaystonePacketHandler;
 import wraith.fwaystones.registry.*;
 import wraith.fwaystones.util.FWConfig;
@@ -40,10 +39,6 @@ public class FabricWaystones implements ModInitializer {
         WaystonesEventManager.registerEvents();
         WaystonePacketHandler.registerPackets();
         WaystonePacketHandler.registerPacketHandlers();
-
-        if (FabricLoader.getInstance().isModLoaded("pinlib")) {
-            PinlibPlugin.init();
-        }
 
         LOGGER.info("Has successfully been initialized.");
     }
