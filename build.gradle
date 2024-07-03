@@ -36,15 +36,15 @@ dependencies {
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-//    modRuntimeOnly "maven.modrinth:lazydfu:0.1.3"
+    modRuntimeOnly "maven.modrinth:lazydfu:0.1.3"
 
     modCompileOnly "curse.maven:repurposed-structures-fabric-${project.rs_project_id}:${project.rs_file_id}"
 
-//    modApi group: 'info.journeymap', name: 'journeymap-api', version: project.journeymap_api_version, changing: true
-//    modRuntimeOnly "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id}"
+    modApi group: 'info.journeymap', name: 'journeymap-api', version: project.journeymap_api_version, changing: true
+    modRuntimeOnly "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id}"
 
-//    modApi "maven.modrinth:pinlib:$project.pinlib_api_version"
-//    modRuntimeOnly "maven.modrinth:pinlib:$project.pinlib_api_version"
+    modApi "maven.modrinth:pinlib:$project.pinlib_api_version"
+    modRuntimeOnly "maven.modrinth:pinlib:$project.pinlib_api_version"
 
     annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
     include "io.wispforest:owo-sentinel:${project.owo_version}"
