@@ -21,7 +21,7 @@
     }
   },
   "result": {
-    "item": "fwaystones:red_nether_brick_waystone",
+    "id": "fwaystones:red_nether_brick_waystone",
     "count": 1
   }
 }

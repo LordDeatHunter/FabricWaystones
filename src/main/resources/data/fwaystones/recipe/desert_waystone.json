@@ -21,7 +21,7 @@
     }
   },
   "result": {
-    "item": "fwaystones:desert_waystone",
+    "id": "fwaystones:desert_waystone",
     "count": 1
   }
 }

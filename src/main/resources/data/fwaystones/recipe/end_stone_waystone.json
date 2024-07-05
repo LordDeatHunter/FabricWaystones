@@ -21,7 +21,7 @@
     }
   },
   "result": {
-    "item": "fwaystones:end_stone_brick_waystone",
+    "id": "fwaystones:end_stone_brick_waystone",
     "count": 1
   }
 }

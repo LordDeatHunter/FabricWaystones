@@ -14,7 +14,7 @@
     }
   },
   "result": {
-    "item": "fwaystones:waystone_scroll",
+    "id": "fwaystones:waystone_scroll",
     "count": 1
   }
 }

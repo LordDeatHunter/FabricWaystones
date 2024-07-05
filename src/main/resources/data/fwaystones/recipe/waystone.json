@@ -21,7 +21,7 @@
     }
   },
   "result": {
-    "item": "fwaystones:waystone",
+    "id": "fwaystones:waystone",
     "count": 1
   }
 }
