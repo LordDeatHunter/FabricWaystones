@@ -8,7 +8,7 @@
   ],
   "key": {
     "#": {
-      "tag": "c:nether_bricks"
+      "tag": "fwaystones:nether_bricks"
     },
     "A": {
       "item": "fwaystones:abyss_watcher"

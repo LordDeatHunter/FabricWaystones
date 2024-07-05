@@ -1,7 +1,7 @@
 {
   "replace": false,
   "values": [
-    "#c:blackstone_bricks",
-    "#c:polished_blackstones"
+    "#fwaystones:blackstone_bricks",
+    "#fwaystones:polished_blackstones"
   ]
 }
