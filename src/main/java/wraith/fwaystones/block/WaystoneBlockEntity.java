@@ -17,7 +17,6 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -25,7 +24,10 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -362,12 +364,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             return false;
         }
         TeleportTarget target = new TeleportTarget(
-            playerEntity.getServerWorld(),
+            (ServerWorld) getWorld(),
             new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
             new Vec3d(0, 0, 0),
             fYaw,
             0,
-            TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET
+            TeleportTarget.ADD_PORTAL_CHUNK_TICKET
         );
         if (source == null) {
             return false;
@@ -416,7 +418,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole();
         });
         var oldPos = player.getBlockPos();
-        world.getChunkManager().addTicket(ChunkTicketType.POST_TELEPORT, new ChunkPos(BlockPos.ofFloored(target.pos())), 1, player.getId());
         player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         player.detach();
         player.teleportTo(target);
