@@ -109,11 +109,11 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     private static @NotNull TeleportSources getTeleportSource(PlayerEntity player) {
         TeleportSources source;
         if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.WAYSTONE_SCREEN)) {
-            source = TeleportSources.ABYSS_WATCHER;
+            source = TeleportSources.WAYSTONE;
         } else if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.POCKET_WORMHOLE_SCREEN)) {
             source = TeleportSources.POCKET_WORMHOLE;
-        } else if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.WAYSTONE_SCREEN)) {
-            source = TeleportSources.WAYSTONE;
+        } else if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.ABYSS_WATCHER_SCREEN)) {
+            source = TeleportSources.ABYSS_WATCHER;
         } else {
             source = TeleportSources.LOCAL_VOID;
         }

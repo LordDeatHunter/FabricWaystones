@@ -13,7 +13,7 @@ public final class CustomScreenRegistry {
     public static void registerScreens() {
         HandledScreens.register(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, WaystoneBlockScreen::new);
         HandledScreens.register(CustomScreenHandlerRegistry.POCKET_WORMHOLE_SCREEN, PocketWormholeScreen::new);
-        HandledScreens.register(CustomScreenHandlerRegistry.ABYSS_SCREEN_HANDLER, AbyssScreen::new);
+        HandledScreens.register(CustomScreenHandlerRegistry.ABYSS_WATCHER_SCREEN, AbyssScreen::new);
     }
 
 }
