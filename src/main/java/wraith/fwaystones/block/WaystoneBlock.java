@@ -44,7 +44,6 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
-import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.registry.BlockEntityRegistry;
 import wraith.fwaystones.util.Utils;
 
@@ -204,7 +203,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 waystone.generateLoot(player);
             }
 
-            WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(waystone.getHash());
+            FabricWaystones.WAYSTONE_STORAGE.removeWaystone(waystone);
         }
 
         world.removeBlock(topPos, false);
