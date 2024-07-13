@@ -1,14 +1,11 @@
 package wraith.fwaystones.block;
 
 import com.mojang.serialization.MapCodec;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.component.Component;
-import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
@@ -47,9 +44,7 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
-import wraith.fwaystones.item.LocalVoidItem;
-import wraith.fwaystones.item.WaystoneDebuggerItem;
-import wraith.fwaystones.item.WaystoneScrollItem;
+import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.registry.BlockEntityRegistry;
 import wraith.fwaystones.util.Utils;
 
@@ -208,6 +203,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             } else {
                 waystone.generateLoot(player);
             }
+
+            WaystoneEvents.REMOVE_WAYSTONE_EVENT.invoker().onRemove(waystone.getHash());
         }
 
         world.removeBlock(topPos, false);
