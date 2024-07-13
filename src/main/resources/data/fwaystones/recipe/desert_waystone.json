@@ -8,7 +8,7 @@
   ],
   "key": {
     "#": {
-      "tag": "fwaystones:sandstones"
+      "tag": "c:sandstone/uncolored_blocks"
     },
     "A": {
       "item": "fwaystones:abyss_watcher"
