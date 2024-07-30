@@ -44,6 +44,9 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
+import wraith.fwaystones.item.LocalVoidItem;
+import wraith.fwaystones.item.WaystoneDebuggerItem;
+import wraith.fwaystones.item.WaystoneScrollItem;
 import wraith.fwaystones.registry.BlockEntityRegistry;
 import wraith.fwaystones.util.Utils;
 
@@ -252,6 +255,19 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     player.getStackInHand(hand).decrement(1);
                 }
             }
+            return ActionResult.PASS;
+        }
+
+        if (heldItem == Items.SHEARS) {
+            if (topState.get(MOSSY)) {
+                world.setBlockState(openPos.up(), topState.with(MOSSY, false));
+                world.setBlockState(openPos, bottomState.with(MOSSY, false));
+                var dropPos = openPos.up(2);
+                ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, new ItemStack(Items.VINE));
+            }
+            return ActionResult.PASS;
+        }
+        if (heldItem instanceof WaystoneScrollItem || heldItem instanceof LocalVoidItem || heldItem instanceof WaystoneDebuggerItem) {
             return ActionResult.PASS;
         }
 
