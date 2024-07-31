@@ -14,18 +14,12 @@ import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorList;
 import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
-import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
-import wraith.fwaystones.screen.AbyssScreenHandler;
-import wraith.fwaystones.screen.PocketWormholeScreenHandler;
-import wraith.fwaystones.screen.WaystoneBlockScreenHandler;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -182,7 +176,7 @@ public final class Utils {
             return true;
         }
         int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), sourceDim, destDim);
-        if (player.isCreative()) {
+        if (player.isCreative() || player.isSpectator()) {
             return true;
         }
         switch (cost) {
