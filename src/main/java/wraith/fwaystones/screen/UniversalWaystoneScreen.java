@@ -267,12 +267,12 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 text = Text.translatable("fwaystones.cost.xp");
             }
             case LEVEL -> {
-                context.drawItemInSlot(textRenderer, new ItemStack(Items.EXPERIENCE_BOTTLE), x, y);
+                context.drawItem(new ItemStack(Items.EXPERIENCE_BOTTLE), x - 4, y);
                 text = Text.translatable("fwaystones.cost.level");
             }
             case ITEM -> {
                 var item = Registries.ITEM.get(Utils.getTeleportCostItem());
-                context.drawItemInSlot(textRenderer, new ItemStack(item), x, y);
+                context.drawItem(new ItemStack(item), x - 4, y);
                 text = (MutableText) item.getName();
             }
             default -> {
