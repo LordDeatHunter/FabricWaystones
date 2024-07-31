@@ -1,29 +1,26 @@
 package wraith.fwaystones.integration.journeymap;
 
 import joptsimple.internal.Strings;
-import journeymap.client.api.IClientAPI;
-import journeymap.client.api.IClientPlugin;
-import journeymap.client.api.display.DisplayType;
-import journeymap.client.api.display.Waypoint;
-import journeymap.client.api.event.ClientEvent;
-import journeymap.client.api.event.RegistryEvent;
-import journeymap.client.api.event.RegistryEvent.RegistryType;
-import journeymap.client.api.event.fabric.FabricEvents;
-import journeymap.client.api.event.fabric.FullscreenDisplayEvent;
-import journeymap.client.api.model.MapImage;
-import journeymap.client.api.option.BooleanOption;
-import journeymap.client.api.option.OptionCategory;
+import journeymap.api.v2.client.IClientAPI;
+import journeymap.api.v2.client.IClientPlugin;
+import journeymap.api.v2.client.JourneyMapPlugin;
+import journeymap.api.v2.client.event.FullscreenDisplayEvent;
+import journeymap.api.v2.client.event.MappingEvent;
+import journeymap.api.v2.client.option.BooleanOption;
+import journeymap.api.v2.client.option.OptionCategory;
+import journeymap.api.v2.common.event.ClientEventRegistry;
+import journeymap.api.v2.common.waypoint.WaypointFactory;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.integration.event.WaystoneEvents;
-import wraith.fwaystones.util.Utils;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import static journeymap.client.api.event.ClientEvent.Type.*;
-
+@JourneyMapPlugin(apiVersion = "2.0.0")
 public class JourneymapPlugin implements IClientPlugin {
 
     private final List<String> queuedWaypoints;
@@ -33,6 +30,8 @@ public class JourneymapPlugin implements IClientPlugin {
     private BooleanOption displayWaypoints;
     //    private BooleanOption randomizeColor;
     private boolean mappingStarted = false;
+    // Map of waypoints' ids to their corresponding hash. HASH -> WAYPOINT_ID
+    private final Map<String, String> waypointHashes = new HashMap<>();
 
     /**
      * Do not manually instantiate this class, Journeymap will take care of it.
@@ -47,16 +46,32 @@ public class JourneymapPlugin implements IClientPlugin {
      * @param api Client API implementation
      */
     @Override
-    public void initialize(IClientAPI api) {
+    public void initialize(@NotNull IClientAPI api) {
         this.api = api;
 
         // event registration
-        api.subscribe(getModId(), EnumSet.of(REGISTRY, MAPPING_STOPPED, MAPPING_STARTED));
+        ClientEventRegistry.OPTIONS_REGISTRY_EVENT_EVENT.subscribe(getModId(), event -> {
+            OptionCategory category = new OptionCategory(getModId(), "fwaystones.integration.journeymap.category");
+            this.enabled = new BooleanOption(category, "enabled", "fwaystones.integration.journeymap.enable", true);
+            this.displayWaypoints = new BooleanOption(category, "displayed", "fwaystones.integration.journeymap.enable", true);
+        });
+
+        ClientEventRegistry.MAPPING_EVENT.subscribe(getModId(), event -> {
+            if (event.getStage().equals(MappingEvent.Stage.MAPPING_STARTED)) {
+                mappingStarted = true;
+                buildQueuedWaypoints();
+            } else {
+                mappingStarted = false;
+                api.removeAll(getModId());
+            }
+        });
+
+        ClientEventRegistry.ADDON_BUTTON_DISPLAY_EVENT.subscribe(getModId(), this::onFullscreenAddonButton);
+
         WaystoneEvents.REMOVE_WAYSTONE_EVENT.register(this::onRemove);
         WaystoneEvents.DISCOVER_WAYSTONE_EVENT.register(this::onDiscover);
         WaystoneEvents.RENAME_WAYSTONE_EVENT.register(this::onRename);
         WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.register(player -> api.removeAll(getModId()));
-        FabricEvents.ADDON_BUTTON_DISPLAY_EVENT.register(this::onFullscreenAddonButton);
     }
 
     /**
@@ -70,14 +85,13 @@ public class JourneymapPlugin implements IClientPlugin {
             .addThemeToggleButton(
                 "fwaystones.integration.journeymap.theme.on",
                 "fwaystones.integration.journeymap.theme.off",
-                "fabric_waystones_icon", // required to be in assets/journeymap/flat/icon due to themes
+                Identifier.of("fabric_waystones_icon"), // required to be in assets/journeymap/flat/icon due to themes
                 displayWaypoints.get(),
                 b -> {
                     b.toggle();
                     displayWaypoints.set(b.getToggled());
                     updateWaypointDisplay(b.getToggled());
                 });
-
     }
 
     @Override
@@ -85,38 +99,9 @@ public class JourneymapPlugin implements IClientPlugin {
         return FabricWaystones.MOD_ID;
     }
 
-    @Override
-    public void onEvent(@NotNull final ClientEvent event) {
-        try {
-            switch (event.type) {
-                case MAPPING_STARTED -> {
-                    mappingStarted = true;
-                    buildQueuedWaypoints();
-                }
-                case MAPPING_STOPPED -> {
-                    mappingStarted = false;
-                    api.removeAll(getModId());
-                }
-                case REGISTRY -> {
-                    RegistryEvent registryEvent = (RegistryEvent) event;
-                    if (registryEvent.getRegistryType() == RegistryType.OPTIONS) {// Adds an option in the journeymap options screen.
-                        OptionCategory category = new OptionCategory(getModId(), "fwaystones.integration.journeymap.category");
-                        this.enabled = new BooleanOption(category, "enabled", "fwaystones.integration.journeymap.enable", true);
-//                        this.randomizeColor = new BooleanOption(category, "random_color", "fwaystones.integration.journeymap.random_color", true);
-                        // hidden from the ui
-                        this.displayWaypoints = new BooleanOption(new OptionCategory(getModId(), "Hidden"), "displayed", "fwaystones.integration.journeymap.enable", true);
-                    }
-                }
-            }
-        } catch (Throwable t) {
-            FabricWaystones.LOGGER.error(t.getMessage(), t);
-        }
-
-    }
-
     private void updateWaypointDisplay(boolean display) {
         if (!display) {
-            api.removeAll(getModId(), DisplayType.Waypoint);
+            api.removeAll(getModId());
         } else {
             FabricWaystones.WAYSTONE_STORAGE.getAllHashes().forEach(this::addWaypoint);
         }
@@ -131,9 +116,9 @@ public class JourneymapPlugin implements IClientPlugin {
         if (!enabled.get()) {
             return;
         }
-        Waypoint waypoint = api.getWaypoint(getModId(), hash);
+        var waypoint = api.getWaypoint(getModId(), waypointHashes.get(hash));
         if (waypoint != null) {
-            api.remove(waypoint);
+            api.removeWaypoint(getModId(), waypoint);
         }
     }
 
@@ -157,32 +142,33 @@ public class JourneymapPlugin implements IClientPlugin {
     }
 
     private void addWaypoint(String hash) {
-        if (FabricWaystones.WAYSTONE_STORAGE == null || api.getWaypoint(getModId(), hash) != null) {
+        var waypointId = waypointHashes.get(hash);
+        if (FabricWaystones.WAYSTONE_STORAGE == null || api.getWaypoint(getModId(), waypointId) != null) {
             return; // do not recreate waypoint
         }
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
             return;
         }
-        var icon = new MapImage(Utils.ID("images/fabric_waystones_icon.png"), 16, 16);
 
-        var waypoint = new Waypoint(
+        var waypoint = WaypointFactory.createClientWaypoint(
             getModId(),
-            waystone.getHash(),
+            waystone.way_getPos(),
             Strings.isNullOrEmpty(waystone.getWaystoneName()) ? "Unnamed Waystone" : waystone.getWaystoneName(),
             waystone.getWorldName(),
-            waystone.way_getPos()
-        )
-            .setIcon(icon)
-            .setPersistent(false);
+            false
+        );
+
+        waypoint.setIconResourceLoctaion(Identifier.of("images/fabric_waystones_icon.png"));
+
+        waypointHashes.put(hash, waypoint.getId());
 
         try {
             waypoint.setColor(waystone.getColor());
             waypoint.setEnabled(displayWaypoints.get());
-            this.api.show(waypoint);
+            this.api.addWaypoint(getModId(), waypoint);
         } catch (Throwable t) {
             FabricWaystones.LOGGER.error(t.getMessage(), t);
         }
     }
-
 }

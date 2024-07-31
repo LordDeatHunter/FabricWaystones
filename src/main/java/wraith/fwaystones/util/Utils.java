@@ -14,17 +14,12 @@ import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorList;
 import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.item.LocalVoidItem;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
-import wraith.fwaystones.screen.AbyssScreenHandler;
-import wraith.fwaystones.screen.PocketWormholeScreenHandler;
-import wraith.fwaystones.screen.WaystoneBlockScreenHandler;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -40,7 +35,7 @@ public final class Utils {
     public static final DecimalFormat df = new DecimalFormat("#.##");
     public static final Random random = new Random();
     private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
-        RegistryKeys.PROCESSOR_LIST, new Identifier("minecraft", "empty"));
+        RegistryKeys.PROCESSOR_LIST, Identifier.of("minecraft", "empty"));
 
     private Utils() {
     }
@@ -58,7 +53,7 @@ public final class Utils {
     }
 
     public static Identifier ID(String id) {
-        return new Identifier(FabricWaystones.MOD_ID, id);
+        return Identifier.of(FabricWaystones.MOD_ID, id);
     }
 
     public static String generateWaystoneName(String id) {
@@ -181,7 +176,7 @@ public final class Utils {
             return true;
         }
         int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), sourceDim, destDim);
-        if (player.isCreative()) {
+        if (player.isCreative() || player.isSpectator()) {
             return true;
         }
         switch (cost) {
@@ -334,22 +329,6 @@ public final class Utils {
         return world.getRegistryKey().getValue().toString();
     }
 
-    public static TeleportSources getTeleportSource(PlayerEntity player) {
-        if (player.currentScreenHandler instanceof AbyssScreenHandler) {
-            return TeleportSources.ABYSS_WATCHER;
-        } else if (player.currentScreenHandler instanceof PocketWormholeScreenHandler) {
-            return TeleportSources.POCKET_WORMHOLE;
-        } else if (player.currentScreenHandler instanceof WaystoneBlockScreenHandler) {
-            return TeleportSources.WAYSTONE;
-        } else {
-            for (var hand : Hand.values()) {
-                if (!(player.getStackInHand(hand).getItem() instanceof LocalVoidItem)) continue;
-                return TeleportSources.LOCAL_VOID;
-            }
-        }
-        return null;
-    }
-
     public static int getRandomColor() {
         return random.nextInt(0xFFFFFF);
     }
@@ -358,7 +337,7 @@ public final class Utils {
     public static Identifier getTeleportCostItem() {
         if (FabricWaystones.CONFIG.teleportation_cost.cost_type() == FWConfigModel.CostType.ITEM) {
             String[] item = FabricWaystones.CONFIG.teleportation_cost.cost_item().split(":");
-            return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
+            return (item.length == 2) ? Identifier.of(item[0], item[1]) : Identifier.of(item[0]);
         }
         return null;
     }
@@ -370,7 +349,7 @@ public final class Utils {
             return null;
         }
         String[] item = discoverStr.split(":");
-        return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
+        return (item.length == 2) ? Identifier.of(item[0], item[1]) : Identifier.of(item[0]);
     }
 
     public static boolean isSubSequence(String mainString, String searchString) {

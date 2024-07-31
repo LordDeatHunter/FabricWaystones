@@ -1,15 +1,15 @@
 package wraith.fwaystones.screen;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlockEntity;
+import wraith.fwaystones.block.WaystoneDataPacket;
+import wraith.fwaystones.packets.ToggleGlobalWaystonePacket;
 import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
-import wraith.fwaystones.util.WaystonePacketHandler;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -54,6 +54,18 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
         updateWaystones(player);
     }
 
+    public WaystoneBlockScreenHandler(int syncId, PlayerInventory playerInventory, WaystoneDataPacket waystoneDataPacket) {
+        super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, playerInventory.player);
+        this.isClient = playerInventory.player.getWorld().isClient;
+        this.hash = waystoneDataPacket.hash();
+        this.name = waystoneDataPacket.name();
+        this.owner = waystoneDataPacket.owner();
+        this.isGlobal = waystoneDataPacket.isGlobal();
+        this.canUse = player -> waystoneDataPacket.canUse();
+        this.ownerName = waystoneDataPacket.ownerName();
+        updateWaystones(player);
+    }
+
     @Override
     public void onForget(String waystone) {
         if (this.hash.equals(waystone)) {
@@ -70,6 +82,10 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
         if (!FabricWaystones.WAYSTONE_STORAGE.containsHash(this.hash)) {
             closeScreen();
         }
+        if (!this.sortedWaystones.contains(this.hash)) {
+            this.sortedWaystones.add(this.hash);
+            this.filterWaystones();
+        }
     }
 
     @Override
@@ -85,14 +101,7 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
         if (!isClient) {
             return;
         }
-        PacketByteBuf packet = PacketByteBufs.create();
-        NbtCompound tag = new NbtCompound();
-        tag.putString("waystone_hash", this.hash);
-        if (this.owner != null) {
-            tag.putUuid("waystone_owner", this.owner);
-        }
-        packet.writeNbt(tag);
-        ClientPlayNetworking.send(WaystonePacketHandler.TOGGLE_GLOBAL_WAYSTONE, packet);
+        ClientPlayNetworking.send(new ToggleGlobalWaystonePacket(this.owner, this.hash));
         this.isGlobal = !this.isGlobal;
     }
 

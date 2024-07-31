@@ -29,7 +29,7 @@ public final class BlockRegistry {
 
     public static void registerBlocks() {
         var miningLevel = FabricWaystones.CONFIG.waystone_block_required_mining_level();
-        miningLevelTag = new Identifier(switch (miningLevel) {
+        miningLevelTag = Identifier.of(switch (miningLevel) {
             case 1 -> "minecraft:needs_stone_tool";
             case 2 -> "minecraft:needs_iron_tool";
             case 3 -> "minecraft:needs_diamond_tool";

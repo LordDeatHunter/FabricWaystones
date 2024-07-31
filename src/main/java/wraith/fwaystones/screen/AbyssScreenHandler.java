@@ -9,7 +9,7 @@ import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
 public class AbyssScreenHandler extends UniversalWaystoneScreenHandler {
 
     public AbyssScreenHandler(int syncId, PlayerInventory inventory) {
-        super(CustomScreenHandlerRegistry.ABYSS_SCREEN_HANDLER, syncId, inventory.player);
+        super(CustomScreenHandlerRegistry.ABYSS_WATCHER_SCREEN, syncId, inventory.player);
         updateWaystones(player);
     }
 

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "waystone",
+  "pattern": [
+    "#A#",
+    "#E#",
+    "#O#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:stone"
+    },
+    "A": {
+      "item": "fwaystones:abyss_watcher"
+    },
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "result": {
+    "id": "fwaystones:waystone",
+    "count": 1
+  }
+}

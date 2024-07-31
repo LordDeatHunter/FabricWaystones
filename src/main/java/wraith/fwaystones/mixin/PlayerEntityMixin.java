@@ -1,6 +1,5 @@
 package wraith.fwaystones.mixin;
 
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
@@ -8,7 +7,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,8 +18,8 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
+import wraith.fwaystones.packets.client.SyncPlayerPacket;
 import wraith.fwaystones.util.SearchType;
-import wraith.fwaystones.util.WaystonePacketHandler;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -137,9 +135,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (!(_this() instanceof ServerPlayerEntity serverPlayerEntity)) {
             return;
         }
-        PacketByteBuf packet = PacketByteBufs.create();
-        packet.writeNbt(fabricWaystones$toTagW(new NbtCompound()));
-        ServerPlayNetworking.send(serverPlayerEntity, WaystonePacketHandler.SYNC_PLAYER, packet);
+        ServerPlayNetworking.send(serverPlayerEntity, new SyncPlayerPacket(fabricWaystones$toTagW(new NbtCompound())));
     }
 
     @Override
@@ -326,9 +322,8 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (discoveredWaystones.isEmpty()) {
             return;
         }
-        discoveredWaystones.clear();
+        fabricWaystones$forgetWaystones(new HashSet<>(discoveredWaystones));
         WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
-        fabricWaystones$syncData();
     }
 
     @Override

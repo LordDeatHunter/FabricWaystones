@@ -3,6 +3,7 @@ package wraith.fwaystones.mixin;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.structure.PoolStructurePiece;
+import net.minecraft.structure.StructureLiquidSettings;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePool;
@@ -50,7 +51,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             && ((SinglePoolElementAccessor) singlePoolElement)
             .getLocation()
             .left()
-            .orElse(new Identifier("empty"))
+            .orElse(Identifier.of("empty"))
             .getNamespace()
             .equals(FabricWaystones.MOD_ID);
     }
@@ -60,14 +61,10 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
         this.maxWaystoneCount = maxWaystoneCount;
     }
 
-    @Inject(method = "generatePiece", at = @At(value = "HEAD"))
-    private void fabricwaystones_startGeneratePiece(PoolStructurePiece piece, MutableObject<VoxelShape> pieceShape, int minY, boolean modifyBoundingBox, HeightLimitView world, NoiseConfig noiseConfig, StructurePoolAliasLookup aliasLookup, CallbackInfo ci) {
-    }
-
     @Inject(method = "generatePiece",
         at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false),
         locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece, MutableObject<VoxelShape> pieceShape, int minY, boolean modifyBoundingBox, HeightLimitView world, NoiseConfig noiseConfig, StructurePoolAliasLookup aliasLookup,
+    private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece, MutableObject<VoxelShape> pieceShape, int minY, boolean modifyBoundingBox, HeightLimitView world, NoiseConfig noiseConfig, StructurePoolAliasLookup aliasLookup, StructureLiquidSettings liquidSettings,
                                                             CallbackInfo ci,
                                                             StructurePoolElement structurePoolElement,
                                                             BlockPos blockPos,
@@ -77,7 +74,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                                                             MutableObject<VoxelShape> mutableObject,
                                                             BlockBox blockBox,
                                                             int i,
-                                                            Iterator var15,
+                                                            Iterator var17,
                                                             StructureTemplate.StructureBlockInfo structureBlockInfo,
                                                             Direction direction,
                                                             BlockPos blockPos2,
@@ -103,12 +100,12 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                 && ((SinglePoolElementAccessor) singlePoolElement)
                 .getLocation()
                 .left()
-                .orElse(new Identifier("empty"))
+                .orElse(Identifier.of("empty"))
                 .getNamespace()
                 .equals(FabricWaystones.MOD_ID)
             )
             .count();
         final boolean hasMaxWaystones = villageWaystoneCount >= maxWaystoneCount;
-        list.removeIf(element -> hasMaxWaystones == isWaystone(element));
+        list.removeIf(element -> hasMaxWaystones && isWaystone(element));
     }
 }
