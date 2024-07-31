@@ -1,6 +1,5 @@
 package wraith.fwaystones.mixin;
 
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
@@ -323,9 +322,8 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (discoveredWaystones.isEmpty()) {
             return;
         }
-        discoveredWaystones.clear();
+        fabricWaystones$forgetWaystones(new HashSet<>(discoveredWaystones));
         WaystoneEvents.FORGET_ALL_WAYSTONES_EVENT.invoker().onForgetAll(_this());
-        fabricWaystones$syncData();
     }
 
     @Override
