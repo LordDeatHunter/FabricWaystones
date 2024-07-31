@@ -82,6 +82,10 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
         if (!FabricWaystones.WAYSTONE_STORAGE.containsHash(this.hash)) {
             closeScreen();
         }
+        if (!this.sortedWaystones.contains(this.hash)) {
+            this.sortedWaystones.add(this.hash);
+            this.filterWaystones();
+        }
     }
 
     @Override
