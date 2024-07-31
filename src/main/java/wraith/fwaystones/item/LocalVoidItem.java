@@ -48,7 +48,7 @@ public class LocalVoidItem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (world.isClient()) {
-            return TypedActionResult.pass(user.getStackInHand(hand));
+            return TypedActionResult.success(user.getStackInHand(hand));
         }
         ItemStack stack = user.getStackInHand(hand);
         NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
@@ -60,7 +60,8 @@ public class LocalVoidItem extends Item {
             return canTeleport ? TypedActionResult.pass(stack) : TypedActionResult.fail(stack);
         }
         if (user.isSneaking()) {
-            tag.remove(FabricWaystones.MOD_ID);
+            stack.remove(DataComponentTypes.CUSTOM_DATA);
+            return TypedActionResult.pass(stack);
         } else if (canTeleport) {
             String hash = tag.getString(FabricWaystones.MOD_ID);
             if (FabricWaystones.WAYSTONE_STORAGE != null) {
@@ -69,14 +70,11 @@ public class LocalVoidItem extends Item {
                     tag.remove(FabricWaystones.MOD_ID);
                 } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.free_local_void_teleport(), TeleportSources.LOCAL_VOID) && !user.isCreative() && FabricWaystones.CONFIG.consume_local_void_on_use()) {
                     stack.decrement(1);
+                    return TypedActionResult.consume(stack);
                 }
             }
         }
-        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(tag));
-        if (stack.isEmpty()) {
-            user.setStackInHand(hand, ItemStack.EMPTY);
-        }
-        return TypedActionResult.success(user.getStackInHand(hand), world.isClient());
+        return TypedActionResult.fail(stack);
     }
 
     @Override
