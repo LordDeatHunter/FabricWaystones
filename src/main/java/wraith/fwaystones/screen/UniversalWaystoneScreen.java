@@ -1,7 +1,6 @@
 package wraith.fwaystones.screen;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -12,7 +11,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
@@ -29,7 +27,6 @@ import wraith.fwaystones.packets.SyncPlayerFromClientPacket;
 import wraith.fwaystones.packets.WaystoneGUISlotClickPacket;
 import wraith.fwaystones.util.FWConfigModel;
 import wraith.fwaystones.util.Utils;
-import wraith.fwaystones.packets.WaystonePacketHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +95,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 }
                 super.onClick();
                 ((PlayerEntityMixinAccess) inventory.player).fabricWaystones$toggleAutofocusWaystoneFields();
+                searchField.setFocused(((PlayerEntityMixinAccess) inventory.player).fabricWaystones$autofocusWaystoneFields());
                 setupTooltip();
             }
 
