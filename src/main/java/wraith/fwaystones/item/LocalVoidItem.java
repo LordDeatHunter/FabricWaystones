@@ -88,6 +88,8 @@ public class LocalVoidItem extends Item {
             NbtCompound tag = new NbtCompound();
             tag.putString(FabricWaystones.MOD_ID, entity.getHash());
             stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(tag));
+
+            context.getPlayer().setStackInHand(context.getHand(), stack);
         }
         return super.useOnBlock(context);
     }
