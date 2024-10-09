@@ -113,6 +113,8 @@
   "fwaystones.integration.journeymap.category.tooltip": "Fabric-Waystones Journeymap Properties",
   "fwaystones.integration.journeymap.enable": "Enable",
   "fwaystones.integration.journeymap.enable.tooltip": "Enable Integration, disabling will not hide existing waypoints but it will prevent new ones being created when waystones are discovered",
+  "fwaystones.integration.journeymap.waypoints_enable": "Enable Waystone Waypoints",
+  "fwaystones.integration.journeymap.waypoints_enable.tooltip": "Creates waypoints for waystones.",
   "fwaystones.integration.journeymap.random_color": "Randomize Color",
   "fwaystones.integration.journeymap.random_color.tooltip": "Randomizes waypoint color on creation",
   "fwaystones.integration.journeymap.theme.on": "Hide Waystones",

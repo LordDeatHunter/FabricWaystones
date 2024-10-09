@@ -9,6 +9,7 @@ import journeymap.api.v2.client.event.MappingEvent;
 import journeymap.api.v2.client.option.BooleanOption;
 import journeymap.api.v2.client.option.OptionCategory;
 import journeymap.api.v2.common.event.ClientEventRegistry;
+import journeymap.api.v2.common.event.FullscreenEventRegistry;
 import journeymap.api.v2.common.waypoint.WaypointFactory;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
@@ -50,10 +51,10 @@ public class JourneymapPlugin implements IClientPlugin {
         this.api = api;
 
         // event registration
-        ClientEventRegistry.OPTIONS_REGISTRY_EVENT_EVENT.subscribe(getModId(), event -> {
+        ClientEventRegistry.OPTIONS_REGISTRY_EVENT.subscribe(getModId(), event -> {
             OptionCategory category = new OptionCategory(getModId(), "fwaystones.integration.journeymap.category");
             this.enabled = new BooleanOption(category, "enabled", "fwaystones.integration.journeymap.enable", true);
-            this.displayWaypoints = new BooleanOption(category, "displayed", "fwaystones.integration.journeymap.enable", true);
+            this.displayWaypoints = new BooleanOption(category, "displayed", "fwaystones.integration.journeymap.waypoints_enable", true);
         });
 
         ClientEventRegistry.MAPPING_EVENT.subscribe(getModId(), event -> {
@@ -66,7 +67,7 @@ public class JourneymapPlugin implements IClientPlugin {
             }
         });
 
-        ClientEventRegistry.ADDON_BUTTON_DISPLAY_EVENT.subscribe(getModId(), this::onFullscreenAddonButton);
+        FullscreenEventRegistry.ADDON_BUTTON_DISPLAY_EVENT.subscribe(getModId(), this::onFullscreenAddonButton);
 
         WaystoneEvents.REMOVE_WAYSTONE_EVENT.register(this::onRemove);
         WaystoneEvents.DISCOVER_WAYSTONE_EVENT.register(this::onDiscover);
@@ -85,7 +86,7 @@ public class JourneymapPlugin implements IClientPlugin {
             .addThemeToggleButton(
                 "fwaystones.integration.journeymap.theme.on",
                 "fwaystones.integration.journeymap.theme.off",
-                Identifier.of("fabric_waystones_icon"), // required to be in assets/journeymap/flat/icon due to themes
+                Identifier.of(FabricWaystones.MOD_ID, "fabric_waystones_icon.png"),
                 displayWaypoints.get(),
                 b -> {
                     b.toggle();
@@ -143,6 +144,12 @@ public class JourneymapPlugin implements IClientPlugin {
 
     private void addWaypoint(String hash) {
         var waypointId = waypointHashes.get(hash);
+        var group = this.api.getWaypointGroupByName(FabricWaystones.MOD_ID, "Waystones");
+        if(group == null)
+        {
+            group = WaypointFactory.createWaypointGroup(FabricWaystones.MOD_ID, "Waystones"); // might want to add this to i18n
+            group.setLocked(true); // so users cannot move waypoints in and out of the group(can still delete the group, but will be recreated on game join.)
+        }
         if (FabricWaystones.WAYSTONE_STORAGE == null || api.getWaypoint(getModId(), waypointId) != null) {
             return; // do not recreate waypoint
         }
@@ -159,14 +166,18 @@ public class JourneymapPlugin implements IClientPlugin {
             false
         );
 
-        waypoint.setIconResourceLoctaion(Identifier.of("images/fabric_waystones_icon.png"));
+        waypoint.setIconResourceLoctaion(Identifier.of(FabricWaystones.MOD_ID, "images/fabric_waystones_icon.png"));
 
-        waypointHashes.put(hash, waypoint.getId());
+        waypointHashes.put(hash, waypoint.getGuid());
 
         try {
             waypoint.setColor(waystone.getColor());
+            waypoint.setIconColor(null); // so icon is not colored
             waypoint.setEnabled(displayWaypoints.get());
             this.api.addWaypoint(getModId(), waypoint);
+            group.setLocked(false); // needed for now until JM is updated, cannot add waypoints to locked groups in code currently. So we need to unlock it and lock it.
+            group.addWaypoint(waypoint);
+            group.setLocked(true);
         } catch (Throwable t) {
             FabricWaystones.LOGGER.error(t.getMessage(), t);
         }
