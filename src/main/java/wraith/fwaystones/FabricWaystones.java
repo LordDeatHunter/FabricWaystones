@@ -9,7 +9,6 @@ import wraith.fwaystones.registry.*;
 import wraith.fwaystones.util.FWConfig;
 import wraith.fwaystones.util.WaystoneStorage;
 import wraith.fwaystones.util.WaystonesEventManager;
-
 import java.io.File;
 
 public class FabricWaystones implements ModInitializer {
@@ -31,6 +30,7 @@ public class FabricWaystones implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Is initializing.");
+        DataComponentRegistry.init();
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
         ItemRegistry.init();

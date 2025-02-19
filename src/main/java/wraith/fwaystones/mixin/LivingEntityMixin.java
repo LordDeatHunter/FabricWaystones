@@ -18,12 +18,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
-import wraith.fwaystones.item.VoidTotem;
 import wraith.fwaystones.packets.client.VoidRevivePacket;
+import wraith.fwaystones.registry.DataComponentRegistry;
 import wraith.fwaystones.registry.ItemRegistry;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
-
 import java.util.ArrayList;
 
 @Mixin(LivingEntity.class)
@@ -66,7 +65,7 @@ public abstract class LivingEntityMixin {
         if (player instanceof ServerPlayerEntity serverPlayer) {
             ServerPlayNetworking.send(serverPlayer, new VoidRevivePacket());
             // Try to get the stored waystone
-            var hash = VoidTotem.getBoundWaystone(stack);
+            var hash = stack.get(DataComponentRegistry.BOUND_WAYSTONE);
             if (hash == null) {
                 // If no such waystone exists, get a random discovered waystone
                 var discovered = ((PlayerEntityMixinAccess) player).fabricWaystones$getDiscoveredWaystones();

@@ -7,7 +7,7 @@
     "#O#"
   ],
   "key": {
-    "#": "minecraft:stone_bricks",
+    "#": "#minecraft:stone_bricks",
     "A": "fwaystones:abyss_watcher",
     "E": "minecraft:emerald",
     "O": "minecraft:obsidian"

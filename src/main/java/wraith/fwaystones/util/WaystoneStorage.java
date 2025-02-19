@@ -2,13 +2,21 @@ package wraith.fwaystones.util;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.SharedConstants;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.*;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
@@ -20,7 +28,6 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.packets.client.WaystonePacket;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -143,6 +150,35 @@ public class WaystoneStorage {
         boolean alreadyExists = WAYSTONES.containsKey(waystone.getHash());
         WAYSTONES.put(waystone.getHash(), waystone);
         saveWaystones(!alreadyExists);
+    }
+
+    public void tryAddWaystoneFromItemstack(WaystoneBlockEntity waystone, ItemStack itemStack) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            tryAddWaystone(waystone);
+            return;
+        }
+        NbtComponent tag = itemStack.get(DataComponentTypes.CUSTOM_DATA);
+        if (tag != null) {
+            NbtCompound nbt = tag.getNbt();
+            if (nbt != null) {
+                if (nbt.contains("waystone_name")) {
+                    waystone.setName(nbt.getString("waystone_name"));
+                }
+                if (nbt.contains("waystone_is_global")) {
+                    waystone.setGlobal(nbt.getBoolean("waystone_is_global"));
+                }
+                if (nbt.contains("waystone_color")) {
+                    waystone.setColor(nbt.getInt("waystone_color"));
+                }
+                if(nbt.contains("Items")) {
+                    DefaultedList<ItemStack> inventory = waystone.getInventory();
+                    Inventories.readNbt(nbt, inventory, waystone.getWorld().getRegistryManager());
+                    waystone.setInventory(inventory);
+                }
+            }
+        }
+
+        tryAddWaystone(waystone);
     }
 
     public void addWaystones(HashSet<WaystoneBlockEntity> waystones) {

@@ -1,17 +1,10 @@
 package wraith.fwaystones.block;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.Lifecycle;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Uuids;
 import wraith.fwaystones.FabricWaystones;
-
 import java.util.UUID;
 
 public record WaystoneDataPacket(String hash, String name, UUID owner, boolean isGlobal, boolean canUse, boolean isClient, String ownerName) implements CustomPayload {

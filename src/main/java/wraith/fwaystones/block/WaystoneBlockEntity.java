@@ -45,7 +45,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory,
-    ExtendedScreenHandlerFactory, WaystoneValue {
+    ExtendedScreenHandlerFactory<WaystoneDataPacket>, WaystoneValue {
 
     public float lookingRotR = 0;
     private String name = "";
@@ -161,7 +161,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         createTag(nbt);
     }
 
-    private NbtCompound createTag(NbtCompound tag) {
+    private void createTag(NbtCompound tag) {
         tag.putString("waystone_name", this.name);
         if (this.owner != null) {
             tag.putUuid("waystone_owner", this.owner);
@@ -175,7 +175,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         }
         tag.putInt("inventory_size", this.inventory.size());
         Inventories.writeNbt(tag, this.inventory, world.getRegistryManager());
-        return tag;
     }
 
     @Override

@@ -155,7 +155,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         BlockPos blockPos = ctx.getBlockPos();
 
-        var nbt = ctx.getStack().get(DataComponentTypes.BLOCK_ENTITY_DATA);
+        var nbt = ctx.getStack().get(DataComponentTypes.CUSTOM_DATA);
         boolean hasOwner = nbt != null && nbt.contains("waystone_owner");
         var world = ctx.getWorld();
         var fluidState = world.getFluidState(blockPos);
@@ -193,7 +193,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             if (!world.isClient) {
                 ItemStack itemStack = new ItemStack(state.getBlock().asItem());
                 var compoundTag = new NbtCompound();
-                waystone.writeNbt(compoundTag, waystone.getWorld().getRegistryManager());
+                waystone.writeNbt(compoundTag, world.getRegistryManager());
                 if (FabricWaystones.CONFIG.store_waystone_data_on_sneak_break() && player.isSneaking() && !compoundTag.isEmpty()) {
                     itemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(compoundTag));
                 }
@@ -225,7 +225,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
         BlockEntity entity = world.getBlockEntity(pos);
         if (placer instanceof ServerPlayerEntity && entity instanceof WaystoneBlockEntity waystone) {
-            FabricWaystones.WAYSTONE_STORAGE.tryAddWaystone(waystone);
+            FabricWaystones.WAYSTONE_STORAGE.tryAddWaystoneFromItemstack(waystone, itemStack);
         }
     }
 

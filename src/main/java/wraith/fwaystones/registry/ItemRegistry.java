@@ -12,7 +12,8 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import wraith.fwaystones.item.WaystoneItem;
+import wraith.fwaystones.item.*;
+
 import java.util.HashMap;
 
 public final class ItemRegistry {

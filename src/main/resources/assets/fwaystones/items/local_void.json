@@ -1,7 +1,8 @@
 {
   "model": {
     "type": "minecraft:condition",
-    "property": "fwaystones:has_learned",
+    "property": "has_component",
+    "component": "fwaystones:bound_waystone",
     "on_false": {
       "type": "minecraft:model",
       "model": "fwaystones:item/local_void_inert"
