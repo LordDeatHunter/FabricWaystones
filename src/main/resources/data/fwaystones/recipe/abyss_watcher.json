@@ -4,12 +4,8 @@
     "#E#"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:ender_pearl"
-    },
-    "#": {
-      "item": "minecraft:flint"
-    }
+    "E": "minecraft:ender_pearl",
+    "#": "minecraft:flint"
   },
   "result": {
     "id": "fwaystones:abyss_watcher",

@@ -7,18 +7,10 @@
     "#O#"
   ],
   "key": {
-    "#": {
-      "tag": "fwaystones:nether_bricks"
-    },
-    "A": {
-      "item": "fwaystones:abyss_watcher"
-    },
-    "E": {
-      "item": "minecraft:emerald"
-    },
-    "O": {
-      "item": "minecraft:obsidian"
-    }
+    "#": "fwaystones:nether_bricks",
+    "A": "fwaystones:abyss_watcher",
+    "E": "minecraft:emerald",
+    "O": "minecraft:obsidian"
   },
   "result": {
     "id": "fwaystones:nether_brick_waystone",

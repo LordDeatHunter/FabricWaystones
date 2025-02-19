@@ -15,7 +15,6 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
@@ -31,13 +30,13 @@ public class WaystoneScrollItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
         if (world.isClient) {
-            return TypedActionResult.success(stack);
+            return ActionResult.SUCCESS;
         }
         if (FabricWaystones.WAYSTONE_STORAGE == null) {
-            return TypedActionResult.fail(stack);
+            return ActionResult.FAIL;
         }
         NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (component == null) {
@@ -45,7 +44,7 @@ public class WaystoneScrollItem extends Item {
         }
         NbtCompound tag = component.getNbt();
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
-            return TypedActionResult.fail(stack);
+            return ActionResult.FAIL;
         }
         NbtList list = tag.getList(FabricWaystones.MOD_ID, NbtElement.STRING_TYPE);
         int learned = 0;
@@ -87,7 +86,7 @@ public class WaystoneScrollItem extends Item {
             user.setStackInHand(hand, ItemStack.EMPTY);
         }
         stack = user.getStackInHand(hand);
-        return TypedActionResult.success(stack, false);
+        return ActionResult.SUCCESS;
     }
 
     @Override
@@ -139,7 +138,6 @@ public class WaystoneScrollItem extends Item {
         }
     }
 
-    @Override
     public String getTranslationKey(ItemStack stack) {
         NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (component == null) {

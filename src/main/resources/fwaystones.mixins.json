@@ -4,6 +4,7 @@
   "package": "wraith.fwaystones.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ExhaustionAccessor",
     "LivingEntityMixin",
     "PlayerEntityMixin",
     "ServerPlayerEntityAccessor",

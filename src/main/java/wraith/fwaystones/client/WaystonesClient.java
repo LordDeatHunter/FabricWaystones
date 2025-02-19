@@ -5,22 +5,20 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundEvents;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
-import wraith.fwaystones.packets.RequestPlayerSyncPacket;
 import wraith.fwaystones.packets.WaystonePacketHandler;
-import wraith.fwaystones.packets.client.*;
+import wraith.fwaystones.packets.client.SyncPlayerPacket;
+import wraith.fwaystones.packets.client.VoidRevivePacket;
+import wraith.fwaystones.packets.client.WaystonePacket;
 import wraith.fwaystones.registry.CustomBlockEntityRendererRegistry;
 import wraith.fwaystones.registry.CustomScreenRegistry;
 import wraith.fwaystones.registry.ItemRegistry;
-import wraith.fwaystones.registry.WaystonesModelProviderRegistry;
 import wraith.fwaystones.screen.UniversalWaystoneScreenHandler;
 import wraith.fwaystones.util.WaystoneStorage;
-
 import java.util.HashSet;
 
 @Environment(EnvType.CLIENT)
@@ -30,7 +28,6 @@ public class WaystonesClient implements ClientModInitializer {
     public void onInitializeClient() {
         CustomBlockEntityRendererRegistry.RegisterBlockEntityRenderers();
         CustomScreenRegistry.registerScreens();
-        WaystonesModelProviderRegistry.register();
         WaystonePacketHandler.registerClientPackets();
         registerClientPacketHandlers();
         registerEvents();

@@ -6,12 +6,8 @@
     "#P#"
   ],
   "key": {
-    "P": {
-      "item": "minecraft:paper"
-    },
-    "#": {
-      "item": "minecraft:stick"
-    }
+    "P": "minecraft:paper",
+    "#": "minecraft:stick"
   },
   "result": {
     "id": "fwaystones:waystone_scroll",

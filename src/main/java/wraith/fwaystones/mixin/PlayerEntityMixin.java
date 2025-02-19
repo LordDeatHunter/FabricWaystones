@@ -1,5 +1,7 @@
 package wraith.fwaystones.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
@@ -9,6 +11,7 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -56,12 +59,14 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         teleportCooldown = Math.max(0, teleportCooldown - 1);
     }
 
-    @Inject(method = "applyDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;applyArmorToDamage(Lnet/minecraft/entity/damage/DamageSource;F)F"))
-    public void applyDamage(DamageSource source, float amount, CallbackInfo ci) {
-        if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            return;
+    @WrapOperation(method = "applyDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;isInvulnerableTo(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;)Z"))
+    public boolean applyDamage(PlayerEntity instance, ServerWorld world, DamageSource source, Operation<Boolean> original) {
+        if (!original.call(instance, world, source)) {
+            if (!source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+                fabricWaystones$setTeleportCooldown(FabricWaystones.CONFIG.teleportation_cooldown.cooldown_ticks_when_hurt());
+            }
         }
-        fabricWaystones$setTeleportCooldown(FabricWaystones.CONFIG.teleportation_cooldown.cooldown_ticks_when_hurt());
+        return original.call(instance, world, source);
     }
 
     @Override

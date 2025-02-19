@@ -19,7 +19,7 @@ public final class BlockEntityRegistry {
             BlockRegistry.ENDSTONE_BRICK_WAYSTONE,
             BlockRegistry.DEEPSLATE_BRICK_WAYSTONE,
             BlockRegistry.BLACKSTONE_BRICK_WAYSTONE
-    ).build(null);
+    ).build();
 
     public static void registerBlockEntities() {
         Registry.register(Registries.BLOCK_ENTITY_TYPE, Utils.ID("waystone"), WAYSTONE_BLOCK_ENTITY);

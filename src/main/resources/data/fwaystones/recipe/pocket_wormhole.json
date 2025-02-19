@@ -6,15 +6,9 @@
     " P "
   ],
   "key": {
-    "P": {
-      "item": "minecraft:blaze_powder"
-    },
-    "S": {
-      "item": "minecraft:nether_star"
-    },
-    "#": {
-      "item": "fwaystones:abyss_watcher"
-    }
+    "P": "minecraft:blaze_powder",
+    "S": "minecraft:nether_star",
+    "#": "fwaystones:abyss_watcher"
   },
   "result": {
     "id": "fwaystones:pocket_wormhole",

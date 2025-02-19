@@ -6,12 +6,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
-
 import java.util.HashSet;
 import java.util.List;
 
@@ -22,13 +21,13 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
         if (world.isClient) {
-            return TypedActionResult.success(stack);
+            return ActionResult.SUCCESS;
         }
         if (FabricWaystones.WAYSTONE_STORAGE == null) {
-            return TypedActionResult.fail(stack);
+            return ActionResult.FAIL;
         }
         int learned = 0;
         HashSet<String> toLearn = new HashSet<>();
@@ -67,7 +66,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
             user.setStackInHand(hand, ItemStack.EMPTY);
         }
         stack = user.getStackInHand(hand);
-        return TypedActionResult.success(stack, world.isClient());
+        return ActionResult.SUCCESS;
     }
 
     @Override

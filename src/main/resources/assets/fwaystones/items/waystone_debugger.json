@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "fwaystones:item/waystone_debugger"
+  }
+}
