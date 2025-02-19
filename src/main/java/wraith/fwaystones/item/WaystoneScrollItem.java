@@ -14,7 +14,6 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.registry.DataComponentRegistry;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -91,8 +90,10 @@ public class WaystoneScrollItem extends Item {
             if (waystones == null) {
                 waystones = discovered.stream().toList();
             } else {
-                waystones = new ArrayList<>(waystones);
-                waystones.addAll(discovered);
+                // Create a set to avoid duplicates
+                var set = new HashSet<>(waystones);
+                set.addAll(discovered);
+                waystones = List.copyOf(set);
             }
             stack.set(DataComponentRegistry.WAYSTONES, waystones);
 
