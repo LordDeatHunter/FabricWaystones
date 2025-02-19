@@ -1,6 +1,14 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "fwaystones:item/local_void_inert"
+    "type": "minecraft:condition",
+    "property": "fwaystones:has_learned",
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "fwaystones:item/local_void_inert"
+    },
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "fwaystones:item/local_void_active"
+    }
   }
 }
