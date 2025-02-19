@@ -6,12 +6,8 @@
     " P "
   ],
   "key": {
-    "P": {
-      "item": "minecraft:blaze_powder"
-    },
-    "S": {
-      "item": "fwaystones:abyss_watcher"
-    }
+    "P": "minecraft:blaze_powder",
+    "S": "fwaystones:abyss_watcher"
   },
   "result": {
     "id": "fwaystones:local_void",

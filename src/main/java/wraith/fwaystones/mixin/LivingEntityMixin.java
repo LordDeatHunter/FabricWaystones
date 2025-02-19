@@ -12,6 +12,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -40,7 +41,7 @@ public abstract class LivingEntityMixin {
     @Shadow
     public abstract boolean addStatusEffect(StatusEffectInstance effect);
 
-    @Inject(method = "tryUseTotem", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "tryUseDeathProtector", at = @At("HEAD"), cancellable = true)
     public void revive(DamageSource source, CallbackInfoReturnable<Boolean> cir) {
         if (!(_this() instanceof PlayerEntity player)) {
             return;
@@ -87,6 +88,7 @@ public abstract class LivingEntityMixin {
         cir.cancel();
     }
 
+    @Unique
     private LivingEntity _this() {
         return (LivingEntity) (Object) this;
     }

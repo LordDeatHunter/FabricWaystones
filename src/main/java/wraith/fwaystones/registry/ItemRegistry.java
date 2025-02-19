@@ -7,12 +7,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
-import net.minecraft.util.Rarity;
+import net.minecraft.util.Identifier;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.item.*;
+import wraith.fwaystones.item.WaystoneItem;
 import wraith.fwaystones.util.Utils;
-
 import java.util.HashMap;
 
 public final class ItemRegistry {
@@ -31,22 +32,22 @@ public final class ItemRegistry {
             return;
         }
         Registry.register(Registries.ITEM_GROUP, Utils.ID(FabricWaystones.MOD_ID), WAYSTONE_GROUP);
-        registerItem("waystone", new WaystoneItem(BlockRegistry.WAYSTONE, new Item.Settings()));
-        registerItem("desert_waystone", new WaystoneItem(BlockRegistry.DESERT_WAYSTONE, new Item.Settings()));
-        registerItem("red_desert_waystone", new WaystoneItem(BlockRegistry.RED_DESERT_WAYSTONE, new Item.Settings()));
-        registerItem("stone_brick_waystone", new WaystoneItem(BlockRegistry.STONE_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("nether_brick_waystone", new WaystoneItem(BlockRegistry.NETHER_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("red_nether_brick_waystone", new WaystoneItem(BlockRegistry.RED_NETHER_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("end_stone_brick_waystone", new WaystoneItem(BlockRegistry.ENDSTONE_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("deepslate_brick_waystone", new WaystoneItem(BlockRegistry.DEEPSLATE_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("blackstone_brick_waystone", new WaystoneItem(BlockRegistry.BLACKSTONE_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("pocket_wormhole", new PocketWormholeItem(new Item.Settings().maxCount(1).fireproof()));
-        registerItem("abyss_watcher", new AbyssWatcherItem(new Item.Settings().maxCount(4).fireproof()));
-        registerItem("waystone_scroll", new WaystoneScrollItem(new Item.Settings().maxCount(1)));
-        registerItem("local_void", new LocalVoidItem(new Item.Settings().maxCount(1)));
-        registerItem("void_totem", new VoidTotem(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
-        registerItem("scroll_of_infinite_knowledge", new ScrollOfInfiniteKnowledgeItem(new Item.Settings().maxCount(1).fireproof()));
-        registerItem("waystone_debugger", new WaystoneDebuggerItem(new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC)));
+        registerItem("waystone", new WaystoneItem(BlockRegistry.WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "waystone"))).useBlockPrefixedTranslationKey()));
+        registerItem("desert_waystone", new WaystoneItem(BlockRegistry.DESERT_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "desert_waystone"))).useBlockPrefixedTranslationKey()));
+        registerItem("red_desert_waystone", new WaystoneItem(BlockRegistry.RED_DESERT_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "red_desert_waystone"))).useBlockPrefixedTranslationKey()));
+        registerItem("stone_brick_waystone", new WaystoneItem(BlockRegistry.STONE_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "stone_brick_waystone"))).useBlockPrefixedTranslationKey()));
+        registerItem("nether_brick_waystone", new WaystoneItem(BlockRegistry.NETHER_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "nether_brick_waystone"))).useBlockPrefixedTranslationKey()));
+        registerItem("red_nether_brick_waystone", new WaystoneItem(BlockRegistry.RED_NETHER_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "red_nether_brick_waystone"))).useBlockPrefixedTranslationKey()));
+        registerItem("end_stone_brick_waystone", new WaystoneItem(BlockRegistry.ENDSTONE_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "end_stone_brick_waystone"))).useBlockPrefixedTranslationKey()));
+        registerItem("deepslate_brick_waystone", new WaystoneItem(BlockRegistry.DEEPSLATE_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "deepslate_brick_waystone"))).useBlockPrefixedTranslationKey()));
+        registerItem("blackstone_brick_waystone", new WaystoneItem(BlockRegistry.BLACKSTONE_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "blackstone_brick_waystone"))).useBlockPrefixedTranslationKey()));
+        registerItem("pocket_wormhole", new Item(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "pocket_wormhole"))).maxCount(1).fireproof().translationKey("item.fwaystones.pocket_wormhole")));
+        registerItem("abyss_watcher", new Item(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "abyss_watcher"))).maxCount(4).fireproof().translationKey("item.fwaystones.abyss_watcher")));
+        registerItem("waystone_scroll", new Item(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "waystone_scroll"))).maxCount(1).translationKey("item.fwaystones.empty_scroll")));
+        registerItem("local_void", new Item(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "local_void"))).maxCount(1).translationKey("item.fwaystones.local_void")));
+        registerItem("void_totem", new Item(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "void_totem"))).maxCount(1).translationKey("item.fwaystones.void_totem")));
+        registerItem("scroll_of_infinite_knowledge", new Item(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "scroll_of_infinite_knowledge"))).maxCount(1).fireproof().translationKey("item.fwaystones.scroll_of_infinite_knowledge")));
+        registerItem("waystone_debugger", new Item(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "waystone_debugger"))).maxCount(1).fireproof().translationKey("item.fwaystones.waystone_debugger")));
     }
 
     public static Item get(String id) {

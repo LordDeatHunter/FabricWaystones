@@ -1,29 +1,27 @@
 package wraith.fwaystones.screen;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ColorHelper;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.packets.RemoveWaystoneOwnerPacket;
 import wraith.fwaystones.packets.RenameWaystonePacket;
 import wraith.fwaystones.packets.SyncPlayerFromClientPacket;
 import wraith.fwaystones.util.Utils;
-import wraith.fwaystones.packets.WaystonePacketHandler;
-
 import java.util.UUID;
 
 public class WaystoneBlockScreen extends UniversalWaystoneScreen {
@@ -391,10 +389,10 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         if (page == Page.WAYSTONES) {
             super.drawBackground(context, delta, mouseX, mouseY);
         } else {
-            context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            context.drawTexture(CONFIG_TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+            int color = ColorHelper.fromFloats(1.0F, 1.0F, 1.0F, 1.0F);
+            context.drawTexture(RenderLayer::getGuiTextured, CONFIG_TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256, color);
             if (canEdit()) {
-                context.drawTexture(CONFIG_TEXTURE, x + 23, y + backgroundHeight - 33, 0, backgroundHeight, 103, 15);
+                context.drawTexture(RenderLayer::getGuiTextured, CONFIG_TEXTURE, x + 23, y + backgroundHeight - 33, 0, backgroundHeight, 103, 15, 256, 256, color);
             }
             renderButtons(context, mouseX, mouseY);
             renderButtonText(context);
@@ -425,7 +423,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
                     s += 36;
                 }
             }
-            context.drawTexture(TEXTURE, x, r - 1, 0, s, 101, 18);
+            context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, x, r - 1, 0, s, 101, 18, 256, 256);
         }
     }
 
