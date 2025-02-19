@@ -15,7 +15,6 @@ import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.registry.DataComponentRegistry;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -68,15 +67,14 @@ public class WaystoneScrollItem extends Item {
             }
         } else {
             text = Text.translatable("fwaystones.learned.none");
-            stack.set(DataComponentRegistry.WAYSTONES, Collections.emptyList());
+            stack.set(DataComponentRegistry.WAYSTONES, null);
         }
         user.sendMessage(text, false);
 
         if (stack.isEmpty()) {
-            user.setStackInHand(hand, ItemStack.EMPTY);
+            stack = ItemStack.EMPTY;
         }
-        stack = user.getStackInHand(hand);
-        return ActionResult.SUCCESS;
+        return ActionResult.SUCCESS.withNewHandStack(stack);
     }
 
     @Override
@@ -108,7 +106,7 @@ public class WaystoneScrollItem extends Item {
         super.appendTooltip(stack, context, tooltip, type);
         List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
         if (waystones == null || waystones.isEmpty()) {
-            waystones = FabricWaystones.WAYSTONE_STORAGE.getAllHashes().stream().toList();
+            return;
         }
         tooltip.add(Text.translatable(
             "fwaystones.scroll.tooltip",
