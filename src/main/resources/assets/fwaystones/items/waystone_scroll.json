@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "has_component",
+    "component": "fwaystones:waystones",
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "fwaystones:item/empty_waystone_scroll"
+    },
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "fwaystones:item/learned_waystone_scroll"
+    }
+  }
+}

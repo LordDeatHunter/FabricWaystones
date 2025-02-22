@@ -10,6 +10,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorList;
@@ -19,6 +20,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.mixin.ExhaustionAccessor;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
 
 import java.nio.charset.StandardCharsets;
@@ -81,25 +83,24 @@ public final class Utils {
     public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
 
         RegistryEntry<StructureProcessorList> emptyProcessorList = server.getRegistryManager()
-            .get(RegistryKeys.PROCESSOR_LIST)
-            .entryOf(EMPTY_PROCESSOR_LIST_KEY);
+            .getOrThrow(RegistryKeys.PROCESSOR_LIST)
+            .getOrThrow(EMPTY_PROCESSOR_LIST_KEY);
 
-        var poolGetter = server.getRegistryManager()
-            .get(RegistryKeys.TEMPLATE_POOL)
-            .getOrEmpty(village);
+        var pool = server.getRegistryManager()
+            .getOrThrow(RegistryKeys.TEMPLATE_POOL)
+            .get(village);
 
-        if (poolGetter.isEmpty()) {
+        if (pool == null) {
             FabricWaystones.LOGGER.error("Cannot add to " + village + " as it cannot be found!");
             return;
         }
-        var pool = poolGetter.get();
 
         var pieceList = ((StructurePoolAccessor) pool).getElements();
         var piece = StructurePoolElement.ofProcessedSingle(waystone.toString(), emptyProcessorList).apply(StructurePool.Projection.RIGID);
 
-        var list = new ArrayList<>(((StructurePoolAccessor) pool).getElementCounts());
+        var list = new ArrayList<>(((StructurePoolAccessor) pool).getElementWeights());
         list.add(Pair.of(piece, weight));
-        ((StructurePoolAccessor) pool).setElementCounts(list);
+        ((StructurePoolAccessor) pool).setElementWeights(list);
 
         for (int i = 0; i < weight; ++i) {
             pieceList.add(piece);
@@ -186,14 +187,14 @@ public final class Utils {
                     return false;
                 }
                 if (takeCost) {
-                    player.damage(player.getWorld().getDamageSources().magic(), amount);
+                    player.damage((ServerWorld) player.getWorld(), player.getWorld().getDamageSources().magic(), amount);
                 }
                 return true;
             }
             case HUNGER -> {
                 var hungerManager = player.getHungerManager();
                 var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
-                if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustion() / 4F <= amount) {
+                if (hungerAndExhaustion <= 10 || hungerAndExhaustion + ((ExhaustionAccessor) hungerManager).getExhaustion() / 4F <= amount) {
                     player.sendMessage(Text.translatable("fwaystones.no_teleport.hunger"), true);
                     return false;
                 }

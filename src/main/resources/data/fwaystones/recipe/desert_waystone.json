@@ -7,18 +7,10 @@
     "#O#"
   ],
   "key": {
-    "#": {
-      "tag": "c:sandstone/uncolored_blocks"
-    },
-    "A": {
-      "item": "fwaystones:abyss_watcher"
-    },
-    "E": {
-      "item": "minecraft:emerald"
-    },
-    "O": {
-      "item": "minecraft:obsidian"
-    }
+    "#": "#c:sandstone/uncolored_blocks",
+    "A": "fwaystones:abyss_watcher",
+    "E": "minecraft:emerald",
+    "O": "minecraft:obsidian"
   },
   "result": {
     "id": "fwaystones:desert_waystone",

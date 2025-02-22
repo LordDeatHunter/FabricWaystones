@@ -14,7 +14,7 @@ public final class CompatRegistry {
 
     @SuppressWarnings("unchecked")
     public static void init() {
-        Registries.REGISTRIES.getOrEmpty(Identifier.of("repurposed_structures", "json_conditions"))
+        Registries.REGISTRIES.getEntry(Identifier.of("repurposed_structures", "json_conditions"))
             .ifPresent(registry -> Registry.register(
                 (Registry<Supplier<Boolean>>) registry,
                 Utils.ID("config"),

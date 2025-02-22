@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerInventory;
@@ -19,6 +20,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import wraith.fwaystones.FabricWaystones;
@@ -27,7 +29,6 @@ import wraith.fwaystones.packets.SyncPlayerFromClientPacket;
 import wraith.fwaystones.packets.WaystoneGUISlotClickPacket;
 import wraith.fwaystones.util.FWConfigModel;
 import wraith.fwaystones.util.Utils;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -174,10 +175,10 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        context.drawTexture(texture, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        int color = ColorHelper.fromFloats(1.0F, 1.0F, 1.0F, 1.0F);
+        context.drawTexture(RenderLayer::getGuiTextured, texture, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256, color);
         int k = (int) (75.0F * this.scrollAmount);
-        context.drawTexture(texture, x + 141, y + 40 + k, 177 + (this.shouldScroll() ? 0 : 11), 0, 11, 15);
+        context.drawTexture(RenderLayer::getGuiTextured, texture, x + 141, y + 40 + k, 177 + (this.shouldScroll() ? 0 : 11), 0, 11, 15, 256, 256, color);
         int n = this.scrollOffset + 5;
         // TODO: Merge some of these
         this.renderWaystoneBackground(context, mouseX, mouseY, this.x + 36, this.y + 39, n);
@@ -216,7 +217,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             if (button.isInBounds(mouseX - this.x, mouseY - this.y)) {
                 v += button.getHeight() * (this.mousePressed ? 1 : 2);
             }
-            context.drawTexture(texture, this.x + button.getX(), this.y + button.getY(), u, v, button.getWidth(), button.getHeight());
+            context.drawTexture(RenderLayer::getGuiTextured, texture, this.x + button.getX(), this.y + button.getY(), u, v, button.getWidth(), button.getHeight(), 256 , 256);
         }
     }
 
@@ -255,15 +256,15 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
         MutableText text;
         switch (config.cost_type()) {
             case HEALTH -> {
-                context.drawTexture(texture, x, y + 4, 186, 15, 9, 9);
+                context.drawTexture(RenderLayer::getGuiTextured, texture, x, y + 4, 186, 15, 9, 9, 256, 256);
                 text = Text.translatable("fwaystones.cost.health");
             }
             case HUNGER -> {
-                context.drawTexture(texture, x, y + 4, 177, 24, 9, 9);
+                context.drawTexture(RenderLayer::getGuiTextured, texture, x, y + 4, 177, 24, 9, 9, 256, 256);
                 text = Text.translatable("fwaystones.cost.hunger");
             }
             case EXPERIENCE -> {
-                context.drawTexture(texture, x, y + 4, 177, 15, 9, 9);
+                context.drawTexture(RenderLayer::getGuiTextured, texture, x, y + 4, 177, 15, 9, 9, 256, 256);
                 text = Text.translatable("fwaystones.cost.xp");
             }
             case LEVEL -> {
@@ -276,7 +277,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
                 text = (MutableText) item.getName();
             }
             default -> {
-                context.drawTexture(texture, x, y + 4, 186, 24, 9, 9);
+                context.drawTexture(RenderLayer::getGuiTextured, texture, x, y + 4, 186, 24, 9, 9, 256, 256);
                 text = Text.translatable("fwaystones.cost.free");
             }
         }
@@ -311,7 +312,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             } else if (mouseX >= x && mouseY >= r && mouseX < x + 8 && mouseY < r + 8) {
                 v += 8 * (mouseClicked ? 1 : 2);
             }
-            context.drawTexture(texture, x, r, 199, v, 8, 8);
+            context.drawTexture(RenderLayer::getGuiTextured, texture, x, r, 199, v, 8, 8, 256, 256);
         }
     }
 
@@ -334,7 +335,7 @@ public class UniversalWaystoneScreen extends HandledScreen<ScreenHandler> {
             if (mouseX >= x && mouseY >= r && mouseX < x + 101 && mouseY < r + 18) {
                 s += mouseClicked ? 18 : 36;
             }
-            context.drawTexture(texture, x, r - 1, 0, s, 101, 18);
+            context.drawTexture(RenderLayer::getGuiTextured, texture, x, r - 1, 0, s, 101, 18, 256, 256);
         }
     }
 

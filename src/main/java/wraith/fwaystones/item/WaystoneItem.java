@@ -9,7 +9,6 @@ import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-
 import java.util.List;
 
 public class WaystoneItem extends BlockItem {
@@ -21,7 +20,6 @@ public class WaystoneItem extends BlockItem {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         super.appendTooltip(stack, context, tooltip, type);
-//        NbtCompound tag = stack.getSubNbt("BlockEntityTag");
         NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (component == null) {
             return;

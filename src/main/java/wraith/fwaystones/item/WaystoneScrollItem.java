@@ -1,26 +1,19 @@
 package wraith.fwaystones.item;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
-
+import wraith.fwaystones.registry.DataComponentRegistry;
 import java.util.HashSet;
 import java.util.List;
 
@@ -31,27 +24,21 @@ public class WaystoneScrollItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
         if (world.isClient) {
-            return TypedActionResult.success(stack);
+            return ActionResult.SUCCESS;
         }
         if (FabricWaystones.WAYSTONE_STORAGE == null) {
-            return TypedActionResult.fail(stack);
+            return ActionResult.FAIL;
         }
-        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
-        if (component == null) {
-            return null;
+        List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
+        if (waystones == null || waystones.isEmpty()) {
+            return ActionResult.FAIL;
         }
-        NbtCompound tag = component.getNbt();
-        if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
-            return TypedActionResult.fail(stack);
-        }
-        NbtList list = tag.getList(FabricWaystones.MOD_ID, NbtElement.STRING_TYPE);
         int learned = 0;
         HashSet<String> toLearn = new HashSet<>();
-        for (int i = 0; i < list.size(); ++i) {
-            String hash = list.getString(i);
+        for (String hash : waystones) {
             if (FabricWaystones.WAYSTONE_STORAGE.containsHash(hash) && !((PlayerEntityMixinAccess) user).fabricWaystones$hasDiscoveredWaystone(hash)) {
                 var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone != null && waystone.getOwner() == null) {
@@ -79,15 +66,14 @@ public class WaystoneScrollItem extends Item {
             }
         } else {
             text = Text.translatable("fwaystones.learned.none");
-            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(new NbtCompound()));
+            stack.set(DataComponentRegistry.WAYSTONES, null);
         }
         user.sendMessage(text, false);
 
         if (stack.isEmpty()) {
-            user.setStackInHand(hand, ItemStack.EMPTY);
+            stack = ItemStack.EMPTY;
         }
-        stack = user.getStackInHand(hand);
-        return TypedActionResult.success(stack, false);
+        return ActionResult.SUCCESS.withNewHandStack(stack);
     }
 
     @Override
@@ -100,15 +86,18 @@ public class WaystoneScrollItem extends Item {
             if (discovered.isEmpty()) {
                 return ActionResult.FAIL;
             }
-            NbtCompound tag = new NbtCompound();
-            NbtList list = new NbtList();
-            for (String hash : discovered) {
-                list.add(NbtString.of(hash));
+            List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
+            if (waystones == null) {
+                waystones = discovered.stream().toList();
+            } else {
+                // Create a set to avoid duplicates
+                var set = new HashSet<>(waystones);
+                set.addAll(discovered);
+                waystones = List.copyOf(set);
             }
-            tag.put(FabricWaystones.MOD_ID, list);
-            stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(tag));
+            stack.set(DataComponentRegistry.WAYSTONES, waystones);
 
-            context.getPlayer().setStackInHand(context.getHand(), stack);
+            return ActionResult.SUCCESS.withNewHandStack(stack);
         }
         return super.useOnBlock(context);
     }
@@ -116,39 +105,21 @@ public class WaystoneScrollItem extends Item {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         super.appendTooltip(stack, context, tooltip, type);
-        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
-        if (component == null) {
+        List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
+        if (waystones == null || waystones.isEmpty()) {
             return;
         }
-        NbtCompound tag = component.getNbt();
-        if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
-            return;
-        }
-        int size = tag.getList(FabricWaystones.MOD_ID, NbtElement.STRING_TYPE).size();
-        HashSet<String> waystones = null;
-        if (FabricWaystones.WAYSTONE_STORAGE != null) {
-            waystones = FabricWaystones.WAYSTONE_STORAGE.getAllHashes();
-        }
-        if (waystones != null) {
-            tooltip.add(Text.translatable(
-                "fwaystones.scroll.tooltip",
-                Text.literal(String.valueOf(size)).styled(style ->
-                    style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.tooltip.arg_color").getString()).getOrThrow())
-                )
-            ));
-        }
+        tooltip.add(Text.translatable(
+            "fwaystones.scroll.tooltip",
+            Text.literal(String.valueOf(waystones.size())).styled(style ->
+                style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.tooltip.arg_color").getString()).getOrThrow())
+            )
+        ));
     }
 
     @Override
-    public String getTranslationKey(ItemStack stack) {
-        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
-        if (component == null) {
-            return "item.fwaystones.empty_scroll";
-        }
-        NbtCompound tag = component.getNbt();
-        if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
-            return "item.fwaystones.empty_scroll";
-        }
-        return "item.fwaystones.waystone_scroll";
+    public Text getName(ItemStack stack) {
+        List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
+        return waystones == null || waystones.isEmpty() ? Text.translatable("item.fwaystones.empty_scroll") : Text.translatable("item.fwaystones.waystone_scroll");
     }
 }
