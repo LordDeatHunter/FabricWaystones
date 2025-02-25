@@ -16,14 +16,14 @@ public class ClientPlayNetworkHandlerMixin {
     @Inject(method = "onPlayerRespawn", at = @At("RETURN"))
     public void onPlayerRespawn(PlayerRespawnS2CPacket packet, CallbackInfo ci) {
         if (MinecraftClient.getInstance().player != null) {
-            ((ClientPlayerEntityMixinAccess) MinecraftClient.getInstance().player).requestSync();
+            ((ClientPlayerEntityMixinAccess) MinecraftClient.getInstance().player).fabricWaystones$requestSync();
         }
     }
 
     @Inject(method = "onGameJoin", at = @At("RETURN"))
     public void onPlayerSpawn(GameJoinS2CPacket packet, CallbackInfo ci) {
         if (MinecraftClient.getInstance().player != null) {
-            ((ClientPlayerEntityMixinAccess) MinecraftClient.getInstance().player).requestSync();
+            ((ClientPlayerEntityMixinAccess) MinecraftClient.getInstance().player).fabricWaystones$requestSync();
         }
     }
 

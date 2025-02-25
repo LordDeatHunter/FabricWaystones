@@ -48,7 +48,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     }
 
     @Unique
-    public void setMaxWaystoneCount(int maxWaystoneCount) {
+    public void fabricWaystones$setMaxWaystoneCount(int maxWaystoneCount) {
         this.maxWaystoneCount = maxWaystoneCount;
     }
 

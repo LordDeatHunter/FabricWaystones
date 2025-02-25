@@ -38,7 +38,7 @@ public class StructurePoolBasedGeneratorMixin {
     private static void onInit(StructurePoolBasedGenerator.StructurePoolGenerator structurePoolGenerator) {
         var config = FabricWaystones.CONFIG.worldgen;
         int maxWaystoneCount = Utils.getRandomIntInRange(config.min_per_village(), config.max_per_village());
-        ((StructurePoolBasedGenerator_StructurePoolGeneratorAccess) (Object) structurePoolGenerator).setMaxWaystoneCount(maxWaystoneCount);
+        ((StructurePoolBasedGenerator_StructurePoolGeneratorAccess) (Object) structurePoolGenerator).fabricWaystones$setMaxWaystoneCount(maxWaystoneCount);
     }
 
 }
