@@ -1,20 +1,15 @@
 package wraith.fwaystones.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.structure.PoolStructurePiece;
 import net.minecraft.structure.StructureLiquidSettings;
-import net.minecraft.structure.StructureTemplate;
 import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolBasedGenerator;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.pool.alias.StructurePoolAliasLookup;
-import net.minecraft.util.BlockRotation;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockBox;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.gen.noise.NoiseConfig;
@@ -26,14 +21,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.StructurePoolBasedGenerator_StructurePoolGeneratorAccess;
 import wraith.fwaystones.util.WaystonesWorldgen;
-
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 @Mixin(StructurePoolBasedGenerator.StructurePoolGenerator.class)
 public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements StructurePoolBasedGenerator_StructurePoolGeneratorAccess {
@@ -62,32 +53,18 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     }
 
     @Inject(method = "generatePiece",
-        at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false),
-        locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece, MutableObject<VoxelShape> pieceShape, int minY, boolean modifyBoundingBox, HeightLimitView world, NoiseConfig noiseConfig, StructurePoolAliasLookup aliasLookup, StructureLiquidSettings liquidSettings,
+        at = @At(value = "INVOKE", target = "Ljava/util/List;addAll(Ljava/util/Collection;)Z", ordinal = 0, shift = At.Shift.AFTER, remap = false))
+    private void fabricwaystones_limitWaystonePieceSpawning(PoolStructurePiece piece,
+                                                            MutableObject<VoxelShape> pieceShape,
+                                                            int depth,
+                                                            boolean modifyBoundingBox,
+                                                            HeightLimitView world,
+                                                            NoiseConfig noiseConfig,
+                                                            StructurePoolAliasLookup aliasLookup,
+                                                            StructureLiquidSettings liquidSettings,
                                                             CallbackInfo ci,
-                                                            StructurePoolElement structurePoolElement,
-                                                            BlockPos blockPos,
-                                                            BlockRotation blockRotation,
-                                                            StructurePool.Projection projection,
-                                                            boolean bl,
-                                                            MutableObject<VoxelShape> mutableObject,
-                                                            BlockBox blockBox,
-                                                            int i,
-                                                            Iterator var17,
-                                                            StructureTemplate.StructureBlockInfo structureBlockInfo,
-                                                            Direction direction,
-                                                            BlockPos blockPos2,
-                                                            BlockPos blockPos3,
-                                                            int j,
-                                                            int k,
-                                                            RegistryKey<StructurePool> registryKey,
-                                                            Optional optional,
-                                                            RegistryEntry<StructurePool> registryEntry,
-                                                            RegistryEntry<StructurePool> registryEntry2,
-                                                            MutableObject mutableObject2,
-                                                            boolean bl2,
-                                                            List<StructurePoolElement> list
+                                                            @Local RegistryKey<StructurePool> registryKey,
+                                                            @Local List<StructurePoolElement> list
     ) {
         if (!FabricWaystones.CONFIG.worldgen.generate_in_villages() ||
             maxWaystoneCount < 0 ||
