@@ -1,15 +1,12 @@
 package wraith.fwaystones.mixin;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.network.ClientPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.ClientPlayerEntityMixinAccess;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.packets.RequestPlayerSyncPacket;
-import wraith.fwaystones.packets.WaystonePacketHandler;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -18,12 +15,12 @@ import java.util.HashSet;
 public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
 
     @Override
-    public void requestSync() {
+    public void fabricWaystones$requestSync() {
         ClientPlayNetworking.send(new RequestPlayerSyncPacket());
     }
 
     @Override
-    public ArrayList<String> getWaystonesSorted() {
+    public ArrayList<String> fabricWaystones$getWaystonesSorted() {
         ArrayList<String> waystones = new ArrayList<>();
         HashSet<String> toRemove = new HashSet<>();
         var discoveredWaystones = ((PlayerEntityMixinAccess) this).fabricWaystones$getDiscoveredWaystones();

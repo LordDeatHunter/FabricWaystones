@@ -19,7 +19,7 @@ public class StructurePiecesListMixin implements StructurePiecesListAccess {
     private List<StructurePiece> pieces;
 
     @Override
-    public void setPieces(List<StructurePiece> pieces) {
+    public void fabricWaystones$setPieces(List<StructurePiece> pieces) {
         this.pieces = pieces;
     }
 
