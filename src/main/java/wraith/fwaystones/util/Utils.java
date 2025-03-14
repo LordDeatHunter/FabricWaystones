@@ -1,6 +1,7 @@
 package wraith.fwaystones.util;
 
 import com.mojang.datafixers.util.Pair;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -8,7 +9,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
@@ -19,6 +19,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.integration.lithostitched.LithostitchedPlugin;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
 
 import java.nio.charset.StandardCharsets;
@@ -34,8 +35,6 @@ public final class Utils {
 
     public static final DecimalFormat df = new DecimalFormat("#.##");
     public static final Random random = new Random();
-    private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
-        RegistryKeys.PROCESSOR_LIST, Identifier.of("minecraft", "empty"));
 
     private Utils() {
     }
@@ -79,11 +78,6 @@ public final class Utils {
     }
 
     public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
-
-        RegistryEntry<StructureProcessorList> emptyProcessorList = server.getRegistryManager()
-            .get(RegistryKeys.PROCESSOR_LIST)
-            .entryOf(EMPTY_PROCESSOR_LIST_KEY);
-
         var poolGetter = server.getRegistryManager()
             .get(RegistryKeys.TEMPLATE_POOL)
             .getOrEmpty(village);
@@ -94,15 +88,25 @@ public final class Utils {
         }
         var pool = poolGetter.get();
 
-        var pieceList = ((StructurePoolAccessor) pool).getElements();
-        var piece = StructurePoolElement.ofProcessedSingle(waystone.toString(), emptyProcessorList).apply(StructurePool.Projection.RIGID);
+        if (FabricLoader.getInstance().isModLoaded("lithostitched")) {
+            var pieces = LithostitchedPlugin.createPieces(waystone.toString());
+            for (StructurePoolElement piece : pieces) {
+                addPieceToPool(piece, ((StructurePoolAccessor)pool), weight);
+            }
+        } else {
+            var piece = StructurePoolElement.ofSingle(waystone.toString()).apply(StructurePool.Projection.RIGID);
+            addPieceToPool(piece, ((StructurePoolAccessor)pool), weight);
+        }
+    }
 
-        var list = new ArrayList<>(((StructurePoolAccessor) pool).getElementCounts());
-        list.add(Pair.of(piece, weight));
-        ((StructurePoolAccessor) pool).setElementCounts(list);
+    private static void addPieceToPool(StructurePoolElement element, StructurePoolAccessor accessor, int weight) {
+        var pieceList = accessor.getElements();
+        var list = new ArrayList<>(accessor.getElementCounts());
+        list.add(Pair.of(element, weight));
+        accessor.setElementCounts(list);
 
         for (int i = 0; i < weight; ++i) {
-            pieceList.add(piece);
+            pieceList.add(element);
         }
     }
 
