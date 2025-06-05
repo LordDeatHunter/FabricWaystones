@@ -1,7 +1,6 @@
 package wraith.fwaystones.integration.xaeros;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -34,22 +33,22 @@ public class XaerosMinimapCompat {
     public boolean shouldSync = false;
 
     private WaypointColor color = null;
-    private boolean useSeperateWaypointSet = false;
+    private boolean useSeperateSet = false;
     private WaypointVisibilityType visibilityType = WaypointVisibilityType.LOCAL;
 
-    public void setWaypointsColor(@Nullable WaypointColor color) {
+    public void color(@Nullable WaypointColor color) {
         this.color = color;
 
         shouldSync = true;
     }
 
-    public void setWaypointSet(boolean waypointSet) {
-        this.useSeperateWaypointSet = waypointSet;
+    public void useSeperateSet(boolean waypointSet) {
+        this.useSeperateSet = waypointSet;
 
         shouldSync = true;
     }
 
-    public void setVisibilityType(WaypointVisibilityType type) {
+    public void visibilityType(WaypointVisibilityType type) {
         this.visibilityType = type;
 
         shouldSync = true;
@@ -143,7 +142,7 @@ public class XaerosMinimapCompat {
 
     private void addWaystone(final WaystonePosition pos, final WaypointSet waypointsList) {
         var blockPos = pos.blockPos();
-        
+
         var storage = getStorage();
         if (storage == null) return;
 
@@ -167,7 +166,7 @@ public class XaerosMinimapCompat {
     private WaypointSet getOrCreateSet(final WaystonePosition position) {
         var waypointWorld = getWorldOrThrow(position);
 
-        return getOrCreateSet(waypointWorld, this.useSeperateWaypointSet ? "Wraith Waystones" : "gui.xaero_default");
+        return getOrCreateSet(waypointWorld, this.useSeperateSet ? "Wraith Waystones" : "gui.xaero_default");
     }
 
     //--
