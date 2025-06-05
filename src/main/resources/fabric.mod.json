@@ -36,5 +36,12 @@
     "minecraft": "~1.21",
     "java": ">=21",
     "owo": ">=0.10.3"
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_269": [
+        "net/fabricmc/fabric/api/attachment/v1/AttachmentTarget"
+      ]
+    }
   }
 }

@@ -6,19 +6,19 @@
   "mixins": [
     "LivingEntityMixin",
     "PlayerEntityMixin",
-    "ServerPlayerEntityAccessor",
-    "ServerPlayerEntityMixin",
     "SinglePoolElementAccessor",
-    "StructurePiecesListMixin",
     "StructurePoolAccessor",
-    "StructurePoolBasedGenerator_StructurePoolGeneratorMixin",
+    "StructurePoolGeneratorMixin",
     "StructurePoolBasedGeneratorMixin",
-    "StructureStartAccessor"
+    "StructureStartAccessor",
+    "scoreboard.PersistentStateMixin",
+    "scoreboard.ScoreboardMixin",
+    "scoreboard.ScoreboardStateMixin",
+    "ItemStackMixin",
+    "ItemMixin"
   ],
   "client": [
-    "ClientPlayerEntityAccessor",
-    "ClientPlayerEntityMixin",
-    "ClientPlayNetworkHandlerMixin"
+    "xaeros.MiscMixin"
   ],
   "injectors": {
     "defaultRequire": 1

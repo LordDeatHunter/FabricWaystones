@@ -3,15 +3,14 @@ package wraith.fwaystones.block;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
+import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryWrapper;
@@ -32,82 +31,72 @@ import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.access.PlayerEntityMixinAccess;
-import wraith.fwaystones.access.WaystoneValue;
-import wraith.fwaystones.item.AbyssWatcherItem;
-import wraith.fwaystones.registry.BlockEntityRegistry;
-import wraith.fwaystones.screen.WaystoneBlockScreenHandler;
-import wraith.fwaystones.util.TeleportSources;
-import wraith.fwaystones.util.Utils;
+import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.WaystoneAccess;
+import wraith.fwaystones.api.core.WaystonePosition;
+import wraith.fwaystones.registry.WaystoneDataComponents;
+import wraith.fwaystones.item.components.WaystoneDataHolder;
+import wraith.fwaystones.registry.WaystoneBlockEntities;
+import wraith.fwaystones.client.screen.WaystoneBlockScreenHandler;
+import wraith.fwaystones.util.*;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory,
-    ExtendedScreenHandlerFactory, WaystoneValue {
+public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory<WaystoneScreenOpenDataPacket>, WaystoneAccess {
 
     public float lookingRotR = 0;
-    private String name = "";
-    private String hash;
-    private boolean isGlobal = false;
-    private UUID owner = null;
-    private String ownerName = null;
-    private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
-    private Integer color;
     private float turningSpeedR = 2;
+
     private long tickDelta = 0;
 
+    private WaystonePosition hash;
+    private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
+
+    @Nullable
+    public WaystoneDataHolder dataHolder = null;
+
     public WaystoneBlockEntity(BlockPos pos, BlockState state) {
-        super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, pos, state);
-        this.name = Utils.generateWaystoneName(this.name);
+        super(WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, pos, state);
     }
 
-    public static void ticker(World world, BlockPos blockPos, BlockState blockState, WaystoneBlockEntity waystone) {
-        waystone.tick();
+    @Nullable
+    public WaystoneData getData() {
+        return WaystoneDataStorage.getStorage(this.world).getData(this.position());
     }
 
-    public static String createHashString(String dimensionName, BlockPos pos) {
-        return Utils.getSHA256(
-                "<POS X:" + pos.getX() +
-                        ", Y:" + pos.getY() +
-                        ", Z:" + pos.getZ() +
-                        ", WORLD: \">" + dimensionName + "\">"
-        );
+    public boolean hasData() {
+        return getData() != null;
+    }
+
+    public WaystonePosition position() {
+        if (this.hash == null) createHash(world, pos);
+
+        return this.hash;
+    }
+
+    public UUID getUUID() {
+        return WaystoneDataStorage.getStorage(this.world).getUUID(this.position());
     }
 
     public void updateActiveState() {
-        if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (owner == null)) {
-            world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, this.ownerName != null));
-            world.setBlockState(pos.up(), world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, this.ownerName != null));
+        var data = this.getData();
+        if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (data.owner() == null)) {
+            world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, data.ownerName() != null));
+            world.setBlockState(pos.up(), world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, data.ownerName() != null));
         }
     }
 
     public void createHash(World world, BlockPos pos) {
-        this.hash = createHashString(Utils.getDimensionName(world), pos);
-        markDirty();
-    }
-
-    @Override
-    public WaystoneBlockEntity getEntity() {
-        return this;
-    }
-
-    @Override
-    public int getColor() {
-        if (this.color == null) this.color = Utils.getRandomColor();
-        return this.color;
-    }
-
-    @Override
-    public void setColor(int color) {
-        this.color = color;
+        this.hash = new WaystonePosition(Utils.getDimensionName(world), pos);
         markDirty();
     }
 
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new WaystoneBlockScreenHandler(syncId, this, player);
+        return new WaystoneBlockScreenHandler(syncId, playerInventory, this);
     }
 
     @Override
@@ -138,19 +127,19 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         super.readNbt(nbt, lookup);
-        if (nbt.contains("waystone_name")) {
-            this.name = nbt.getString("waystone_name");
-        }
-        if (nbt.contains("waystone_is_global")) {
-            this.isGlobal = nbt.getBoolean("waystone_is_global");
-        }
-        if (nbt.contains("waystone_owner")) {
-            this.owner = nbt.getUuid("waystone_owner");
-        }
-        if (nbt.contains("waystone_owner_name")) {
-            this.ownerName = nbt.getString("waystone_owner_name");
-        }
-        this.color = nbt.contains("color", NbtElement.INT_TYPE) ? nbt.getInt("color") : null;
+//        if (nbt.contains("waystone_name")) {
+//            this.name = nbt.getString("waystone_name");
+//        }
+//        if (nbt.contains("waystone_is_global")) {
+//            this.isGlobal = nbt.getBoolean("waystone_is_global");
+//        }
+//        if (nbt.contains("waystone_owner")) {
+//            this.owner = nbt.getUuid("waystone_owner");
+//        }
+//        if (nbt.contains("waystone_owner_name")) {
+//            this.ownerName = nbt.getString("waystone_owner_name");
+//        }
+//        this.color = nbt.contains("color", NbtElement.INT_TYPE) ? nbt.getInt("color") : null;
         this.inventory = DefaultedList.ofSize(nbt.getInt("inventory_size"), ItemStack.EMPTY);
         Inventories.readNbt(nbt, inventory, lookup);
     }
@@ -162,20 +151,33 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     private NbtCompound createTag(NbtCompound tag) {
-        tag.putString("waystone_name", this.name);
-        if (this.owner != null) {
-            tag.putUuid("waystone_owner", this.owner);
-        }
-        if (this.ownerName != null) {
-            tag.putString("waystone_owner_name", this.ownerName);
-        }
-        tag.putBoolean("waystone_is_global", this.isGlobal);
-        if (this.color != null) {
-            tag.putInt("color", this.color);
-        }
         tag.putInt("inventory_size", this.inventory.size());
         Inventories.writeNbt(tag, this.inventory, world.getRegistryManager());
         return tag;
+    }
+
+    @Override
+    protected void addComponents(ComponentMap.Builder componentMapBuilder) {
+        super.addComponents(componentMapBuilder);
+
+        var holder = WaystoneDataStorage.getStorage(this.world).removePositionAndExport(this);
+
+        if (holder != null) {
+            componentMapBuilder.add(WaystoneDataComponents.DATA_HOLDER, holder);
+        }
+    }
+
+    @Override
+    protected void readComponents(ComponentsAccess components) {
+        super.readComponents(components);
+
+        var holder = components.get(WaystoneDataComponents.DATA_HOLDER);
+
+        this.dataHolder = holder;
+
+        if (this.dataHolder != null) {
+            WaystoneDataStorage.getStorage(this.world).createGetOrImportData(this);
+        }
     }
 
     @Override
@@ -278,44 +280,30 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public void tick() {
-        if (world == null) {
-            return;
-        }
-        ++tickDelta;
-        if (getCachedState().get(WaystoneBlock.ACTIVE)) {
-            var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D,
-                this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
-            if (closestPlayer != null) {
-                addParticle(closestPlayer);
-                double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
-                double z = closestPlayer.getZ() - this.getPos().getZ() - 0.5D;
-                float rotY = (float) ((float) Math.atan2(z, x) / Math.PI * 180 + 180);
-                moveOnTickR(rotY);
-            } else {
-                lookingRotR += 2;
+        if (world == null) return;
+
+        if (world.isClient()) {
+            ++tickDelta;
+            if (getCachedState().get(WaystoneBlock.ACTIVE)) {
+                var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D,
+                        this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
+                if (closestPlayer != null) {
+                    addParticle(closestPlayer);
+                    double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
+                    double z = closestPlayer.getZ() - this.getPos().getZ() - 0.5D;
+                    float rotY = (float) ((float) Math.atan2(z, x) / Math.PI * 180 + 180);
+                    moveOnTickR(rotY);
+                } else {
+                    lookingRotR += 2;
+                }
+
+                lookingRotR = rotClamp(360, lookingRotR);
             }
 
-            lookingRotR = rotClamp(360, lookingRotR);
+            if (tickDelta >= 360) {
+                tickDelta = 0;
+            }
         }
-
-        if (tickDelta >= 360) {
-            tickDelta = 0;
-        }
-    }
-
-    @Override
-    public String getWaystoneName() {
-        return this.name;
-    }
-
-    @Override
-    public BlockPos way_getPos() {
-        return this.getPos();
-    }
-
-    @Override
-    public String getWorldName() {
-        return world == null ? "" : Utils.getDimensionName(world);
     }
 
     public boolean canAccess(PlayerEntity player) {
@@ -328,73 +316,71 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public boolean teleportPlayer(PlayerEntity player, boolean takeCost, TeleportSources source) {
-        if (!(player instanceof ServerPlayerEntity playerEntity)) {
-            return false;
+        if (!(player instanceof ServerPlayerEntity playerEntity)) return false;
+        if (playerEntity.getServer() == null) return false;
+
+        var facing = getCachedState().get(WaystoneBlock.FACING);
+
+        float offsetX = 0;
+        float offsetZ = 0;
+        float yaw;
+
+        if (facing.equals(Direction.UP) || facing.equals(Direction.DOWN)) {
+            yaw = playerEntity.getYaw();
+        } else {
+            yaw = facing.getOpposite().asRotation();
         }
-        Direction facing = getCachedState().get(WaystoneBlock.FACING);
-        float x = 0;
-        float z = 0;
-        float yaw = playerEntity.getYaw();
-        switch (facing) {
-            case NORTH -> {
-                x = 0.5f;
-                z = -0.5f;
-                yaw = 0;
-            }
-            case SOUTH -> {
-                x = 0.5f;
-                z = 1.5f;
-                yaw = 180;
-            }
-            case EAST -> {
-                x = 1.5f;
-                z = 0.5f;
-                yaw = 90;
-            }
-            case WEST -> {
-                x = -0.5f;
-                z = 0.5f;
-                yaw = 270;
-            }
+
+        if (facing == Direction.NORTH) {
+            offsetX = 0.5f;
+            offsetZ = -0.5f;
+        } else if (facing == Direction.SOUTH) {
+            offsetX = 0.5f;
+            offsetZ = 1.5f;
+        } else if (facing == Direction.EAST) {
+            offsetX = 1.5f;
+            offsetZ = 0.5f;
+        } else if (facing == Direction.WEST) {
+            offsetX = -0.5f;
+            offsetZ = 0.5f;
         }
-        final float fX = x;
-        final float fZ = z;
-        final float fYaw = yaw;
-        if (playerEntity.getServer() == null) {
-            return false;
-        }
+
         TeleportTarget target = new TeleportTarget(
             (ServerWorld) getWorld(),
-            new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
+            new Vec3d(pos.getX() + offsetX, pos.getY(), pos.getZ() + offsetZ),
             new Vec3d(0, 0, 0),
-            fYaw,
+                yaw,
             0,
             TeleportTarget.ADD_PORTAL_CHUNK_TICKET
         );
-        if (source == null) {
-            return false;
-        }
+
+        if (source == null) return false;
+
         var teleported = doTeleport(playerEntity, (ServerWorld) world, target, source, takeCost);
-        if (!teleported) {
-            return false;
-        }
+
+        if (!teleported) return false;
+
         if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
             for (var hand : Hand.values()) {
-                Item handItem = playerEntity.getStackInHand(hand).getItem();
-                if (handItem instanceof AbyssWatcherItem) {
-                    player.sendEquipmentBreakStatus(handItem, hand.equals(Hand.MAIN_HAND) ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+                var stack = playerEntity.getStackInHand(hand);
+                var data = stack.get(WaystoneDataComponents.TELEPORTER);
+
+                if (data != null && data.oneTimeUse()) {
+                    player.sendEquipmentBreakStatus(stack.getItem(), hand.equals(Hand.MAIN_HAND) ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
                     playerEntity.getStackInHand(hand).decrement(1);
                     player.getWorld().playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
                     break;
                 }
             }
         }
+
         return true;
     }
 
     private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target, TeleportSources source, boolean takeCost) {
-        var playerAccess = (PlayerEntityMixinAccess) player;
-        var cooldown = playerAccess.fabricWaystones$getTeleportCooldown();
+        var data = WaystonePlayerData.getData(player);
+        var cooldown = data.teleportCooldown();
+
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
             player.sendMessage(Text.translatable(
@@ -406,17 +392,20 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             ), false);
             return false;
         }
-        if (!Utils.canTeleport(player, hash, source, takeCost)) {
+
+        if (!Utils.canTeleport(player, position(), source, takeCost)) {
             return false;
         }
+
         var cooldowns = FabricWaystones.CONFIG.teleportation_cooldown;
-        playerAccess.fabricWaystones$setTeleportCooldown(switch (source) {
+        data.teleportCooldown(switch (source) {
             case WAYSTONE -> cooldowns.cooldown_ticks_from_waystone();
             case ABYSS_WATCHER -> cooldowns.cooldown_ticks_from_abyss_watcher();
             case LOCAL_VOID -> cooldowns.cooldown_ticks_from_local_void();
             case VOID_TOTEM -> cooldowns.cooldown_ticks_from_void_totem();
             case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole();
         });
+
         var oldPos = player.getBlockPos();
         player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         player.detach();
@@ -426,86 +415,31 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (!oldPos.isWithinDistance(playerPos, 6) || !player.getWorld().getRegistryKey().equals(world.getRegistryKey())) {
             world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         }
+
         return true;
     }
 
-    public void setName(String name) {
-        this.name = name;
-        markDirty();
-    }
-
-    @Override
-    public String getHash() {
-        if (this.hash == null) {
-            createHash(world, pos);
-        }
-        return this.hash;
-    }
-
-    public byte[] getHashByteArray() {
-        var hash = getHash();
-        var values = hash.substring(1, hash.length() - 1).split(", ");
-        var bytes = new byte[values.length];
-        for (int i = 0; i < values.length; ++i) {
-            bytes[i] = Byte.parseByte(values[i]);
-        }
-        return bytes;
-    }
-
-    public String getHexHash() {
-        BigInteger number = new BigInteger(1, getHashByteArray());
-        StringBuilder hexString = new StringBuilder(number.toString(16));
-        while (hexString.length() < 32) {
-            hexString.insert(0, '0');
-        }
-        return hexString.toString();
-    }
-
-    @Override
-    public boolean isGlobal() {
-        return this.isGlobal;
-    }
-
-    public void setGlobal(boolean global) {
-        this.isGlobal = global;
-        markDirty();
-    }
-
-    public UUID getOwner() {
-        return this.owner;
-    }
-
     public void setOwner(PlayerEntity player) {
+        var storage = WaystoneDataStorage.getStorage(world);
+        var uuid = getUUID();
+
         if (player == null) {
-            if (this.owner != null && this.world != null) {
+            if (storage.setOwner(uuid, null)) {
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
                     SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F);
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
                     SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
             }
-            this.owner = null;
-            this.ownerName = null;
         } else {
-            if (this.owner == null && world != null) {
+            if (storage.setOwner(uuid, player)) {
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
                     SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F);
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
                     SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
             }
-            this.owner = player.getUuid();
-            this.ownerName = player.getName().getString();
         }
         updateActiveState();
         markDirty();
-    }
-
-    public void toggleGlobal() {
-        this.isGlobal = !this.isGlobal;
-        markDirty();
-    }
-
-    public String getOwnerName() {
-        return this.ownerName;
     }
 
     public void setItemInSlot(int i, ItemStack itemStack) {
@@ -532,8 +466,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public WaystoneDataPacket getScreenOpeningData(ServerPlayerEntity player) {
-        return new WaystoneDataPacket(this.hash, this.name, this.owner, this.isGlobal, this.canAccess(player), player.getWorld().isClient, this.ownerName);
+    public WaystoneScreenOpenDataPacket getScreenOpeningData(ServerPlayerEntity player) {
+        return new WaystoneScreenOpenDataPacket(this.position(), this.canAccess(player));
     }
-
 }

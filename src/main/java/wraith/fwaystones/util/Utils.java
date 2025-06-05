@@ -8,7 +8,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
@@ -17,43 +16,40 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public final class Utils {
 
     public static final DecimalFormat df = new DecimalFormat("#.##");
     public static final Random random = new Random();
     private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
-        RegistryKeys.PROCESSOR_LIST, Identifier.of("minecraft", "empty"));
-
-    private Utils() {
-    }
+        RegistryKeys.PROCESSOR_LIST, Identifier.of("empty"));
 
     public static int getRandomIntInRange(int min, int max) {
-        if (min == max) {
-            return min;
-        }
+        if (min == max) return min;
+
         if (min > max) {
             int temp = min;
             min = max;
             max = temp;
         }
+
         return random.nextInt((max - min) + 1) + min;
     }
 
-    public static Identifier ID(String id) {
-        return Identifier.of(FabricWaystones.MOD_ID, id);
+    public static Text generateWaystoneName(Text text) {
+        return text == null || text.getString().isEmpty() ? Text.of(generateUniqueId()) : text;
     }
 
     public static String generateWaystoneName(String id) {
@@ -61,9 +57,8 @@ public final class Utils {
     }
 
     private static String generateUniqueId() {
-        if (random.nextDouble() < 1e-4) {
-            return "DeatHunter was here";
-        }
+        if (random.nextDouble() < 1e-4) return "DeatHunter was here";
+
         var sb = new StringBuilder();
         char[] vowels = { 'a', 'e', 'i', 'o', 'u' };
         char[] consonants = { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
@@ -79,8 +74,7 @@ public final class Utils {
     }
 
     public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
-
-        RegistryEntry<StructureProcessorList> emptyProcessorList = server.getRegistryManager()
+        var emptyProcessorList = server.getRegistryManager()
             .get(RegistryKeys.PROCESSOR_LIST)
             .entryOf(EMPTY_PROCESSOR_LIST_KEY);
 
@@ -89,17 +83,18 @@ public final class Utils {
             .getOrEmpty(village);
 
         if (poolGetter.isEmpty()) {
-            FabricWaystones.LOGGER.error("Cannot add to " + village + " as it cannot be found!");
+            FabricWaystones.LOGGER.error("Cannot add to {} as it cannot be found!", village);
             return;
         }
-        var pool = poolGetter.get();
 
-        var pieceList = ((StructurePoolAccessor) pool).getElements();
+        var pool = ((StructurePoolAccessor) poolGetter.get());
+
+        var pieceList = pool.getElements();
         var piece = StructurePoolElement.ofProcessedSingle(waystone.toString(), emptyProcessorList).apply(StructurePool.Projection.RIGID);
 
-        var list = new ArrayList<>(((StructurePoolAccessor) pool).getElementCounts());
+        var list = new ArrayList<>(pool.getElementCounts());
         list.add(Pair.of(piece, weight));
-        ((StructurePoolAccessor) pool).setElementCounts(list);
+        pool.setElementCounts(list);
 
         for (int i = 0; i < weight; ++i) {
             pieceList.add(piece);
@@ -110,6 +105,7 @@ public final class Utils {
     public static long determineLevelXP(final PlayerEntity player) {
         int level = player.experienceLevel;
         long total = player.totalExperience;
+
         if (level <= 16) {
             total += (long) (Math.pow(level, 2) + 6L * level);
         } else if (level <= 31) {
@@ -117,51 +113,73 @@ public final class Utils {
         } else {
             total += (long) (4.5 * Math.pow(level, 2) - 162.5 * level + 2220);
         }
+
         return total;
     }
 
     public static int getCost(Vec3d startPos, Vec3d endPos, String startDim, String endDim) {
         var config = FabricWaystones.CONFIG.teleportation_cost;
-        if (config.cost_type().equals(FWConfigModel.CostType.NONE)) {
-            return 0;
-        }
+        if (config.cost_type().equals(FWConfigModel.CostType.NONE)) return 0;
+
         float cost = config.base_cost();
+
         if (startDim.equals(endDim)) {
             cost += (float) (Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.cost_per_block_distance());
         } else {
             cost *= config.cost_multiplier_between_dimensions();
         }
+
         return Math.round(cost);
     }
 
     public static boolean isDimensionBlacklisted(String dim, boolean isSource) {
-        List<String> blacklist = isSource ? FabricWaystones.CONFIG.disable_teleportation_from_dimensions() : FabricWaystones.CONFIG.disable_teleportation_to_dimensions();
+        var blacklist = isSource
+                ? FabricWaystones.CONFIG.disable_teleportation_from_dimensions()
+                : FabricWaystones.CONFIG.disable_teleportation_to_dimensions();
 
-        if (blacklist.contains(dim)) {
-            return true;
-        }
+        if (blacklist.contains(dim)) return true;
 
         String dimNamespace = dim.split(":")[0];
+
         return blacklist.stream().anyMatch(blacklistedDim -> {
-            if (blacklistedDim.equals(dim) || blacklistedDim.equals("*")) return true;
-            String[] paths = blacklistedDim.split(":");
-            if (paths.length != 2) return false;
-            return paths[0].equals(dimNamespace) && paths[1].equals("*");
+            if (blacklistedDim.equals(dim) || blacklistedDim.equals("*")) {
+                return true;
+            }
+
+            var paths = blacklistedDim.split(":");
+            if (paths.length == 2) {
+                return paths[0].equals(dimNamespace) && paths[1].equals("*");
+            }
+
+            return false;
         });
     }
 
-    public static boolean canTeleport(PlayerEntity player, String hash, TeleportSources source, boolean takeCost) {
+    public static boolean canTeleport(PlayerEntity player, WaystonePosition position, TeleportSources source, boolean takeCost) {
+        var data = WaystoneDataStorage.getStorage(player);
+        var uuid = data.getUUID(position);
+
+        return canTeleport(player, uuid, source, takeCost);
+    }
+
+    public static boolean canTeleport(PlayerEntity player, UUID uuid, TeleportSources source, boolean takeCost) {
+        if (source == TeleportSources.VOID_TOTEM) return true;
+
         FWConfigModel.CostType cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
-        var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
-        if (waystone == null) {
+
+        var storage = WaystoneDataStorage.getStorage(player);
+
+        var waystone = storage.getData(uuid);
+        var position = storage.getPosition(uuid);
+
+        if (waystone == null || position == null) {
             player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
             return false;
         }
+
         var sourceDim = getDimensionName(player.getWorld());
-        var destDim = waystone.getWorldName();
-        if (source == TeleportSources.VOID_TOTEM) {
-            return true;
-        }
+        var destDim = position.worldName();
+
         if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
             if (isDimensionBlacklisted(sourceDim, true)) {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
@@ -172,13 +190,15 @@ public final class Utils {
                 return false;
             }
         }
+
         if (source == TeleportSources.LOCAL_VOID && FabricWaystones.CONFIG.free_local_void_teleport()) {
             return true;
         }
-        int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), sourceDim, destDim);
-        if (player.isCreative() || player.isSpectator()) {
-            return true;
-        }
+
+        int amount = getCost(player.getPos(), Vec3d.ofCenter(position.blockPos()), sourceDim, destDim);
+
+        if (player.isCreative() || player.isSpectator()) return true;
+
         switch (cost) {
             case HEALTH -> {
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
@@ -188,7 +208,6 @@ public final class Utils {
                 if (takeCost) {
                     player.damage(player.getWorld().getDamageSources().magic(), amount);
                 }
-                return true;
             }
             case HUNGER -> {
                 var hungerManager = player.getHungerManager();
@@ -200,7 +219,6 @@ public final class Utils {
                 if (takeCost) {
                     hungerManager.addExhaustion(4 * amount);
                 }
-                return true;
             }
             case EXPERIENCE -> {
                 long total = determineLevelXP(player);
@@ -211,7 +229,6 @@ public final class Utils {
                 if (takeCost) {
                     player.addExperience(-amount);
                 }
-                return true;
             }
             case LEVEL -> {
                 if (player.experienceLevel < amount) {
@@ -221,25 +238,25 @@ public final class Utils {
                 if (takeCost) {
                     player.addExperienceLevels(-amount);
                 }
-                return true;
             }
             case ITEM -> {
-                Identifier itemId = getTeleportCostItem();
-                Item item = Registries.ITEM.get(itemId);
+                var itemId = getTeleportCostItem();
+                var item = Registries.ITEM.get(itemId);
+
                 if (!containsItem(player.getInventory(), item, amount)) {
                     player.sendMessage(Text.translatable("fwaystones.no_teleport.item"), true);
                     return false;
                 }
+
                 if (takeCost) {
                     removeItem(player.getInventory(), item, amount);
 
-                    if (player.getWorld().isClient || FabricWaystones.WAYSTONE_STORAGE == null) {
-                        return true;
-                    }
-                    var waystoneBE = waystone.getEntity();
-                    if (waystoneBE == null) {
-                        return true;
-                    }
+                    if (player.getWorld().isClient) return true;
+
+                    var waystoneBE = storage.getEntity(position);
+
+                    if (waystoneBE == null) return true;
+
                     ArrayList<ItemStack> oldInventory = new ArrayList<>(waystoneBE.getInventory());
                     boolean found = false;
                     for (ItemStack stack : oldInventory) {
@@ -254,66 +271,51 @@ public final class Utils {
                     }
                     waystoneBE.setInventory(oldInventory);
                 }
-                return true;
-            }
-            default -> {
-                return true;
             }
         }
 
+        return true;
     }
 
     public static boolean containsItem(PlayerInventory inventory, Item item, int maxAmount) {
-        int amount = 0;
-        for (ItemStack stack : inventory.main) {
-            if (stack.getItem().equals(item)) {
-                amount += stack.getCount();
-            }
-        }
-        for (ItemStack stack : inventory.offHand) {
-            if (stack.getItem().equals(item)) {
-                amount += stack.getCount();
-            }
-        }
-        for (ItemStack stack : inventory.armor) {
-            if (stack.getItem().equals(item)) {
-                amount += stack.getCount();
-            }
-        }
+        var amount = getAmount(inventory.main, item)
+                + getAmount(inventory.offHand, item)
+                + getAmount(inventory.main, item);
+
         return amount >= maxAmount;
     }
 
+    public static int getAmount(List<ItemStack> stacks, Item item) {
+        int amount = 0;
+        for (var stack : stacks) {
+            if (stack.getItem().equals(item)) amount += stack.getCount();
+        }
+        return amount;
+    }
+
     public static void removeItem(PlayerInventory inventory, Item item, int totalAmount) {
-        for (ItemStack stack : inventory.main) {
+        var amount = new MutableInt(totalAmount);
+
+        if (attemptToRemoveAmount(inventory.main, item, amount)) return;
+        if (attemptToRemoveAmount(inventory.offHand, item, amount)) return;
+
+        attemptToRemoveAmount(inventory.armor, item, amount);
+    }
+
+    public static boolean attemptToRemoveAmount(List<ItemStack> stacks, Item item, MutableInt totalAmount) {
+        for (var stack : stacks) {
             if (stack.getItem().equals(item)) {
                 int amount = stack.getCount();
-                stack.decrement(totalAmount);
-                totalAmount -= amount;
+
+                stack.decrement(totalAmount.getValue());
+
+                totalAmount.subtract(amount);
             }
-            if (totalAmount <= 0) {
-                return;
-            }
+
+            if (totalAmount.getValue() <= 0) return true;
         }
-        for (ItemStack stack : inventory.offHand) {
-            if (stack.getItem().equals(item)) {
-                int amount = stack.getCount();
-                stack.decrement(totalAmount);
-                totalAmount -= amount;
-            }
-            if (totalAmount <= 0) {
-                return;
-            }
-        }
-        for (ItemStack stack : inventory.armor) {
-            if (stack.getItem().equals(item)) {
-                int amount = stack.getCount();
-                stack.decrement(totalAmount);
-                totalAmount -= amount;
-            }
-            if (totalAmount <= 0) {
-                return;
-            }
-        }
+
+        return false;
     }
 
     public static String getSHA256(String data) {
@@ -335,28 +337,26 @@ public final class Utils {
 
     @Nullable
     public static Identifier getTeleportCostItem() {
-        if (FabricWaystones.CONFIG.teleportation_cost.cost_type() == FWConfigModel.CostType.ITEM) {
-            String[] item = FabricWaystones.CONFIG.teleportation_cost.cost_item().split(":");
-            return (item.length == 2) ? Identifier.of(item[0], item[1]) : Identifier.of(item[0]);
-        }
-        return null;
+        var cost = FabricWaystones.CONFIG.teleportation_cost;
+
+        return (cost.cost_type() == FWConfigModel.CostType.ITEM)
+                ? Identifier.tryParse(cost.cost_item())
+                : null;
     }
 
     @Nullable
     public static Identifier getDiscoverItem() {
         var discoverStr = FabricWaystones.CONFIG.discover_with_item();
-        if (discoverStr.equals("none")) {
-            return null;
-        }
-        String[] item = discoverStr.split(":");
-        return (item.length == 2) ? Identifier.of(item[0], item[1]) : Identifier.of(item[0]);
+
+        if (discoverStr.equals("none")) return null;
+
+        return Identifier.tryParse(discoverStr);
     }
 
     public static boolean isSubSequence(String mainString, String searchString) {
         int j = 0;
         for (int i = 0; i < mainString.length() && j < searchString.length(); ++i) {
-            if (mainString.charAt(i) == searchString.charAt(j))
-                ++j;
+            if (mainString.charAt(i) == searchString.charAt(j)) ++j;
             if (j == searchString.length()) return true;
         }
         return false;

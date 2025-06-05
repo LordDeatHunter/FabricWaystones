@@ -1,14 +1,34 @@
 package wraith.fwaystones;
 
+import com.google.common.reflect.Reflection;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.item.Item;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import wraith.fwaystones.packets.WaystonePacketHandler;
+import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
+import wraith.fwaystones.integration.xaeros.XaerosMinimapCompat;
+import wraith.fwaystones.item.WaystoneComponentEventHooks;
+import wraith.fwaystones.networking.packets.s2c.SyncWaystoneStorage;
+import wraith.fwaystones.registry.WaystoneDataComponents;
+import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.registry.*;
 import wraith.fwaystones.util.FWConfig;
-import wraith.fwaystones.util.WaystoneStorage;
-import wraith.fwaystones.util.WaystonesEventManager;
+import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.util.Utils;
+import wraith.fwaystones.registry.WaystonesWorldgen;
 
 import java.io.File;
 
@@ -17,7 +37,6 @@ public class FabricWaystones implements ModInitializer {
     public static final FWConfig CONFIG;
     public static final Logger LOGGER = LogManager.getLogger("Fabric-Waystones");
     public static final String MOD_ID = "fwaystones";
-    public static WaystoneStorage WAYSTONE_STORAGE;
 
     static {
         var configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "fwaystones/config.json");
@@ -28,19 +47,116 @@ public class FabricWaystones implements ModInitializer {
         CONFIG = FWConfig.createAndLoad();
     }
 
+    public static final TagKey<Item> LOCAL_VOID_ITEM = TagKey.of(RegistryKeys.ITEM, id("local_void_item"));
+    public static final TagKey<Item> DIRECTED_TELEPORT_ITEM = TagKey.of(RegistryKeys.ITEM, id("directed_teleport_item"));
+
+    public static Identifier id(String path) {
+        return Identifier.of(MOD_ID, path);
+    }
+
     @Override
     public void onInitialize() {
         LOGGER.info("Is initializing.");
-        BlockRegistry.registerBlocks();
-        BlockEntityRegistry.registerBlockEntities();
-        ItemRegistry.init();
-        CompatRegistry.init();
-        CustomScreenHandlerRegistry.registerScreenHandlers();
-        WaystonesEventManager.registerEvents();
-        WaystonePacketHandler.registerPackets();
-        WaystonePacketHandler.registerPacketHandlers();
+
+        WaystoneDataComponents.init();
+
+        WaystoneBlocks.init();
+        WaystoneBlockEntities.init();
+        WaystoneItems.init();
+
+        WaystoneCompatEntries.init();
+        WaystoneScreenHandlers.init();
+
+        WaystoneNetworkHandler.init();
+
+        registerEvents();
+
+        Reflection.initialize(WaystonePlayerData.class, WaystoneDataStorage.class);
+
+        WaystoneComponentEventHooks.init();
 
         LOGGER.info("Has successfully been initialized.");
+
+        if (FabricLoader.getInstance().isModLoaded("xaerominimap")) {
+            XaerosMinimapCompat.INSTANCE.setupEvents();
+        }
     }
 
+    public static void registerEvents() {
+        ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
+            WaystoneDataStorage.getStorage(server).setupServerStorage(server);
+        });
+
+        ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
+            var storage = WaystoneDataStorage.getStorage(server);
+            if (!storage.isSetup()) {
+                if (server.isDedicated()) {
+                    FabricWaystones.LOGGER.error("The Waystone storage is null. This is likely caused by a crash.");
+                }
+                return;
+            }
+            storage.reset();
+        });
+
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            WaystoneNetworkHandler.CHANNEL.serverHandle(handler.player).send(new SyncWaystoneStorage(WaystoneDataStorage.getStorage(server)));
+        });
+        ServerLifecycleEvents.SERVER_STARTING.register(WaystonesWorldgen::registerVanillaVillageWorldgen);
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> FabricWaystones.CONFIG.load());
+
+        var afterCommonRespawnPhase = FabricWaystones.id("after_common_respawn_phase");
+
+        ServerPlayerEvents.AFTER_RESPAWN.addPhaseOrdering(Event.DEFAULT_PHASE, afterCommonRespawnPhase);
+        ServerPlayerEvents.AFTER_RESPAWN.register(afterCommonRespawnPhase, (oldPlayer, newPlayer, alive) -> {
+            // Required due to mods possibly causing a desync between server and client as transfer of data attachments may have not occured yet
+            // as fabric dose such after respawn which is after entity load event
+            WaystonePlayerData.getData(newPlayer).syncDataChange();
+        });
+
+        ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
+            if(!joined) return;
+
+            WaystonePlayerData.getData(player).syncDataChange();
+        });
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal(FabricWaystones.MOD_ID)
+                .then(CommandManager.literal("delete")
+                        .requires(source -> source.hasPermissionLevel(1))
+                        .executes(context -> {
+                            var player = context.getSource().getPlayer();
+                            var storage = WaystoneDataStorage.getStorage(context.getSource().getWorld());
+                            if (player == null || storage.isSetup()) return 1;
+
+                            var dimension = Utils.getDimensionName(player.getWorld());
+                            storage.removeAllFromWorld(dimension);
+                            player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3Removed all waystones from " + dimension + "!"), false);
+                            return 1;
+                        })
+                )
+                .then(CommandManager.literal("forget_all")
+                        .executes(context -> {
+                            var player = context.getSource().getPlayer();
+                            if (player == null) return 1;
+
+                            WaystonePlayerData.getData(player).forgetAllWaystones();
+                            player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten!"), false);
+                            return 1;
+                        })
+                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                .requires(source -> source.hasPermissionLevel(1))
+                                .executes(context -> {
+                                    var player = context.getSource().getPlayer();
+                                    if (player == null) return 1;
+
+                                    var target = EntityArgumentType.getPlayer(context, "player");
+                                    if (target == null) return 1;
+
+                                    WaystonePlayerData.getData(target).forgetAllWaystones();
+                                    player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
+                                    return 1;
+                                })
+                        )
+                )
+        ));
+    }
 }

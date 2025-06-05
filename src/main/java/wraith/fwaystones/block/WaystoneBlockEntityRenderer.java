@@ -5,12 +5,11 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.RotationAxis;
-import wraith.fwaystones.registry.ItemRegistry;
+import wraith.fwaystones.registry.WaystoneItems;
 
 public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<WaystoneBlockEntity> {
 
@@ -19,7 +18,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
     @Override
     public void render(WaystoneBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        ItemStack stack = new ItemStack(ItemRegistry.get("abyss_watcher"));
+        ItemStack stack = new ItemStack(WaystoneItems.get("abyss_watcher"));
 
         matrices.push();
         matrices.scale(0.5f, 0.5f, 0.5f);
