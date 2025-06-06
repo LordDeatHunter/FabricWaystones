@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.component.ComponentMap;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -23,10 +24,8 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -245,37 +244,64 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         }
     }
 
-    private void addParticle(PlayerEntity player) {
-        if (world == null) {
-            return;
-        }
-        var r = world.getRandom();
-        Vec3d playerPos = player.getPos();
-        ParticleEffect p = (r.nextInt(10) > 7) ? ParticleTypes.ENCHANT : ParticleTypes.PORTAL;
+    private void addParticle(Entity target, boolean main) {
+        if (world == null) return;
+        var random = world.getRandom();
+        ParticleEffect p = (random.nextInt(10) > 7) ? ParticleTypes.ENCHANT : ParticleTypes.PORTAL;
+        var basePos = this.getPos().toBottomCenterPos();
+        var watcherPos = basePos.add(0, 0.8, 0);
+        var targetPos = target.getPos();
 
-        int j = r.nextInt(2) * 2 - 1;
-        int k = r.nextInt(2) * 2 - 1;
-
-        double y = this.getPos().getY() + 1;
-
-        int rd = r.nextInt(10);
-        if (rd > 5) {
+        int rd = random.nextInt(10);
+        if (rd > 5 || main) {
             if (p == ParticleTypes.ENCHANT) {
-                this.world.addParticle(p, playerPos.x, playerPos.y + 1.5D, playerPos.z,
-                    (getPos().getX() + 0.5D - playerPos.x), (y - 1.25D - playerPos.y),
-                    (getPos().getZ() + 0.5D - playerPos.z));
-            } else {
-                this.world.addParticle(p, this.getPos().getX() + 0.5D, y + 0.8D,
-                    this.getPos().getZ() + 0.5D,
-                    (playerPos.x - getPos().getX()) - r.nextDouble(),
-                    (playerPos.y - getPos().getY() - 0.5D) - r.nextDouble() * 0.5D,
-                    (playerPos.z - getPos().getZ()) - r.nextDouble());
+                var start = targetPos
+                    .add(0, 1.25, 0);
+                var distanceCheck = Double.compare(Math.abs(watcherPos.x - targetPos.x), Math.abs(watcherPos.z - targetPos.z));
+                var end = basePos
+                    .subtract(
+                        distanceCheck > 0 ? Double.compare(watcherPos.x, targetPos.x) * 0.4 : 0,
+                        0.05,
+                        distanceCheck < 0 ? Double.compare(watcherPos.z, targetPos.z) * 0.4 : 0
+                    )
+                    .subtract(targetPos);
+                this.world.addParticle(
+                    p,
+                    start.x, start.y, start.z,
+                    end.x, end.y, end.z
+                );
+            } else if (main) {
+                var start = watcherPos
+                    .add(0, 0.95, 0);
+//                velocity = eyePos
+//                    .subtract(watcherPos)
+//                    .subtract(randomDirection(random));
+                var bb = target.getBoundingBox();
+                var bbMin = bb.getMinPos();
+                var bbMax = bb.getMaxPos();
+                var endX = bbMin.x + (bbMax.x - bbMin.x) * random.nextDouble();
+                var endY = bbMin.y + (bbMax.y - bbMin.y) * random.nextDouble();
+                var endZ = bbMin.z + (bbMax.z - bbMin.z) * random.nextDouble();
+                var end = new Vec3d(endX, endY, endZ)
+                    .subtract(watcherPos.add(0, 1.8, 0));
+//                    .add(randomDirection(random).multiply(0.005));
+//                    .subtract(0, 1.25, 0);
+                this.world.addParticle(
+                    p,
+                    start.x, start.y, start.z,
+                    end.x, end.y, end.z
+                );
             }
         }
-        if (rd > 8) {
-            this.world.addParticle(p, y + 0.5D, this.getPos().getY() + 0.8D,
-                this.getPos().getZ() + 0.5D,
-                r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D, r.nextDouble() * k);
+        if (rd > 8 && main && p != ParticleTypes.ENCHANT) {
+            var randomDirection = randomDirection(random);
+            this.world.addParticle(
+                p,
+                watcherPos.x, watcherPos.y + 0.95, watcherPos.z,
+                randomDirection.x * 2,
+                randomDirection.y * 2 - 0.2,
+                randomDirection.z * 2
+            );
         }
     }
 
@@ -285,10 +311,21 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (world.isClient()) {
             ++tickDelta;
             if (getCachedState().get(WaystoneBlock.ACTIVE)) {
-                var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D,
-                        this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
+                var center = this.getPos().toBottomCenterPos().add(0, 1, 0);
+
+                var closestPlayer = this.world.getClosestPlayer(
+                    center.x, center.y, center.z,
+                    4.5,
+                    false
+                );
+                var others = this.world.getOtherEntities(
+                    closestPlayer,
+                    Box.of(center, 10, 10, 10),
+                    entity -> closestPlayer != entity
+                );
                 if (closestPlayer != null) {
-                    addParticle(closestPlayer);
+//                    for (int i = 0; i < 100; i++)
+                    addParticle(closestPlayer, true);
                     double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
                     double z = closestPlayer.getZ() - this.getPos().getZ() - 0.5D;
                     float rotY = (float) ((float) Math.atan2(z, x) / Math.PI * 180 + 180);
@@ -296,6 +333,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 } else {
                     lookingRotR += 2;
                 }
+                others.forEach(otherEntity -> addParticle(otherEntity, false));
 
                 lookingRotR = rotClamp(360, lookingRotR);
             }
@@ -306,9 +344,22 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         }
     }
 
+    private static Vec3d randomDirection(Random random) {
+        double theta = random.nextDouble() * 2 * Math.PI;
+        double u = random.nextDouble();
+        double phi = Math.acos(2 * u - 1);
+
+        double x = Math.sin(phi) * Math.cos(theta);
+        double y = Math.sin(phi) * Math.sin(theta);
+        double z = Math.cos(phi);
+
+        return new Vec3d(x, y, z);
+    }
+
     public boolean canAccess(PlayerEntity player) {
         return player.squaredDistanceTo((double) this.pos.getX() + 0.5D,
-            (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
+                                        (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D
+        ) <= 64.0D;
     }
 
     public boolean teleportPlayer(PlayerEntity player, boolean takeCost) {
@@ -349,7 +400,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             (ServerWorld) getWorld(),
             new Vec3d(pos.getX() + offsetX, pos.getY(), pos.getZ() + offsetZ),
             new Vec3d(0, 0, 0),
-                yaw,
+            yaw,
             0,
             TeleportTarget.ADD_PORTAL_CHUNK_TICKET
         );
@@ -386,8 +437,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             player.sendMessage(Text.translatable(
                 "fwaystones.no_teleport_message.cooldown",
                 Text.literal(cooldownSeconds).styled(style ->
-                    style.withColor(TextColor.parse(Text.translatable(
-                        "fwaystones.no_teleport_message.cooldown.arg_color").getString()).getOrThrow())
+                                                         style.withColor(TextColor.parse(Text.translatable(
+                                                             "fwaystones.no_teleport_message.cooldown.arg_color").getString()).getOrThrow())
                 )
             ), false);
             return false;
@@ -426,16 +477,20 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (player == null) {
             if (storage.setOwner(uuid, null)) {
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F);
+                                SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F
+                );
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
+                                SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F
+                );
             }
         } else {
             if (storage.setOwner(uuid, player)) {
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F);
+                                SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F
+                );
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
+                                SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F
+                );
             }
         }
         updateActiveState();

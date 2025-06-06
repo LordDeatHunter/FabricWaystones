@@ -5,18 +5,15 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.integration.event.WaystoneEvents;
-import xaero.common.minimap.waypoints.Waypoint;
 import xaero.common.minimap.waypoints.WaypointVisibilityType;
 import xaero.hud.minimap.BuiltInHudModules;
 import xaero.hud.minimap.waypoint.WaypointColor;
-import xaero.hud.minimap.waypoint.WaypointPurpose;
 import xaero.hud.minimap.waypoint.set.WaypointSet;
 import xaero.hud.minimap.world.MinimapWorld;
 
@@ -62,7 +59,7 @@ public class XaerosMinimapCompat {
             var pos = storage.getPosition(uuid);
             if (pos == null) return;
 
-            removeWaystone(pos);
+            WaystonePoint.deletePointAt(pos);
             addWaystone(pos, getOrCreateSet(pos));
         });
         WaystoneEvents.ON_WAYSTONE_DISCOVERY.register((player, uuid, pos) -> {
@@ -73,19 +70,13 @@ public class XaerosMinimapCompat {
         WaystoneEvents.ON_WAYSTONE_FORGOTTEN.register((player, uuid, pos) -> {
             if (pos == null) return;
 
-            removeWaystone(pos);
+            WaystonePoint.deletePointAt(pos);
         });
         WaystoneEvents.ON_ALL_WAYSTONES_FORGOTTEN.register((p, uuids) -> {
             var storage = getStorage();
             if (storage == null) return;
 
-            for (var uuid : uuids) {
-                var pos = storage.getPosition(uuid);
-
-                if (pos == null) continue;
-
-                removeWaystone(pos);
-            }
+            WaystonePoint.deleteAll();
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (this.shouldSync) {
@@ -95,6 +86,13 @@ public class XaerosMinimapCompat {
         });
         WaystoneEvents.ON_PLAYER_WAYSTONE_DATA_UPDATE.register(player -> {
             this.shouldSync = true;
+        });
+        WaystoneEvents.ON_WAYSTONE_POSITION_UPADTE.register((uuid, position, wasRemoved) -> {
+            if (wasRemoved) {
+                WaystonePoint.deletePointAt(position);
+            } else {
+                addWaystone(position, getOrCreateSet(position));
+            }
         });
     }
 
@@ -109,9 +107,7 @@ public class XaerosMinimapCompat {
         if (currentWorld == null) return false;
 
         try {
-            getAllWaypoints().forEach(waypoints -> {
-                waypoints.removeIf(XaerosMinimapCompat::isWaypointFromWaystone);
-            });
+            WaystonePoint.deleteAll();
 
             for (var pos : waystones) {
                 try {
@@ -127,40 +123,16 @@ public class XaerosMinimapCompat {
         return true;
     }
 
-    private void removeWaystone(WaystonePosition position) {
-        getAllWaypoints().forEach(waypoints -> {
-            waypoints.removeIf(waypoint -> {
-                return isWaypointFromWaystone(waypoint)
-                        && position.blockPos().equals(new BlockPos(waypoint.getX(), waypoint.getY(), waypoint.getZ()));
-            });
-        });
-    }
-
-    private static boolean isWaypointFromWaystone(Waypoint waypoint) {
-        return waypoint.isTemporary() && waypoint.getName().endsWith(" [Wraith Waystone]");
-    }
-
     private void addWaystone(final WaystonePosition pos, final WaypointSet waypointsList) {
-        var blockPos = pos.blockPos();
-
         var storage = getStorage();
         if (storage == null) return;
 
         var data = storage.getData(pos);
         if (data == null) return;
 
-        var waypoint = new Waypoint(
-                blockPos.getX(), blockPos.getY(), blockPos.getZ(),
-                "[Wraith Waystone: " + data.uuid().toString() + "]",
-                "",
-                color == null ? WaypointColor.getRandom() : color,
-                WaypointPurpose.NORMAL,
-                true
-        );
+        var waypoint = new WaystonePoint(data, pos, waypointsList);
 
         waypoint.setVisibility(visibilityType);
-
-        waypointsList.add(waypoint);
     }
 
     private WaypointSet getOrCreateSet(final WaystonePosition position) {
@@ -218,32 +190,6 @@ public class XaerosMinimapCompat {
                 .resolve(worldNode);
 
         return manager.getWorld(worldPath);
-    }
-
-    public static Stream<Collection<Waypoint>> getAllWaypoints() {
-        var minimapSession = BuiltInHudModules.MINIMAP.getCurrentSession();
-
-        if (minimapSession == null) return Stream.of();
-
-        var rootContainer = minimapSession.getWorldManager().getCurrentRootContainer();
-
-        var sets = Stream.<WaypointSet>of();
-
-        for (var world : rootContainer.getWorlds()) {
-            sets = Stream.concat(sets, toStream(world.getIterableWaypointSets()));
-        }
-
-        for (var container : rootContainer.getSubContainers()) {
-            for (var world : container.getWorlds()) {
-                sets = Stream.concat(sets, toStream(world.getIterableWaypointSets()));
-            }
-        }
-
-        return sets.map(waypointSet -> {
-            var waypoints = waypointSet.getWaypoints();
-
-            return (waypoints instanceof Collection<Waypoint> collection) ? collection : null;
-        }).filter(Objects::nonNull);
     }
 
     public static <E> Stream<E> toStream(final Iterable<E> iterable) {

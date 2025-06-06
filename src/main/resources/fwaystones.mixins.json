@@ -4,21 +4,20 @@
   "package": "wraith.fwaystones.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ItemMixin",
+    "ItemStackMixin",
     "LivingEntityMixin",
     "PlayerEntityMixin",
     "SinglePoolElementAccessor",
     "StructurePoolAccessor",
-    "StructurePoolGeneratorMixin",
     "StructurePoolBasedGeneratorMixin",
+    "StructurePoolGeneratorMixin",
     "StructureStartAccessor",
     "scoreboard.PersistentStateMixin",
     "scoreboard.ScoreboardMixin",
-    "scoreboard.ScoreboardStateMixin",
-    "ItemStackMixin",
-    "ItemMixin"
+    "scoreboard.ScoreboardStateMixin"
   ],
   "client": [
-    "xaeros.MiscMixin"
   ],
   "injectors": {
     "defaultRequire": 1
