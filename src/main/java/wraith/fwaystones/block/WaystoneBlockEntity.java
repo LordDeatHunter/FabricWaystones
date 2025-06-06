@@ -253,7 +253,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         var targetPos = target.getPos();
 
         int rd = random.nextInt(10);
-        if (rd > 5 || main) {
+        if (rd > 5) {
             if (p == ParticleTypes.ENCHANT) {
                 var start = targetPos
                     .add(0, 1.25, 0);
@@ -291,17 +291,17 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                     start.x, start.y, start.z,
                     end.x, end.y, end.z
                 );
+                if (rd > 8) {
+                    var randomDirection = randomDirection(random);
+                    this.world.addParticle(
+                        p,
+                        watcherPos.x, watcherPos.y + 0.95, watcherPos.z,
+                        randomDirection.x * 2,
+                        randomDirection.y * 2 - 0.2,
+                        randomDirection.z * 2
+                    );
+                }
             }
-        }
-        if (rd > 8 && main && p != ParticleTypes.ENCHANT) {
-            var randomDirection = randomDirection(random);
-            this.world.addParticle(
-                p,
-                watcherPos.x, watcherPos.y + 0.95, watcherPos.z,
-                randomDirection.x * 2,
-                randomDirection.y * 2 - 0.2,
-                randomDirection.z * 2
-            );
         }
     }
 
