@@ -44,6 +44,14 @@ public final class FWConfigModel {
     public List<String> disable_teleportation_to_dimensions = new ArrayList<>();
     public boolean ignore_dimension_blacklists_if_same_dimension = true;
 
+    public LoggingLevel generalLoggingLevel = LoggingLevel.ALL;
+
+    public enum LoggingLevel {
+        ALL,
+        ERRORS,
+        NONE
+    }
+
     @SectionHeader(value = "structure_anchors")
     public Map<String, String> add_waystone_structure_piece = Util.make(new HashMap<>(), map -> {
         map.put("minecraft:village/desert/houses", "desert_village_waystone");

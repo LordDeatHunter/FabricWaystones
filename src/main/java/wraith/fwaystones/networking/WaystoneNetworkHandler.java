@@ -22,6 +22,7 @@ public class WaystoneNetworkHandler {
         CHANNEL.registerServerbound(WaystoneGUISlotClick.class, WaystoneGUISlotClick.ENDEC, handler(WaystoneGUISlotClick::handle));
 
         CHANNEL.registerServerbound(SyncWaystonePlayerDataChange.class, SyncWaystonePlayerDataChange.ENDEC, handler(SyncWaystonePlayerDataChange::handle));
+        CHANNEL.registerServerbound(AttemptTeleporterUse.class, AttemptTeleporterUse.ENDEC, handler(AttemptTeleporterUse::handle));
 
         //--
 

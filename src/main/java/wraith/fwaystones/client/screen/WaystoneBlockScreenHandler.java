@@ -64,6 +64,7 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler<W
         if (!WaystoneDataStorage.getStorage(player).hasData(this.hash)) {
             closeScreen();
         }
+
         if (!this.sortedWaystones.contains(this.uuid)) {
             this.sortedWaystones.add(this.uuid);
             this.filterWaystones();

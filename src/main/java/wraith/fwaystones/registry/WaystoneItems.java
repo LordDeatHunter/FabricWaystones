@@ -4,6 +4,8 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Rarity;
 import wraith.fwaystones.FabricWaystones;
@@ -40,7 +42,12 @@ public final class WaystoneItems {
         registerItem("deepslate_brick_waystone", new BlockItem(WaystoneBlocks.DEEPSLATE_BRICK_WAYSTONE, new Item.Settings()));
         registerItem("blackstone_brick_waystone", new BlockItem(WaystoneBlocks.BLACKSTONE_BRICK_WAYSTONE, new Item.Settings()));
         registerItem("pocket_wormhole", new Item(new Item.Settings().component(WaystoneDataComponents.TELEPORTER, new WaystoneTeleporter(false)).maxCount(1).fireproof()));
-        registerItem("abyss_watcher", new Item(new Item.Settings().component(WaystoneDataComponents.TELEPORTER, new WaystoneTeleporter(true)).maxCount(4).fireproof()));
+        registerItem("abyss_watcher", new Item(new Item.Settings().component(WaystoneDataComponents.TELEPORTER, new WaystoneTeleporter(true)).maxCount(4).fireproof()){
+            @Override
+            public SoundEvent getBreakSound() {
+                return SoundEvents.BLOCK_GLASS_BREAK;
+            }
+        });
         registerItem("waystone_scroll", new Item(new Item.Settings().maxCount(1).component(WaystoneDataComponents.HASH_TARGETS, WaystoneHashTargets.EMPTY)));
         registerItem("local_void", new Item(new Item.Settings().maxCount(1)));
         registerItem("void_totem", new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));

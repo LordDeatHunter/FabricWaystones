@@ -82,7 +82,10 @@ public final class Utils {
             .getOrEmpty(village);
 
         if (poolGetter.isEmpty()) {
-            FabricWaystones.LOGGER.error("Cannot add to {} as it cannot be found!", village);
+            if (!FabricWaystones.CONFIG.generalLoggingLevel().equals(FWConfigModel.LoggingLevel.NONE)) {
+                FabricWaystones.LOGGER.error("Cannot add a waystone to {} as it cannot be found!", village);
+            }
+
             return;
         }
 

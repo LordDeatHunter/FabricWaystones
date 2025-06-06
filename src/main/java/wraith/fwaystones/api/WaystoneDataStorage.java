@@ -29,7 +29,6 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
-import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.s2c.SyncWaystoneDataChange;
@@ -411,6 +410,10 @@ public class WaystoneDataStorage {
         var position = uuidToPosition.remove(uuid);
 
         if (position != null) positionToUUID.remove(position);
+
+        if (!this.isClient) {
+            syncPositionChange(uuid, position, false);
+        }
     }
 
     public void removeAllFromWorld(String worldName) {

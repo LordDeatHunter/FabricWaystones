@@ -1,4 +1,4 @@
-package wraith.fwaystones.integration.event;
+package wraith.fwaystones.api;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;

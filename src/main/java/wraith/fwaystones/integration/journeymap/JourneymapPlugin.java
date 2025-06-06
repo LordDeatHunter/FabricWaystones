@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.integration.event.WaystoneEvents;
+import wraith.fwaystones.api.WaystoneEvents;
 import wraith.fwaystones.api.core.DataChangeType;
 import wraith.fwaystones.api.WaystoneDataStorage;
 

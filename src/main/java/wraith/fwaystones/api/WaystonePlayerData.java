@@ -19,7 +19,6 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.SyncWaystonePlayerDataChange;
 import wraith.fwaystones.networking.packets.s2c.SyncWaystonePlayerData;

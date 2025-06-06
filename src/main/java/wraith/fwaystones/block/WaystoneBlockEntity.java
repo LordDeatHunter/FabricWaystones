@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
+import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleEffect;
@@ -31,11 +32,13 @@ import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.core.ExtendedStackReference;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.WaystoneAccess;
 import wraith.fwaystones.api.core.WaystonePosition;
+import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
@@ -356,22 +359,36 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (source == null) return false;
 
+        ExtendedStackReference stackReference = null;
+
+        if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
+            stackReference = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(playerEntity, stack -> {
+                var component = stack.get(WaystoneDataComponents.TELEPORTER);
+
+                return component != null && component.oneTimeUse();
+            });
+
+            if (stackReference == null) return false;
+        }
+
         var teleported = doTeleport(playerEntity, (ServerWorld) world, target, source, takeCost);
 
         if (!teleported) return false;
 
         if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
-            for (var hand : Hand.values()) {
-                var stack = playerEntity.getStackInHand(hand);
+            if (stackReference != null) {
+                var stack = stackReference.get();
                 var data = stack.get(WaystoneDataComponents.TELEPORTER);
 
                 if (data != null && data.oneTimeUse()) {
-                    player.sendEquipmentBreakStatus(stack.getItem(), hand.equals(Hand.MAIN_HAND) ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
-                    playerEntity.getStackInHand(hand).decrement(1);
-                    player.getWorld().playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
-                    break;
+                    stackReference.breakStack(stack.copy());
+
+                    stack.decrement(1);
+
+                    stackReference.set(stack);
                 }
             }
+
         }
 
         return true;

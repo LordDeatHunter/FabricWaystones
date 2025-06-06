@@ -3,6 +3,7 @@ package wraith.fwaystones.registry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.util.FWConfigModel;
 import wraith.fwaystones.util.Utils;
 
 import java.util.HashMap;
@@ -29,8 +30,11 @@ public final class WaystonesWorldgen {
 
     public static void registerVillage(MinecraftServer server, Identifier village, Identifier waystone) {
         if (FabricWaystones.CONFIG.worldgen.generate_in_villages()) {
-            FabricWaystones.LOGGER.info("Adding waystone " + waystone.toString() + " to village " + village.toString());
-            Utils.addToStructurePool(server, village, waystone, FabricWaystones.CONFIG.worldgen.village_waystone_weight());
+            if (FabricWaystones.CONFIG.generalLoggingLevel().equals(FWConfigModel.LoggingLevel.ALL)) {
+                Utils.addToStructurePool(server, village, waystone, FabricWaystones.CONFIG.worldgen.village_waystone_weight());
+            }
+
+            FabricWaystones.LOGGER.info("Adding waystone {} to village {}", waystone.toString(), village.toString());
         }
     }
 

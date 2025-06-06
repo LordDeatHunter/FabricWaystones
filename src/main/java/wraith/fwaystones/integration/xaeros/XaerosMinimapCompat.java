@@ -11,7 +11,7 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.WaystonePosition;
-import wraith.fwaystones.integration.event.WaystoneEvents;
+import wraith.fwaystones.api.WaystoneEvents;
 import xaero.common.minimap.waypoints.Waypoint;
 import xaero.common.minimap.waypoints.WaypointVisibilityType;
 import xaero.hud.minimap.BuiltInHudModules;
