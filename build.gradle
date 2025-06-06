@@ -43,6 +43,8 @@ dependencies {
     modCompileOnly modRuntimeOnly("maven.modrinth:xaeros-minimap:25.2.6_Fabric_1.21")
     modCompileOnly modRuntimeOnly("maven.modrinth:xaeros-world-map:1.39.9_Fabric_1.21")
 
+    modCompileOnly modRuntimeOnly("maven.modrinth:lithostitched:1.4.8-fabric-1.21")
+
     annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
     include "io.wispforest:owo-sentinel:${project.owo_version}"
 }

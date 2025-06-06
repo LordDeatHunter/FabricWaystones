@@ -1,6 +1,7 @@
 package wraith.fwaystones.util;
 
 import com.mojang.datafixers.util.Pair;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -8,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
@@ -19,6 +21,7 @@ import net.minecraft.world.World;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.integration.lithostitched.LithostitchedPlugin;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
@@ -74,10 +77,6 @@ public final class Utils {
     }
 
     public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
-        var emptyProcessorList = server.getRegistryManager()
-            .get(RegistryKeys.PROCESSOR_LIST)
-            .entryOf(EMPTY_PROCESSOR_LIST_KEY);
-
         var poolGetter = server.getRegistryManager()
             .get(RegistryKeys.TEMPLATE_POOL)
             .getOrEmpty(village);
@@ -89,12 +88,22 @@ public final class Utils {
 
         var pool = ((StructurePoolAccessor) poolGetter.get());
 
-        var pieceList = pool.getElements();
-        var piece = StructurePoolElement.ofProcessedSingle(waystone.toString(), emptyProcessorList).apply(StructurePool.Projection.RIGID);
+        if (FabricLoader.getInstance().isModLoaded("lithostitched")) {
+            for (var piece : LithostitchedPlugin.createPieces(waystone.toString())) {
+                addPieceToPool(piece, pool, weight);
+            }
+        } else {
+            var piece = StructurePoolElement.ofSingle(waystone.toString()).apply(StructurePool.Projection.RIGID);
+            addPieceToPool(piece, pool, weight);
+        }
+    }
 
+    private static void addPieceToPool(StructurePoolElement piece, StructurePoolAccessor pool, int weight) {
         var list = new ArrayList<>(pool.getElementCounts());
         list.add(Pair.of(piece, weight));
         pool.setElementCounts(list);
+
+        var pieceList = pool.getElements();
 
         for (int i = 0; i < weight; ++i) {
             pieceList.add(piece);
