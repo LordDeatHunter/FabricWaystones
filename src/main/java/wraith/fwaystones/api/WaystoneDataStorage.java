@@ -402,18 +402,26 @@ public class WaystoneDataStorage {
         return new WaystoneDataHolder(data);
     }
 
+    public WaystoneDataHolder removePositionAndData(WaystoneBlockEntity blockEntity) {
+        var uuid = blockEntity.getUUID();
+
+        removePosition(uuid);
+
+        var data = removeData(uuid, true);
+
+        return new WaystoneDataHolder(data);
+    }
+
     public void removePosition(UUID uuid) {
         removePosition(uuid, true);
     }
 
-    public void removePosition(UUID uuid, boolean sync) {
+    private void removePosition(UUID uuid, boolean sync) {
         var position = uuidToPosition.remove(uuid);
 
         if (position != null) positionToUUID.remove(position);
 
-        if (!this.isClient) {
-            syncPositionChange(uuid, position, false);
-        }
+        if (sync) syncPositionChange(uuid, position, false);
     }
 
     public void removeAllFromWorld(String worldName) {
@@ -456,9 +464,7 @@ public class WaystoneDataStorage {
         positionToUUID.put(position, uuid);
         uuidToPosition.put(uuid, position);
 
-        if (!this.isClient) {
-            syncPositionChange(uuid, position, false);
-        }
+        syncPositionChange(uuid, position, false);
     }
 
     public WaystoneData removeData(UUID uuid, boolean sync) {
@@ -474,9 +480,7 @@ public class WaystoneDataStorage {
 
         uuidToData.put(uuid, data);
 
-        if (!this.isClient) {
-            syncDataChange(uuid, DataChangeType.CREATION);
-        }
+        syncDataChange(uuid, DataChangeType.CREATION);
     }
 
     @Nullable
@@ -554,7 +558,7 @@ public class WaystoneDataStorage {
 
     public void onSyncData(UUID uuid, @Nullable WaystoneData data, DataChangeType type) {
         if (data == null) {
-            removePosition(uuid);
+            this.uuidToData.remove(uuid);
         } else {
             this.uuidToData.put(uuid, data);
         }
