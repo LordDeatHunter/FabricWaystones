@@ -79,7 +79,7 @@ public class WaystoneComponentEventHooks {
 
                         playerData.discoverWaystones(toLearn);
 
-                        if (!user.isCreative() && FabricWaystones.CONFIG.consume_infinite_knowledge_scroll_on_use()) {
+                        if (!user.isCreative() && FabricWaystones.CONFIG.shouldConsumeInfiniteKnowledgeScroll()) {
                             stack.decrement(1);
                         }
                     } else {
@@ -219,7 +219,7 @@ public class WaystoneComponentEventHooks {
 
             if (waystone == null) {
                 stack.remove(WaystoneDataComponents.HASH_TARGET);
-            } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.free_local_void_teleport(), TeleportSources.LOCAL_VOID) && !user.isCreative() && FabricWaystones.CONFIG.consume_local_void_on_use()) {
+            } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree(), TeleportSources.LOCAL_VOID) && !user.isCreative() && FabricWaystones.CONFIG.shouldConsumeLocalVoid()) {
                 stack.decrement(1);
                 return TypedActionResult.consume(stack);
             }

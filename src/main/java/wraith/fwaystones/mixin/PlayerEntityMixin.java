@@ -37,7 +37,7 @@ public abstract class PlayerEntityMixin {
     public void applyDamage(DamageSource source, float amount, CallbackInfo ci) {
         if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) return;
 
-        WaystonePlayerData.getData(_this()).teleportCooldown(FabricWaystones.CONFIG.teleportation_cooldown.cooldown_ticks_when_hurt());
+        WaystonePlayerData.getData(_this()).teleportCooldown(FabricWaystones.CONFIG.teleportCooldowns.afterDamage());
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))

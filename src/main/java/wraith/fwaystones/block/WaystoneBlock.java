@@ -134,14 +134,17 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     @Override
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         var bottomState = world.getBlockState(pos);
-        if (FabricWaystones.CONFIG.worldgen.unbreakable_generated_waystones() && state.get(GENERATED)) {
+        var config = FabricWaystones.CONFIG;
+
+        if (config.unbreakableGeneratedWaystones() && state.get(GENERATED)) {
             return 0;
         }
+
         if (bottomState.getBlock() instanceof WaystoneBlock) {
             BlockPos entityPos = bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
             if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone){
                 var owner = waystone.getData().owner();
-                switch (FabricWaystones.CONFIG.permission_level_for_breaking_waystones()) {
+                switch (config.breakingWaystonePermission()) {
                     case OWNER -> {
                         if (owner != null && !player.getUuid().equals(owner)) return 0;
                     }
@@ -312,7 +315,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         var storage = WaystoneDataStorage.getStorage(player);
         var data = storage.createGetOrImportData(blockEntity);
 
-        if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.can_owners_redeem_payments() && player.getUuid().equals(data.owner())))) {
+        if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(data.owner())))) {
             if (blockEntity.hasStorage()) {
                 ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
@@ -326,7 +329,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 Identifier discoverItemId = Utils.getDiscoverItem();
                 if (!player.isCreative()) {
                     Item discoverItem = Registries.ITEM.get(discoverItemId);
-                    int discoverAmount = FabricWaystones.CONFIG.take_amount_from_discover_item();
+                    int discoverAmount = FabricWaystones.CONFIG.requiredDiscoveryAmount();
                     if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
                         player.sendMessage(Text.translatable(
                             "fwaystones.missing_discover_item",

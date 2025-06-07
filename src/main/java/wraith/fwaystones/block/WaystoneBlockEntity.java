@@ -163,10 +163,16 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     protected void addComponents(ComponentMap.Builder componentMapBuilder) {
         super.addComponents(componentMapBuilder);
 
-        var holder = WaystoneDataStorage.getStorage(this.world).removePositionAndExport(this);
+        var storage = WaystoneDataStorage.getStorage(this.world);
 
-        if (holder != null) {
-            componentMapBuilder.add(WaystoneDataComponents.DATA_HOLDER, holder);
+        if (FabricWaystones.CONFIG.allowSavingWaystoneData()) {
+            var holder = storage.removePositionAndExport(this);
+
+            if (holder != null) {
+                componentMapBuilder.add(WaystoneDataComponents.DATA_HOLDER, holder);
+            }
+        } else {
+            storage.removePositionAndData(this);
         }
     }
 
@@ -414,13 +420,13 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             return false;
         }
 
-        var cooldowns = FabricWaystones.CONFIG.teleportation_cooldown;
+        var cooldowns = FabricWaystones.CONFIG.teleportCooldowns;
         data.teleportCooldown(switch (source) {
-            case WAYSTONE -> cooldowns.cooldown_ticks_from_waystone();
-            case ABYSS_WATCHER -> cooldowns.cooldown_ticks_from_abyss_watcher();
-            case LOCAL_VOID -> cooldowns.cooldown_ticks_from_local_void();
-            case VOID_TOTEM -> cooldowns.cooldown_ticks_from_void_totem();
-            case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole();
+            case WAYSTONE -> cooldowns.usedWaystone();
+            case ABYSS_WATCHER -> cooldowns.usedAbyssWatcher();
+            case LOCAL_VOID -> cooldowns.usedLocalVoid();
+            case VOID_TOTEM -> cooldowns.usedVoidTotem();
+            case POCKET_WORMHOLE -> cooldowns.usedPockedWormhole();
         });
 
         var oldPos = player.getBlockPos();

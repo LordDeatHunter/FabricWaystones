@@ -248,9 +248,9 @@ public class UniversalWaystoneScreen<U extends UniversalWaystoneScreenHandler<?>
     }
 
     protected void renderCostItem(DrawContext context, int x, int y) {
-        var config = FabricWaystones.CONFIG.teleportation_cost;
+        var config = FabricWaystones.CONFIG.teleportCost;
         MutableText text;
-        switch (config.cost_type()) {
+        switch (config.type()) {
             case HEALTH -> {
                 context.drawTexture(texture, x, y + 4, 186, 15, 9, 9);
                 text = Text.translatable("fwaystones.cost.health");
@@ -286,8 +286,9 @@ public class UniversalWaystoneScreen<U extends UniversalWaystoneScreenHandler<?>
     }
 
     protected void renderCostText(DrawContext context, int x, int y, MutableText text, int color) {
-        if (!FabricWaystones.CONFIG.teleportation_cost.cost_type().equals(FWConfigModel.CostType.NONE)) {
-            text = text.append(Text.literal(": " + FabricWaystones.CONFIG.teleportation_cost.base_cost()));
+        var cost = FabricWaystones.CONFIG.teleportCost;
+        if (!cost.type().equals(FWConfigModel.CostType.NONE)) {
+            text = text.append(Text.literal(": " + cost.baseAmount()));
         }
         context.drawText(textRenderer, text, x + 16, y + 5, color, false);
     }

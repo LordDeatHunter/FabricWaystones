@@ -23,15 +23,39 @@ public final class WaystonesWorldgen {
         WAYSTONE_STRUCTURES.add(FabricWaystones.id("stone_brick_village_waystone"));
         WAYSTONE_STRUCTURES.add(FabricWaystones.id("village_waystone"));
 
-        FabricWaystones.CONFIG.add_waystone_structure_piece().forEach((identifier, originalStructure) -> VANILLA_VILLAGES.put(Identifier.of(identifier), FabricWaystones.id(originalStructure)));
+        FabricWaystones.CONFIG.structureAnchorToWaystoneAddition().forEach((structureAnchorIdStr, structureIdStr) -> {
+            var structureAnchorId = Identifier.tryParse(structureAnchorIdStr);
+
+            if (structureAnchorId == null) {
+                FabricWaystones.LOGGER.error("Unable to add the given struct anchor pair as the given Strcture Anchor Identifier was invalid: [Id: {}, StrctureId: {}]", structureAnchorIdStr, structureIdStr);
+
+                return;
+            }
+
+            var structureId = Identifier.tryParse(structureIdStr);
+
+            if (structureId == null) {
+                FabricWaystones.LOGGER.error("Unable to add the given struct anchor pair as the given Waystone Structure Identifier was invalid: [Id: {}, StrctureId: {}]", structureAnchorIdStr, structureIdStr);
+
+                return;
+            }
+
+            if (structureId.getNamespace().equals("minecraft")) {
+                structureId = FabricWaystones.id(structureId.getPath());
+            }
+
+            VANILLA_VILLAGES.put(structureAnchorId, structureId);
+        });
     }
 
     private WaystonesWorldgen() {}
 
     public static void registerVillage(MinecraftServer server, Identifier village, Identifier waystone) {
-        if (FabricWaystones.CONFIG.worldgen.generate_in_villages()) {
-            if (FabricWaystones.CONFIG.generalLoggingLevel().equals(FWConfigModel.LoggingLevel.ALL)) {
-                Utils.addToStructurePool(server, village, waystone, FabricWaystones.CONFIG.worldgen.village_waystone_weight());
+        var config = FabricWaystones.CONFIG;
+
+        if (config.generateInVillages()) {
+            if (config.generalLoggingLevel().equals(FWConfigModel.LoggingLevel.ALL)) {
+                Utils.addToStructurePool(server, village, waystone, config.villageWaystoneWeight());
             }
 
             FabricWaystones.LOGGER.info("Adding waystone {} to village {}", waystone.toString(), village.toString());

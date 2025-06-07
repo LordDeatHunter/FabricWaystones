@@ -130,15 +130,17 @@ public final class Utils {
     }
 
     public static int getCost(Vec3d startPos, Vec3d endPos, String startDim, String endDim) {
-        var config = FabricWaystones.CONFIG.teleportation_cost;
-        if (config.cost_type().equals(FWConfigModel.CostType.NONE)) return 0;
+        var config = FabricWaystones.CONFIG.teleportCost;
+        if (config.type().equals(FWConfigModel.CostType.NONE)) return 0;
 
-        float cost = config.base_cost();
+        float cost = config.baseAmount();
 
-        if (startDim.equals(endDim)) {
-            cost += (float) (Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.cost_per_block_distance());
-        } else {
-            cost *= config.cost_multiplier_between_dimensions();
+        if (startDim.equals(endDim) || config.allowBothMultipliers()) {
+            cost += (float) (Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.perBlockMultiplier());
+        }
+
+        if (!startDim.equals(endDim)) {
+            cost *= config.dimensionMultiplier();
         }
 
         return Math.round(cost);
@@ -146,8 +148,8 @@ public final class Utils {
 
     public static boolean isDimensionBlacklisted(String dim, boolean isSource) {
         var blacklist = isSource
-                ? FabricWaystones.CONFIG.disable_teleportation_from_dimensions()
-                : FabricWaystones.CONFIG.disable_teleportation_to_dimensions();
+                ? FabricWaystones.CONFIG.blacklistTeleportFromDimensions()
+                : FabricWaystones.CONFIG.blacklistTeleportToDimensions();
 
         if (blacklist.contains(dim)) return true;
 
@@ -177,7 +179,7 @@ public final class Utils {
     public static boolean canTeleport(PlayerEntity player, UUID uuid, TeleportSources source, boolean takeCost) {
         if (source == TeleportSources.VOID_TOTEM) return true;
 
-        FWConfigModel.CostType cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
+        var costType = FabricWaystones.CONFIG.teleportCost.type();
 
         var storage = WaystoneDataStorage.getStorage(player);
 
@@ -192,7 +194,7 @@ public final class Utils {
         var sourceDim = getDimensionName(player.getWorld());
         var destDim = position.worldName();
 
-        if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
+        if (!FabricWaystones.CONFIG.ignoreBlacklistForInterdimensionTravel() || !sourceDim.equals(destDim)) {
             if (isDimensionBlacklisted(sourceDim, true)) {
                 player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
                 return false;
@@ -203,7 +205,7 @@ public final class Utils {
             }
         }
 
-        if (source == TeleportSources.LOCAL_VOID && FabricWaystones.CONFIG.free_local_void_teleport()) {
+        if (source == TeleportSources.LOCAL_VOID && FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree()) {
             return true;
         }
 
@@ -211,7 +213,7 @@ public final class Utils {
 
         if (player.isCreative() || player.isSpectator()) return true;
 
-        switch (cost) {
+        switch (costType) {
             case HEALTH -> {
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
                     player.sendMessage(Text.translatable("fwaystones.no_teleport.health"), true);
@@ -349,18 +351,18 @@ public final class Utils {
 
     @Nullable
     public static Identifier getTeleportCostItem() {
-        var cost = FabricWaystones.CONFIG.teleportation_cost;
+        var cost = FabricWaystones.CONFIG.teleportCost;
 
-        return (cost.cost_type() == FWConfigModel.CostType.ITEM)
-                ? Identifier.tryParse(cost.cost_item())
+        return (cost.type() == FWConfigModel.CostType.ITEM)
+                ? cost.item()
                 : null;
     }
 
     @Nullable
     public static Identifier getDiscoverItem() {
-        var discoverStr = FabricWaystones.CONFIG.discover_with_item();
+        var discoverStr = FabricWaystones.CONFIG.requiredDiscoveryItem();
 
-        if (discoverStr.equals("none")) return null;
+        if (discoverStr.isBlank() || discoverStr.equals("none")) return null;
 
         return Identifier.tryParse(discoverStr);
     }

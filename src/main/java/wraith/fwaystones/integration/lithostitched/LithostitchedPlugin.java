@@ -23,22 +23,22 @@ public class LithostitchedPlugin {
      * Not 1:1 with normal behavior (particularly in modded villages with few house variants) but it's still fairly close.
      */
     public static List<StructurePoolElement> createPieces(String name) {
-        var config = FabricWaystones.CONFIG.worldgen;
+        var config = FabricWaystones.CONFIG;
         var elements = new ArrayList<StructurePoolElement>();
 
-        if (config.min_per_village() > 0) {
+        if (config.minPerVillage() > 0) {
             elements.add(new GuaranteedPoolElement(
                 SinglePoolElement.ofSingle(name).apply(StructurePool.Projection.RIGID),
                 Optional.empty(),
-                config.min_per_village()
+                config.minPerVillage()
             ));
         }
 
-        if (config.max_per_village() - config.min_per_village() > 0) {
+        if (config.maxPerVillage() - config.minPerVillage() > 0) {
             elements.add(new LimitedPoolElement(
                 SinglePoolElement.ofSingle(name).apply(StructurePool.Projection.RIGID),
                 Optional.empty(),
-                config.max_per_village() - config.min_per_village()
+                config.maxPerVillage() - config.minPerVillage()
             ));
         }
 

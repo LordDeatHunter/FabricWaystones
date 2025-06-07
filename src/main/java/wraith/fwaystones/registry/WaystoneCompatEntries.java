@@ -17,7 +17,7 @@ public final class WaystoneCompatEntries {
             .ifPresent(registry -> Registry.register(
                 (Registry<Supplier<Boolean>>) registry,
                     FabricWaystones.id("config"),
-                FabricWaystones.CONFIG.worldgen::generate_in_villages
+                FabricWaystones.CONFIG::generateInVillages
             ));
     }
 
