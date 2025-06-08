@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -316,12 +317,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 var closestPlayer = this.world.getClosestPlayer(
                     center.x, center.y, center.z,
                     4.5,
-                    false
+                    this::shouldWatchEntity
                 );
                 var others = this.world.getOtherEntities(
                     closestPlayer,
                     Box.of(center, 10, 10, 10),
-                    entity -> closestPlayer != entity
+                    this::shouldWatchEntity
                 );
                 if (closestPlayer != null) {
 //                    for (int i = 0; i < 100; i++)
@@ -342,6 +343,14 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 tickDelta = 0;
             }
         }
+    }
+
+    private boolean shouldWatchEntity(Entity entity) {
+        if (entity == null) return false;
+        if (!(entity instanceof PlayerEntity player)) return false;
+        if (!EntityPredicates.EXCEPT_SPECTATOR.test(player)) return false;
+        var data = WaystonePlayerData.getData(player);
+        return data.hasDiscoverdWaystone(getUUID());
     }
 
     private static Vec3d randomDirection(Random random) {
