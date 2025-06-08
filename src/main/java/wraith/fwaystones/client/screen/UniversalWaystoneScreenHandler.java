@@ -8,10 +8,10 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
 import org.jetbrains.annotations.NotNull;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.c2s.TeleportToWaystone;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
@@ -145,15 +145,9 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
 
     @Override
     public boolean canUse(PlayerEntity player) {
-        for (var hand : Hand.values()) {
-            var stack = player.getStackInHand(hand);
+        var ref = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(player, stack -> stack.contains(WaystoneDataComponents.TELEPORTER));
 
-            if (stack.contains(WaystoneDataComponents.TELEPORTER)) {
-                return true;
-            }
-        }
-
-        return false;
+        return ref != null;
     }
 
     public int getWaystonesCount() {

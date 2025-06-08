@@ -28,7 +28,7 @@ public abstract class LivingEntityMixin {
     @WrapMethod(method = "tryUseTotem")
     public boolean revive(DamageSource source, Operation<Boolean> original) {
         if (((LivingEntity) (Object) this) instanceof PlayerEntity player) {
-            ItemStack stack = WaystoneComponentEventHooks.getStack(player);
+            ItemStack stack = WaystoneComponentEventHooks.getVoidTotem(player);
 
             if (stack != null) {
                 player.setHealth(1.0F);

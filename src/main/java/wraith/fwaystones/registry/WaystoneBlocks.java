@@ -26,22 +26,11 @@ public final class WaystoneBlocks {
 
     public static final HashMap<String, Block> WAYSTONE_BLOCKS = new HashMap<>();
 
-    private static Identifier miningLevelTag;
-
     public static AbstractBlock.Settings createBaseSettings() {
-        return AbstractBlock.Settings.create().requiresTool().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000);
+        return AbstractBlock.Settings.create().requiresTool().strength(FabricWaystones.CONFIG.waystoneBlockHardness(), 3600000);
     }
 
     public static void init() {
-        var miningLevel = FabricWaystones.CONFIG.waystone_block_required_mining_level();
-
-        miningLevelTag = Identifier.of(switch (miningLevel) {
-            case 1 -> "minecraft:needs_stone_tool";
-            case 2 -> "minecraft:needs_iron_tool";
-            case 3 -> "minecraft:needs_diamond_tool";
-            default -> "fabric:needs_tool_level_" + miningLevel;
-        });
-
         registerAndAdd("waystone", WAYSTONE);
         registerAndAdd("desert_waystone", DESERT_WAYSTONE);
         registerAndAdd("stone_brick_waystone", STONE_BRICK_WAYSTONE);
@@ -56,7 +45,7 @@ public final class WaystoneBlocks {
     private static void registerAndAdd(String id, Block block) {
         WAYSTONE_BLOCKS.put(id, block);
         Registry.register(Registries.BLOCK, FabricWaystones.id(id), block);
-        TagInjector.inject(Registries.BLOCK, miningLevelTag, block);
+        TagInjector.inject(Registries.BLOCK, FabricWaystones.CONFIG.waystoneBlockMiningTag(), block);
     }
 
 }

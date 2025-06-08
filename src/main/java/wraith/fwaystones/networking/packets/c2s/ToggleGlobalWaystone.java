@@ -23,7 +23,7 @@ public record ToggleGlobalWaystone(UUID uuid) {
 
         if (!storage.hasData(uuid)) return;
 
-        PermissionLevel permissionLevel = FabricWaystones.CONFIG.global_mode_toggle_permission_levels();
+        PermissionLevel permissionLevel = FabricWaystones.CONFIG.globalTogglePermission();
 
         switch (permissionLevel) {
             case NONE: return;

@@ -2,19 +2,24 @@ package wraith.fwaystones.item;
 
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.ExtendedStackReference;
 import wraith.fwaystones.block.WaystoneBlock;
+import wraith.fwaystones.item.components.TooltipUtils;
 import wraith.fwaystones.item.components.WaystoneHashTarget;
 import wraith.fwaystones.item.components.WaystoneHashTargets;
 import wraith.fwaystones.registry.WaystoneDataComponents;
@@ -28,46 +33,18 @@ import java.util.HashSet;
 import java.util.UUID;
 
 public class WaystoneComponentEventHooks {
+
     public static void init() {
         UseItemCallback.EVENT.register((user, world, hand) -> {
             if (!user.isSpectator()) {
                 var stack = user.getStackInHand(hand);
 
-                if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) {
-                    if (world.isClient()) return TypedActionResult.success(stack);
+                if (world.isClient) return TypedActionResult.success(stack);
 
-                    var target = WaystoneHashTarget.get(stack, world);
+                if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) return useLocalVoid(world, user, stack);
+                if (stack.contains(WaystoneDataComponents.TELEPORTER)) return useTeleporter(user, stack);
 
-                    var canTeleport = stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEM);
-
-                    if (target == null) return canTeleport ? TypedActionResult.pass(stack) : TypedActionResult.fail(stack);
-
-                    var flag = target.allowTeleportOnUse();
-
-                    if (flag != null) canTeleport = flag;
-
-                    if (user.isSneaking()) {
-                        stack.remove(WaystoneDataComponents.HASH_TARGET);
-
-                        return TypedActionResult.pass(stack);
-                    }
-
-                    if (canTeleport) {
-                        var storage = WaystoneDataStorage.getStorage(world);
-                        var waystone = storage.getEntity(target.uuid());
-
-                        if (waystone == null) {
-                            stack.remove(WaystoneDataComponents.HASH_TARGET);
-                        } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.free_local_void_teleport(), TeleportSources.LOCAL_VOID) && !user.isCreative() && FabricWaystones.CONFIG.consume_local_void_on_use()) {
-                            stack.decrement(1);
-                            return TypedActionResult.consume(stack);
-                        }
-                    }
-
-                    return TypedActionResult.fail(stack);
-                } else if(stack.contains(WaystoneDataComponents.HAS_INFINITE_KNOWLEDGE)) {
-                    if (world.isClient) return TypedActionResult.success(stack);
-
+                if(stack.contains(WaystoneDataComponents.HAS_INFINITE_KNOWLEDGE)) {
                     var storage = WaystoneDataStorage.getStorage(world);
                     var playerData = WaystonePlayerData.getData(user);
 
@@ -91,31 +68,29 @@ public class WaystoneComponentEventHooks {
                     Text text;
                     if (learned > 0) {
                         if (learned > 1) {
-                            text = Text.translatable(
-                                    "fwaystones.learned.infinite.multiple",
-                                    Text.literal(String.valueOf(learned)).styled(style ->
-                                            style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.infinite.multiple.arg_color").getString()).getOrThrow())
-                                    )
+                            text = TooltipUtils.translationWithArg(
+                                    "learned.infinite.multiple",
+                                    String.valueOf(learned)
                             );
                         } else {
-                            text = Text.translatable("fwaystones.learned.infinite.single");
+                            text = TooltipUtils.translation("learned.infinite.single");
                         }
 
                         playerData.discoverWaystones(toLearn);
 
-                        if (!user.isCreative() && FabricWaystones.CONFIG.consume_infinite_knowledge_scroll_on_use()) {
+                        if (!user.isCreative() && FabricWaystones.CONFIG.shouldConsumeInfiniteKnowledgeScroll()) {
                             stack.decrement(1);
                         }
                     } else {
-                        text = Text.translatable("fwaystones.learned.infinite.none");
+                        text = TooltipUtils.translation("learned.infinite.none");
                     }
 
                     user.sendMessage(text, false);
 
                     return TypedActionResult.success(stack, world.isClient());
-                } else if (stack.contains(WaystoneDataComponents.HASH_TARGETS)) {
-                    if (world.isClient) return TypedActionResult.success(stack);
+                }
 
+                if (stack.contains(WaystoneDataComponents.HASH_TARGETS)) {
                     var targets = WaystoneHashTargets.get(stack, user.getWorld());
                     var playerData = WaystonePlayerData.getData(user);
 
@@ -139,32 +114,24 @@ public class WaystoneComponentEventHooks {
                     Text text;
                     if (learned > 0) {
                         if (learned > 1) {
-                            text = Text.translatable(
-                                    "fwaystones.learned.multiple",
-                                    Text.literal(String.valueOf(learned)).styled(style ->
-                                            style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.multiple.arg_color").getString()).getOrThrow())
-                                    )
+                            text = TooltipUtils.translationWithArg(
+                                    "learned.multiple",
+                                    String.valueOf(learned)
                             );
                         } else {
-                            text = Text.translatable("fwaystones.learned.single");
+                            text = TooltipUtils.translation("learned.single");
                         }
                         WaystonePlayerData.getData(user).discoverWaystones(toLearn);
                         if (!user.isCreative()) {
                             stack.decrement(1);
                         }
                     } else {
-                        text = Text.translatable("fwaystones.learned.none");
+                        text = TooltipUtils.translation("learned.none");
                     }
 
                     user.sendMessage(text, false);
 
                     return TypedActionResult.success(stack, false);
-                } else if(stack.contains(WaystoneDataComponents.TELEPORTER)) {
-                    var singleUse = stack.get(WaystoneDataComponents.TELEPORTER).oneTimeUse();
-
-                    user.openHandledScreen(createScreenHandlerFactory(singleUse));
-
-                    return TypedActionResult.consume(user.getStackInHand(hand));
                 }
             }
 
@@ -196,27 +163,85 @@ public class WaystoneComponentEventHooks {
 
             return ActionResult.PASS;
         });
+
+        WaystoneInteractionEvents.LOCATE_EQUIPMENT.register((player, predicate) -> {
+            for (var hand : Hand.values()) {
+                var currentStack = player.getStackInHand(hand);
+
+                if (predicate.test(currentStack)) {
+                    return ExtendedStackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack), stack -> {
+                        player.sendEquipmentBreakStatus(stack.getItem(), hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+                    });
+                }
+            }
+
+            return null;
+        });
     }
 
-    public static NamedScreenHandlerFactory createScreenHandlerFactory(boolean singleUse) {
+    public static TypedActionResult<ItemStack> useTeleporter(PlayerEntity user, ItemStack stack) {
+        var data = stack.get(WaystoneDataComponents.TELEPORTER);
+
+        if (data == null) return TypedActionResult.pass(ItemStack.EMPTY);
+
+        var singleUse = data.oneTimeUse();
+
         var title = Text.translatable("container." + FabricWaystones.MOD_ID + (singleUse ? ".abyss_watcher" : ".pocket_wormhole"));
 
-        return new SimpleNamedScreenHandlerFactory((i, inv, player) -> new PortableWaystoneScreenHandler(i, inv), title);
+        user.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, inv, player) -> new PortableWaystoneScreenHandler(i, inv), title));
+
+        return TypedActionResult.consume(stack);
+    }
+
+    public static TypedActionResult<ItemStack> useLocalVoid(World world, PlayerEntity user, ItemStack stack) {
+        var target = WaystoneHashTarget.get(stack, world);
+
+        var canTeleport = stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEM);
+
+        if (target == null) return canTeleport ? TypedActionResult.pass(stack) : TypedActionResult.fail(stack);
+
+        var flag = target.allowTeleportOnUse();
+
+        if (flag != null) canTeleport = flag;
+
+        if (user.isSneaking()) {
+            stack.remove(WaystoneDataComponents.HASH_TARGET);
+
+            return TypedActionResult.pass(stack);
+        }
+
+        if (canTeleport) {
+            var storage = WaystoneDataStorage.getStorage(world);
+            var waystone = storage.getEntity(target.uuid());
+
+            if (waystone == null) {
+                stack.remove(WaystoneDataComponents.HASH_TARGET);
+            } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree(), TeleportSources.LOCAL_VOID) && !user.isCreative() && FabricWaystones.CONFIG.shouldConsumeLocalVoid()) {
+                stack.decrement(1);
+                return TypedActionResult.consume(stack);
+            }
+        }
+
+        return TypedActionResult.fail(stack);
     }
 
     @Nullable
-    public static ItemStack getStack(PlayerEntity player) {
-        ItemStack stack = null;
+    public static ItemStack getVoidTotem(PlayerEntity player) {
+        var item = WaystoneItems.get("void_totem");
 
-        for (Hand hand : Hand.values()) {
-            var currentStack = player.getStackInHand(hand);
-            if (currentStack.getItem() != WaystoneItems.get("void_totem")) continue;
-            stack = currentStack.copy();
-            currentStack.decrement(1);
-            break;
-        }
+        var ref = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(player, currentStack -> currentStack.isOf(item));
 
-        return stack;
+        if (ref == null) return null;
+
+        var currentStack = ref.get();
+
+        ItemStack originalStack = currentStack.copy();
+
+        currentStack.decrement(1);
+
+        ref.set(currentStack);
+
+        return originalStack;
     }
 
     public static String getLocalVoidName(@Nullable ItemStack stack) {

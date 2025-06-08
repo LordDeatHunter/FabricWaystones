@@ -10,6 +10,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
+import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleEffect;
@@ -31,11 +32,14 @@ import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.core.ExtendedStackReference;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.WaystoneAccess;
 import wraith.fwaystones.api.core.WaystonePosition;
+import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.item.components.TooltipUtils;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
@@ -160,10 +164,16 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     protected void addComponents(ComponentMap.Builder componentMapBuilder) {
         super.addComponents(componentMapBuilder);
 
-        var holder = WaystoneDataStorage.getStorage(this.world).removePositionAndExport(this);
+        var storage = WaystoneDataStorage.getStorage(this.world);
 
-        if (holder != null) {
-            componentMapBuilder.add(WaystoneDataComponents.DATA_HOLDER, holder);
+        if (FabricWaystones.CONFIG.allowSavingWaystoneData()) {
+            var holder = storage.removePositionAndExport(this);
+
+            if (holder != null) {
+                componentMapBuilder.add(WaystoneDataComponents.DATA_HOLDER, holder);
+            }
+        } else {
+            storage.removePositionAndData(this);
         }
     }
 
@@ -416,22 +426,36 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (source == null) return false;
 
+        ExtendedStackReference stackReference = null;
+
+        if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
+            stackReference = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(playerEntity, stack -> {
+                var component = stack.get(WaystoneDataComponents.TELEPORTER);
+
+                return component != null && component.oneTimeUse();
+            });
+
+            if (stackReference == null) return false;
+        }
+
         var teleported = doTeleport(playerEntity, (ServerWorld) world, target, source, takeCost);
 
         if (!teleported) return false;
 
         if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
-            for (var hand : Hand.values()) {
-                var stack = playerEntity.getStackInHand(hand);
+            if (stackReference != null) {
+                var stack = stackReference.get();
                 var data = stack.get(WaystoneDataComponents.TELEPORTER);
 
                 if (data != null && data.oneTimeUse()) {
-                    player.sendEquipmentBreakStatus(stack.getItem(), hand.equals(Hand.MAIN_HAND) ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
-                    playerEntity.getStackInHand(hand).decrement(1);
-                    player.getWorld().playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
-                    break;
+                    stackReference.breakStack(stack.copy());
+
+                    stack.decrement(1);
+
+                    stackReference.set(stack);
                 }
             }
+
         }
 
         return true;
@@ -443,12 +467,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
-            player.sendMessage(Text.translatable(
-                "fwaystones.no_teleport_message.cooldown",
-                Text.literal(cooldownSeconds).styled(style ->
-                                                         style.withColor(TextColor.parse(Text.translatable(
-                                                             "fwaystones.no_teleport_message.cooldown.arg_color").getString()).getOrThrow())
-                )
+            player.sendMessage(TooltipUtils.translationWithArg(
+                    "no_teleport_message.cooldown",
+                    cooldownSeconds
             ), false);
             return false;
         }
@@ -457,13 +478,13 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             return false;
         }
 
-        var cooldowns = FabricWaystones.CONFIG.teleportation_cooldown;
+        var cooldowns = FabricWaystones.CONFIG.teleportCooldowns;
         data.teleportCooldown(switch (source) {
-            case WAYSTONE -> cooldowns.cooldown_ticks_from_waystone();
-            case ABYSS_WATCHER -> cooldowns.cooldown_ticks_from_abyss_watcher();
-            case LOCAL_VOID -> cooldowns.cooldown_ticks_from_local_void();
-            case VOID_TOTEM -> cooldowns.cooldown_ticks_from_void_totem();
-            case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole();
+            case WAYSTONE -> cooldowns.usedWaystone();
+            case ABYSS_WATCHER -> cooldowns.usedAbyssWatcher();
+            case LOCAL_VOID -> cooldowns.usedLocalVoid();
+            case VOID_TOTEM -> cooldowns.usedVoidTotem();
+            case POCKET_WORMHOLE -> cooldowns.usedPockedWormhole();
         });
 
         var oldPos = player.getBlockPos();
@@ -486,20 +507,16 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (player == null) {
             if (storage.setOwner(uuid, null)) {
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                                SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F
-                );
+                    SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F);
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                                SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F
-                );
+                    SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
             }
         } else {
             if (storage.setOwner(uuid, player)) {
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                                SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F
-                );
+                    SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F);
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                                SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F
-                );
+                    SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
             }
         }
         updateActiveState();

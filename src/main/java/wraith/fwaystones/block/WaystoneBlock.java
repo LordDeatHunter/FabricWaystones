@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
+import wraith.fwaystones.item.components.TooltipUtils;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.util.Utils;
@@ -134,14 +135,17 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     @Override
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         var bottomState = world.getBlockState(pos);
-        if (FabricWaystones.CONFIG.worldgen.unbreakable_generated_waystones() && state.get(GENERATED)) {
+        var config = FabricWaystones.CONFIG;
+
+        if (config.unbreakableGeneratedWaystones() && state.get(GENERATED)) {
             return 0;
         }
+
         if (bottomState.getBlock() instanceof WaystoneBlock) {
             BlockPos entityPos = bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
             if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone){
                 var owner = waystone.getData().owner();
-                switch (FabricWaystones.CONFIG.permission_level_for_breaking_waystones()) {
+                switch (config.breakingWaystonePermission()) {
                     case OWNER -> {
                         if (owner != null && !player.getUuid().equals(owner)) return 0;
                     }
@@ -312,7 +316,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         var storage = WaystoneDataStorage.getStorage(player);
         var data = storage.createGetOrImportData(blockEntity);
 
-        if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.can_owners_redeem_payments() && player.getUuid().equals(data.owner())))) {
+        if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(data.owner())))) {
             if (blockEntity.hasStorage()) {
                 ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
@@ -326,33 +330,28 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 Identifier discoverItemId = Utils.getDiscoverItem();
                 if (!player.isCreative()) {
                     Item discoverItem = Registries.ITEM.get(discoverItemId);
-                    int discoverAmount = FabricWaystones.CONFIG.take_amount_from_discover_item();
+                    int discoverAmount = FabricWaystones.CONFIG.requiredDiscoveryAmount();
                     if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
-                        player.sendMessage(Text.translatable(
-                            "fwaystones.missing_discover_item",
-                            discoverAmount,
-                            Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                style.withColor(TextColor.parse(Text.translatable("fwaystones.missing_discover_item.arg_color").getString()).getOrThrow())
-                            )
-                        ), false);
+                        player.sendMessage(
+                                TooltipUtils.translationWithArg(
+                                        "missing_discover_item",
+                                        discoverAmount,
+                                        Text.translatable(discoverItem.getTranslationKey())
+                                ), false);
                         return ActionResult.FAIL;
                     } else if (discoverItem != Items.AIR) {
                         Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
-                        player.sendMessage(Text.translatable(
-                            "fwaystones.discover_item_paid",
+                        player.sendMessage(TooltipUtils.translationWithArg(
+                            "discover_item_paid",
                             discoverAmount,
-                            Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_item_paid.arg_color").getString()).getOrThrow())
-                            )
+                            Text.translatable(discoverItem.getTranslationKey())
                         ), false);
                     }
                 }
 
-                player.sendMessage(Text.translatable(
-                    "fwaystones.discover_waystone",
-                    Text.empty().append(data.name()).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_waystone.arg_color").getString()).getOrThrow())
-                    )
+                player.sendMessage(TooltipUtils.translationWithArg(
+                    "discover_waystone",
+                        data.name()
                 ), false);
             }
             WaystonePlayerData.getData(player).discoverWaystone(blockEntity.getUUID());

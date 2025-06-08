@@ -1,6 +1,7 @@
 package wraith.fwaystones;
 
 import com.google.common.reflect.Reflection;
+import io.wispforest.owo.util.Wisdom;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
@@ -19,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
+import wraith.fwaystones.integration.accessories.AccessoriesCompat;
 import wraith.fwaystones.integration.xaeros.XaerosMinimapCompat;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.networking.packets.s2c.SyncWaystoneStorage;
@@ -56,7 +58,7 @@ public class FabricWaystones implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Is initializing.");
+        LOGGER.info("Wraith Waystones is initializing.");
 
         WaystoneDataComponents.init();
 
@@ -75,10 +77,15 @@ public class FabricWaystones implements ModInitializer {
 
         WaystoneComponentEventHooks.init();
 
-        LOGGER.info("Has successfully been initialized.");
+        LOGGER.info("Wraith Waystones has successfully been initialized. \\n Here take some wisdom: ");
+        Wisdom.spread();
 
         if (FabricLoader.getInstance().isModLoaded("xaerominimap")) {
             XaerosMinimapCompat.INSTANCE.setupEvents();
+        }
+
+        if (FabricLoader.getInstance().isModLoaded("accessories")) {
+            AccessoriesCompat.init();
         }
     }
 
