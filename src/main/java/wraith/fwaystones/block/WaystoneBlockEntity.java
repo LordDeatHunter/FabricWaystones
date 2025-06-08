@@ -39,6 +39,7 @@ import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.WaystoneAccess;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.item.components.TooltipUtils;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
@@ -406,12 +407,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
-            player.sendMessage(Text.translatable(
-                "fwaystones.no_teleport_message.cooldown",
-                Text.literal(cooldownSeconds).styled(style ->
-                    style.withColor(TextColor.parse(Text.translatable(
-                        "fwaystones.no_teleport_message.cooldown.arg_color").getString()).getOrThrow())
-                )
+            player.sendMessage(TooltipUtils.translationWithArg(
+                    "no_teleport_message.cooldown",
+                    cooldownSeconds
             ), false);
             return false;
         }

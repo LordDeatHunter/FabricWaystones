@@ -4,15 +4,19 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
+import net.minecraft.item.BlockItem;
 import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
 import wraith.fwaystones.integration.accessories.AccessoriesClientCompat;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.item.components.TooltipUtils;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.client.registry.WaystoneScreens;
 import wraith.fwaystones.networking.packets.c2s.AttemptTeleporterUse;
@@ -49,5 +53,15 @@ public class WaystonesClient implements ClientModInitializer {
         if (FabricLoader.getInstance().isModLoaded("accessories")) {
             AccessoriesClientCompat.init();
         }
+
+        ItemTooltipCallback.EVENT.register((stack, tooltipContext, tooltipType, lines) -> {
+            if (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof WaystoneBlock) {
+                var cooldownAmount = FabricWaystones.CONFIG.teleportCooldowns.usedWaystone();
+
+                if(cooldownAmount > 0) {
+                    lines.add(TooltipUtils.translationWithArg("cool_down.tooltip", String.valueOf(cooldownAmount / 20)));
+                }
+            }
+        });
     }
 }

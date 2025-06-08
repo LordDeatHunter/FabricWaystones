@@ -19,6 +19,7 @@ import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.ExtendedStackReference;
 import wraith.fwaystones.block.WaystoneBlock;
+import wraith.fwaystones.item.components.TooltipUtils;
 import wraith.fwaystones.item.components.WaystoneHashTarget;
 import wraith.fwaystones.item.components.WaystoneHashTargets;
 import wraith.fwaystones.registry.WaystoneDataComponents;
@@ -67,14 +68,12 @@ public class WaystoneComponentEventHooks {
                     Text text;
                     if (learned > 0) {
                         if (learned > 1) {
-                            text = Text.translatable(
-                                    "fwaystones.learned.infinite.multiple",
-                                    Text.literal(String.valueOf(learned)).styled(style ->
-                                            style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.infinite.multiple.arg_color").getString()).getOrThrow())
-                                    )
+                            text = TooltipUtils.translationWithArg(
+                                    "learned.infinite.multiple",
+                                    String.valueOf(learned)
                             );
                         } else {
-                            text = Text.translatable("fwaystones.learned.infinite.single");
+                            text = TooltipUtils.translation("learned.infinite.single");
                         }
 
                         playerData.discoverWaystones(toLearn);
@@ -83,7 +82,7 @@ public class WaystoneComponentEventHooks {
                             stack.decrement(1);
                         }
                     } else {
-                        text = Text.translatable("fwaystones.learned.infinite.none");
+                        text = TooltipUtils.translation("learned.infinite.none");
                     }
 
                     user.sendMessage(text, false);
@@ -115,21 +114,19 @@ public class WaystoneComponentEventHooks {
                     Text text;
                     if (learned > 0) {
                         if (learned > 1) {
-                            text = Text.translatable(
-                                    "fwaystones.learned.multiple",
-                                    Text.literal(String.valueOf(learned)).styled(style ->
-                                            style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.multiple.arg_color").getString()).getOrThrow())
-                                    )
+                            text = TooltipUtils.translationWithArg(
+                                    "learned.multiple",
+                                    String.valueOf(learned)
                             );
                         } else {
-                            text = Text.translatable("fwaystones.learned.single");
+                            text = TooltipUtils.translation("learned.single");
                         }
                         WaystonePlayerData.getData(user).discoverWaystones(toLearn);
                         if (!user.isCreative()) {
                             stack.decrement(1);
                         }
                     } else {
-                        text = Text.translatable("fwaystones.learned.none");
+                        text = TooltipUtils.translation("learned.none");
                     }
 
                     user.sendMessage(text, false);

@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
+import wraith.fwaystones.item.components.TooltipUtils;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.util.Utils;
@@ -331,31 +332,26 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     Item discoverItem = Registries.ITEM.get(discoverItemId);
                     int discoverAmount = FabricWaystones.CONFIG.requiredDiscoveryAmount();
                     if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
-                        player.sendMessage(Text.translatable(
-                            "fwaystones.missing_discover_item",
-                            discoverAmount,
-                            Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                style.withColor(TextColor.parse(Text.translatable("fwaystones.missing_discover_item.arg_color").getString()).getOrThrow())
-                            )
-                        ), false);
+                        player.sendMessage(
+                                TooltipUtils.translationWithArg(
+                                        "missing_discover_item",
+                                        discoverAmount,
+                                        Text.translatable(discoverItem.getTranslationKey())
+                                ), false);
                         return ActionResult.FAIL;
                     } else if (discoverItem != Items.AIR) {
                         Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
-                        player.sendMessage(Text.translatable(
-                            "fwaystones.discover_item_paid",
+                        player.sendMessage(TooltipUtils.translationWithArg(
+                            "discover_item_paid",
                             discoverAmount,
-                            Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_item_paid.arg_color").getString()).getOrThrow())
-                            )
+                            Text.translatable(discoverItem.getTranslationKey())
                         ), false);
                     }
                 }
 
-                player.sendMessage(Text.translatable(
-                    "fwaystones.discover_waystone",
-                    Text.empty().append(data.name()).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_waystone.arg_color").getString()).getOrThrow())
-                    )
+                player.sendMessage(TooltipUtils.translationWithArg(
+                    "discover_waystone",
+                        data.name()
                 ), false);
             }
             WaystonePlayerData.getData(player).discoverWaystone(blockEntity.getUUID());

@@ -10,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
@@ -110,12 +109,7 @@ public record WaystoneHashTargets(List<UUID> ids) implements ExtendedTooltipAppe
         if (storage != null) waystones = storage.getAllPositions();
 
         if (waystones != null) {
-            tooltip.accept(Text.translatable(
-                    "fwaystones.scroll.tooltip",
-                    Text.literal(String.valueOf(size)).styled(style ->
-                            style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.tooltip.arg_color").getString()).getOrThrow())
-                    )
-            ));
+            tooltip.accept(TooltipUtils.translationWithArg("scroll.tooltip", String.valueOf(size)));
         }
     }
 }

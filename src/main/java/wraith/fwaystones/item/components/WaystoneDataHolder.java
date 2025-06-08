@@ -6,7 +6,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.api.core.WaystoneData;
@@ -25,15 +24,10 @@ public record WaystoneDataHolder(WaystoneData data) implements ExtendedTooltipAp
 
         if (holder == null) return;
 
-        Text name = holder.data().name();
-        boolean global = holder.data().global();
-        tooltip.accept(Text.translatable(
-                "fwaystones.waystone_tooltip.name",
-                Text.empty().append(name).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.waystone_tooltip.name.arg_color").getString()).getOrThrow())
-                )
-        ));
-        tooltip.accept(Text.translatable("fwaystones.waystone_tooltip.global").append(" ")
-                .append(Text.translatable("fwaystones.waystone_tooltip.global_" + (global ? "on" : "off"))));
+        var name = holder.data().name();
+        var global = holder.data().global();
+
+        tooltip.accept(TooltipUtils.translationWithArg("waystone.tooltip.name", name));
+        tooltip.accept(TooltipUtils.translationWithArg("waystone.tooltip.global", TooltipUtils.translation("waystone.tooltip.global_" + (global ? "on" : "off"))));
     }
 }

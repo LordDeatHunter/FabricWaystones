@@ -9,7 +9,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
@@ -75,7 +74,7 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
         var translationName = WaystoneComponentEventHooks.getLocalVoidName(stack);
 
         if (uuid == WaystoneData.EMPTY_UUID) {
-            tooltip.accept(Text.translatable("fwaystones." + translationName + ".empty_tooltip"));
+            tooltip.accept(Text.translatable(TooltipUtils.translationKey(translationName + ".empty_tooltip")));
             return;
         }
 
@@ -85,11 +84,22 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
             if (data != null) name = data.name();
         }
 
-        tooltip.accept(Text.translatable(
-                "fwaystones." + translationName + ".tooltip",
-                Text.empty().append(name).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones." + translationName + ".tooltip.arg_color").getString()).getOrThrow())
-                )
-        ));
+        tooltip.accept(TooltipUtils.translationWithArg(translationName + ".tooltip", name));
+
+        var cooldowns = FabricWaystones.CONFIG.teleportCooldowns;
+
+        if (stack != null) {
+            var canTeleport = stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEM);
+
+            var allowTeleportOnUse = this.allowTeleportOnUse;
+
+            if (allowTeleportOnUse == null) allowTeleportOnUse = canTeleport;
+
+            var cooldownAmount = allowTeleportOnUse ? cooldowns.usedLocalVoid() : cooldowns.usedVoidTotem();
+
+            if (cooldownAmount > 0) {
+                tooltip.accept(TooltipUtils.translationWithArg("cool_down.tooltip", String.valueOf(cooldownAmount / 20)));
+            }
+        }
     }
 }

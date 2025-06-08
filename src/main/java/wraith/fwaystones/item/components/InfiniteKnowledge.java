@@ -6,7 +6,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.WaystoneDataStorage;
 
@@ -17,7 +16,7 @@ public record InfiniteKnowledge() implements ExtendedTooltipAppender {
 
     @Override
     public void appendTooltip(@Nullable ItemStack stack, Item.TooltipContext context, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(Text.translatable("fwaystones.scroll.infinite"));
+        tooltip.accept(TooltipUtils.translation("scroll_infinite"));
 
         var storage = WaystoneDataStorage.getStorageUnsafe();
 
@@ -26,12 +25,7 @@ public record InfiniteKnowledge() implements ExtendedTooltipAppender {
                 : -1;
 
         if (count != -1) {
-            tooltip.accept(Text.translatable(
-                    "fwaystones.scroll.infinite_tooltip",
-                    Text.literal(String.valueOf(count)).styled(style ->
-                            style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.infinite_tooltip.arg_color").getString()).getOrThrow())
-                    )
-            ));
+            tooltip.accept(TooltipUtils.translationWithArg("scroll_infinite.tooltip", String.valueOf(count)));
         }
     }
 }

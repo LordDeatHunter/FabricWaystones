@@ -14,6 +14,7 @@ import net.minecraft.util.Hand;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
+import wraith.fwaystones.item.components.TooltipUtils;
 import wraith.fwaystones.util.Utils;
 
 import java.util.List;
@@ -80,7 +81,7 @@ public class WaystoneDebuggerItem extends Item {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         super.appendTooltip(stack, context, tooltip, type);
-        tooltip.add(Text.translatable("fwaystones.debug.debugger_tooltip" + TOOLTIP_MESSAGE));
+        tooltip.add(TooltipUtils.translationWithArg("debug.debugger_tooltip_base", String.valueOf(TOOLTIP_MESSAGE)));
     }
 
 }
