@@ -74,7 +74,7 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
         var translationName = WaystoneComponentEventHooks.getLocalVoidName(stack);
 
         if (uuid == WaystoneData.EMPTY_UUID) {
-            tooltip.accept(Text.translatable(TooltipUtils.translationKey(translationName + ".empty_tooltip")));
+            tooltip.accept(Text.translatable(TextUtils.translationKey(translationName + ".empty_tooltip")));
             return;
         }
 
@@ -84,7 +84,7 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
             if (data != null) name = data.name();
         }
 
-        tooltip.accept(TooltipUtils.translationWithArg(translationName + ".tooltip", name));
+        tooltip.accept(TextUtils.translationWithArg(translationName + ".tooltip", name));
 
         var cooldowns = FabricWaystones.CONFIG.teleportCooldowns;
 
@@ -98,7 +98,7 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
             var cooldownAmount = allowTeleportOnUse ? cooldowns.usedLocalVoid() : cooldowns.usedVoidTotem();
 
             if (cooldownAmount > 0) {
-                tooltip.accept(TooltipUtils.translationWithArg("cool_down.tooltip", String.valueOf(cooldownAmount / 20)));
+                tooltip.accept(TextUtils.translationWithArg("cool_down.tooltip", String.valueOf(cooldownAmount / 20)));
             }
         }
     }

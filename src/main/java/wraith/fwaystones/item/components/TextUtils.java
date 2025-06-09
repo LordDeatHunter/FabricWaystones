@@ -4,7 +4,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import wraith.fwaystones.FabricWaystones;
 
-public class TooltipUtils {
+public class TextUtils {
     public static Text translationWithArg(String baseTranslationKey, String arg) {
         return translationWithArg(baseTranslationKey, Text.literal(arg));
     }

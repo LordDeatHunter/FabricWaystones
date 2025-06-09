@@ -5,12 +5,10 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
-import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleEffect;
@@ -23,8 +21,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
-import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
@@ -39,7 +35,7 @@ import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.WaystoneAccess;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
-import wraith.fwaystones.item.components.TooltipUtils;
+import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
@@ -81,12 +77,20 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return this.hash;
     }
 
+    @Nullable
     public UUID getUUID() {
-        return WaystoneDataStorage.getStorage(this.world).getUUID(this.position());
+        var uuid = WaystoneDataStorage.getStorage(this.world).getUUID(this.position());
+
+        if (uuid == null) return WaystoneData.EMPTY_UUID;
+
+        return uuid;
     }
 
     public void updateActiveState() {
         var data = this.getData();
+
+        if (data == null) return;
+
         if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (data.owner() == null)) {
             world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, data.ownerName() != null));
             world.setBlockState(pos.up(), world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, data.ownerName() != null));
@@ -187,6 +191,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (this.dataHolder != null) {
             WaystoneDataStorage.getStorage(this.world).createGetOrImportData(this);
+
+            this.updateActiveState();
         }
     }
 
@@ -467,7 +473,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
-            player.sendMessage(TooltipUtils.translationWithArg(
+            player.sendMessage(TextUtils.translationWithArg(
                     "no_teleport_message.cooldown",
                     cooldownSeconds
             ), false);

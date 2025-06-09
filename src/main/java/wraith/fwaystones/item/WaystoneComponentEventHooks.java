@@ -4,11 +4,9 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -19,7 +17,7 @@ import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.ExtendedStackReference;
 import wraith.fwaystones.block.WaystoneBlock;
-import wraith.fwaystones.item.components.TooltipUtils;
+import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.item.components.WaystoneHashTarget;
 import wraith.fwaystones.item.components.WaystoneHashTargets;
 import wraith.fwaystones.registry.WaystoneDataComponents;
@@ -68,12 +66,12 @@ public class WaystoneComponentEventHooks {
                     Text text;
                     if (learned > 0) {
                         if (learned > 1) {
-                            text = TooltipUtils.translationWithArg(
+                            text = TextUtils.translationWithArg(
                                     "learned.infinite.multiple",
                                     String.valueOf(learned)
                             );
                         } else {
-                            text = TooltipUtils.translation("learned.infinite.single");
+                            text = TextUtils.translation("learned.infinite.single");
                         }
 
                         playerData.discoverWaystones(toLearn);
@@ -82,7 +80,7 @@ public class WaystoneComponentEventHooks {
                             stack.decrement(1);
                         }
                     } else {
-                        text = TooltipUtils.translation("learned.infinite.none");
+                        text = TextUtils.translation("learned.infinite.none");
                     }
 
                     user.sendMessage(text, false);
@@ -114,19 +112,19 @@ public class WaystoneComponentEventHooks {
                     Text text;
                     if (learned > 0) {
                         if (learned > 1) {
-                            text = TooltipUtils.translationWithArg(
+                            text = TextUtils.translationWithArg(
                                     "learned.multiple",
                                     String.valueOf(learned)
                             );
                         } else {
-                            text = TooltipUtils.translation("learned.single");
+                            text = TextUtils.translation("learned.single");
                         }
                         WaystonePlayerData.getData(user).discoverWaystones(toLearn);
                         if (!user.isCreative()) {
                             stack.decrement(1);
                         }
                     } else {
-                        text = TooltipUtils.translation("learned.none");
+                        text = TextUtils.translation("learned.none");
                     }
 
                     user.sendMessage(text, false);

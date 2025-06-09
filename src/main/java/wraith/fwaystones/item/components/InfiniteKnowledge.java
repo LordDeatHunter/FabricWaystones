@@ -16,7 +16,7 @@ public record InfiniteKnowledge() implements ExtendedTooltipAppender {
 
     @Override
     public void appendTooltip(@Nullable ItemStack stack, Item.TooltipContext context, Consumer<Text> tooltip, TooltipType type) {
-        tooltip.accept(TooltipUtils.translation("scroll_infinite"));
+        tooltip.accept(TextUtils.translation("scroll_infinite"));
 
         var storage = WaystoneDataStorage.getStorageUnsafe();
 
@@ -25,7 +25,7 @@ public record InfiniteKnowledge() implements ExtendedTooltipAppender {
                 : -1;
 
         if (count != -1) {
-            tooltip.accept(TooltipUtils.translationWithArg("scroll_infinite.tooltip", String.valueOf(count)));
+            tooltip.accept(TextUtils.translationWithArg("scroll_infinite.tooltip", String.valueOf(count)));
         }
     }
 }

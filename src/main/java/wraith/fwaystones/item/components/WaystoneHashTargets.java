@@ -109,7 +109,7 @@ public record WaystoneHashTargets(List<UUID> ids) implements ExtendedTooltipAppe
         if (storage != null) waystones = storage.getAllPositions();
 
         if (waystones != null) {
-            tooltip.accept(TooltipUtils.translationWithArg("scroll.tooltip", String.valueOf(size)));
+            tooltip.accept(TextUtils.translationWithArg("scroll.tooltip", String.valueOf(size)));
         }
     }
 }

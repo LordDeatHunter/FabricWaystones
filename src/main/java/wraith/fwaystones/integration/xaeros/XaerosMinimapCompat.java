@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
@@ -11,13 +12,16 @@ import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystoneEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.WaystonePosition;
+import xaero.common.minimap.waypoints.Waypoint;
 import xaero.common.minimap.waypoints.WaypointVisibilityType;
 import xaero.hud.minimap.BuiltInHudModules;
 import xaero.hud.minimap.waypoint.WaypointColor;
+import xaero.hud.minimap.waypoint.WaypointPurpose;
 import xaero.hud.minimap.waypoint.set.WaypointSet;
 import xaero.hud.minimap.world.MinimapWorld;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -32,6 +36,11 @@ public class XaerosMinimapCompat {
     private WaypointColor color = null;
     private boolean useSeperateSet = false;
     private WaypointVisibilityType visibilityType = WaypointVisibilityType.LOCAL;
+
+    private final Map<UUID, Waypoint> uuidToPoint = new ConcurrentHashMap<>();
+    private final Map<Waypoint, UUID> pointToUUID = new ConcurrentHashMap<>();
+
+    private final Map<Waypoint, WaystonePosition> pointToPosition = new ConcurrentHashMap<>();
 
     public void color(@Nullable WaypointColor color) {
         this.color = color;
@@ -59,24 +68,24 @@ public class XaerosMinimapCompat {
             var pos = storage.getPosition(uuid);
             if (pos == null) return;
 
-            WaystonePoint.deletePointAt(pos);
-            addWaystone(pos, getOrCreateSet(pos));
+            deleteWaypoint(uuid);
+            addWaypoint(pos, getOrCreateSet(pos));
         });
         WaystoneEvents.ON_WAYSTONE_DISCOVERY.register((player, uuid, pos) -> {
             if (pos == null) return;
 
-            addWaystone(pos, getOrCreateSet(pos));
+            addWaypoint(pos, getOrCreateSet(pos));
         });
         WaystoneEvents.ON_WAYSTONE_FORGOTTEN.register((player, uuid, pos) -> {
             if (pos == null) return;
 
-            WaystonePoint.deletePointAt(pos);
+            deleteWaypoint(uuid);
         });
         WaystoneEvents.ON_ALL_WAYSTONES_FORGOTTEN.register((p, uuids) -> {
             var storage = getStorage();
             if (storage == null) return;
 
-            WaystonePoint.deleteAll();
+            deleteAllWaypoints();
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (this.shouldSync) {
@@ -89,9 +98,9 @@ public class XaerosMinimapCompat {
         });
         WaystoneEvents.ON_WAYSTONE_POSITION_UPADTE.register((uuid, position, wasRemoved) -> {
             if (wasRemoved) {
-                WaystonePoint.deletePointAt(position);
+                deleteWaypoint(uuid);
             } else {
-                addWaystone(position, getOrCreateSet(position));
+                addWaypoint(position, getOrCreateSet(position));
             }
         });
     }
@@ -107,11 +116,11 @@ public class XaerosMinimapCompat {
         if (currentWorld == null) return false;
 
         try {
-            WaystonePoint.deleteAll();
+            deleteAllWaypoints();
 
             for (var pos : waystones) {
                 try {
-                    addWaystone(pos, getOrCreateSet(pos));
+                    addWaypoint(pos, getOrCreateSet(pos));
                 } catch (final Exception e) {
                     FabricWaystones.LOGGER.error("An exception has occured when attempting to sync a waystone position: [Pos: {}]", pos, e);
                 }
@@ -123,14 +132,35 @@ public class XaerosMinimapCompat {
         return true;
     }
 
-    private void addWaystone(final WaystonePosition pos, final WaypointSet waypointsList) {
+    private void addWaypoint(final WaystonePosition pos, final WaypointSet waypointsList) {
         var storage = getStorage();
         if (storage == null) return;
 
         var data = storage.getData(pos);
         if (data == null) return;
 
-        var waypoint = new WaystonePoint(data, pos, waypointsList);
+        var waypoint1 = new Waypoint(
+                pos.blockPos().getX(),
+                pos.blockPos().getY() + 1,
+                pos.blockPos().getZ(),
+                data.nameAsString(),
+                "",
+                WaypointColor.PURPLE, //TODO: override this color with 0x5F3D75
+                WaypointPurpose.NORMAL,
+                true,
+                true
+        );
+
+        deleteWaypoint(data.uuid());
+
+        uuidToPoint.put(data.uuid(), waypoint1);
+        pointToUUID.put(waypoint1, data.uuid());
+
+        pointToPosition.put(waypoint1, pos);
+
+        waypointsList.add(waypoint1);
+
+        var waypoint = waypoint1;
 
         waypoint.setVisibility(visibilityType);
     }
@@ -139,6 +169,37 @@ public class XaerosMinimapCompat {
         var waypointWorld = getWorldOrThrow(position);
 
         return getOrCreateSet(waypointWorld, this.useSeperateSet ? "Wraith Waystones" : "gui.xaero_default");
+    }
+
+    public void deleteWaypoint(UUID uuid) {
+        var point = uuidToPoint.remove(uuid);
+
+        if (point != null) {
+            pointToUUID.remove(point);
+            deleteWaypointFromPosition(point);
+        }
+    }
+
+    public void deleteAllWaypoints() {
+        for (var entry : uuidToPoint.entrySet()) {
+            deleteWaypointFromPosition(entry.getValue());
+        }
+
+        uuidToPoint.clear();
+        pointToUUID.clear();
+    }
+
+    public void deleteWaypointFromPosition(Waypoint point) {
+        var position = pointToPosition.remove(point);
+
+        if(position != null) {
+            getOrCreateSet(position).remove(point);
+        }
+    }
+
+    @Nullable
+    public UUID getWaystoneUUID(Waypoint waypoint) {
+        return pointToUUID.get(waypoint);
     }
 
     //--

@@ -16,7 +16,7 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
 import wraith.fwaystones.integration.accessories.AccessoriesClientCompat;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
-import wraith.fwaystones.item.components.TooltipUtils;
+import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.client.registry.WaystoneScreens;
 import wraith.fwaystones.networking.packets.c2s.AttemptTeleporterUse;
@@ -59,7 +59,7 @@ public class WaystonesClient implements ClientModInitializer {
                 var cooldownAmount = FabricWaystones.CONFIG.teleportCooldowns.usedWaystone();
 
                 if(cooldownAmount > 0) {
-                    lines.add(TooltipUtils.translationWithArg("cool_down.tooltip", String.valueOf(cooldownAmount / 20)));
+                    lines.add(TextUtils.translationWithArg("cool_down.tooltip", String.valueOf(cooldownAmount / 20)));
                 }
             }
         });

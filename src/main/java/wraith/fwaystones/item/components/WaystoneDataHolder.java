@@ -27,7 +27,7 @@ public record WaystoneDataHolder(WaystoneData data) implements ExtendedTooltipAp
         var name = holder.data().name();
         var global = holder.data().global();
 
-        tooltip.accept(TooltipUtils.translationWithArg("waystone.tooltip.name", name));
-        tooltip.accept(TooltipUtils.translationWithArg("waystone.tooltip.global", TooltipUtils.translation("waystone.tooltip.global_" + (global ? "on" : "off"))));
+        tooltip.accept(TextUtils.translationWithArg("waystone.tooltip.name", name));
+        tooltip.accept(TextUtils.translationWithArg("waystone.tooltip.global", TextUtils.translation("waystone.tooltip.global_" + (global ? "on" : "off"))));
     }
 }

@@ -24,7 +24,6 @@ import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
@@ -41,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
-import wraith.fwaystones.item.components.TooltipUtils;
+import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.util.Utils;
@@ -266,6 +265,10 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         }
         var fluidState = world.getFluidState(pos.up());
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
+
+        if (placer instanceof ServerPlayerEntity && world.getBlockEntity(pos) instanceof WaystoneBlockEntity blockEntity) {
+            blockEntity.updateActiveState();
+        }
     }
 
     @Override
@@ -333,7 +336,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     int discoverAmount = FabricWaystones.CONFIG.requiredDiscoveryAmount();
                     if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
                         player.sendMessage(
-                                TooltipUtils.translationWithArg(
+                                TextUtils.translationWithArg(
                                         "missing_discover_item",
                                         discoverAmount,
                                         Text.translatable(discoverItem.getTranslationKey())
@@ -341,7 +344,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                         return ActionResult.FAIL;
                     } else if (discoverItem != Items.AIR) {
                         Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
-                        player.sendMessage(TooltipUtils.translationWithArg(
+                        player.sendMessage(TextUtils.translationWithArg(
                             "discover_item_paid",
                             discoverAmount,
                             Text.translatable(discoverItem.getTranslationKey())
@@ -349,7 +352,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     }
                 }
 
-                player.sendMessage(TooltipUtils.translationWithArg(
+                player.sendMessage(TextUtils.translationWithArg(
                     "discover_waystone",
                         data.name()
                 ), false);

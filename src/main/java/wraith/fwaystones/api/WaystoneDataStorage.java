@@ -294,10 +294,12 @@ public class WaystoneDataStorage {
         this.waystoneLookupCache.clear();
     }
 
-    public WaystonePosition getHashFromUnsafeHash(WaystonePosition hash) {
-        if (!hash.isUnsafe()) return hash;
+    public WaystonePosition getHashFromUnsafeHash(WaystonePosition position) {
+        if (!position.isUnsafe()) return position;
 
-        return getPosition(getData(hash));
+        var data = getData(position);
+
+        return getPosition(data);
     }
 
     //--
@@ -367,7 +369,7 @@ public class WaystoneDataStorage {
 
         var data = holder.data();
 
-        if (hasData(data.uuid())) {
+        if (hasData(data.uuid()) && hasPosition(data.uuid())) {
             var uuid = getUniqueUUID();
 
             data = data.cloneWithUUID(uuid);
@@ -419,9 +421,11 @@ public class WaystoneDataStorage {
     private void removePosition(UUID uuid, boolean sync) {
         var position = uuidToPosition.remove(uuid);
 
-        if (position != null) positionToUUID.remove(position);
+        if (position != null) {
+            positionToUUID.remove(position);
 
-        if (sync) syncPositionChange(uuid, position, false);
+            if (sync) syncPositionChange(uuid, position, true);
+        }
     }
 
     public void removeAllFromWorld(String worldName) {

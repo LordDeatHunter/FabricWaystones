@@ -27,7 +27,7 @@ public record WaystoneTeleporter(boolean oneTimeUse) implements ExtendedTooltipA
         var cooldownAmount = oneTimeUse ? cooldowns.usedAbyssWatcher() : cooldowns.usedPockedWormhole();
 
         if(cooldownAmount > 0) {
-            tooltip.accept(TooltipUtils.translationWithArg("cool_down.tooltip", String.valueOf(cooldownAmount / 20)));
+            tooltip.accept(TextUtils.translationWithArg("cool_down.tooltip", String.valueOf(cooldownAmount / 20)));
         }
     }
 }
