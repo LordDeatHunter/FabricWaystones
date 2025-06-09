@@ -191,6 +191,7 @@ public class WaystonePlayerData {
                 this.discoveredWaystones.clear();
                 this.discoveredWaystones.addAll(waystones);
 
+                // TODO: REWORK TO PREVENT REDISCOVERY OF ALREADY DISCOVERED WAYSTONES
                 for (var uuid : waystones) {
                     WaystoneEvents.ON_WAYSTONE_DISCOVERY.invoker().onDiscovery(this.player, uuid, storage.getPosition(uuid));
                 }

@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
 import wraith.fwaystones.integration.accessories.AccessoriesCompat;
-import wraith.fwaystones.integration.xaeros.XaerosMinimapCompat;
+import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.networking.packets.s2c.SyncWaystoneStorage;
 import wraith.fwaystones.registry.WaystoneDataComponents;
@@ -79,10 +79,6 @@ public class FabricWaystones implements ModInitializer {
 
         LOGGER.info("Wraith Waystones has successfully been initialized. \\n Here take some wisdom: ");
         Wisdom.spread();
-
-        if (FabricLoader.getInstance().isModLoaded("xaerominimap")) {
-            XaerosMinimapCompat.INSTANCE.setupEvents();
-        }
 
         if (FabricLoader.getInstance().isModLoaded("accessories")) {
             AccessoriesCompat.init();

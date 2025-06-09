@@ -1,5 +1,6 @@
 package wraith.fwaystones.client;
 
+import com.google.common.reflect.Reflection;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -16,6 +17,7 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
 import wraith.fwaystones.integration.accessories.AccessoriesClientCompat;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.client.registry.WaystoneScreens;
@@ -63,5 +65,9 @@ public class WaystonesClient implements ClientModInitializer {
                 }
             }
         });
+
+        if (FabricLoader.getInstance().isModLoaded("xaerominimap")) {
+            Reflection.initialize(XaerosMinimapWaypointMaker.class);
+        }
     }
 }

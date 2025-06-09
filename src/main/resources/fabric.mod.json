@@ -23,7 +23,7 @@
       "wraith.fwaystones.client.WaystonesClient"
     ],
     "journeymap": [
-      "wraith.fwaystones.integration.journeymap.JourneymapPlugin"
+      "wraith.fwaystones.integration.journeymap.JourneymapWaypointMaker"
     ]
   },
   "mixins": [

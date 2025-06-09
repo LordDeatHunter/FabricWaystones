@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.core.WaystoneData;
-import wraith.fwaystones.integration.xaeros.XaerosMinimapCompat;
+import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import wraith.fwaystones.mixin.client.DrawContextAccessor;
 import xaero.common.minimap.render.MinimapRendererHelper;
 import xaero.common.minimap.waypoints.Waypoint;
@@ -39,7 +39,7 @@ public abstract class WaypointWorldRenderer {
     @Inject(method = "renderIconWithLabels", at = @At("HEAD"))
     private void testIfWaypointIsFromWaystone(Waypoint w, boolean highlit, String name, String distanceText, String subWorldName, float iconScale, int nameScale, int distanceTextScale, TextRenderer fontRenderer, int halfIconPixel, MatrixStack matrixStack, VertexConsumerProvider.Immediate bufferSource, CallbackInfo ci,
                       @Local(argsOnly = true, ordinal = 0) LocalRef<String> nameRef) {
-        var uuid = XaerosMinimapCompat.INSTANCE.getWaystoneUUID(w);
+        var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
 
         if (uuid != null) {
             nameRef.set("fwaystones:will_be_replaced");
@@ -48,7 +48,7 @@ public abstract class WaypointWorldRenderer {
 
     @WrapOperation(method = "renderIconWithLabels", at = @At(value = "INVOKE", target = "Lxaero/hud/minimap/waypoint/render/world/WaypointWorldRenderer;renderWaypointLabel(Ljava/lang/String;Lnet/minecraft/client/util/math/MatrixStack;Lxaero/common/minimap/render/MinimapRendererHelper;Lnet/minecraft/client/font/TextRenderer;IF)V", ordinal = 1))
     private void setupWaystoneUUIDCache(xaero.hud.minimap.waypoint.render.world.WaypointWorldRenderer instance, String label, MatrixStack matrixStack, MinimapRendererHelper helper, TextRenderer fontRenderer, int labelScale, float bgAlpha, Operation<Void> original, @Local(argsOnly = true) Waypoint w) {
-        var uuid = XaerosMinimapCompat.INSTANCE.getWaystoneUUID(w);
+        var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
 
         var hasSetupUUID = label.equals(NAME_KEY) && uuid != null;
 
@@ -92,7 +92,7 @@ public abstract class WaypointWorldRenderer {
 
     @WrapMethod(method = "renderIcon")
     private void drawWaystoneIconInstead(Waypoint w, boolean highlit, MatrixStack matrixStack, TextRenderer fontRenderer, VertexConsumerProvider.Immediate bufferSource, Operation<Void> original) {
-        var uuid = XaerosMinimapCompat.INSTANCE.getWaystoneUUID(w);
+        var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
 
         if (uuid != null) {
             var storage = WaystoneDataStorage.getStorage(MinecraftClient.getInstance());

@@ -1,5 +1,7 @@
 package wraith.fwaystones.client.screen;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -133,6 +135,7 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
         }
     }
 
+    @Environment(EnvType.CLIENT)
     protected void closeOnClient() {
         if (!(player instanceof ClientPlayerEntity clientPlayer)) return;
 
