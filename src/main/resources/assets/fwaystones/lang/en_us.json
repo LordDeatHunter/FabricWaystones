@@ -350,5 +350,16 @@
   "text.config.fwaystones.option.villageWaystoneWeight.tooltip": "The weight used to generated waystones within the village if min/max are unconfigured (i.e. both equals '1')",
 
   "text.config.fwaystones.option.structureAnchorToWaystoneAddition": "Village Structure Anchor To Waystone Structure",
-  "text.config.fwaystones.option.structureAnchorToWaystoneAddition.tooltip": "Which structures pieces to be added to which village pools"
+  "text.config.fwaystones.option.structureAnchorToWaystoneAddition.tooltip": "Which structures pieces to be added to which village pools",
+
+  "subtitles.block.fwaystones.waystone.activate": "Waystone activates",
+
+  "subtitles.block.fwaystones.waystone.shut_down": "Waystone shuts down",
+
+  "subtitles.block.fwaystones.waystone.teleport_player": "Waystone teleports player",
+
+  "subtitles.block.fwaystones.waystone.clean_sponge": "Waystone takes your sponge and cleans itself before returning it to you",
+  "subtitles.block.fwaystones.waystone.clean_bucket": "Waystone takes your bucket and cleans itself before returning it to you",
+  "subtitles.block.fwaystones.waystone.clean_bucket_steal": "Waystone takes your bucket and cleans itself before eating it"
+
 }

@@ -37,6 +37,7 @@ public class WaystoneComponentEventHooks {
             if (!user.isSpectator()) {
                 var stack = user.getStackInHand(hand);
 
+                //TODO: this makes every item swing when right-clicked, which is not ideal
                 if (world.isClient) return TypedActionResult.success(stack);
 
                 if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) return useLocalVoid(world, user, stack);

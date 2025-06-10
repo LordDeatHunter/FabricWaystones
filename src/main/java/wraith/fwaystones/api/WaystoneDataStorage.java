@@ -355,7 +355,7 @@ public class WaystoneDataStorage {
         return Collections.unmodifiableSet(uuidToData.keySet());
     }
 
-    public WaystoneData createGetOrImportData(WaystoneBlockEntity blockEntity) {
+    public WaystoneData createGetOrImportData(WaystoneBlockEntity blockEntity, int color) {
         if (isClient) return null;
 
         var pos = blockEntity.position();
@@ -364,7 +364,7 @@ public class WaystoneDataStorage {
         if (holder == null) {
             if (hasData(pos)) return getData(pos);
 
-            return createData(pos, blockEntity.getCustomName());
+            return createData(pos, blockEntity.getCustomName(), color);
         }
 
         var data = holder.data();
@@ -384,8 +384,8 @@ public class WaystoneDataStorage {
         return data;
     }
 
-    public WaystoneData createData(WaystonePosition position, Text name) {
-        var data = new WaystoneData(name);
+    public WaystoneData createData(WaystonePosition position, Text name, int color) {
+        var data = new WaystoneData(name, color);
 
         addData(data);
 

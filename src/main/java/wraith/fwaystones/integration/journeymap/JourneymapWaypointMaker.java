@@ -82,7 +82,7 @@ public class JourneymapWaypointMaker extends WaystoneWaypointMaker<String> imple
 
         var waypoint = WaypointFactory.createClientWaypoint(
                 getModId(),
-                pos.blockPos(),
+                pos.blockPos().add(0, 1,0),
                 Strings.isNullOrEmpty(name) ? "Unnamed Waystone" : name,
                 pos.worldName(),
                 false
@@ -92,7 +92,7 @@ public class JourneymapWaypointMaker extends WaystoneWaypointMaker<String> imple
 
         try {
             waypoint.setColor(data.color());
-            waypoint.setIconColor(null); // so icon is not colored
+            waypoint.setIconColor(0xffffff); // so icon is not colored
             waypoint.setEnabled(displayWaypoints.get());
             this.api.addWaypoint(getModId(), waypoint);
 

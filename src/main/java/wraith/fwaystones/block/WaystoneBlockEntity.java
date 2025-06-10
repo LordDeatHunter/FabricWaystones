@@ -1,5 +1,6 @@
 package wraith.fwaystones.block;
 
+import io.wispforest.owo.ops.WorldOps;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
@@ -11,6 +12,9 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.predicate.entity.EntityPredicates;
@@ -19,7 +23,6 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
@@ -185,12 +188,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     protected void readComponents(ComponentsAccess components) {
         super.readComponents(components);
 
-        var holder = components.get(WaystoneDataComponents.DATA_HOLDER);
-
-        this.dataHolder = holder;
+        this.dataHolder = components.get(WaystoneDataComponents.DATA_HOLDER);
 
         if (this.dataHolder != null) {
-            WaystoneDataStorage.getStorage(this.world).createGetOrImportData(this);
+            WaystoneDataStorage.getStorage(this.world).createGetOrImportData(this, dataHolder.data().color());
 
             this.updateActiveState();
         }
@@ -204,9 +205,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     public void markDirty() {
         super.markDirty();
-        if (world != null && world instanceof ServerWorld serverWorld) {
-            serverWorld.getChunkManager().markForUpdate(pos);
-        }
+        WorldOps.updateIfOnServer(world, pos);
+        WorldOps.updateIfOnServer(world, pos.up());
     }
 
     public DefaultedList<ItemStack> getInventory() {
@@ -494,14 +494,14 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         });
 
         var oldPos = player.getBlockPos();
-        player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        if (!oldPos.isWithinDistance(target.pos(), 6) || !player.getWorld().getRegistryKey().equals(target.world().getRegistryKey())) {
+            player.getWorld().playSound(null, oldPos, FabricWaystones.WAYSTONE_TELEPORT_PLAYER, SoundCategory.BLOCKS, 1F, 1F);
+        }
         player.detach();
         player.teleportTo(target);
         BlockPos playerPos = player.getBlockPos();
 
-        if (!oldPos.isWithinDistance(playerPos, 6) || !player.getWorld().getRegistryKey().equals(world.getRegistryKey())) {
-            world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
-        }
+        world.playSound(null, playerPos, FabricWaystones.WAYSTONE_TELEPORT_PLAYER, SoundCategory.BLOCKS, 1F, 1F);
 
         return true;
     }
@@ -512,17 +512,13 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (player == null) {
             if (storage.setOwner(uuid, null)) {
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F);
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
+                world.playSound(null, pos, FabricWaystones.WAYSTONE_DEATIVATE, SoundCategory.BLOCKS, 1F, 1F);
+                world.playSound(null, pos, FabricWaystones.WAYSTONE_DEACTIVATE2, SoundCategory.BLOCKS, 1F, 1F);
             }
         } else {
             if (storage.setOwner(uuid, player)) {
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F);
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
+                world.playSound(null, pos, FabricWaystones.WAYSTONE_INITIALIZE, SoundCategory.BLOCKS, 1F, 1F);
+                world.playSound(null, pos, FabricWaystones.WAYSTONE_ACTIVATE, SoundCategory.BLOCKS, 1F, 1F);
             }
         }
         updateActiveState();
@@ -555,5 +551,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     public WaystoneScreenOpenDataPacket getScreenOpeningData(ServerPlayerEntity player) {
         return new WaystoneScreenOpenDataPacket(this.position(), this.canAccess(player));
+    }
+
+    @Override
+    public @Nullable Packet<ClientPlayPacketListener> toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this);
     }
 }

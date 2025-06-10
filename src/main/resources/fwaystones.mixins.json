@@ -18,8 +18,8 @@
     "scoreboard.ScoreboardStateMixin"
   ],
   "client": [
-    "xaeros.WaypointWorldRenderer",
-    "client.DrawContextAccessor"
+    "client.DrawContextAccessor",
+    "xaeros.WaypointWorldRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

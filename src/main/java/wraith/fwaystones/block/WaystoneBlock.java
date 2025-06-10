@@ -1,23 +1,25 @@
 package wraith.fwaystones.block;
 
 import com.mojang.serialization.MapCodec;
+import io.wispforest.owo.ops.ItemOps;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.EntityStatuses;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
@@ -25,6 +27,7 @@ import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
@@ -36,15 +39,19 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.WaystoneType;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.api.WaystoneDataStorage;
+
+import static wraith.fwaystones.FabricWaystones.*;
 
 @SuppressWarnings("deprecation")
 public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
@@ -77,12 +84,21 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         VoxelShape vs10_2 = Block.createCuboidShape(13f, 5f, 7f, 15f, 8f, 9f);
         VoxelShape vs11_2 = Block.createCuboidShape(12f, 7f, 7f, 13f, 10f, 9f);
 
-        VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2).simplify();
-        VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1).simplify();
+        VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2);
+        VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1);
     }
 
+    public final WaystoneType type;
+
     public WaystoneBlock(AbstractBlock.Settings settings) {
+        //TODO: fix this
+        this(null, settings);
+    }
+
+    public WaystoneBlock(WaystoneType type, AbstractBlock.Settings settings) {
         super(settings);
+
+        this.type = type;
 
         setDefaultState(
                 getStateManager().getDefaultState()
@@ -278,37 +294,41 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (world.isClient) return ActionResult.success(true);
-
         var openPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
         var topState = world.getBlockState(openPos.up());
         var bottomState = world.getBlockState(openPos);
 
         var hand = player.getActiveHand();
         var stack = player.getStackInHand(hand);
-        var heldItem = stack.getItem();
+        var item = stack.getItem();
 
-        if (stack.contains(WaystoneDataComponents.HASH_TARGETS) || stack.isIn(FabricWaystones.LOCAL_VOID_ITEM) || heldItem instanceof WaystoneDebuggerItem) {
-            return ActionResult.PASS;
-        }
+        if (stack.contains(WaystoneDataComponents.HASH_TARGETS)) return ActionResult.PASS;
+        if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) return ActionResult.PASS;
+        if (item instanceof WaystoneDebuggerItem) return ActionResult.PASS;
 
-        if (heldItem == Items.VINE) {
+        if (stack.isIn(WAYSTONE_MOSS_APPLIERS)) {
             if (!topState.get(MOSSY)) {
-                world.setBlockState(openPos.up(), topState.with(MOSSY, true));
-                world.setBlockState(openPos, bottomState.with(MOSSY, true));
-                if (!player.isCreative()) {
-                    stack.decrement(1);
+                if (!world.isClient) {
+                    ItemOps.decrementPlayerHandItem(player, hand);
+                    world.setBlockState(openPos.up(), topState.with(MOSSY, true));
+                    world.setBlockState(openPos, bottomState.with(MOSSY, true));
+                    world.playSound(null, pos, WAYSTONE_MOSS_APPLY, SoundCategory.BLOCKS, 1.0F, 1.0F);
                 }
+                return ActionResult.SUCCESS;
             }
             return ActionResult.PASS;
         }
 
-        if (heldItem == Items.SHEARS) {
+        if (stack.isIn(WAYSTONE_MOSS_REMOVERS)) {
             if (topState.get(MOSSY)) {
-                world.setBlockState(openPos.up(), topState.with(MOSSY, false));
-                world.setBlockState(openPos, bottomState.with(MOSSY, false));
-                var dropPos = openPos.up(2);
-                ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, new ItemStack(Items.VINE));
+                if (!world.isClient) {
+                    world.setBlockState(openPos.up(), topState.with(MOSSY, false));
+                    world.setBlockState(openPos, bottomState.with(MOSSY, false));
+                    var dropPos = openPos.up(2);
+                    ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, new ItemStack(Items.VINE));
+                    world.playSound(null, pos, WAYSTONE_SHEAR, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                }
+                return ActionResult.SUCCESS;
             }
             return ActionResult.PASS;
         }
@@ -317,14 +337,48 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (blockEntity == null) return ActionResult.FAIL;
 
         var storage = WaystoneDataStorage.getStorage(player);
-        var data = storage.createGetOrImportData(blockEntity);
+        var data = storage.createGetOrImportData(blockEntity, this.type.defaultColor());
+
+        if (item instanceof DyeItem dyeItem) {
+            var color = dyeItem.getColor().getSignColor();
+            if (data != null && data.color() != color) {
+                ItemOps.decrementPlayerHandItem(player, hand);
+                storage.recolorWaystone(data.uuid(), color);
+                blockEntity.markDirty();
+                world.playSound(null, pos, SoundEvents.ITEM_DYE_USE, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            }
+            //TODO: get data on client so we dont always return success?
+            return ActionResult.SUCCESS;
+        }
+
+        if (stack.isIn(WAYSTONE_CLEANERS)) {
+            if (data != null && data.color() != this.type.defaultColor()) {
+                storage.recolorWaystone(data.uuid(), this.type.defaultColor());
+                blockEntity.markDirty();
+                if (stack.isIn(WAYSTONE_BUCKET_CLEANERS)) {
+                    if (world.getRandom().nextInt(100) == 69) {
+                        world.playSound(null, pos, WAYSTONE_CLEAN_BUCKET_STEAL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                        player.sendEquipmentBreakStatus(item, hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+                        stack.decrement(1);
+                    } else {
+                        world.playSound(null, pos, WAYSTONE_CLEAN_BUCKET, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                    }
+                } else {
+                    world.playSound(null, pos, WAYSTONE_CLEAN_SPONGE, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                }
+            }
+            //TODO: get data on client so we dont always return success?
+            return ActionResult.SUCCESS;
+        }
+
+        if (world.isClient) return ActionResult.SUCCESS;
 
         if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(data.owner())))) {
             if (blockEntity.hasStorage()) {
                 ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
+                return ActionResult.success(false);
             }
-            return ActionResult.success(false);
         }
 
         var discovered = WaystonePlayerData.getData(player).discoveredWaystones();

@@ -11,9 +11,12 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.command.CommandManager;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
@@ -21,7 +24,6 @@ import org.apache.logging.log4j.Logger;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
 import wraith.fwaystones.integration.accessories.AccessoriesCompat;
-import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.networking.packets.s2c.SyncWaystoneStorage;
 import wraith.fwaystones.registry.WaystoneDataComponents;
@@ -43,7 +45,7 @@ public class FabricWaystones implements ModInitializer {
     static {
         var configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "fwaystones/config.json");
         if (configFile.exists()) {
-            FabricWaystones.LOGGER.info("Old config file found, migrating...");
+            LOGGER.info("Old config file found, migrating...");
             configFile.renameTo(new File(FabricLoader.getInstance().getConfigDir().toFile(), "fwaystones/config.json5"));
         }
         CONFIG = FWConfig.createAndLoad();
@@ -51,6 +53,26 @@ public class FabricWaystones implements ModInitializer {
 
     public static final TagKey<Item> LOCAL_VOID_ITEM = TagKey.of(RegistryKeys.ITEM, id("local_void_item"));
     public static final TagKey<Item> DIRECTED_TELEPORT_ITEM = TagKey.of(RegistryKeys.ITEM, id("directed_teleport_item"));
+
+    public static final TagKey<Item> WAYSTONE_MOSS_APPLIERS = TagKey.of(Registries.ITEM.getKey(), id("waystone_moss"));
+    public static final TagKey<Item> WAYSTONE_MOSS_REMOVERS = TagKey.of(Registries.ITEM.getKey(), id("removes_waystone_moss"));
+    public static final TagKey<Item> WAYSTONE_CLEANERS = TagKey.of(Registries.ITEM.getKey(), id("cleans_waystones"));
+    public static final TagKey<Item> WAYSTONE_BUCKET_CLEANERS = TagKey.of(Registries.ITEM.getKey(), id("cleans_waystones_bucket"));
+
+    public static final SoundEvent WAYSTONE_INITIALIZE = registerSoundEvent(id("block.waystone.initialize"));
+    public static final SoundEvent WAYSTONE_ACTIVATE = registerSoundEvent(id("block.waystone.activate"));
+
+    public static final SoundEvent WAYSTONE_DEATIVATE = registerSoundEvent(id("block.waystone.deactivate"));
+    public static final SoundEvent WAYSTONE_DEACTIVATE2 = registerSoundEvent(id("block.waystone.deactivate2"));
+
+    public static final SoundEvent WAYSTONE_TELEPORT_PLAYER = registerSoundEvent(id("block.waystone.teleport_player"));
+
+    public static final SoundEvent WAYSTONE_MOSS_APPLY = registerSoundEvent(id("block.waystone.moss_apply"));
+    public static final SoundEvent WAYSTONE_SHEAR = registerSoundEvent(id("block.waystone.shear"));
+    public static final SoundEvent WAYSTONE_CLEAN_SPONGE = registerSoundEvent(id("block.waystone.clean_sponge"));
+    public static final SoundEvent WAYSTONE_CLEAN_BUCKET = registerSoundEvent(id("block.waystone.clean_bucket"));
+    public static final SoundEvent WAYSTONE_CLEAN_BUCKET_STEAL = registerSoundEvent(id("block.waystone.clean_bucket_steal"));
+
 
     public static Identifier id(String path) {
         return Identifier.of(MOD_ID, path);
@@ -94,7 +116,7 @@ public class FabricWaystones implements ModInitializer {
             var storage = WaystoneDataStorage.getStorage(server);
             if (!storage.isSetup()) {
                 if (server.isDedicated()) {
-                    FabricWaystones.LOGGER.error("The Waystone storage is null. This is likely caused by a crash.");
+                    LOGGER.error("The Waystone storage is null. This is likely caused by a crash.");
                 }
                 return;
             }
@@ -105,9 +127,9 @@ public class FabricWaystones implements ModInitializer {
             WaystoneNetworkHandler.CHANNEL.serverHandle(handler.player).send(new SyncWaystoneStorage(WaystoneDataStorage.getStorage(server)));
         });
         ServerLifecycleEvents.SERVER_STARTING.register(WaystonesWorldgen::registerVanillaVillageWorldgen);
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> FabricWaystones.CONFIG.load());
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> CONFIG.load());
 
-        var afterCommonRespawnPhase = FabricWaystones.id("after_common_respawn_phase");
+        var afterCommonRespawnPhase = id("after_common_respawn_phase");
 
         ServerPlayerEvents.AFTER_RESPAWN.addPhaseOrdering(Event.DEFAULT_PHASE, afterCommonRespawnPhase);
         ServerPlayerEvents.AFTER_RESPAWN.register(afterCommonRespawnPhase, (oldPlayer, newPlayer, alive) -> {
@@ -122,7 +144,7 @@ public class FabricWaystones implements ModInitializer {
             WaystonePlayerData.getData(player).syncDataChange();
         });
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal(FabricWaystones.MOD_ID)
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal(MOD_ID)
                 .then(CommandManager.literal("delete")
                         .requires(source -> source.hasPermissionLevel(1))
                         .executes(context -> {
@@ -161,5 +183,9 @@ public class FabricWaystones implements ModInitializer {
                         )
                 )
         ));
+    }
+
+    private static SoundEvent registerSoundEvent(Identifier id) {
+        return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));
     }
 }

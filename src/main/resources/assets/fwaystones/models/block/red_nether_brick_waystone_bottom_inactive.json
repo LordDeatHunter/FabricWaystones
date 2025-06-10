@@ -1,7 +1,7 @@
 {
-	"parent": "fwaystones:block/base_waystone_bottom",
+	"parent": "fwaystones:block/base_waystone_bottom_off",
 	"textures": {
-		"body": "fwaystones:block/red_nether_brick_waystone_inactive",
+		"body": "fwaystones:block/red_nether_brick_waystone",
 		"particle": "block/red_nether_bricks"
 	}
 }

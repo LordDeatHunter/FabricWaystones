@@ -1,7 +1,7 @@
 {
-	"parent": "fwaystones:block/base_waystone_top",
+	"parent": "fwaystones:block/base_waystone_top_off",
 	"textures": {
-		"body": "fwaystones:block/waystone_inactive",
+		"body": "fwaystones:block/waystone",
 		"particle": "block/stone"
 	}
 }

@@ -40,8 +40,8 @@ public final class WaystoneData {
     private UUID owner = null;
     private String ownerName = null;
 
-    public WaystoneData(Text name) {
-        this(UUID.randomUUID(), Utils.generateWaystoneName(name), Utils.getRandomColor(), false);
+    public WaystoneData(Text name, int color) {
+        this(UUID.randomUUID(), Utils.generateWaystoneName(name), color, false);
     }
 
     public WaystoneData(UUID uuid, Text name, int color, boolean global, UUID owner, String ownerName) {

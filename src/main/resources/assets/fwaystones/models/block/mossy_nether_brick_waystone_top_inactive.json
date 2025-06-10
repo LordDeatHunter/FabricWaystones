@@ -1,7 +1,7 @@
 {
-	"parent": "fwaystones:block/base_waystone_top",
+	"parent": "fwaystones:block/base_waystone_top_off",
 	"textures": {
-		"body": "fwaystones:block/mossy_nether_brick_waystone_inactive",
+		"body": "fwaystones:block/mossy_nether_brick_waystone",
 		"particle": "block/nether_bricks"
 	}
 }

@@ -4,16 +4,29 @@ import com.google.common.reflect.Reflection;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.Block;
+import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.item.BlockItem;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.api.WaystoneEvents;
+import wraith.fwaystones.api.core.DataChangeType;
 import wraith.fwaystones.block.WaystoneBlock;
+import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
 import wraith.fwaystones.integration.accessories.AccessoriesClientCompat;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
@@ -41,7 +54,7 @@ public class WaystonesClient implements ClientModInitializer {
         KeyBindingHelper.registerKeyBinding(USE_TELEPORTER);
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            if (USE_TELEPORTER.wasPressed()){
+            if (USE_TELEPORTER.wasPressed()) {
                 var ref = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(client.player, stack -> {
                     return stack.contains(WaystoneDataComponents.TELEPORTER) || stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEM);
                 });
@@ -60,7 +73,7 @@ public class WaystonesClient implements ClientModInitializer {
             if (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof WaystoneBlock) {
                 var cooldownAmount = FabricWaystones.CONFIG.teleportCooldowns.usedWaystone();
 
-                if(cooldownAmount > 0) {
+                if (cooldownAmount > 0) {
                     lines.add(TextUtils.translationWithArg("cool_down.tooltip", String.valueOf(cooldownAmount / 20)));
                 }
             }
@@ -69,5 +82,40 @@ public class WaystonesClient implements ClientModInitializer {
         if (FabricLoader.getInstance().isModLoaded("xaerominimap")) {
             Reflection.initialize(XaerosMinimapWaypointMaker.class);
         }
+
+        for (Block block : Registries.BLOCK) {
+            if (block instanceof WaystoneBlock waystoneBlock) {
+                ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
+                    if (tintIndex != 0) return -1;
+                    var color = waystoneBlock.type.defaultColor();
+                    if (world == null || pos == null) return color;
+                    var blockEntity = world.getBlockEntity(state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos);
+                    if (!(blockEntity instanceof WaystoneBlockEntity waystoneBlockEntity)) return color;
+                    var data = waystoneBlockEntity.getData();
+                    if (data == null) return color;
+                    return data.color();
+                }, block);
+                BlockRenderLayerMap.INSTANCE.putBlock(block, RenderLayer.getCutoutMipped());
+            }
+        }
+
+        WaystoneEvents.ON_WAYSTONE_DATA_UPDATE.register((uuid, type) -> {
+            if (type.equals(DataChangeType.COLOR)) {
+                MinecraftClient client = MinecraftClient.getInstance();
+                World world = client.world;
+                if (world == null) return;
+                var storage = WaystoneDataStorage.getStorage(world);
+                var pos = storage.getPosition(uuid);
+                if (pos != null) {
+                    reloadPos(world, pos.blockPos());
+                    reloadPos(world, pos.blockPos().up());
+                }
+            }
+        });
+    }
+
+    public static void reloadPos(World world, BlockPos pos) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (world == client.world) client.worldRenderer.scheduleBlockRenders(pos.getX(), pos.getY(), pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
     }
 }
