@@ -55,7 +55,7 @@ public class FabricWaystones implements ModInitializer {
     public static final TagKey<Item> DIRECTED_TELEPORT_ITEM = TagKey.of(RegistryKeys.ITEM, id("directed_teleport_item"));
 
     public static final TagKey<Item> WAYSTONE_MOSS_APPLIERS = TagKey.of(Registries.ITEM.getKey(), id("waystone_moss"));
-    public static final TagKey<Item> WAYSTONE_MOSS_REMOVERS = TagKey.of(Registries.ITEM.getKey(), id("removes_waystone_moss"));
+
     public static final TagKey<Item> WAYSTONE_CLEANERS = TagKey.of(Registries.ITEM.getKey(), id("cleans_waystones"));
     public static final TagKey<Item> WAYSTONE_BUCKET_CLEANERS = TagKey.of(Registries.ITEM.getKey(), id("cleans_waystones_bucket"));
 

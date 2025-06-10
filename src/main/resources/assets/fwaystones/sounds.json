@@ -41,7 +41,7 @@
         "volume": 1.3
       }
     ],
-    "subtitle": "subtitles.entity.ender_eye.death"
+    "subtitle": "subtitles.block.fwaystones.waystone.deactivate"
   },
   "block.waystone.deactivate2": {
     "sounds": [

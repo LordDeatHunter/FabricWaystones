@@ -2,6 +2,7 @@ package wraith.fwaystones.block;
 
 import com.mojang.serialization.MapCodec;
 import io.wispforest.owo.ops.ItemOps;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -319,7 +320,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             return ActionResult.PASS;
         }
 
-        if (stack.isIn(WAYSTONE_MOSS_REMOVERS)) {
+        if (stack.isIn(ConventionalItemTags.SHEAR_TOOLS)) {
             if (topState.get(MOSSY)) {
                 if (!world.isClient) {
                     world.setBlockState(openPos.up(), topState.with(MOSSY, false));
@@ -422,9 +423,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
         NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
 
-        if (screenHandlerFactory != null) {
-            player.openHandledScreen(screenHandlerFactory);
-        }
+        if (screenHandlerFactory != null) player.openHandledScreen(screenHandlerFactory);
 
         blockEntity.markDirty();
         return ActionResult.success(false);

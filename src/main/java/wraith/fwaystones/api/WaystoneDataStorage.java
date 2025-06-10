@@ -626,7 +626,7 @@ public class WaystoneDataStorage {
 
         data.setOwner(owner);
 
-        var changeOccured = (prevOwner != null && owner == null) || (owner != null && !owner.getUuid().equals(prevOwner));
+        var changeOccured = !Objects.equals(prevOwner, owner == null ? null : owner.getUuid());
 
         if (changeOccured) syncDataChange(uuid, DataChangeType.OWNER);
 

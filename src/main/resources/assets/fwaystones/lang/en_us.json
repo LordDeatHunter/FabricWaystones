@@ -354,7 +354,7 @@
 
   "subtitles.block.fwaystones.waystone.activate": "Waystone activates",
 
-  "subtitles.block.fwaystones.waystone.shut_down": "Waystone shuts down",
+  "subtitles.block.fwaystones.waystone.deactivate": "Waystone deactivates",
 
   "subtitles.block.fwaystones.waystone.teleport_player": "Waystone teleports player",
 
