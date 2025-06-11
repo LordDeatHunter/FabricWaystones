@@ -39,6 +39,7 @@ import wraith.fwaystones.api.core.WaystoneAccess;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.item.components.TextUtils;
+import wraith.fwaystones.particle.RuneParticleEffect;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
@@ -265,14 +266,15 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private void addParticle(Entity target, boolean main) {
         if (world == null) return;
         var random = world.getRandom();
-        ParticleEffect p = (random.nextInt(10) > 7) ? ParticleTypes.ENCHANT : ParticleTypes.PORTAL;
+        var data = getData();
+        ParticleEffect p = (random.nextInt(10) > 7) ? new RuneParticleEffect(data == null ? -1 : data.color()) : ParticleTypes.PORTAL;
         var basePos = this.getPos().toBottomCenterPos();
         var watcherPos = basePos.add(0, 0.8, 0);
         var targetPos = target.getPos();
 
         int rd = random.nextInt(10);
         if (rd > 5) {
-            if (p == ParticleTypes.ENCHANT) {
+            if (p instanceof RuneParticleEffect) {
                 var start = targetPos
                     .add(0, 1.25, 0);
                 var distanceCheck = Double.compare(Math.abs(watcherPos.x - targetPos.x), Math.abs(watcherPos.z - targetPos.z));

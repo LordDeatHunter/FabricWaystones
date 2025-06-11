@@ -1,5 +1,6 @@
 package wraith.fwaystones.mixin.xaeros;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -28,7 +29,7 @@ import xaero.common.misc.Misc;
 import java.util.UUID;
 
 @Mixin(xaero.hud.minimap.waypoint.render.world.WaypointWorldRenderer.class)
-public abstract class WaypointWorldRenderer {
+public abstract class WaypointWorldRendererMixin {
 
     @Unique
     private static final String NAME_KEY = "fwaystones:will_be_replaced";
@@ -149,5 +150,19 @@ public abstract class WaypointWorldRenderer {
         }
 
         original.call(w, highlit, matrixStack, fontRenderer, bufferSource);
+    }
+
+    @ModifyExpressionValue(method = "renderIcon", at = @At(value = "INVOKE", target = "Lxaero/hud/minimap/waypoint/WaypointColor;getHex()I", remap = false))
+    private int testIfWaypointIsFromWaystone(
+        int original,
+        @Local(argsOnly = true) Waypoint w
+    ) {
+        var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
+        if (uuid == null) return original;
+        var storage = WaystoneDataStorage.getStorage(MinecraftClient.getInstance());
+        if (storage == null) return original;
+        var data = storage.getData(uuid);
+        if (data == null) return original;
+        return data.color();
     }
 }

@@ -1,6 +1,9 @@
 package wraith.fwaystones;
 
 import com.google.common.reflect.Reflection;
+import io.wispforest.owo.registration.reflect.AutoRegistryContainer;
+import io.wispforest.owo.serialization.CodecUtils;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import io.wispforest.owo.util.Wisdom;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -11,6 +14,8 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.Item;
+import net.minecraft.particle.ParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
@@ -35,6 +40,8 @@ import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.registry.WaystonesWorldgen;
 
 import java.io.File;
+
+import static wraith.fwaystones.networking.WaystoneNetworkHandler.CHANNEL;
 
 public class FabricWaystones implements ModInitializer {
 
@@ -99,6 +106,8 @@ public class FabricWaystones implements ModInitializer {
 
         WaystoneComponentEventHooks.init();
 
+        WaystoneParticles.init();
+
         LOGGER.info("Wraith Waystones has successfully been initialized. \\n Here take some wisdom: ");
         Wisdom.spread();
 
@@ -124,7 +133,7 @@ public class FabricWaystones implements ModInitializer {
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            WaystoneNetworkHandler.CHANNEL.serverHandle(handler.player).send(new SyncWaystoneStorage(WaystoneDataStorage.getStorage(server)));
+            CHANNEL.serverHandle(handler.player).send(new SyncWaystoneStorage(WaystoneDataStorage.getStorage(server)));
         });
         ServerLifecycleEvents.SERVER_STARTING.register(WaystonesWorldgen::registerVanillaVillageWorldgen);
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> CONFIG.load());

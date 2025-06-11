@@ -338,22 +338,22 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (blockEntity == null) return ActionResult.FAIL;
 
         var storage = WaystoneDataStorage.getStorage(player);
-        var data = storage.createGetOrImportData(blockEntity, this.type.defaultColor());
+        var data = world.isClient ? storage.getData(blockEntity.getUUID()) : storage.createGetOrImportData(blockEntity, this.type.defaultColor());
+        if (data == null) return ActionResult.PASS;
 
         if (item instanceof DyeItem dyeItem) {
             var color = dyeItem.getColor().getSignColor();
-            if (data != null && data.color() != color) {
+            if (data.color() != color) {
                 ItemOps.decrementPlayerHandItem(player, hand);
                 storage.recolorWaystone(data.uuid(), color);
                 blockEntity.markDirty();
                 world.playSound(null, pos, SoundEvents.ITEM_DYE_USE, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                return ActionResult.SUCCESS;
             }
-            //TODO: get data on client so we dont always return success?
-            return ActionResult.SUCCESS;
         }
 
         if (stack.isIn(WAYSTONE_CLEANERS)) {
-            if (data != null && data.color() != this.type.defaultColor()) {
+            if (data.color() != this.type.defaultColor()) {
                 storage.recolorWaystone(data.uuid(), this.type.defaultColor());
                 blockEntity.markDirty();
                 if (stack.isIn(WAYSTONE_BUCKET_CLEANERS)) {
@@ -367,9 +367,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 } else {
                     world.playSound(null, pos, WAYSTONE_CLEAN_SPONGE, SoundCategory.BLOCKS, 1.0F, 1.0F);
                 }
+                return ActionResult.SUCCESS;
             }
-            //TODO: get data on client so we dont always return success?
-            return ActionResult.SUCCESS;
         }
 
         if (world.isClient) return ActionResult.SUCCESS;
@@ -378,7 +377,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             if (blockEntity.hasStorage()) {
                 ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
-                return ActionResult.success(false);
+                return ActionResult.SUCCESS;
             }
         }
 

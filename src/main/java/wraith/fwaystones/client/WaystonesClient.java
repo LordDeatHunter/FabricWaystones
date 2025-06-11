@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
@@ -35,9 +36,11 @@ import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.client.registry.WaystoneScreens;
 import wraith.fwaystones.networking.packets.c2s.AttemptTeleporterUse;
+import wraith.fwaystones.particle.RuneParticleEffect;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.client.registry.WaystoneModelProviders;
 import wraith.fwaystones.registry.WaystoneDataComponents;
+import wraith.fwaystones.registry.WaystoneParticles;
 
 @Environment(EnvType.CLIENT)
 public class WaystonesClient implements ClientModInitializer {
@@ -112,6 +115,8 @@ public class WaystonesClient implements ClientModInitializer {
                 }
             }
         });
+
+        ParticleFactoryRegistry.getInstance().register(WaystoneParticles.RUNE, RuneParticleEffect.Factory::new);
     }
 
     public static void reloadPos(World world, BlockPos pos) {
