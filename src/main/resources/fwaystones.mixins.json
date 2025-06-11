@@ -15,11 +15,12 @@
     "StructureStartAccessor",
     "scoreboard.PersistentStateMixin",
     "scoreboard.ScoreboardMixin",
-    "scoreboard.ScoreboardStateMixin"
+    "scoreboard.ScoreboardStateMixin",
+    "xaeros.WaypointMapRendererMixin"
   ],
   "client": [
     "client.DrawContextAccessor",
-    "xaeros.WaypointWorldRenderer"
+    "xaeros.WaypointWorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
