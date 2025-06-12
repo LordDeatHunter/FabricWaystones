@@ -16,6 +16,8 @@ import net.minecraft.particle.ParticleType;
 import org.jetbrains.annotations.NotNull;
 import wraith.fwaystones.registry.WaystoneParticles;
 
+import static wraith.fwaystones.util.Utils.random;
+
 public record RuneParticleEffect(int color) implements ParticleEffect {
 
     public static final StructEndec<RuneParticleEffect> ENDEC = StructEndecBuilder.of(
@@ -40,7 +42,10 @@ public record RuneParticleEffect(int color) implements ParticleEffect {
             ConnectionParticle connectionParticle = new ConnectionParticle(world, x, y, z, velocityX, velocityY, velocityZ);
             connectionParticle.setSprite(this.spriteProvider);
             var color = Color.ofRgb(parameters.color);
-            connectionParticle.setColor(color.red(), color.green(), color.blue());
+            var shade = random.nextFloat(0.85f, 1f);
+            connectionParticle.setColor(color.red() * shade, color.green() * shade, color.blue() * shade);
+            connectionParticle.scale(1.25f);
+            connectionParticle.setMaxAge(random.nextInt(20, 50));
             return connectionParticle;
         }
     }
