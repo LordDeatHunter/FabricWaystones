@@ -20,10 +20,7 @@ import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.util.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
 
@@ -83,7 +80,7 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
             this.sortedWaystones.removeIf(storage::isGlobal);
         }
 
-        this.sortedWaystones.sort(Comparator.comparing(a -> storage.getData(a).nameAsString(), String::compareTo));
+        this.sortedWaystones.sort(Comparator.comparing(a -> storage.getData(a).sortingName(), String::compareTo));
         filterWaystones();
     }
 
@@ -162,7 +159,7 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
     }
 
     public void setFilter(String filter) {
-        this.filter = filter.toLowerCase();
+        this.filter = filter.toLowerCase(Locale.ROOT);
     }
 
     public void filterWaystones() {
@@ -170,7 +167,7 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
         var searchType = WaystonePlayerData.getData(player).waystoneSearchType();
         var storage = WaystoneDataStorage.getStorage(player);
         for (var uuid : this.sortedWaystones) {
-            String name = storage.getData(uuid).nameAsString().toLowerCase();
+            String name = storage.getData(uuid).sortingName();
             if ("".equals(this.filter) || searchType.match(name, filter)) {
                 filteredWaystones.add(uuid);
             }

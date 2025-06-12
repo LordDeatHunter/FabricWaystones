@@ -1,10 +1,11 @@
 package wraith.fwaystones.api.core;
 
+import eu.pb4.placeholders.api.ParserContext;
+import eu.pb4.placeholders.api.parsers.TagParser;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
-import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.ApiStatus;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.util.Utils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -19,11 +21,11 @@ public final class WaystoneData {
 
     public static final UUID EMPTY_UUID = UUID.nameUUIDFromBytes("empty".getBytes(StandardCharsets.UTF_8));
 
-    public static final WaystoneData EMPTY = new WaystoneData(EMPTY_UUID, Text.empty(), -1, false);
+    public static final WaystoneData EMPTY = new WaystoneData(EMPTY_UUID, "", -1, false);
 
     public static final StructEndec<WaystoneData> ENDEC = StructEndecBuilder.of(
             BuiltInEndecs.UUID.fieldOf("uuid", WaystoneData::uuid),
-            MinecraftEndecs.TEXT.fieldOf("name", WaystoneData::name),
+            Endec.STRING.fieldOf("name", WaystoneData::name),
             Endec.INT.fieldOf("color", WaystoneData::color),
             Endec.BOOLEAN.fieldOf("global", WaystoneData::global),
             BuiltInEndecs.UUID.optionalFieldOf("owner", WaystoneData::owner, () -> null),
@@ -33,18 +35,18 @@ public final class WaystoneData {
 
     private final UUID uuid;
 
-    private Text name;
+    private String name;
     private int color;
     private boolean global;
 
     private UUID owner = null;
     private String ownerName = null;
 
-    public WaystoneData(Text name, int color) {
+    public WaystoneData(String name, int color) {
         this(UUID.randomUUID(), Utils.generateWaystoneName(name), color, false);
     }
 
-    public WaystoneData(UUID uuid, Text name, int color, boolean global, UUID owner, String ownerName) {
+    public WaystoneData(UUID uuid, String name, int color, boolean global, UUID owner, String ownerName) {
         this.uuid = uuid;
 
         this.name = name;
@@ -54,7 +56,7 @@ public final class WaystoneData {
         this.setOwnerData(owner, ownerName);
     }
 
-    public WaystoneData(UUID uuid, Text name, int color, boolean global) {
+    public WaystoneData(UUID uuid, String name, int color, boolean global) {
         this.uuid = uuid;
 
         this.name = name;
@@ -66,12 +68,16 @@ public final class WaystoneData {
         return uuid;
     }
 
-    public Text name() {
+    public String name() {
         return name;
     }
 
-    public String nameAsString() {
-        return name.getString();
+    public Text parsedName() {
+        return Utils.formatWaystoneName(name);
+    }
+
+    public String sortingName() {
+        return parsedName().getString().toLowerCase(Locale.ROOT);
     }
 
     public int color() {
@@ -116,7 +122,7 @@ public final class WaystoneData {
     }
 
     @ApiStatus.Internal
-    public WaystoneData setName(Text value) {
+    public WaystoneData setName(String value) {
         this.name = value;
 
         return this;

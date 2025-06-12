@@ -78,7 +78,7 @@ public class JourneymapWaypointMaker extends WaystoneWaypointMaker<String> imple
         var oldWaypoint = api.getWaypoint(getModId(), waypointId);
         if (oldWaypoint != null) return oldWaypoint.getGuid();
 
-        var name = data.nameAsString();
+        var name = data.name();
 
         var waypoint = WaypointFactory.createClientWaypoint(
                 getModId(),

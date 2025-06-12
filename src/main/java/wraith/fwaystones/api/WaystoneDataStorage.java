@@ -260,7 +260,7 @@ public class WaystoneDataStorage {
             var position = new WaystonePosition(dimension, pos);
             var uuid = getUniqueUUID();
 
-            var data = new WaystoneData(uuid, Text.of(name), color, globals.contains(hash));
+            var data = new WaystoneData(uuid, name, color, globals.contains(hash));
 
             positionToUUID.put(position, uuid);
             uuidToPosition.put(uuid, position);
@@ -363,8 +363,9 @@ public class WaystoneDataStorage {
 
         if (holder == null) {
             if (hasData(pos)) return getData(pos);
-
-            return createData(pos, blockEntity.getCustomName(), color);
+            var customName = blockEntity.getCustomName();
+            //TODO: look into this, it probably shouldn't be "" if the name is null
+            return createData(pos, customName != null ? customName.getString() : "", color);
         }
 
         var data = holder.data();
@@ -384,7 +385,7 @@ public class WaystoneDataStorage {
         return data;
     }
 
-    public WaystoneData createData(WaystonePosition position, Text name, int color) {
+    public WaystoneData createData(WaystonePosition position, String name, int color) {
         var data = new WaystoneData(name, color);
 
         addData(data);
@@ -590,7 +591,7 @@ public class WaystoneDataStorage {
         }
     }
 
-    public void renameWaystone(UUID uuid, Text name) {
+    public void renameWaystone(UUID uuid, String name) {
         var data = getData(uuid);
 
         if (data == null) return;

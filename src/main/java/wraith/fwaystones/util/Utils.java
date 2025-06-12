@@ -1,6 +1,8 @@
 package wraith.fwaystones.util;
 
 import com.mojang.datafixers.util.Pair;
+import eu.pb4.placeholders.api.ParserContext;
+import eu.pb4.placeholders.api.parsers.TagParser;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -374,5 +376,10 @@ public final class Utils {
             if (j == searchString.length()) return true;
         }
         return false;
+    }
+
+    public static Text formatWaystoneName(String name) {
+        if (name.isEmpty()) return Text.empty();
+        return TagParser.QUICK_TEXT_WITH_STF_SAFE.parseText(name, ParserContext.of());
     }
 }

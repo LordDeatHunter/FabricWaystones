@@ -39,7 +39,7 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler<W
         var waystoneData = WaystoneDataStorage.getStorage(player).getData(hash);
         this.uuid = waystoneData.uuid();
 
-        this.name = waystoneData.nameAsString();
+        this.name = waystoneData.name();
 
         this.owner = waystoneData.owner();
         this.ownerName = waystoneData.ownerName();

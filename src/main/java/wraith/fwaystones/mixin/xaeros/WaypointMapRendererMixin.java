@@ -34,10 +34,13 @@ public abstract class WaypointMapRendererMixin {
     ) {
         var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
         if (uuid == null) return original;
+
         var storage = WaystoneDataStorage.getStorage(MinecraftClient.getInstance());
         if (storage == null) return original;
+
         var data = storage.getData(uuid);
         if (data == null) return original;
+
         return data.color();
     }
 }

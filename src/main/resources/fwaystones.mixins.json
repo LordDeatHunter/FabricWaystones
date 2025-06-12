@@ -16,7 +16,8 @@
     "scoreboard.PersistentStateMixin",
     "scoreboard.ScoreboardMixin",
     "scoreboard.ScoreboardStateMixin",
-    "xaeros.WaypointMapRendererMixin"
+    "xaeros.WaypointMapRendererMixin",
+    "xaeros.WaypointRendererMixin"
   ],
   "client": [
     "client.DrawContextAccessor",

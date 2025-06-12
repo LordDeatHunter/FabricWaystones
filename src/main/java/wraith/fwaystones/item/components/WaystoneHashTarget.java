@@ -81,7 +81,7 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
         if (storage != null) {
             var data = storage.getData(uuid);
 
-            if (data != null) name = data.name();
+            if (data != null) name = data.parsedName();
         }
 
         tooltip.accept(TextUtils.translationWithArg(translationName + ".tooltip", name));

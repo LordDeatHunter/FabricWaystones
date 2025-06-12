@@ -101,7 +101,7 @@ public abstract class WaypointWorldRendererMixin {
 
                 if (data != null) {
                     waystoneDataRef.set(data);
-                    return instance.getWidth(data.name());
+                    return instance.getWidth(data.sortingName());
                 }
             }
         }
@@ -114,7 +114,7 @@ public abstract class WaypointWorldRendererMixin {
         var data = waystoneDataRef.get();
 
         if (data != null) {
-            Misc.drawNormalText(matrices, data.name(), x, y, color, shadow, renderTypeBuffer);
+            Misc.drawNormalText(matrices, data.parsedName(), x, y, color, shadow, renderTypeBuffer);
         } else {
             original.call(matrices, name, x, y, color, shadow, renderTypeBuffer);
         }

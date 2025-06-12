@@ -304,7 +304,7 @@ public class WaystonePlayerData {
 
         for (var uuid : discoveredWaystones) {
             if (storage.hasPosition(uuid)) {
-                waystoneNames.add(storage.getData(uuid).name());
+                waystoneNames.add(storage.getData(uuid).parsedName());
             }
         }
 
@@ -324,7 +324,7 @@ public class WaystonePlayerData {
             }
         }
 
-        waystones.sort(Comparator.comparing(a -> storage.getData(a).nameAsString(), String::compareTo));
+        waystones.sort(Comparator.comparing(a -> storage.getData(a).name(), String::compareTo));
 
         return waystones;
     }
@@ -336,7 +336,7 @@ public class WaystonePlayerData {
 
         for (var uuid : discoveredWaystones) {
             if (storage.hasData(uuid)) {
-                waystoneNames.add(storage.getData(uuid).name());
+                waystoneNames.add(storage.getData(uuid).parsedName());
             }
         }
 
@@ -356,7 +356,7 @@ public class WaystonePlayerData {
             }
         }
 
-        waystones.sort(Comparator.comparing(a -> storage.getData(a).nameAsString(), String::compareTo));
+        waystones.sort(Comparator.comparing(a -> storage.getData(a).name(), String::compareTo));
 
         return waystones;
     }

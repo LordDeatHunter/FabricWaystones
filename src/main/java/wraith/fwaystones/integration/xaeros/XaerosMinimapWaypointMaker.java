@@ -87,7 +87,7 @@ public class XaerosMinimapWaypointMaker extends WaystoneWaypointMaker<Waypoint> 
                 pos.blockPos().getX(),
                 pos.blockPos().getY() + 1,
                 pos.blockPos().getZ(),
-                data.nameAsString(),
+                data.name(),
                 "",
                 WaypointColor.PURPLE, //TODO: override this color with 0x5F3D75
                 WaypointPurpose.NORMAL,

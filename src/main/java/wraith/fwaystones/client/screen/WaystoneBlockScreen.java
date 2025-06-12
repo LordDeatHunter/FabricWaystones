@@ -290,7 +290,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen<WaystoneBlockSc
         this.nameField.setDrawsBackground(false);
         this.nameField.setFocusUnlocked(true);
         var data = WaystoneDataStorage.getStorage(this.player).getData(handler.uuid());
-        this.nameField.setText(data == null ? "" : data.nameAsString());
+        this.nameField.setText(data == null ? "" : data.name());
         this.nameField.setChangedListener((s) -> {
             boolean settable = !handler.getName().equals(s);
             // TODO: unhardcode this
@@ -428,7 +428,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen<WaystoneBlockSc
     @Override
     protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
         if (page == Page.WAYSTONES) {
-            context.drawText(textRenderer, handler.getName(), this.titleX, this.titleY, 4210752, false);
+            context.drawText(textRenderer, Utils.formatWaystoneName(handler.getName()), this.titleX, this.titleY, 4210752, false);
         }
     }
 
@@ -483,7 +483,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen<WaystoneBlockSc
 
         handler.setName(name);
 
-        WaystoneNetworkHandler.CHANNEL.clientHandle().send(new RenameWaystone(handler.uuid(), Text.of(name)));
+        WaystoneNetworkHandler.CHANNEL.clientHandle().send(new RenameWaystone(handler.uuid(), name));
     }
 
     protected enum Page {

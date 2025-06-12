@@ -1,5 +1,6 @@
 package wraith.fwaystones.client.screen;
 
+import io.wispforest.owo.ui.util.UISounds;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -374,7 +375,7 @@ public class UniversalWaystoneScreen<U extends UniversalWaystoneScreenHandler<?>
 
             if (data == null) continue;
 
-            Text name = data.name();
+            Text name = data.parsedName();
             context.drawText(textRenderer, name, x + 5, r - 1 + 5, 0x161616, false);
         }
     }
@@ -420,7 +421,7 @@ public class UniversalWaystoneScreen<U extends UniversalWaystoneScreenHandler<?>
             int waystoneButtonStartX = (int) (mouseX - waystoneButtonX);
             int waystoneButtonStartY = (int) (mouseY - (waystoneButtonY + currentWaystoneOffsetPosition * 18));
             if (currentWaystoneOffsetPosition < n && forgetButtonStartX >= 0.0D && forgetButtonStartY >= 0.0D && forgetButtonStartX < 8 && forgetButtonStartY < 8 && (this.handler).onButtonClick(this.client.player, currentWaystone * 2 + 1)) {
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                UISounds.playButtonSound();
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_ANVIL_BREAK, 1.0F));
                 this.scrollOffset = Math.max(0, this.scrollOffset - 1);
 
@@ -432,7 +433,7 @@ public class UniversalWaystoneScreen<U extends UniversalWaystoneScreenHandler<?>
                 continue;
             }
             if (waystoneButtonStartX >= 0.0D && waystoneButtonStartY >= 0.0D && waystoneButtonStartX < 101.0D && waystoneButtonStartY < 18.0D && (this.handler).onButtonClick(this.client.player, currentWaystone * 2)) {
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                UISounds.playButtonSound();
 
                 WaystoneNetworkHandler.CHANNEL.clientHandle().send(new WaystoneGUISlotClick(handler.syncId, currentWaystone * 2));
 
