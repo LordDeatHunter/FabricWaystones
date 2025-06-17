@@ -1,0 +1,7 @@
+{
+  "credit": "made by chyzman",
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "fwaystones:item/waystone_compass"
+  }
+}

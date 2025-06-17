@@ -27,6 +27,8 @@ public final class WaystoneItems {
             .entries((enabledFeatures, entries) -> ITEMS.values().stream().map(ItemStack::new).forEach(entries::add))
             .build();
 
+    public static final Item WAYSTONE_COMPASS = Registry.register(Registries.ITEM, FabricWaystones.id("waystone_compass"), new WaystoneCompassItem(new Item.Settings().maxCount(1).fireproof()));
+
     private WaystoneItems() {}
 
     private static void registerItem(String id, Item item) {

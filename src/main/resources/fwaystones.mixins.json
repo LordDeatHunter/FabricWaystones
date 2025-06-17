@@ -21,6 +21,7 @@
   ],
   "client": [
     "client.DrawContextAccessor",
+    "client.ItemRendererMixin",
     "xaeros.WaypointWorldRendererMixin"
   ],
   "injectors": {
