@@ -30,8 +30,11 @@ public final class WaystoneData {
             Endec.BOOLEAN.fieldOf("global", WaystoneData::global),
             BuiltInEndecs.UUID.optionalFieldOf("owner", WaystoneData::owner, () -> null),
             Endec.STRING.optionalFieldOf("owner_name", WaystoneData::ownerName, () -> null),
+            WaystoneTypes.ENDEC.fieldOf("type", WaystoneData::type),
             WaystoneData::new
     );
+
+    private WaystoneType type = WaystoneTypes.STONE_TYPE;
 
     private final UUID uuid;
 
@@ -42,11 +45,13 @@ public final class WaystoneData {
     private UUID owner = null;
     private String ownerName = null;
 
-    public WaystoneData(String name, int color) {
-        this(UUID.randomUUID(), Utils.generateWaystoneName(name), color, false);
+    public WaystoneData(String name, WaystoneType type) {
+        this(UUID.randomUUID(), Utils.generateWaystoneName(name), type.defaultRuneColor(), false);
+
+        this.type = type;
     }
 
-    public WaystoneData(UUID uuid, String name, int color, boolean global, UUID owner, String ownerName) {
+    public WaystoneData(UUID uuid, String name, int color, boolean global, UUID owner, String ownerName, WaystoneType type) {
         this.uuid = uuid;
 
         this.name = name;
@@ -54,6 +59,8 @@ public final class WaystoneData {
         this.global = global;
 
         this.setOwnerData(owner, ownerName);
+
+        this.type = type;
     }
 
     public WaystoneData(UUID uuid, String name, int color, boolean global) {
@@ -62,6 +69,10 @@ public final class WaystoneData {
         this.name = name;
         this.color = color;
         this.global = global;
+    }
+
+    public WaystoneType type() {
+        return type;
     }
 
     public UUID uuid() {
@@ -164,6 +175,6 @@ public final class WaystoneData {
     }
 
     public WaystoneData cloneWithUUID(UUID uuid) {
-        return new WaystoneData(uuid, name, color, global, owner, ownerName);
+        return new WaystoneData(uuid, name, color, global, owner, ownerName, type);
     }
 }

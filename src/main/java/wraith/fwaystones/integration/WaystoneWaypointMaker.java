@@ -11,6 +11,7 @@ import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.DataChangeType;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.api.core.WaystonePosition;
+import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -122,6 +123,19 @@ public abstract class WaystoneWaypointMaker<T> {
         if (!isEnabled()) return null;
 
         return pointToUUID.get(waypoint);
+    }
+
+    @Nullable
+    public WaystoneData getWaystoneData(T waypoint) {
+        var uuid = getWaystoneUUID(waypoint);
+
+        if (uuid != null) {
+            var storage = WaystoneDataStorage.getStorage(MinecraftClient.getInstance());
+
+            if (storage != null) return storage.getData(uuid);
+        }
+
+        return null;
     }
 
     protected void addWaypoint(UUID uuid) {

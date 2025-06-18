@@ -20,6 +20,7 @@ public class WaystoneDataComponents {
 
     public static final ComponentType<WaystoneTeleporter> TELEPORTER = register("waystone_teleporter", builder -> builder.endec(WaystoneTeleporter.ENDEC));
 
+    public static final ComponentType<WaystoneTyped> WAYSTONE_TYPE = register("waystone_type", builder -> builder.endec(WaystoneTyped.ENDEC));
 
     public static void init() {}
 

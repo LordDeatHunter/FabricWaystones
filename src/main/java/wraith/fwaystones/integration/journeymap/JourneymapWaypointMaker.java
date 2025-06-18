@@ -88,7 +88,7 @@ public class JourneymapWaypointMaker extends WaystoneWaypointMaker<String> imple
                 false
         );
 
-        waypoint.setIconResourceLoctaion(Identifier.of(FabricWaystones.MOD_ID, "images/fabric_waystones_icon.png"));
+        waypoint.setIconResourceLoctaion(data.type().getIconLocation());
 
         try {
             waypoint.setColor(data.color());

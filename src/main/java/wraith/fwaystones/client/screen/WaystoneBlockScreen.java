@@ -21,7 +21,7 @@ import wraith.fwaystones.api.WaystoneDataStorage;
 
 public class WaystoneBlockScreen extends UniversalWaystoneScreen<WaystoneBlockScreenHandler> {
 
-    private static final Identifier TEXTURE = FabricWaystones.id("textures/gui/waystone.png");
+    private static final Identifier TEXTURE = FabricWaystones.id("textures/gui/stone_waystone.png");
     private static final Identifier CONFIG_TEXTURE = FabricWaystones.id("textures/gui/waystone_config.png");
     public Page page = Page.WAYSTONES;
     private TextFieldWidget nameField;
@@ -51,7 +51,6 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen<WaystoneBlockSc
 
     public WaystoneBlockScreen(WaystoneBlockScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
-
 
         texture = TEXTURE;
 

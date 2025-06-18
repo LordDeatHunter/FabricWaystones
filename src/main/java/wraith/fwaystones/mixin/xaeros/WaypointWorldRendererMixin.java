@@ -35,7 +35,7 @@ public abstract class WaypointWorldRendererMixin {
     private static final String NAME_KEY = "fwaystones:will_be_replaced";
 
     @Unique
-    private final ThreadLocal<UUID> WAYPOINT_STORAGE = ThreadLocal.withInitial(() -> null);
+    private final ThreadLocal<Waypoint> WAYPOINT_STORAGE = ThreadLocal.withInitial(() -> null);
 
     @Inject(method = "renderIconWithLabels", at = @At("HEAD"))
     private void testIfWaypointIsFromWaystone(
@@ -73,11 +73,9 @@ public abstract class WaypointWorldRendererMixin {
         Operation<Void> original,
         @Local(argsOnly = true) Waypoint w
     ) {
-        var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
+        var hasSetupUUID = label.equals(NAME_KEY);
 
-        var hasSetupUUID = label.equals(NAME_KEY) && uuid != null;
-
-        if (hasSetupUUID) WAYPOINT_STORAGE.set(uuid);
+        if (hasSetupUUID) WAYPOINT_STORAGE.set(w);
 
         original.call(instance, label, matrixStack, helper, fontRenderer, labelScale, bgAlpha);
 
@@ -91,18 +89,15 @@ public abstract class WaypointWorldRendererMixin {
         Operation<Integer> original,
         @Share(value = "waystone_data", namespace = "fwaystones") LocalRef<WaystoneData> waystoneDataRef
     ) {
-        var uuid = WAYPOINT_STORAGE.get();
+        var waypoint = WAYPOINT_STORAGE.get();
 
-        if (uuid != null) {
-            var storage = WaystoneDataStorage.getStorage(MinecraftClient.getInstance());
+        if (waypoint != null) {
+            var data = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneData(waypoint);
 
-            if (storage != null) {
-                var data = storage.getData(uuid);
+            if (data != null) {
+                waystoneDataRef.set(data);
 
-                if (data != null) {
-                    waystoneDataRef.set(data);
-                    return instance.getWidth(data.sortingName());
-                }
+                return instance.getWidth(data.parsedName());
             }
         }
 
@@ -122,47 +117,30 @@ public abstract class WaypointWorldRendererMixin {
 
     @WrapMethod(method = "renderIcon")
     private void drawWaystoneIconInstead(Waypoint w, boolean highlit, MatrixStack matrixStack, TextRenderer fontRenderer, VertexConsumerProvider.Immediate bufferSource, Operation<Void> original) {
-        var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
+        var data = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneData(w);
 
-        if (uuid != null) {
-            var storage = WaystoneDataStorage.getStorage(MinecraftClient.getInstance());
+        if (data != null) {
+            var ctx = DrawContextAccessor.createContext(MinecraftClient.getInstance(), matrixStack, bufferSource);
 
-            if (storage != null) {
-                var data = storage.getData(uuid);
+            matrixStack.push();
 
-                if (data != null) {
-                    var ctx = DrawContextAccessor.createContext(MinecraftClient.getInstance(), matrixStack, bufferSource);
+            matrixStack.scale(0.65f, 0.65f, 0.65f);
 
-                    matrixStack.push();
+            ctx.drawTexture(
+                    data.type().getIconLocation(),
+                    -9, -16, 0, 0, 16, 16, 16, 16
+            );
 
-                    matrixStack.scale(0.65f, 0.65f, 0.65f);
-
-                    ctx.drawTexture(
-                            Identifier.of(FabricWaystones.MOD_ID, "fabric_waystones_icon.png"),
-                            -9, -16, 0, 0, 16, 16, 16, 16
-                    );
-
-                    matrixStack.pop();
-
-                    return;
-                }
-            }
+            matrixStack.pop();
+        } else {
+            original.call(w, highlit, matrixStack, fontRenderer, bufferSource);
         }
-
-        original.call(w, highlit, matrixStack, fontRenderer, bufferSource);
     }
 
     @ModifyExpressionValue(method = "renderIcon", at = @At(value = "INVOKE", target = "Lxaero/hud/minimap/waypoint/WaypointColor;getHex()I", remap = false))
-    private int testIfWaypointIsFromWaystone(
-        int original,
-        @Local(argsOnly = true) Waypoint w
-    ) {
-        var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
-        if (uuid == null) return original;
-        var storage = WaystoneDataStorage.getStorage(MinecraftClient.getInstance());
-        if (storage == null) return original;
-        var data = storage.getData(uuid);
-        if (data == null) return original;
-        return data.color();
+    private int testIfWaypointIsFromWaystone(int original, @Local(argsOnly = true) Waypoint w) {
+        var data = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneData(w);
+
+        return (data != null) ? data.color() : original;
     }
 }

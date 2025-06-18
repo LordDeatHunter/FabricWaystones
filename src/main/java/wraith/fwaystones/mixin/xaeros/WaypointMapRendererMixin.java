@@ -28,19 +28,8 @@ public abstract class WaypointMapRendererMixin {
 
 
     @ModifyExpressionValue(method = "drawIconOnGUI(Lnet/minecraft/client/gui/DrawContext;Lxaero/common/minimap/render/MinimapRendererHelper;Lxaero/common/minimap/waypoints/Waypoint;IIILnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/client/render/VertexConsumer;)V", at = @At(value = "INVOKE", target = "Lxaero/hud/minimap/waypoint/WaypointColor;getHex()I", remap = false))
-    private int testIfWaypointIsFromWaystone(
-        int original,
-        @Local(argsOnly = true) Waypoint w
-    ) {
-        var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
-        if (uuid == null) return original;
-
-        var storage = WaystoneDataStorage.getStorage(MinecraftClient.getInstance());
-        if (storage == null) return original;
-
-        var data = storage.getData(uuid);
-        if (data == null) return original;
-
-        return data.color();
+    private int testIfWaypointIsFromWaystone(int original, @Local(argsOnly = true) Waypoint w) {
+        var data = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneData(w);
+        return (data != null) ? data.color() : original;
     }
 }

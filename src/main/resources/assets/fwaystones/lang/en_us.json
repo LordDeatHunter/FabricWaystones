@@ -9,6 +9,19 @@
   "item.fwaystones.blackstone_brick_waystone": "Blackstone Brick Waystone",
   "item.fwaystones.deepslate_brick_waystone": "Deepslate Brick Waystone",
   "item.fwaystones.red_nether_brick_waystone": "Red Nether Brick Waystone",
+
+  "fwaystones.blank_waystone_name": "Waystone",
+
+  "fwaystones.stone.waystone_name": "Stone Waystone",
+  "fwaystones.desert.waystone_name": "Desert Waystone",
+  "fwaystones.red_desert.waystone_name": "Red Desert Waystone",
+  "fwaystones.stone_brick.waystone_name": "Stone Brick Waystone",
+  "fwaystones.nether_brick.waystone_name": "Nether Brick Waystone",
+  "fwaystones.end_stone_brick.waystone_name": "End Stone Brick Waystone",
+  "fwaystones.blackstone_brick.waystone_name": "Blackstone Brick Waystone",
+  "fwaystones.deepslate_brick.waystone_name": "Deepslate Brick Waystone",
+  "fwaystones.red_nether_brick.waystone_name": "Red Nether Brick Waystone",
+
   "item.fwaystones.pocket_wormhole": "Pocket Wormhole",
   "item.fwaystones.local_void": "Local Void",
   "item.fwaystones.waystone_scroll": "Waystone Scroll",

@@ -1,18 +1,21 @@
 package wraith.fwaystones.registry;
 
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.core.WaystoneType;
+import wraith.fwaystones.api.core.WaystoneTypes;
+import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.item.*;
-import wraith.fwaystones.item.components.InfiniteKnowledge;
-import wraith.fwaystones.item.components.WaystoneHashTargets;
-import wraith.fwaystones.item.components.WaystoneTeleporter;
+import wraith.fwaystones.item.components.*;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -24,7 +27,22 @@ public final class WaystoneItems {
     public static final ItemGroup WAYSTONE_GROUP = FabricItemGroup.builder()
             .icon(() -> new ItemStack(WaystoneBlocks.WAYSTONE))
             .displayName(Text.translatable("itemGroup.fwaystones.fwaystones"))
-            .entries((enabledFeatures, entries) -> ITEMS.values().stream().map(ItemStack::new).forEach(entries::add))
+            .entries((enabledFeatures, entries) -> {
+                ITEMS.values().stream().map(ItemStack::new).forEach(entries::add);
+
+                var item = WaystoneBlocks.WAYSTONE.asItem();
+
+                for (var typeId : WaystoneTypes.getTypeIds()) {
+                    var stack = item.getDefaultStack();
+
+                    stack.set(
+                            WaystoneDataComponents.WAYSTONE_TYPE,
+                            new WaystoneTyped(typeId)
+                    );
+
+                    entries.add(stack);
+                }
+            })
             .build();
 
     private WaystoneItems() {}
@@ -37,15 +55,6 @@ public final class WaystoneItems {
         if (!ITEMS.isEmpty()) return;
 
         Registry.register(Registries.ITEM_GROUP, FabricWaystones.id(FabricWaystones.MOD_ID), WAYSTONE_GROUP);
-        registerItem("waystone", new BlockItem(WaystoneBlocks.WAYSTONE, new Item.Settings()));
-        registerItem("desert_waystone", new BlockItem(WaystoneBlocks.DESERT_WAYSTONE, new Item.Settings()));
-        registerItem("red_desert_waystone", new BlockItem(WaystoneBlocks.RED_DESERT_WAYSTONE, new Item.Settings()));
-        registerItem("stone_brick_waystone", new BlockItem(WaystoneBlocks.STONE_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("nether_brick_waystone", new BlockItem(WaystoneBlocks.NETHER_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("red_nether_brick_waystone", new BlockItem(WaystoneBlocks.RED_NETHER_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("end_stone_brick_waystone", new BlockItem(WaystoneBlocks.ENDSTONE_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("deepslate_brick_waystone", new BlockItem(WaystoneBlocks.DEEPSLATE_BRICK_WAYSTONE, new Item.Settings()));
-        registerItem("blackstone_brick_waystone", new BlockItem(WaystoneBlocks.BLACKSTONE_BRICK_WAYSTONE, new Item.Settings()));
         registerItem("waystone_scroll", new Item(new Item.Settings().maxCount(1).component(WaystoneDataComponents.HASH_TARGETS, WaystoneHashTargets.EMPTY)));
         registerItem("scroll_of_infinite_knowledge", new Item(new Item.Settings().component(WaystoneDataComponents.HAS_INFINITE_KNOWLEDGE, new InfiniteKnowledge()).maxCount(1).fireproof()));
         registerItem("pocket_wormhole", new Item(new Item.Settings().component(WaystoneDataComponents.TELEPORTER, new WaystoneTeleporter(false)).maxCount(1).fireproof()));
@@ -58,6 +67,32 @@ public final class WaystoneItems {
         registerItem("local_void", new Item(new Item.Settings().maxCount(1)));
         registerItem("void_totem", new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
         registerItem("waystone_debugger", new WaystoneDebuggerItem(new Item.Settings().maxCount(1).fireproof().rarity(Rarity.EPIC)));
+
+        Registry.register(Registries.ITEM, FabricWaystones.id("waystone"), new BlockItem(WaystoneBlocks.WAYSTONE, createSettings(WaystoneTypes.STONE)){
+            @Override
+            public String getTranslationKey(ItemStack stack) {
+                var data = stack.get(WaystoneDataComponents.WAYSTONE_TYPE);
+
+                if (data != null) {
+                    return data.getType()
+                            .getTranslationKey();
+                }
+
+                return TextUtils.translationKey("blank_waystone_name");
+            }
+        });
+//        registerItem("desert_waystone", new BlockItem(WaystoneBlocks.DESERT_WAYSTONE, createSettings(WaystoneTypes.DESERT)));
+//        registerItem("red_desert_waystone", new BlockItem(WaystoneBlocks.RED_DESERT_WAYSTONE, createSettings(WaystoneTypes.RED_DESERT)));
+//        registerItem("stone_brick_waystone", new BlockItem(WaystoneBlocks.STONE_BRICK_WAYSTONE, createSettings(WaystoneTypes.STONE_BRICK)));
+//        registerItem("nether_brick_waystone", new BlockItem(WaystoneBlocks.NETHER_BRICK_WAYSTONE, createSettings(WaystoneTypes.NETHER_BRICK)));
+//        registerItem("red_nether_brick_waystone", new BlockItem(WaystoneBlocks.RED_NETHER_BRICK_WAYSTONE, createSettings(WaystoneTypes.RED_NETHER_BRICK)));
+//        registerItem("end_stone_brick_waystone", new BlockItem(WaystoneBlocks.ENDSTONE_BRICK_WAYSTONE, createSettings(WaystoneTypes.END_STONE_BRICK)));
+//        registerItem("deepslate_brick_waystone", new BlockItem(WaystoneBlocks.DEEPSLATE_BRICK_WAYSTONE, createSettings(WaystoneTypes.DEEPSLATE_BRICK)));
+//        registerItem("blackstone_brick_waystone", new BlockItem(WaystoneBlocks.BLACKSTONE_BRICK_WAYSTONE, createSettings(WaystoneTypes.BLACKSTONE_BRICK)));
+    }
+
+    private static Item.Settings createSettings(Identifier id) {
+        return new Item.Settings().component(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(id));
     }
 
     public static Item get(String id) {

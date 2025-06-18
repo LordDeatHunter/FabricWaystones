@@ -9,7 +9,6 @@ import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -40,11 +39,10 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
-import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.api.WaystoneType;
+import wraith.fwaystones.api.core.MossTypes;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
@@ -89,17 +87,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1);
     }
 
-    public final WaystoneType type;
-
     public WaystoneBlock(AbstractBlock.Settings settings) {
-        //TODO: fix this
-        this(null, settings);
-    }
-
-    public WaystoneBlock(WaystoneType type, AbstractBlock.Settings settings) {
         super(settings);
-
-        this.type = type;
 
         setDefaultState(
                 getStateManager().getDefaultState()
@@ -160,10 +149,13 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (bottomState.getBlock() instanceof WaystoneBlock) {
             BlockPos entityPos = bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
             if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone){
-                var owner = waystone.getData().owner();
                 switch (config.breakingWaystonePermission()) {
                     case OWNER -> {
-                        if (owner != null && !player.getUuid().equals(owner)) return 0;
+                        var data = waystone.getData();
+                        if(data != null) {
+                            var owner = waystone.getData().owner();
+                            if (owner != null && !player.getUuid().equals(owner)) return 0;
+                        }
                     }
                     case OP -> {
                         if (!player.hasPermissionLevel(2)) return 0;
@@ -251,7 +243,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
 
                     if (waystone.getCachedState().get(MOSSY)) {
-                        ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
+                        ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, waystone.getMossStack());
                     }
                 }
 
@@ -295,9 +287,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        var openPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
-        var topState = world.getBlockState(openPos.up());
-        var bottomState = world.getBlockState(openPos);
+        var blockEntityPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
 
         var hand = player.getActiveHand();
         var stack = player.getStackInHand(hand);
@@ -307,38 +297,24 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) return ActionResult.PASS;
         if (item instanceof WaystoneDebuggerItem) return ActionResult.PASS;
 
-        if (stack.isIn(WAYSTONE_MOSS_APPLIERS)) {
-            if (!topState.get(MOSSY)) {
-                if (!world.isClient) {
-                    ItemOps.decrementPlayerHandItem(player, hand);
-                    world.setBlockState(openPos.up(), topState.with(MOSSY, true));
-                    world.setBlockState(openPos, bottomState.with(MOSSY, true));
-                    world.playSound(null, pos, WAYSTONE_MOSS_APPLY, SoundCategory.BLOCKS, 1.0F, 1.0F);
-                }
-                return ActionResult.SUCCESS;
-            }
-            return ActionResult.PASS;
-        }
-
-        if (stack.isIn(ConventionalItemTags.SHEAR_TOOLS)) {
-            if (topState.get(MOSSY)) {
-                if (!world.isClient) {
-                    world.setBlockState(openPos.up(), topState.with(MOSSY, false));
-                    world.setBlockState(openPos, bottomState.with(MOSSY, false));
-                    var dropPos = openPos.up(2);
-                    ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, new ItemStack(Items.VINE));
-                    world.playSound(null, pos, WAYSTONE_SHEAR, SoundCategory.BLOCKS, 1.0F, 1.0F);
-                }
-                return ActionResult.SUCCESS;
-            }
-            return ActionResult.PASS;
-        }
-
-        WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
+        WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(blockEntityPos);
         if (blockEntity == null) return ActionResult.FAIL;
 
+        var result = blockEntity.attemptMossingInteraction(blockEntityPos, stack);
+
+        if (result.getResult().isAccepted()) {
+            var value = result.getValue();
+
+            if (!value.isEmpty()) {
+                var dropPos = blockEntityPos.up(2);
+                ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, result.getValue());
+            }
+
+            return ActionResult.SUCCESS;
+        }
+
         var storage = WaystoneDataStorage.getStorage(player);
-        var data = world.isClient ? storage.getData(blockEntity.getUUID()) : storage.createGetOrImportData(blockEntity, this.type.defaultColor());
+        var data = storage.createGetOrImportData(blockEntity);
         if (data == null) return ActionResult.PASS;
 
         if (item instanceof DyeItem dyeItem) {
@@ -353,8 +329,9 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         }
 
         if (stack.isIn(WAYSTONE_CLEANERS)) {
-            if (data.color() != this.type.defaultColor()) {
-                storage.recolorWaystone(data.uuid(), this.type.defaultColor());
+            var type = blockEntity.getWaystoneType();
+            if (data.color() != type.defaultRuneColor()) {
+                storage.recolorWaystone(data.uuid(), type.defaultRuneColor());
                 blockEntity.markDirty();
                 if (stack.isIn(WAYSTONE_BUCKET_CLEANERS)) {
                     if (world.getRandom().nextInt(100) == 69) {
@@ -374,8 +351,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (world.isClient) return ActionResult.SUCCESS;
 
         if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(data.owner())))) {
-            if (blockEntity.hasStorage()) {
-                ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
+            if (!blockEntity.getInventory().isEmpty()) {
+                ItemScatterer.spawn(world, blockEntityPos.up(2), blockEntity.getInventory());
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
                 return ActionResult.SUCCESS;
             }

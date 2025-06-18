@@ -100,19 +100,32 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
             onForget(uuid);
             WaystonePlayerData.getData(player).forgetWaystone(uuid);
             updateWaystones(player);
-        } else {
-            TeleportSources source = getTeleportSource(player);
-            if (Utils.canTeleport(player, uuid, source, false)) {
-                WaystoneNetworkHandler.CHANNEL.clientHandle().send(new TeleportToWaystone(uuid, source));
-            }
-            closeScreen();
+
+            return true;
         }
-        return true;
+
+        return attemptTeleport(uuid);
+    }
+
+    public boolean attemptTeleport(UUID uuid) {
+        var source = getTeleportSource(player);
+
+        if (Utils.canTeleport(player, uuid, source, false)) {
+            WaystoneNetworkHandler.CHANNEL.clientHandle().send(new TeleportToWaystone(uuid, source));
+
+            closeScreen();
+
+            return true;
+        }
+
+        return false;
     }
 
     private static @NotNull TeleportSources getTeleportSource(PlayerEntity player) {
         TeleportSources source;
-        if (player.currentScreenHandler.getType().equals(WaystoneScreenHandlers.WAYSTONE_SCREEN)) {
+        var type = player.currentScreenHandler.getType();
+
+        if (type.equals(WaystoneScreenHandlers.WAYSTONE_SCREEN) || type.equals(WaystoneScreenHandlers.EXPERIMENTAL_WAYSTONE_SCREEN)) {
             source = TeleportSources.WAYSTONE;
         } else if (player.currentScreenHandler instanceof PortableWaystoneScreenHandler portableHandler) {
             source = portableHandler.isAbyssal() ? TeleportSources.ABYSS_WATCHER : TeleportSources.POCKET_WORMHOLE;

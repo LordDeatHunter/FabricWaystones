@@ -5,7 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
@@ -15,10 +15,8 @@ import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
-import wraith.fwaystones.mixin.client.DrawContextAccessor;
 import xaero.common.minimap.waypoints.Waypoint;
 import xaero.common.misc.Misc;
 import xaero.map.graphics.renderer.multitexture.MultiTextureRenderTypeRenderer;
@@ -34,19 +32,16 @@ public abstract class WaypointRendererMixin {
         Operation<Integer> original,
         @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable WaystoneData> sharedData
     ) {
-        if (!(instance.getOriginal() instanceof Waypoint w)) return original.call(instance);
+        if (instance.getOriginal() instanceof Waypoint w) {
+            var data = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneData(w);
 
-        var uuid = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneUUID(w);
-        if (uuid == null) return original.call(instance);
+            if (data != null) {
+                sharedData.set(data);
+                return data.color();
+            }
+        }
 
-        var storage = WaystoneDataStorage.getStorage(MinecraftClient.getInstance());
-        if (storage == null) return original.call(instance);
-
-        var data = storage.getData(uuid);
-        if (data == null) return original.call(instance);
-
-        sharedData.set(data);
-        return data.color();
+        return original.call(instance);
     }
 
     @WrapOperation(
@@ -73,7 +68,7 @@ public abstract class WaypointRendererMixin {
 //            matrices.scale(0.65f, 0.65f, 0.65f);
 
             ctx.drawTexture(
-                Identifier.of(FabricWaystones.MOD_ID, "fabric_waystones_icon.png"),
+                data.type().getIconLocation(),
                 -9, -16, 0, 0, 16, 16, 16, 16
             );
 
@@ -85,15 +80,15 @@ public abstract class WaypointRendererMixin {
 
     @WrapOperation(
         method = "renderElement(Lxaero/map/mods/gui/Waypoint;ZDFDDLxaero/map/element/render/ElementRenderInfo;Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lxaero/map/graphics/renderer/multitexture/MultiTextureRenderTypeRendererProvider;)Z",
-        at = @At(value = "INVOKE", target = "Lxaero/map/mods/gui/Waypoint;getName()Ljava/lang/String;", remap = false))
-    private String modifyFullscreenWaypointNameWidth(
-        xaero.map.mods.gui.Waypoint instance,
-        Operation<String> original,
-        @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable WaystoneData> sharedData
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/font/TextRenderer;getWidth(Ljava/lang/String;)I", remap = false))
+    private int modifyFullscreenWaypointNameWidth(
+            TextRenderer instance,
+            String text,
+            Operation<Integer> original, @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable WaystoneData> sharedData
     ) {
         var data = sharedData.get();
-        if (data == null) return original.call(instance);
-        return data.sortingName();
+
+        return (data != null) ? instance.getWidth(data.parsedName()) : original.call(instance, text);
     }
 
     @WrapOperation(

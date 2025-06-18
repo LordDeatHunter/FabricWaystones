@@ -37,101 +37,105 @@ public class WaystoneComponentEventHooks {
             if (!user.isSpectator()) {
                 var stack = user.getStackInHand(hand);
 
-                //TODO: this makes every item swing when right-clicked, which is not ideal
-                if (world.isClient) return TypedActionResult.success(stack);
+                TypedActionResult<ItemStack> result = null;
 
-                if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) return useLocalVoid(world, user, stack);
-                if (stack.contains(WaystoneDataComponents.TELEPORTER)) return useTeleporter(user, stack);
+                if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) {
+                    result = useLocalVoid(world, user, stack);
+                } else if (stack.contains(WaystoneDataComponents.TELEPORTER)) {
+                    result = useTeleporter(user, stack);
+                } else if(stack.contains(WaystoneDataComponents.HAS_INFINITE_KNOWLEDGE)) {
+                    if (!world.isClient) {
+                        var storage = WaystoneDataStorage.getStorage(world);
+                        var playerData = WaystonePlayerData.getData(user);
 
-                if(stack.contains(WaystoneDataComponents.HAS_INFINITE_KNOWLEDGE)) {
-                    var storage = WaystoneDataStorage.getStorage(world);
-                    var playerData = WaystonePlayerData.getData(user);
+                        int learned = 0;
 
-                    int learned = 0;
+                        var toLearn = new HashSet<UUID>();
 
-                    var toLearn = new HashSet<UUID>();
+                        for (var uuid : storage.getAllIds()) {
+                            if (!playerData.hasDiscoverdWaystone(uuid)) {
+                                var data = storage.getData(uuid);
 
-                    for (var uuid : storage.getAllIds()) {
-                        if (!playerData.hasDiscoverdWaystone(uuid)) {
-                            var data = storage.getData(uuid);
+                                if (data != null && data.owner() == null) {
+                                    data.setOwner(user);
+                                }
 
-                            if (data != null && data.owner() == null) {
-                                data.setOwner(user);
+                                toLearn.add(uuid);
+                                ++learned;
+                            }
+                        }
+
+                        Text text;
+                        if (learned > 0) {
+                            if (learned > 1) {
+                                text = TextUtils.translationWithArg(
+                                        "learned.infinite.multiple",
+                                        String.valueOf(learned)
+                                );
+                            } else {
+                                text = TextUtils.translation("learned.infinite.single");
                             }
 
-                            toLearn.add(uuid);
-                            ++learned;
-                        }
-                    }
+                            playerData.discoverWaystones(toLearn);
 
-                    Text text;
-                    if (learned > 0) {
-                        if (learned > 1) {
-                            text = TextUtils.translationWithArg(
-                                    "learned.infinite.multiple",
-                                    String.valueOf(learned)
-                            );
-                        } else {
-                            text = TextUtils.translation("learned.infinite.single");
-                        }
-
-                        playerData.discoverWaystones(toLearn);
-
-                        if (!user.isCreative() && FabricWaystones.CONFIG.shouldConsumeInfiniteKnowledgeScroll()) {
-                            stack.decrement(1);
-                        }
-                    } else {
-                        text = TextUtils.translation("learned.infinite.none");
-                    }
-
-                    user.sendMessage(text, false);
-
-                    return TypedActionResult.success(stack, world.isClient());
-                }
-
-                if (stack.contains(WaystoneDataComponents.HASH_TARGETS)) {
-                    var targets = WaystoneHashTargets.get(stack, user.getWorld());
-                    var playerData = WaystonePlayerData.getData(user);
-
-                    int learned = 0;
-                    var toLearn = new HashSet<UUID>();
-
-                    var storage = WaystoneDataStorage.getStorage(user);
-                    for (var uuid : targets.ids()) {
-                        if (!playerData.hasDiscoverdWaystone(uuid)) {
-                            var data = storage.getData(uuid);
-
-                            if (data != null && data.owner() == null) {
-                                data.setOwner(user);
+                            if (!user.isCreative() && FabricWaystones.CONFIG.shouldConsumeInfiniteKnowledgeScroll()) {
+                                stack.decrement(1);
                             }
-
-                            toLearn.add(uuid);
-                            ++learned;
-                        }
-                    }
-
-                    Text text;
-                    if (learned > 0) {
-                        if (learned > 1) {
-                            text = TextUtils.translationWithArg(
-                                    "learned.multiple",
-                                    String.valueOf(learned)
-                            );
                         } else {
-                            text = TextUtils.translation("learned.single");
+                            text = TextUtils.translation("learned.infinite.none");
                         }
-                        WaystonePlayerData.getData(user).discoverWaystones(toLearn);
-                        if (!user.isCreative()) {
-                            stack.decrement(1);
-                        }
-                    } else {
-                        text = TextUtils.translation("learned.none");
+
+                        user.sendMessage(text, false);
                     }
 
-                    user.sendMessage(text, false);
+                    result = TypedActionResult.success(stack, world.isClient());
+                } else if (stack.contains(WaystoneDataComponents.HASH_TARGETS)) {
+                    if (!world.isClient) {
+                        var targets = WaystoneHashTargets.get(stack, user.getWorld());
+                        var playerData = WaystonePlayerData.getData(user);
 
-                    return TypedActionResult.success(stack, false);
+                        int learned = 0;
+                        var toLearn = new HashSet<UUID>();
+
+                        var storage = WaystoneDataStorage.getStorage(user);
+                        for (var uuid : targets.ids()) {
+                            if (!playerData.hasDiscoverdWaystone(uuid)) {
+                                var data = storage.getData(uuid);
+
+                                if (data != null && data.owner() == null) {
+                                    data.setOwner(user);
+                                }
+
+                                toLearn.add(uuid);
+                                ++learned;
+                            }
+                        }
+
+                        Text text;
+                        if (learned > 0) {
+                            if (learned > 1) {
+                                text = TextUtils.translationWithArg(
+                                        "learned.multiple",
+                                        String.valueOf(learned)
+                                );
+                            } else {
+                                text = TextUtils.translation("learned.single");
+                            }
+                            WaystonePlayerData.getData(user).discoverWaystones(toLearn);
+                            if (!user.isCreative()) {
+                                stack.decrement(1);
+                            }
+                        } else {
+                            text = TextUtils.translation("learned.none");
+                        }
+
+                        user.sendMessage(text, false);
+                    }
+
+                    result = TypedActionResult.success(stack, false);;
                 }
+
+                if (result != null) return result;
             }
 
             return TypedActionResult.pass(ItemStack.EMPTY);
@@ -144,19 +148,27 @@ public class WaystoneComponentEventHooks {
                 var stack = user.getStackInHand(hand);
 
                 if (entity != null && stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) {
-                    stack.set(WaystoneDataComponents.HASH_TARGET, new WaystoneHashTarget(entity.getUUID(), null));
+                    if (!world.isClient) {
+                        stack.set(WaystoneDataComponents.HASH_TARGET, new WaystoneHashTarget(entity.getUUID(), null));
 
-                    user.setStackInHand(hand, stack);
+                        user.setStackInHand(hand, stack);
+                    }
+
+                    return ActionResult.SUCCESS;
                 } else if(entity != null && stack.contains(WaystoneDataComponents.HASH_TARGETS)) {
-                    var discovered = WaystonePlayerData.getData(user).discoveredWaystones();
+                    if (!world.isClient) {
+                        var discovered = WaystonePlayerData.getData(user).discoveredWaystones();
 
-                    if (discovered.isEmpty()) return ActionResult.FAIL;
+                        if (discovered.isEmpty()) return ActionResult.FAIL;
 
-                    var hashes = new ArrayList<>(discovered);
+                        var hashes = new ArrayList<>(discovered);
 
-                    stack.set(WaystoneDataComponents.HASH_TARGETS, new WaystoneHashTargets(hashes));
+                        stack.set(WaystoneDataComponents.HASH_TARGETS, new WaystoneHashTargets(hashes));
 
-                    user.setStackInHand(hand, stack);
+                        user.setStackInHand(hand, stack);
+                    }
+
+                    return ActionResult.SUCCESS;
                 }
             }
 
@@ -213,12 +225,15 @@ public class WaystoneComponentEventHooks {
             var storage = WaystoneDataStorage.getStorage(world);
             var waystone = storage.getEntity(target.uuid());
 
-            if (waystone == null) {
-                stack.remove(WaystoneDataComponents.HASH_TARGET);
-            } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree(), TeleportSources.LOCAL_VOID) && !user.isCreative() && FabricWaystones.CONFIG.shouldConsumeLocalVoid()) {
-                stack.decrement(1);
-                return TypedActionResult.consume(stack);
+            if (!world.isClient) {
+                if (waystone == null) {
+                    stack.remove(WaystoneDataComponents.HASH_TARGET);
+                } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree(), TeleportSources.LOCAL_VOID) && !user.isCreative() && FabricWaystones.CONFIG.shouldConsumeLocalVoid()) {
+                    stack.decrement(1);
+                }
             }
+
+            return TypedActionResult.consume(stack);
         }
 
         return TypedActionResult.fail(stack);

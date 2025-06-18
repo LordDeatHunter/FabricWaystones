@@ -84,7 +84,9 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
             if (data != null) name = data.parsedName();
         }
 
-        tooltip.accept(TextUtils.translationWithArg(translationName + ".tooltip", name));
+        if (name != null) {
+            tooltip.accept(TextUtils.translationWithArg(translationName + ".tooltip", name));
+        }
 
         var cooldowns = FabricWaystones.CONFIG.teleportCooldowns;
 

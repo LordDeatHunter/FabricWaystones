@@ -1,6 +1,0 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "fwaystones:item/red_desert_waystone"
-  }
-}

@@ -1,9 +1,13 @@
 package wraith.fwaystones.block;
 
+import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.owo.ops.WorldOps;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
+import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -11,6 +15,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
@@ -24,30 +29,35 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.BlockRenderView;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.api.core.ExtendedStackReference;
-import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.*;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.api.core.WaystoneAccess;
-import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.client.screen.ExperimentalWaystoneScreenHandler;
 import wraith.fwaystones.item.components.TextUtils;
+import wraith.fwaystones.item.components.WaystoneTyped;
 import wraith.fwaystones.particle.RuneParticleEffect;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
-import wraith.fwaystones.client.screen.WaystoneBlockScreenHandler;
 import wraith.fwaystones.util.*;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import static wraith.fwaystones.FabricWaystones.WAYSTONE_MOSS_APPLY;
+import static wraith.fwaystones.FabricWaystones.WAYSTONE_SHEAR;
 
 public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory<WaystoneScreenOpenDataPacket>, WaystoneAccess {
 
@@ -56,14 +66,32 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     private long tickDelta = 0;
 
-    private WaystonePosition hash;
+    private WaystonePosition waystonePosition;
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
 
     @Nullable
     public WaystoneDataHolder dataHolder = null;
 
+    private static final KeyedEndec<Identifier> WAYSTONE_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("waystone_type", () -> WaystoneTypes.STONE);
+    private Identifier waystoneTypeId = WaystoneTypes.STONE;
+
+    private static final KeyedEndec<Identifier> MOSS_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("moss_type", () -> MossTypes.NO_MOSS_ID);
+    private Identifier mossTypeId = MossTypes.NO_MOSS_ID;
+
+    private ItemStack mossStack = ItemStack.EMPTY;
+
     public WaystoneBlockEntity(BlockPos pos, BlockState state) {
         super(WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, pos, state);
+    }
+
+    public Identifier getWaystoneTypeIdSafe() {
+        return WaystoneTypes.getId(WaystoneTypes.getTypeOrDefault(waystoneTypeId));
+    }
+
+    @Nullable
+    public static WaystoneBlockEntity getBlockEntity(BlockRenderView world, BlockPos pos, BlockState state) {
+        return world.getBlockEntity(state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos, WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY)
+                .orElse(null);
     }
 
     @Nullable
@@ -71,14 +99,75 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return WaystoneDataStorage.getStorage(this.world).getData(this.position());
     }
 
+    public WaystoneType getWaystoneType() {
+        return WaystoneTypes.getTypeOrDefault(this.waystoneTypeId);
+    }
+
+    @Nullable
+    public MossType getMossType(BlockState state) {
+        var isMossy = state.get(WaystoneBlock.MOSSY);
+
+        return isMossy && !this.mossTypeId.equals(MossTypes.NO_MOSS_ID)
+                ? MossTypes.getTypeOrDefault(this.mossTypeId)
+                : null;
+    }
+
+    public ItemStack getMossStack() {
+        return mossStack;
+    }
+
+    public TypedActionResult<ItemStack> attemptMossingInteraction(BlockPos pos, ItemStack stack) {
+        var topState = world.getBlockState(pos.up());
+        var bottomState = world.getBlockState(pos);
+
+        var mossType = MossTypes.getMossType(stack);
+
+        if (mossType != null) {
+            if (mossType.getId().equals(this.mossTypeId)) return TypedActionResult.pass(ItemStack.EMPTY);
+
+            if (!world.isClient) {
+                var prevMoss = this.mossStack;
+
+                world.setBlockState(pos.up(), topState.with(WaystoneBlock.MOSSY, true));
+                world.setBlockState(pos, bottomState.with(WaystoneBlock.MOSSY, true));
+
+                world.playSound(null, pos, WAYSTONE_MOSS_APPLY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+
+                this.mossTypeId = mossType.getId();
+
+                return TypedActionResult.success(prevMoss);
+            }
+
+            return TypedActionResult.success(ItemStack.EMPTY);
+        } else if (stack.isIn(ConventionalItemTags.SHEAR_TOOLS) && !this.mossTypeId.equals(MossTypes.NO_MOSS_ID)) {
+            if (!world.isClient) {
+                var prevMoss = this.mossStack;
+
+                world.setBlockState(pos.up(), topState.with(WaystoneBlock.MOSSY, false));
+                world.setBlockState(pos, bottomState.with(WaystoneBlock.MOSSY, false));
+
+                world.playSound(null, pos, WAYSTONE_SHEAR, SoundCategory.BLOCKS, 1.0F, 1.0F);
+
+                this.mossStack = ItemStack.EMPTY;
+                this.mossTypeId = MossTypes.NO_MOSS_ID;
+
+                return TypedActionResult.success(prevMoss);
+            }
+
+            return TypedActionResult.success(ItemStack.EMPTY);
+        }
+
+        return TypedActionResult.pass(ItemStack.EMPTY);
+    }
+
     public boolean hasData() {
         return getData() != null;
     }
 
     public WaystonePosition position() {
-        if (this.hash == null) createHash(world, pos);
+        if (this.waystonePosition == null) createHash(world, pos);
 
-        return this.hash;
+        return this.waystonePosition;
     }
 
     @Nullable
@@ -98,18 +187,19 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (data.owner() == null)) {
             world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, data.ownerName() != null));
             world.setBlockState(pos.up(), world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, data.ownerName() != null));
-
         }
     }
 
     public void createHash(World world, BlockPos pos) {
-        this.hash = new WaystonePosition(Utils.getDimensionName(world), pos);
+        this.waystonePosition = new WaystonePosition(Utils.getDimensionName(world), pos);
         markDirty();
     }
 
+    //--
+
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new WaystoneBlockScreenHandler(syncId, playerInventory, this);
+        return new ExperimentalWaystoneScreenHandler(syncId, playerInventory);
     }
 
     @Override
@@ -128,6 +218,13 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
+    public WaystoneScreenOpenDataPacket getScreenOpeningData(ServerPlayerEntity player) {
+        return new WaystoneScreenOpenDataPacket(this.position(), this.canAccess(player));
+    }
+
+    //--
+
+    @Override
     protected DefaultedList<ItemStack> getHeldStacks() {
         return this.inventory;
     }
@@ -138,35 +235,86 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Override
-    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
-        super.readNbt(nbt, lookup);
-//        if (nbt.contains("waystone_name")) {
-//            this.name = nbt.getString("waystone_name");
-//        }
-//        if (nbt.contains("waystone_is_global")) {
-//            this.isGlobal = nbt.getBoolean("waystone_is_global");
-//        }
-//        if (nbt.contains("waystone_owner")) {
-//            this.owner = nbt.getUuid("waystone_owner");
-//        }
-//        if (nbt.contains("waystone_owner_name")) {
-//            this.ownerName = nbt.getString("waystone_owner_name");
-//        }
-//        this.color = nbt.contains("color", NbtElement.INT_TYPE) ? nbt.getInt("color") : null;
-        this.inventory = DefaultedList.ofSize(nbt.getInt("inventory_size"), ItemStack.EMPTY);
-        Inventories.readNbt(nbt, inventory, lookup);
+    public int size() {
+        return this.inventory.size();
+    }
+
+    public DefaultedList<ItemStack> getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(List<ItemStack> newInventory) {
+        if (newInventory instanceof DefaultedList<ItemStack> defaultedList) {
+            this.inventory = defaultedList;
+        } else {
+            this.inventory = DefaultedList.ofSize(newInventory.size(), ItemStack.EMPTY);
+
+            for (int i = 0; i < newInventory.size(); ++i) {
+                this.inventory.set(i, newInventory.get(i));
+            }
+        }
+
+        markDirty();
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
-        super.writeNbt(nbt, lookup);
-        createTag(nbt);
+    public int[] getAvailableSlots(Direction side) {
+        return new int[0];
     }
 
-    private NbtCompound createTag(NbtCompound tag) {
+    @Override
+    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
+        return false;
+    }
+
+    @Override
+    public boolean canExtract(int slot, ItemStack stack, Direction dir) {
+        return false;
+    }
+
+    //--
+
+    @Override
+    public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup lookup) {
+        super.readNbt(tag, lookup);
+
+        this.inventory = DefaultedList.ofSize(tag.getInt("inventory_size"), ItemStack.EMPTY);
+
+        Inventories.readNbt(tag, inventory, lookup);
+
+        this.waystoneTypeId = tag.get(WAYSTONE_TYPE_ID_KEY);
+        this.mossTypeId = tag.get(MOSS_TYPE_ID_KEY);
+
+        this.mossStack = ItemStack.fromNbtOrEmpty(lookup, tag.getCompound("moss_stack"));
+    }
+
+    @Override
+    protected void writeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup lookup) {
+        super.writeNbt(tag, lookup);
+
         tag.putInt("inventory_size", this.inventory.size());
-        Inventories.writeNbt(tag, this.inventory, world.getRegistryManager());
-        return tag;
+
+        Inventories.writeNbt(tag, this.inventory, lookup);
+
+        tag.put(WAYSTONE_TYPE_ID_KEY, this.waystoneTypeId);
+        tag.put(MOSS_TYPE_ID_KEY, this.mossTypeId);
+
+        tag.put("moss_stack", this.mossStack.encodeAllowEmpty(lookup));
+    }
+
+    @Override
+    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registryLookup) {
+        var nbt = super.toInitialChunkDataNbt(registryLookup);
+
+        nbt.put(WAYSTONE_TYPE_ID_KEY, this.waystoneTypeId);
+        nbt.put(MOSS_TYPE_ID_KEY, this.mossTypeId);
+
+        return nbt;
+    }
+
+    @Override
+    public @Nullable Packet<ClientPlayPacketListener> toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this);
     }
 
     @Override
@@ -184,6 +332,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         } else {
             storage.removePositionAndData(this);
         }
+
+        componentMapBuilder.add(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(this.waystoneTypeId));
     }
 
     @Override
@@ -193,247 +343,36 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         this.dataHolder = components.get(WaystoneDataComponents.DATA_HOLDER);
 
         if (this.dataHolder != null) {
-            WaystoneDataStorage.getStorage(this.world).createGetOrImportData(this, dataHolder.data().color());
+            WaystoneDataStorage.getStorage(this.world).createGetOrImportData(this);
 
             this.updateActiveState();
         }
+
+        this.waystoneTypeId = components.getOrDefault(WaystoneDataComponents.WAYSTONE_TYPE, WaystoneTyped.DEFAULT).id();
     }
 
-    @Override
-    public int size() {
-        return 0;
-    }
-
-    @Override
-    public void markDirty() {
-        super.markDirty();
-        WorldOps.updateIfOnServer(world, pos);
-        WorldOps.updateIfOnServer(world, pos.up());
-    }
-
-    public DefaultedList<ItemStack> getInventory() {
-        return inventory;
-    }
-
-    public void setInventory(DefaultedList<ItemStack> inventory) {
-        this.inventory = inventory;
-        markDirty();
-    }
-
-    public void setInventory(ArrayList<ItemStack> newInventory) {
-        this.inventory = DefaultedList.ofSize(newInventory.size(), ItemStack.EMPTY);
-        for (int i = 0; i < newInventory.size(); ++i) {
-            setItemInSlot(i, newInventory.get(i));
-        }
-        markDirty();
-    }
-
-    private float rotClamp(int clampTo, float value) {
-        if (value >= clampTo) {
-            return value - clampTo;
-        } else if (value < 0) {
-            return value + clampTo;
-        } else {
-            return value;
-        }
-    }
-
-    private boolean checkBound(int amount, float rot) {
-        float Rot = Math.round(rot);
-        float Rot2 = rotClamp(360, Rot + 180);
-        return ((Rot - amount <= lookingRotR && lookingRotR <= Rot + amount) || (
-            Rot2 - amount <= lookingRotR && lookingRotR <= Rot2 + amount));
-    }
-
-    private void moveOnTickR(float rot) {
-        if (!checkBound(2, rot)) {
-            double check = (rotClamp(180, rot) - rotClamp(180, lookingRotR) + 180) % 180;
-            if (check < 90) {
-                lookingRotR += turningSpeedR;
-            } else {
-                lookingRotR -= turningSpeedR;
-            }
-            lookingRotR = rotClamp(360, lookingRotR);
-            if (checkBound(10, rot)) {
-                turningSpeedR = 2;
-            } else {
-                turningSpeedR += 1;
-                turningSpeedR = MathHelper.clamp(turningSpeedR, 2, 20);
-            }
-        }
-    }
-
-    private void addParticle(Entity target, boolean main) {
-        if (world == null) return;
-        var random = world.getRandom();
-        var data = getData();
-        ParticleEffect p = (random.nextInt(10) > 7) ? new RuneParticleEffect(data == null ? -1 : data.color()) : ParticleTypes.PORTAL;
-        var basePos = this.getPos().toBottomCenterPos();
-        var watcherPos = basePos.add(0, 0.8, 0);
-        var targetPos = target.getPos();
-
-        int rd = random.nextInt(10);
-        if (rd > 5) {
-            if (p instanceof RuneParticleEffect) {
-                var start = targetPos
-                    .add(0, 1.25, 0);
-                var distanceCheck = Double.compare(Math.abs(watcherPos.x - targetPos.x), Math.abs(watcherPos.z - targetPos.z));
-                var end = basePos
-                    .subtract(
-                        distanceCheck > 0 ? Double.compare(watcherPos.x, targetPos.x) * 0.4 : 0,
-                        0.05,
-                        distanceCheck < 0 ? Double.compare(watcherPos.z, targetPos.z) * 0.4 : 0
-                    )
-                    .subtract(targetPos);
-                this.world.addParticle(
-                    p,
-                    start.x, start.y, start.z,
-                    end.x, end.y, end.z
-                );
-            } else if (main) {
-                var start = watcherPos
-                    .add(0, 0.95, 0);
-//                velocity = eyePos
-//                    .subtract(watcherPos)
-//                    .subtract(randomDirection(random));
-                var bb = target.getBoundingBox();
-                var bbMin = bb.getMinPos();
-                var bbMax = bb.getMaxPos();
-                var endX = bbMin.x + (bbMax.x - bbMin.x) * random.nextDouble();
-                var endY = bbMin.y + (bbMax.y - bbMin.y) * random.nextDouble();
-                var endZ = bbMin.z + (bbMax.z - bbMin.z) * random.nextDouble();
-                var end = new Vec3d(endX, endY, endZ)
-                    .subtract(watcherPos.add(0, 1.8, 0));
-//                    .add(randomDirection(random).multiply(0.005));
-//                    .subtract(0, 1.25, 0);
-                this.world.addParticle(
-                    p,
-                    start.x, start.y, start.z,
-                    end.x, end.y, end.z
-                );
-                if (rd > 8) {
-                    var randomDirection = randomDirection(random);
-                    this.world.addParticle(
-                        p,
-                        watcherPos.x, watcherPos.y + 0.95, watcherPos.z,
-                        randomDirection.x * 2,
-                        randomDirection.y * 2 - 0.2,
-                        randomDirection.z * 2
-                    );
-                }
-            }
-        }
-    }
-
-    public void tick() {
-        if (world == null) return;
-
-        if (world.isClient()) {
-            ++tickDelta;
-            if (getCachedState().get(WaystoneBlock.ACTIVE)) {
-                var center = this.getPos().toBottomCenterPos().add(0, 1, 0);
-
-                var closestPlayer = this.world.getClosestPlayer(
-                    center.x, center.y, center.z,
-                    4.5,
-                    this::shouldWatchEntity
-                );
-                var others = this.world.getOtherEntities(
-                    closestPlayer,
-                    Box.of(center, 10, 10, 10),
-                    this::shouldWatchEntity
-                );
-                if (closestPlayer != null) {
-//                    for (int i = 0; i < 100; i++)
-                    addParticle(closestPlayer, true);
-                    double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
-                    double z = closestPlayer.getZ() - this.getPos().getZ() - 0.5D;
-                    float rotY = (float) ((float) Math.atan2(z, x) / Math.PI * 180 + 180);
-                    moveOnTickR(rotY);
-                } else {
-                    lookingRotR += 2;
-                }
-                others.forEach(otherEntity -> addParticle(otherEntity, false));
-
-                lookingRotR = rotClamp(360, lookingRotR);
-            }
-
-            if (tickDelta >= 360) {
-                tickDelta = 0;
-            }
-        }
-    }
-
-    private boolean shouldWatchEntity(Entity entity) {
-        if (entity == null) return false;
-        if (!(entity instanceof PlayerEntity player)) return false;
-        if (!EntityPredicates.EXCEPT_SPECTATOR.test(player)) return false;
-        var data = WaystonePlayerData.getData(player);
-        return data.hasDiscoverdWaystone(getUUID());
-    }
-
-    private static Vec3d randomDirection(Random random) {
-        double theta = random.nextDouble() * 2 * Math.PI;
-        double u = random.nextDouble();
-        double phi = Math.acos(2 * u - 1);
-
-        double x = Math.sin(phi) * Math.cos(theta);
-        double y = Math.sin(phi) * Math.sin(theta);
-        double z = Math.cos(phi);
-
-        return new Vec3d(x, y, z);
-    }
-
-    public boolean canAccess(PlayerEntity player) {
-        return player.squaredDistanceTo((double) this.pos.getX() + 0.5D,
-                                        (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D
-        ) <= 64.0D;
-    }
-
-    public boolean teleportPlayer(PlayerEntity player, boolean takeCost) {
-        return teleportPlayer(player, takeCost, null);
-    }
+    //--
 
     public boolean teleportPlayer(PlayerEntity player, boolean takeCost, TeleportSources source) {
-        if (!(player instanceof ServerPlayerEntity playerEntity)) return false;
-        if (playerEntity.getServer() == null) return false;
+        if (!(player instanceof ServerPlayerEntity playerEntity) || source == null) return false;
 
         var facing = getCachedState().get(WaystoneBlock.FACING);
 
-        float offsetX = 0;
-        float offsetZ = 0;
-        float yaw;
+        float yaw = (facing.equals(Direction.UP) || facing.equals(Direction.DOWN))
+                ? playerEntity.getYaw()
+                : facing.getOpposite().asRotation();
 
-        if (facing.equals(Direction.UP) || facing.equals(Direction.DOWN)) {
-            yaw = playerEntity.getYaw();
-        } else {
-            yaw = facing.getOpposite().asRotation();
-        }
+        var teleportPos = pos.toBottomCenterPos()
+                .add(facing.getOffsetX(), 0, facing.getOffsetZ());
 
-        if (facing == Direction.NORTH) {
-            offsetX = 0.5f;
-            offsetZ = -0.5f;
-        } else if (facing == Direction.SOUTH) {
-            offsetX = 0.5f;
-            offsetZ = 1.5f;
-        } else if (facing == Direction.EAST) {
-            offsetX = 1.5f;
-            offsetZ = 0.5f;
-        } else if (facing == Direction.WEST) {
-            offsetX = -0.5f;
-            offsetZ = 0.5f;
-        }
-
-        TeleportTarget target = new TeleportTarget(
-            (ServerWorld) getWorld(),
-            new Vec3d(pos.getX() + offsetX, pos.getY(), pos.getZ() + offsetZ),
-            new Vec3d(0, 0, 0),
-            yaw,
-            0,
-            TeleportTarget.ADD_PORTAL_CHUNK_TICKET
+        var target = new TeleportTarget(
+                (ServerWorld) getWorld(),
+                teleportPos,
+                new Vec3d(0, 0, 0),
+                yaw,
+                0,
+                TeleportTarget.ADD_PORTAL_CHUNK_TICKET
         );
-
-        if (source == null) return false;
 
         ExtendedStackReference stackReference = null;
 
@@ -528,36 +467,174 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         markDirty();
     }
 
-    public void setItemInSlot(int i, ItemStack itemStack) {
-        this.inventory.set(i, itemStack);
-    }
-
-    public boolean hasStorage() {
-        return !this.inventory.isEmpty();
-    }
-
     @Override
-    public int[] getAvailableSlots(Direction side) {
-        return new int[0];
+    public void markDirty() {
+        super.markDirty();
+        WorldOps.updateIfOnServer(world, pos);
+        WorldOps.updateIfOnServer(world, pos.up());
     }
 
-    @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
+    //--
+
+    public void tick() {
+        if (world == null) return;
+
+        if (world.isClient()) {
+            ++tickDelta;
+            if (getCachedState().get(WaystoneBlock.ACTIVE)) {
+                var center = this.getPos().toBottomCenterPos().add(0, 1, 0);
+
+                var closestPlayer = this.world.getClosestPlayer(
+                        center.x, center.y, center.z,
+                        4.5,
+                        this::shouldWatchEntity
+                );
+                var others = this.world.getOtherEntities(
+                        closestPlayer,
+                        Box.of(center, 10, 10, 10),
+                        this::shouldWatchEntity
+                );
+                if (closestPlayer != null) {
+//                    for (int i = 0; i < 100; i++)
+                    addParticle(closestPlayer, true);
+                    double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
+                    double z = closestPlayer.getZ() - this.getPos().getZ() - 0.5D;
+                    float rotY = (float) ((float) Math.atan2(z, x) / Math.PI * 180 + 180);
+                    moveOnTickR(rotY);
+                } else {
+                    lookingRotR += 2;
+                }
+                others.forEach(otherEntity -> addParticle(otherEntity, false));
+
+                lookingRotR = rotClamp(360, lookingRotR);
+            }
+
+            if (tickDelta >= 360) {
+                tickDelta = 0;
+            }
+        }
+    }
+
+    private void moveOnTickR(float rot) {
+        if (!checkBound(2, rot)) {
+            double check = (rotClamp(180, rot) - rotClamp(180, lookingRotR) + 180) % 180;
+            if (check < 90) {
+                lookingRotR += turningSpeedR;
+            } else {
+                lookingRotR -= turningSpeedR;
+            }
+            lookingRotR = rotClamp(360, lookingRotR);
+            if (checkBound(10, rot)) {
+                turningSpeedR = 2;
+            } else {
+                turningSpeedR += 1;
+                turningSpeedR = MathHelper.clamp(turningSpeedR, 2, 20);
+            }
+        }
+    }
+
+    private boolean checkBound(int amount, float rot) {
+        float Rot = Math.round(rot);
+        float Rot2 = rotClamp(360, Rot + 180);
+        return ((Rot - amount <= lookingRotR && lookingRotR <= Rot + amount) || (
+                Rot2 - amount <= lookingRotR && lookingRotR <= Rot2 + amount));
+    }
+
+    private float rotClamp(int clampTo, float value) {
+        if (value >= clampTo) {
+            return value - clampTo;
+        } else if (value < 0) {
+            return value + clampTo;
+        } else {
+            return value;
+        }
+    }
+
+    private void addParticle(Entity target, boolean main) {
+        if (world == null) return;
+        var random = world.getRandom();
+        var data = getData();
+        ParticleEffect p = (random.nextInt(10) > 7) ? new RuneParticleEffect(data == null ? -1 : data.color()) : ParticleTypes.PORTAL;
+        var basePos = this.getPos().toBottomCenterPos();
+        var watcherPos = basePos.add(0, 0.8, 0);
+        var targetPos = target.getPos();
+
+        int rd = random.nextInt(10);
+        if (rd > 5) {
+            if (p instanceof RuneParticleEffect) {
+                var start = targetPos
+                    .add(0, 1.25, 0);
+                var distanceCheck = Double.compare(Math.abs(watcherPos.x - targetPos.x), Math.abs(watcherPos.z - targetPos.z));
+                var end = basePos
+                    .subtract(
+                        distanceCheck > 0 ? Double.compare(watcherPos.x, targetPos.x) * 0.4 : 0,
+                        0.05,
+                        distanceCheck < 0 ? Double.compare(watcherPos.z, targetPos.z) * 0.4 : 0
+                    )
+                    .subtract(targetPos);
+                this.world.addParticle(
+                    p,
+                    start.x, start.y, start.z,
+                    end.x, end.y, end.z
+                );
+            } else if (main) {
+                var start = watcherPos
+                    .add(0, 0.95, 0);
+//                velocity = eyePos
+//                    .subtract(watcherPos)
+//                    .subtract(randomDirection(random));
+                var bb = target.getBoundingBox();
+                var bbMin = bb.getMinPos();
+                var bbMax = bb.getMaxPos();
+                var endX = bbMin.x + (bbMax.x - bbMin.x) * random.nextDouble();
+                var endY = bbMin.y + (bbMax.y - bbMin.y) * random.nextDouble();
+                var endZ = bbMin.z + (bbMax.z - bbMin.z) * random.nextDouble();
+                var end = new Vec3d(endX, endY, endZ)
+                    .subtract(watcherPos.add(0, 1.8, 0));
+//                    .add(randomDirection(random).multiply(0.005));
+//                    .subtract(0, 1.25, 0);
+                this.world.addParticle(
+                    p,
+                    start.x, start.y, start.z,
+                    end.x, end.y, end.z
+                );
+                if (rd > 8) {
+                    var randomDirection = randomDirection(random);
+                    this.world.addParticle(
+                        p,
+                        watcherPos.x, watcherPos.y + 0.95, watcherPos.z,
+                        randomDirection.x * 2,
+                        randomDirection.y * 2 - 0.2,
+                        randomDirection.z * 2
+                    );
+                }
+            }
+        }
+    }
+
+    private boolean shouldWatchEntity(@Nullable Entity entity) {
+        if (entity instanceof PlayerEntity player && EntityPredicates.EXCEPT_SPECTATOR.test(player)) {
+            var data = WaystonePlayerData.getData(player);
+
+            return data.hasDiscoverdWaystone(getUUID());
+        }
+
         return false;
     }
 
-    @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction dir) {
-        return false;
+    private static Vec3d randomDirection(Random random) {
+        double theta = random.nextDouble() * 2 * Math.PI;
+        double u = random.nextDouble();
+        double phi = Math.acos(2 * u - 1);
+
+        double x = Math.sin(phi) * Math.cos(theta);
+        double y = Math.sin(phi) * Math.sin(theta);
+        double z = Math.cos(phi);
+
+        return new Vec3d(x, y, z);
     }
 
-    @Override
-    public WaystoneScreenOpenDataPacket getScreenOpeningData(ServerPlayerEntity player) {
-        return new WaystoneScreenOpenDataPacket(this.position(), this.canAccess(player));
-    }
-
-    @Override
-    public @Nullable Packet<ClientPlayPacketListener> toUpdatePacket() {
-        return BlockEntityUpdateS2CPacket.create(this);
+    public boolean canAccess(PlayerEntity player) {
+        return player.squaredDistanceTo(this.pos.toCenterPos()) <= 64.0D;
     }
 }

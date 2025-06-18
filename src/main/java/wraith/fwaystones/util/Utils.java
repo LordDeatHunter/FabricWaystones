@@ -53,10 +53,6 @@ public final class Utils {
         return random.nextInt((max - min) + 1) + min;
     }
 
-    public static Text generateWaystoneName(Text text) {
-        return text == null || text.getString().isEmpty() ? Text.of(generateUniqueId()) : text;
-    }
-
     public static String generateWaystoneName(String id) {
         return id == null || id.isEmpty() ? generateUniqueId() : id;
     }
@@ -185,10 +181,9 @@ public final class Utils {
 
         var storage = WaystoneDataStorage.getStorage(player);
 
-        var waystone = storage.getData(uuid);
         var position = storage.getPosition(uuid);
 
-        if (waystone == null || position == null) {
+        if (!storage.hasData(uuid) || position == null) {
             player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
             return false;
         }
@@ -267,25 +262,26 @@ public final class Utils {
                 if (takeCost) {
                     removeItem(player.getInventory(), item, amount);
 
-                    if (player.getWorld().isClient) return true;
+                    if (player.getWorld().isClient) {
+                        var waystoneBE = storage.getEntity(position);
 
-                    var waystoneBE = storage.getEntity(position);
+                        if (waystoneBE != null) {
+                            var oldInventory = new ArrayList<>(waystoneBE.getInventory());
+                            boolean found = false;
 
-                    if (waystoneBE == null) return true;
+                            for (ItemStack stack : oldInventory) {
+                                if (stack.getItem() == item) {
+                                    stack.increment(amount);
+                                    found = true;
+                                    break;
+                                }
+                            }
 
-                    ArrayList<ItemStack> oldInventory = new ArrayList<>(waystoneBE.getInventory());
-                    boolean found = false;
-                    for (ItemStack stack : oldInventory) {
-                        if (stack.getItem() == item) {
-                            stack.increment(amount);
-                            found = true;
-                            break;
+                            if (!found) oldInventory.add(new ItemStack(item, amount));
+
+                            waystoneBE.setInventory(oldInventory);
                         }
                     }
-                    if (!found) {
-                        oldInventory.add(new ItemStack(item, amount));
-                    }
-                    waystoneBE.setInventory(oldInventory);
                 }
             }
         }

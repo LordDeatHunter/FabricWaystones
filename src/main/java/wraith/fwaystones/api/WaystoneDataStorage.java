@@ -19,7 +19,6 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
@@ -27,6 +26,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.WaystoneType;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
@@ -355,17 +355,18 @@ public class WaystoneDataStorage {
         return Collections.unmodifiableSet(uuidToData.keySet());
     }
 
-    public WaystoneData createGetOrImportData(WaystoneBlockEntity blockEntity, int color) {
-        if (isClient) return null;
+    public WaystoneData createGetOrImportData(WaystoneBlockEntity blockEntity) {
+        if (isClient) return this.getData(blockEntity.getUUID());
 
         var pos = blockEntity.position();
         var holder = blockEntity.dataHolder;
 
         if (holder == null) {
             if (hasData(pos)) return getData(pos);
+
             var customName = blockEntity.getCustomName();
-            //TODO: look into this, it probably shouldn't be "" if the name is null
-            return createData(pos, customName != null ? customName.getString() : "", color);
+
+            return createData(pos, customName != null ? customName.getString() : "", blockEntity.getWaystoneType());
         }
 
         var data = holder.data();
@@ -385,8 +386,8 @@ public class WaystoneDataStorage {
         return data;
     }
 
-    public WaystoneData createData(WaystonePosition position, String name, int color) {
-        var data = new WaystoneData(name, color);
+    public WaystoneData createData(WaystonePosition position, String name, WaystoneType type) {
+        var data = new WaystoneData(name, type);
 
         addData(data);
 
