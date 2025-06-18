@@ -1,0 +1,5 @@
+{
+  "credit": "made by chyzman",
+  "parent": "minecraft:builtin/entity",
+  "gui_light": "front"
+}

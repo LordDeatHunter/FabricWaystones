@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.DelegatingUnbakedModel;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
@@ -47,6 +48,7 @@ import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.item.components.WaystoneTyped;
 import wraith.fwaystones.mixin.client.ModelPredicateProviderRegistryAccessor;
+import wraith.fwaystones.item.render.WaystoneCompassItemRenderer;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.client.registry.WaystoneScreens;
 import wraith.fwaystones.networking.packets.c2s.AttemptTeleporterUse;
@@ -55,6 +57,7 @@ import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.client.registry.WaystoneModelProviders;
 import wraith.fwaystones.registry.WaystoneBlocks;
 import wraith.fwaystones.registry.WaystoneDataComponents;
+import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.registry.WaystoneParticles;
 
 import java.util.*;
@@ -73,6 +76,9 @@ public class WaystonesClient implements ClientModInitializer {
         WaystoneNetworkHandler.initClient();
 
         KeyBindingHelper.registerKeyBinding(USE_TELEPORTER);
+
+        BuiltinItemRendererRegistry.INSTANCE.register(WaystoneItems.WAYSTONE_COMPASS, new WaystoneCompassItemRenderer());
+        ModelLoadingPlugin.register(pluginContext -> pluginContext.addModels(FabricWaystones.id("item/waystone_compass_base")));
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (USE_TELEPORTER.wasPressed()) {

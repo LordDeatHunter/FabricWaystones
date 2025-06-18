@@ -22,8 +22,9 @@
   "client": [
     "client.DrawContextAccessor",
     "client.ModelPredicateProviderRegistryAccessor",
-    "xaeros.WaypointWorldRendererMixin",
-    "client.BlockDustParticleMixin"
+    "client.ItemRendererMixin",
+    "client.BlockDustParticleMixin",
+    "xaeros.WaypointWorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
