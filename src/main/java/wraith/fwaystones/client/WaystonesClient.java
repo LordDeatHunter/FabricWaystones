@@ -77,9 +77,6 @@ public class WaystonesClient implements ClientModInitializer {
 
         KeyBindingHelper.registerKeyBinding(USE_TELEPORTER);
 
-        BuiltinItemRendererRegistry.INSTANCE.register(WaystoneItems.WAYSTONE_COMPASS, new WaystoneCompassItemRenderer());
-        ModelLoadingPlugin.register(pluginContext -> pluginContext.addModels(FabricWaystones.id("item/waystone_compass_base")));
-
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (USE_TELEPORTER.wasPressed()) {
                 var ref = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(client.player, stack -> {
@@ -174,7 +171,11 @@ public class WaystonesClient implements ClientModInitializer {
             return 1;
         });
 
+        BuiltinItemRendererRegistry.INSTANCE.register(WaystoneItems.WAYSTONE_COMPASS, new WaystoneCompassItemRenderer());
+
         ModelLoadingPlugin.register(ctx -> {
+            ctx.addModels(FabricWaystones.id("item/waystone_compass_base"));
+
             var validItemModels = new LinkedHashMap<Identifier, Identifier>();
 
             for (var typeId : WaystoneTypes.getTypeIds()) {
@@ -184,6 +185,39 @@ public class WaystonesClient implements ClientModInitializer {
 
                 validItemModels.put(modelId, typeId);
             }
+
+            ctx.resolveModel().register(context -> {
+                if (context.id().equals(FabricWaystones.id("item/waystone"))) {
+                    var obj = DynamicModelUtils.createOverridenItemModel(
+                            List.of(FabricWaystones.id("item/stone_waystone")),
+                            WaystoneTypes.getTypeIds().stream().map(id -> id.withPath(s -> "item/" + s + "_waystone")),
+                            FabricWaystones.id("waystone_type")
+                    );
+
+                    if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+                        FabricWaystones.LOGGER.info(obj);
+                    }
+
+                    return JsonUnbakedModel.deserialize(obj.toString());
+                } else if(validItemModels.containsKey(context.id())) {
+                    var typeId = validItemModels.get(context.id());
+                    var type = WaystoneTypes.getType(typeId);
+
+                    if (type == null) {
+                        throw new IllegalStateException("Unable to get the required WaystoneType for getting the texture!");
+                    }
+
+                    var obj = DynamicModelUtils.createItemModel(List.of(type.itemTexture()));
+
+                    if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+                        FabricWaystones.LOGGER.info(obj);
+                    }
+
+                    return JsonUnbakedModel.deserialize(obj.toString());
+                }
+
+                return null;
+            });
 
             var validBlockModels = new LinkedHashMap<Identifier, Triple<Boolean, Boolean, WaystoneModelKey>>();
 
@@ -279,39 +313,6 @@ public class WaystonesClient implements ClientModInitializer {
                         return new WaystoneModelKey(typeId, mossID);
                     }));
                 }
-            });
-
-            ctx.resolveModel().register(context -> {
-                if (context.id().equals(FabricWaystones.id("item/waystone"))) {
-                    var obj = DynamicModelUtils.createOverridenItemModel(
-                            List.of(FabricWaystones.id("item/stone_waystone")),
-                            WaystoneTypes.getTypeIds().stream().map(id -> id.withPath(s -> "item/" + s + "_waystone")),
-                            FabricWaystones.id("waystone_type")
-                    );
-
-                    if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-                        FabricWaystones.LOGGER.info(obj);
-                    }
-
-                    return JsonUnbakedModel.deserialize(obj.toString());
-                } else if(validItemModels.containsKey(context.id())) {
-                    var typeId = validItemModels.get(context.id());
-                    var type = WaystoneTypes.getType(typeId);
-
-                    if (type == null) {
-                        throw new IllegalStateException("Unable to get the required WaystoneType for getting the texture!");
-                    }
-
-                    var obj = DynamicModelUtils.createItemModel(List.of(type.itemTexture()));
-
-                    if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-                        FabricWaystones.LOGGER.info(obj);
-                    }
-
-                    return JsonUnbakedModel.deserialize(obj.toString());
-                }
-
-                return null;
             });
         });
     }
