@@ -13,20 +13,24 @@ import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.ModelPredicateProvider;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.model.UnbakedModel;
 import net.minecraft.client.render.model.json.JsonUnbakedModel;
 import net.minecraft.item.BlockItem;
 import net.minecraft.registry.Registries;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +52,7 @@ import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.item.components.WaystoneTyped;
 import wraith.fwaystones.mixin.client.ModelPredicateProviderRegistryAccessor;
-import wraith.fwaystones.item.render.WaystoneCompassItemRenderer;
+import wraith.fwaystones.item.render.WaystoneCompassRenderer;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.client.registry.WaystoneScreens;
 import wraith.fwaystones.networking.packets.c2s.AttemptTeleporterUse;
@@ -171,7 +175,7 @@ public class WaystonesClient implements ClientModInitializer {
             return 1;
         });
 
-        BuiltinItemRendererRegistry.INSTANCE.register(WaystoneItems.WAYSTONE_COMPASS, new WaystoneCompassItemRenderer());
+        WaystoneCompassRenderer.init();
 
         ModelLoadingPlugin.register(ctx -> {
             ctx.addModels(FabricWaystones.id("item/waystone_compass_base"));
@@ -189,9 +193,9 @@ public class WaystonesClient implements ClientModInitializer {
             ctx.resolveModel().register(context -> {
                 if (context.id().equals(FabricWaystones.id("item/waystone"))) {
                     var obj = DynamicModelUtils.createOverridenItemModel(
-                            List.of(FabricWaystones.id("item/stone_waystone")),
-                            WaystoneTypes.getTypeIds().stream().map(id -> id.withPath(s -> "item/" + s + "_waystone")),
-                            FabricWaystones.id("waystone_type")
+                        List.of(FabricWaystones.id("item/stone_waystone")),
+                        WaystoneTypes.getTypeIds().stream().map(id -> id.withPath(s -> "item/" + s + "_waystone")),
+                        FabricWaystones.id("waystone_type")
                     );
 
                     if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
@@ -199,7 +203,7 @@ public class WaystonesClient implements ClientModInitializer {
                     }
 
                     return JsonUnbakedModel.deserialize(obj.toString());
-                } else if(validItemModels.containsKey(context.id())) {
+                } else if (validItemModels.containsKey(context.id())) {
                     var typeId = validItemModels.get(context.id());
                     var type = WaystoneTypes.getType(typeId);
 
@@ -282,8 +286,8 @@ public class WaystonesClient implements ClientModInitializer {
                             var modelId = createId(typeId, isUpper, activeState, mossId);
 
                             var model = (yAxisRotation == 0)
-                                    ? new DelegatingUnbakedModel(modelId)
-                                    : new VariantUnbakedModel(modelId, Math.round(yAxisRotation));
+                                ? new DelegatingUnbakedModel(modelId)
+                                : new VariantUnbakedModel(modelId, Math.round(yAxisRotation));
 
                             typeToModel.put(new WaystoneModelKey(typeId, mossId), model);
                         }
@@ -321,16 +325,16 @@ public class WaystonesClient implements ClientModInitializer {
         var mossy = mossType != MossType.EMPTY;
 
         return JsonUnbakedModel.deserialize(
-                DynamicModelUtils.createBlockModel(
-                        FabricWaystones.id("block/base_waystone_" + (isUpper ? "top" : "bottom") + (isActive ? "" : "_off") + (mossy ? "_mossy" : "")),
-                        waystoneType.particleTexture(),
-                        map -> {
-                            map.put("body", waystoneType.blockTexture());
-                            if (mossy) {
-                                map.put("moss", mossType.blockTexture());
-                            }
-                        }
-                ).toString()
+            DynamicModelUtils.createBlockModel(
+                FabricWaystones.id("block/base_waystone_" + (isUpper ? "top" : "bottom") + (isActive ? "" : "_off") + (mossy ? "_mossy" : "")),
+                waystoneType.particleTexture(),
+                map -> {
+                    map.put("body", waystoneType.blockTexture());
+                    if (mossy) {
+                        map.put("moss", mossType.blockTexture());
+                    }
+                }
+            ).toString()
         );
     }
 
