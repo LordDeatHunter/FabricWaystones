@@ -16,9 +16,9 @@ import wraith.fwaystones.registry.WaystoneItems;
 
 public class AccessoriesClientCompat {
     public static void init() {
-        AccessoriesRendererRegistry.registerRenderer(WaystoneItems.get("local_void"), WristRenderer::new);
-        AccessoriesRendererRegistry.registerRenderer(WaystoneItems.get("pocket_wormhole"), WristRenderer::new);
-        AccessoriesRendererRegistry.registerRenderer(WaystoneItems.get("abyss_watcher"), WristRenderer::new);
+        AccessoriesRendererRegistry.registerRenderer(WaystoneItems.LOCAL_VOID, WristRenderer::new);
+        AccessoriesRendererRegistry.registerRenderer(WaystoneItems.POCKET_WORMHOLE, WristRenderer::new);
+        AccessoriesRendererRegistry.registerRenderer(WaystoneItems.ABYSS_WATCHER, WristRenderer::new);
     }
 
     public static class WristRenderer implements SimpleAccessoryRenderer {

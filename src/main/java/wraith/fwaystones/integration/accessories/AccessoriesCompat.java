@@ -34,9 +34,9 @@ public class AccessoriesCompat {
                 return false;
             }
         };
-        AccessoriesAPI.registerAccessory(WaystoneItems.get("local_void"), accessory);
-        AccessoriesAPI.registerAccessory(WaystoneItems.get("void_totem"), accessory);
-        AccessoriesAPI.registerAccessory(WaystoneItems.get("pocket_wormhole"), accessory);
-        AccessoriesAPI.registerAccessory(WaystoneItems.get("abyss_watcher"), accessory);
+        AccessoriesAPI.registerAccessory(WaystoneItems.LOCAL_VOID, accessory);
+        AccessoriesAPI.registerAccessory(WaystoneItems.VOID_TOTEM, accessory);
+        AccessoriesAPI.registerAccessory(WaystoneItems.POCKET_WORMHOLE, accessory);
+        AccessoriesAPI.registerAccessory(WaystoneItems.ABYSS_WATCHER, accessory);
     }
 }

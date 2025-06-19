@@ -23,7 +23,7 @@ public record VoidRevive() {
 
         for (int i = 0; i < player.getInventory().size(); ++i) {
             ItemStack playerStack = player.getInventory().getStack(i);
-            if (playerStack.getItem() == WaystoneItems.get("void_totem")) {
+            if (playerStack.getItem() == WaystoneItems.VOID_TOTEM) {
                 client.gameRenderer.showFloatingItem(playerStack);
                 break;
             }

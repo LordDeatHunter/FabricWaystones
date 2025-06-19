@@ -1,10 +1,11 @@
 package wraith.fwaystones.item.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -23,16 +24,19 @@ import org.joml.Quaternionf;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.registry.WaystoneItems;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class WaystoneCompassItemRenderer implements BuiltinItemRendererRegistry.DynamicItemRenderer {
     public static ThreadLocal<@Nullable LivingEntity> livingHolder = ThreadLocal.withInitial(() -> null);
 
-    private static final Map<UUID, WaystonePointer> waystonePointers = new HashMap<>();
+    private static final LoadingCache<UUID, Map<UUID, WaystonePointer>> waystonePointers = CacheBuilder.newBuilder()
+        .concurrencyLevel(1)
+        .expireAfterAccess(30, TimeUnit.SECONDS)
+        .build(CacheLoader.from(() -> new HashMap<>()));
 
     @Override
     public void render(
@@ -59,16 +63,19 @@ public class WaystoneCompassItemRenderer implements BuiltinItemRendererRegistry.
         matrices.translate(0.5, 0.5, 0.5);
 
         var itemRenderer = client.getItemRenderer();
-        itemRenderer.renderItem(
-            stack,
-            renderMode,
-            renderMode == ModelTransformationMode.FIRST_PERSON_LEFT_HAND || renderMode == ModelTransformationMode.THIRD_PERSON_LEFT_HAND,
-            matrices,
-            vertexConsumers,
-            light,
-            overlay,
-            itemRenderer.getModels().getModelManager().getModel(FabricWaystones.id("item/waystone_compass_base"))
-        );
+
+        if (!renderMode.isFirstPerson()) {
+            itemRenderer.renderItem(
+                stack,
+                ModelTransformationMode.FIXED,
+                false,
+                matrices,
+                vertexConsumers,
+                light,
+                overlay,
+                itemRenderer.getModels().getModelManager().getModel(FabricWaystones.id("item/waystone_compass_base"))
+            );
+        }
 
         Entity holder = stack.getHolder();
         if (holder == null) holder = livingHolder.get();
@@ -90,6 +97,8 @@ public class WaystoneCompassItemRenderer implements BuiltinItemRendererRegistry.
 
 //        matrices.multiply();
 
+        var myPointers = waystonePointers.getUnchecked(holder.getUuid());
+
         for (UUID uuid : playerStorage.discoveredWaystones()) {
             var waystone = storage.getData(uuid);
             if (waystone == null) continue;
@@ -97,11 +106,14 @@ public class WaystoneCompassItemRenderer implements BuiltinItemRendererRegistry.
             if (waystonePosisiton == null) continue;
 //            if (!player.getWorld().getRegistryKey().toString().equals(waystonePosisiton.worldName())) continue;
 
-            var pointer = waystonePointers.computeIfAbsent(uuid, k -> new WaystonePointer());
-            pointer.update(holder, waystonePosisiton.blockPos().up().toBottomCenterPos(), world.getTime());
+            var pointer = myPointers.computeIfAbsent(uuid, k -> new WaystonePointer());
+            pointer.update(holder, client.getRenderTickCounter().getTickDelta(true), waystonePosisiton.blockPos().up().toBottomCenterPos(), world.getTime());
 
             var direction = pointer.value;
             direction = direction.rotateY((float) Math.toRadians(holder.getBodyYaw() - 180));
+            if (renderMode.isFirstPerson()) {
+                direction = direction.rotateX((float) -Math.toRadians(holder.getPitch()));
+            }
 
 //            pos = pos.rotateY((float) Math.toRadians((firstPerson ? entity.getHeadYaw() : entity.getBodyYaw())));
 //            if (firstPerson) pos = pos.rotateX((float) Math.toRadians(entity.getPitch() - 180));
@@ -119,12 +131,13 @@ public class WaystoneCompassItemRenderer implements BuiltinItemRendererRegistry.
             matrices.translate(0, 0, 1);
             matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees((float) Math.toDegrees(Math.asin(direction.y))));
 
+
             matrices.scale(scale, scale, scale);
 
 
             matrices.scale(1/4f, 1/4f, 1/4f);
             client.getItemRenderer().renderItem(
-                WaystoneItems.get("waystone").getDefaultStack(),
+                Items.DIRT.getDefaultStack(),
                 ModelTransformationMode.FIXED,
                 light,
                 overlay,
@@ -174,18 +187,17 @@ public class WaystoneCompassItemRenderer implements BuiltinItemRendererRegistry.
         Double distance;
         @Nullable private Long lastUpdated;
 
-        public void update(Entity holder, Vec3d targetPos, long time) {
+        public void update(Entity holder, float tickDelta, Vec3d targetPos, long time) {
             if (!shouldUpdate(time)) return;
-            var target = getDirection(holder, targetPos);
+
+            var holderPos = new Vec3d(holder.prevX, holder.prevY, holder.prevZ).lerp(holder.getPos(), tickDelta);
+            var targetDir = targetPos.subtract(holderPos).normalize();
+
             var jump = lastUpdated == null || lastUpdated - time > 1000L;
-            this.value = (value == null || jump) ? target : value.lerp(target, 0.1f);
+            this.value = (value == null || jump) ? targetDir : value.lerp(targetDir, 0.1f);
             var d = holder.getPos().distanceTo(targetPos);
             this.distance = (distance == null || jump) ? d : MathHelper.lerp(0.1f, distance, d);
             this.lastUpdated = time;
-        }
-
-        private static Vec3d getDirection(Entity entity, Vec3d target) {
-            return target.subtract(entity.getPos()).normalize();
         }
 
 
