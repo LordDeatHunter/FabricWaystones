@@ -27,6 +27,8 @@ import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.MossTypes;
+import wraith.fwaystones.api.core.WaystoneTypes;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
 import wraith.fwaystones.integration.accessories.AccessoriesCompat;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
@@ -114,6 +116,8 @@ public class FabricWaystones implements ModInitializer {
         if (FabricLoader.getInstance().isModLoaded("accessories")) {
             AccessoriesCompat.init();
         }
+
+        Reflection.initialize(MossTypes.class, WaystoneTypes.class);
     }
 
     public static void registerEvents() {

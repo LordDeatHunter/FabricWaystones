@@ -15,7 +15,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
@@ -30,7 +29,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
@@ -75,8 +73,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private static final KeyedEndec<Identifier> WAYSTONE_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("waystone_type", () -> WaystoneTypes.STONE);
     private Identifier waystoneTypeId = WaystoneTypes.STONE;
 
-    private static final KeyedEndec<Identifier> MOSS_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("moss_type", () -> MossTypes.NO_MOSS_ID);
-    private Identifier mossTypeId = MossTypes.NO_MOSS_ID;
+    private static final KeyedEndec<Identifier> MOSS_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("moss_type", () -> MossTypes.EMPTY_ID);
+    private Identifier mossTypeId = MossTypes.EMPTY_ID;
 
     private ItemStack mossStack = ItemStack.EMPTY;
 
@@ -107,7 +105,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     public MossType getMossType(BlockState state) {
         var isMossy = state.get(WaystoneBlock.MOSSY);
 
-        return isMossy && !this.mossTypeId.equals(MossTypes.NO_MOSS_ID)
+        return isMossy && !this.mossTypeId.equals(MossTypes.EMPTY_ID)
                 ? MossTypes.getTypeOrDefault(this.mossTypeId)
                 : null;
     }
@@ -135,11 +133,14 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
                 this.mossTypeId = mossType.getId();
 
+                world.scheduleBlockRerenderIfNeeded(pos.up(), topState, topState);
+                world.scheduleBlockRerenderIfNeeded(pos, bottomState, bottomState);
+
                 return TypedActionResult.success(prevMoss);
             }
 
             return TypedActionResult.success(ItemStack.EMPTY);
-        } else if (stack.isIn(ConventionalItemTags.SHEAR_TOOLS) && !this.mossTypeId.equals(MossTypes.NO_MOSS_ID)) {
+        } else if (stack.isIn(ConventionalItemTags.SHEAR_TOOLS) && !this.mossTypeId.equals(MossTypes.EMPTY_ID)) {
             if (!world.isClient) {
                 var prevMoss = this.mossStack;
 
@@ -149,7 +150,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 world.playSound(null, pos, WAYSTONE_SHEAR, SoundCategory.BLOCKS, 1.0F, 1.0F);
 
                 this.mossStack = ItemStack.EMPTY;
-                this.mossTypeId = MossTypes.NO_MOSS_ID;
+                this.mossTypeId = MossTypes.EMPTY_ID;
 
                 return TypedActionResult.success(prevMoss);
             }

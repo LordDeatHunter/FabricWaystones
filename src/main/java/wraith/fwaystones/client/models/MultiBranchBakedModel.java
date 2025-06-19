@@ -40,7 +40,7 @@ public abstract class MultiBranchBakedModel<K extends Record> implements BakedMo
 
     @Override
     public boolean isVanillaAdapter() {
-        return BakedModel.super.isVanillaAdapter();
+        return false;
     }
 
     @Override
@@ -50,12 +50,10 @@ public abstract class MultiBranchBakedModel<K extends Record> implements BakedMo
 
     @Override
     public void emitBlockQuads(BlockRenderView blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
-        var blockEntityPos = state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
-        var waystone = blockView.getBlockEntity(blockEntityPos, WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY);
-
-        BakedModel modelToRender = getFirstModel();
+        BakedModel modelToRender = null;
 
         var key = getKey(blockView, state, pos);
+
         if (key != null) {
             var model = keyToModel.get(key);
 
@@ -64,13 +62,9 @@ public abstract class MultiBranchBakedModel<K extends Record> implements BakedMo
             }
         }
 
-        if (waystone.isPresent()) {
-            var type = waystone.get().getWaystoneType();
-            var id = WaystoneTypes.getIdOrDefault(type);
-
-            var model = keyToModel.get(id);
+        if (modelToRender == null) {
+            modelToRender = getFirstModel();
         }
-
 
         modelToRender.emitBlockQuads(blockView, state, pos, randomSupplier, context);
     }

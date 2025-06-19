@@ -11,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 public sealed interface MossType permits MossTypeImpl {
 
+    public static final MossType EMPTY = MossType.ofEntry();
+
     static MossType ofTags(TagKey<Item> tag) {
         return of(Registries.ITEM.getOrCreateEntryList(tag));
     }

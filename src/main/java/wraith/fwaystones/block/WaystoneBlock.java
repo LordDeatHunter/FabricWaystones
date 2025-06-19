@@ -55,12 +55,14 @@ import static wraith.fwaystones.FabricWaystones.*;
 @SuppressWarnings("deprecation")
 public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
-    public static final BooleanProperty ACTIVE = BooleanProperty.of("active");
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
     public static final BooleanProperty GENERATED = BooleanProperty.of("generated");
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
-    public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
+
+    public static final BooleanProperty ACTIVE = BooleanProperty.of("active");
+    public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
+
     public static final MapCodec<WaystoneBlock> CODEC = createCodec(WaystoneBlock::new);
     protected static final VoxelShape VOXEL_SHAPE_TOP;
     protected static final VoxelShape VOXEL_SHAPE_BOTTOM;

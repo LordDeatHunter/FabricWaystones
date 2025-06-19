@@ -4,8 +4,13 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
+import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
+import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
@@ -14,46 +19,44 @@ import java.util.*;
 
 public class WaystoneTypes {
 
-    private static final List<Identifier> ALL_TYPE_IDS = new ArrayList<>();
-    private static final BiMap<Identifier, WaystoneType> TYPES = HashBiMap.create();
+    public static final Identifier STONE = FabricWaystones.id("stone");
+
+    public static final Registry<WaystoneType> REGISTRY = FabricRegistryBuilder.<WaystoneType>createDefaulted(RegistryKey.ofRegistry(FabricWaystones.id("waystone")), STONE)
+            .attribute(RegistryAttribute.SYNCED)
+            .buildAndRegister();
 
     public static final Endec<WaystoneType> ENDEC = MinecraftEndecs.IDENTIFIER.xmap(WaystoneTypes::getTypeOrDefault, WaystoneTypes::getIdOrDefault);
 
     public static WaystoneType registerType(Identifier id, WaystoneType type) {
-        if (TYPES.containsKey(id)) {
-            throw new IllegalStateException("Unable to add the given WaystoneType as it was already registered with the given id: " + id);
-        }
-
-        TYPES.put(id, type);
-
-        ALL_TYPE_IDS.add(id);
-
-        return type;
+        return Registry.register(REGISTRY, id, type);
     }
 
     @Nullable
     public static WaystoneType getType(Identifier id) {
-        return TYPES.get(id);
+        return REGISTRY.getOrEmpty(id).orElse(null);
     }
 
     public static WaystoneType getTypeOrDefault(Identifier id) {
-        return TYPES.getOrDefault(id, WaystoneTypes.STONE_TYPE);
+        return REGISTRY.get(id);
     }
 
     public static Identifier getId(WaystoneType type) {
-        return TYPES.inverse().get(type);
+        return REGISTRY.getId(type);
     }
 
     public static Identifier getIdOrDefault(WaystoneType type) {
-        return TYPES.inverse().getOrDefault(type, STONE);
+        return REGISTRY.getId(type);
     }
 
     public static List<Identifier> getTypeIds() {
-        return Collections.unmodifiableList(ALL_TYPE_IDS);
+        return REGISTRY.getIds().stream().sorted(Identifier::compareTo).toList();
     }
 
     public static List<WaystoneType> getTypes() {
-        return ALL_TYPE_IDS.stream().map(WaystoneTypes::getType).toList();
+        return REGISTRY.getEntrySet().stream()
+                .sorted(Comparator.comparing(entry -> entry.getKey().getValue(), Identifier::compareTo))
+                .map(Map.Entry::getValue)
+                .toList();
     }
 
     public static final Identifier BLACKSTONE_BRICK = FabricWaystones.id("blackstone_brick");
@@ -120,7 +123,7 @@ public class WaystoneTypes {
             common("bricks/stone")
     ));
 
-    public static final Identifier STONE = FabricWaystones.id("stone");
+
     public static final WaystoneType STONE_TYPE = registerType(STONE, WaystoneType.ofEntry(
             Identifier.of("block/stone"),
             0xC4F129,

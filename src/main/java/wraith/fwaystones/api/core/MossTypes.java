@@ -1,11 +1,13 @@
 package wraith.fwaystones.api.core;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
+import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
+import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
@@ -14,76 +16,80 @@ import java.util.*;
 
 public class MossTypes {
 
-    public static final Identifier NO_MOSS_ID = FabricWaystones.id("no_moss");
+    public static final Identifier EMPTY_ID = FabricWaystones.id("empty");
 
-    private static final List<Identifier> ALL_TYPE_IDS = new ArrayList<>();
-    private static final BiMap<Identifier, MossType> TYPES = HashBiMap.create();
+    public static final Registry<MossType> REGISTRY = FabricRegistryBuilder.<MossType>createDefaulted(RegistryKey.ofRegistry(FabricWaystones.id("moss")), EMPTY_ID)
+            .attribute(RegistryAttribute.SYNCED)
+            .buildAndRegister();
 
     public static final Endec<MossType> ENDEC = MinecraftEndecs.IDENTIFIER.xmap(MossTypes::getTypeOrDefault, MossTypes::getIdOrDefault);
 
-    public static MossType registerType(Identifier id, MossType type) {
-        if (TYPES.containsKey(id)) {
-            throw new IllegalStateException("Unable to add the given MossType as it was already registered with the given id: " + id);
-        }
-
-        TYPES.put(id, type);
-
-        ALL_TYPE_IDS.add(id);
-
-        return type;
+    public static MossType register(Identifier id, MossType type) {
+        return Registry.register(REGISTRY, id, type);
     }
 
     @Nullable
     public static MossType getType(Identifier id) {
-        return TYPES.get(id);
+        return REGISTRY.getOrEmpty(id).orElse(null);
     }
 
     public static MossType getTypeOrDefault(Identifier id) {
-        return TYPES.getOrDefault(id, MossTypes.VINE_TYPE);
+        return REGISTRY.get(id);
     }
 
     public static Identifier getId(MossType type) {
-        return TYPES.inverse().get(type);
+        return REGISTRY.getId(type);
     }
 
     public static Identifier getIdOrDefault(MossType type) {
-        return TYPES.inverse().getOrDefault(type, VINE);
+        var id = getId(type);
+        return id != null ? id : MossTypes.EMPTY_ID;
     }
 
     public static List<Identifier> getTypeIds() {
-        return Collections.unmodifiableList(ALL_TYPE_IDS);
+        var mosses = new HashSet<>(REGISTRY.getIds());
+
+        mosses.remove(EMPTY_ID);
+
+        return mosses.stream().sorted(Identifier::compareTo).toList();
     }
 
     public static List<MossType> getTypes() {
-        return ALL_TYPE_IDS.stream().map(MossTypes::getType).toList();
+        return REGISTRY.getEntrySet().stream()
+                .filter(entry -> !entry.getKey().getValue().equals(EMPTY_ID))
+                .sorted(Comparator.comparing(entry -> entry.getKey().getValue(), Identifier::compareTo))
+                .map(Map.Entry::getValue)
+                .toList();
     }
 
     @Nullable
     public static MossType getMossType(ItemStack stack) {
-        for (var value : TYPES.values()) {
-            if (stack.isIn(value.items())) {
-                return value;
+        for (var type : REGISTRY) {
+            if (stack.isIn(type.items())) {
+                return type;
             }
         }
 
         return null;
     }
 
+    public static final MossType EMPTY = register(EMPTY_ID, MossType.EMPTY);
+
     public static final Identifier CHORUS = FabricWaystones.id("chorus");
-    public static final MossType CHORUS_TYPE = registerType(CHORUS, MossType.ofEntry(Items.CHORUS_FRUIT));
+    public static final MossType CHORUS_TYPE = register(CHORUS, MossType.ofEntry(Items.CHORUS_FRUIT));
 
     public static final Identifier CRIMSON = FabricWaystones.id("crimson");
-    public static final MossType CRIMSON_TYPE = registerType(CRIMSON, MossType.ofEntry(Items.WEEPING_VINES));
+    public static final MossType CRIMSON_TYPE = register(CRIMSON, MossType.ofEntry(Items.WEEPING_VINES));
 
     public static final Identifier GRASS = FabricWaystones.id("grass");
-    public static final MossType GRASS_TYPE = registerType(GRASS, MossType.ofEntry(Items.GRASS_BLOCK));
+    public static final MossType GRASS_TYPE = register(GRASS, MossType.ofEntry(Items.GRASS_BLOCK));
 
     public static final Identifier LICHEN = FabricWaystones.id("lichen");
-    public static final MossType LICHEN_TYPE = registerType(LICHEN, MossType.ofEntry(Items.GLOW_LICHEN));
+    public static final MossType LICHEN_TYPE = register(LICHEN, MossType.ofEntry(Items.GLOW_LICHEN));
 
     public static final Identifier VINE = FabricWaystones.id("vine");
-    public static final MossType VINE_TYPE = registerType(VINE, MossType.ofEntry(Items.VINE));
+    public static final MossType VINE_TYPE = register(VINE, MossType.ofEntry(Items.VINE));
 
     public static final Identifier WARPED = FabricWaystones.id("warped");
-    public static final MossType WARPED_TYPE = registerType(WARPED, MossType.ofEntry(Items.TWISTING_VINES));
+    public static final MossType WARPED_TYPE = register(WARPED, MossType.ofEntry(Items.TWISTING_VINES));
 }

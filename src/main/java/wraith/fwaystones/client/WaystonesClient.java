@@ -179,7 +179,7 @@ public class WaystonesClient implements ClientModInitializer {
             var validItemModels = new LinkedHashMap<Identifier, Identifier>();
 
             for (var typeId : WaystoneTypes.getTypeIds()) {
-                var modelId = typeId.withPrefixedPath("item/");
+                var modelId = typeId.withPath(s -> "item/" + s + "_waystone");
 
                 ctx.addModels(modelId);
 
@@ -223,30 +223,26 @@ public class WaystonesClient implements ClientModInitializer {
 
             for (var blockPosition : WaystoneBlock.HALF.getValues()) {
                 for (var activeState : WaystoneBlock.ACTIVE.getValues()) {
-                    for (var mossyState : WaystoneBlock.MOSSY.getValues()) {
-                        Consumer<Identifier> modelCreator = mossTypeId -> {
-                            for (var type : WaystoneTypes.getTypes()) {
-                                var typeId = type.getId();
+                    Consumer<Identifier> modelCreator = mossTypeId -> {
+                        for (var type : WaystoneTypes.getTypes()) {
+                            var typeId = type.getId();
 
-                                var isUpper = blockPosition.equals(DoubleBlockHalf.UPPER);
+                            var isUpper = blockPosition.equals(DoubleBlockHalf.UPPER);
 
-                                var modelId = createId(typeId, isUpper, activeState, mossTypeId);
+                            var modelId = createId(typeId, isUpper, activeState, mossTypeId);
 
-                                var key = new WaystoneModelKey(typeId, mossTypeId);
+                            var key = new WaystoneModelKey(typeId, mossTypeId);
 
-                                validBlockModels.put(modelId, Triple.of(isUpper, activeState, key));
+                            validBlockModels.put(modelId, Triple.of(isUpper, activeState, key));
 
-                                ctx.addModels(modelId);
-                            }
-                        };
-
-                        if (mossyState) {
-                            for (var mossTypeId : MossTypes.getTypeIds()) {
-                                modelCreator.accept(mossTypeId);
-                            }
-                        } else {
-                            modelCreator.accept(MossTypes.NO_MOSS_ID);
+                            ctx.addModels(modelId);
                         }
+                    };
+
+                    modelCreator.accept(MossTypes.EMPTY_ID);
+
+                    for (var mossTypeId : MossTypes.getTypeIds()) {
+                        modelCreator.accept(mossTypeId);
                     }
                 }
             }
@@ -281,7 +277,7 @@ public class WaystonesClient implements ClientModInitializer {
 
                             var isUpper = blockPosition.equals(DoubleBlockHalf.UPPER);
 
-                            var mossId = mossType != null ? mossType.getId() : MossTypes.NO_MOSS_ID;
+                            var mossId = mossType != null ? mossType.getId() : MossTypes.EMPTY_ID;
 
                             var modelId = createId(typeId, isUpper, activeState, mossId);
 
@@ -293,12 +289,10 @@ public class WaystonesClient implements ClientModInitializer {
                         }
                     };
 
-                    if (mossyState) {
-                        for (var mossType : MossTypes.getTypes()) {
-                            modelCreator.accept(mossType);
-                        }
-                    } else {
-                        modelCreator.accept(null);
+                    modelCreator.accept(MossType.EMPTY);
+
+                    for (var mossType : MossTypes.getTypes()) {
+                        modelCreator.accept(mossType);
                     }
 
                     stateCtx.setModel(state, new MultiBranchUnbakedModel<>(typeToModel, (world, state1, pos) -> {
@@ -308,7 +302,7 @@ public class WaystonesClient implements ClientModInitializer {
                         var mossType = blockEntity.getMossType(state);
 
                         var typeId = blockEntity.getWaystoneTypeIdSafe();
-                        var mossID = mossType != null ? mossType.getId() : MossTypes.NO_MOSS_ID;
+                        var mossID = mossType != null ? mossType.getId() : MossTypes.EMPTY_ID;
 
                         return new WaystoneModelKey(typeId, mossID);
                     }));
@@ -319,12 +313,12 @@ public class WaystonesClient implements ClientModInitializer {
 
     public static Identifier createId(Identifier waystoneTypeId, boolean isUpper, boolean isActive, Identifier mossTypeId) {
         return waystoneTypeId.withPath(typeName -> {
-            return "block/" + typeName + "waystone_" + (isUpper ? "top" : "bottom") + "_" + (isActive ? "active" : "inactive") + (!mossTypeId.equals(MossTypes.NO_MOSS_ID ) ? "_moss_" + mossTypeId.getPath() : "");
+            return "block/" + typeName + "waystone_" + (isUpper ? "top" : "bottom") + "_" + (isActive ? "active" : "inactive") + (!mossTypeId.equals(MossTypes.EMPTY_ID) ? "_moss_" + mossTypeId.getPath() : "");
         });
     }
 
-    public static JsonUnbakedModel createWaystoneModel(boolean isUpper, boolean isActive, @Nullable MossType mossType, WaystoneType waystoneType) {
-        var mossy = mossType != null;
+    public static JsonUnbakedModel createWaystoneModel(boolean isUpper, boolean isActive, MossType mossType, WaystoneType waystoneType) {
+        var mossy = mossType != MossType.EMPTY;
 
         return JsonUnbakedModel.deserialize(
                 DynamicModelUtils.createBlockModel(
