@@ -241,7 +241,7 @@ public class WaystoneComponentEventHooks {
 
     @Nullable
     public static ItemStack getVoidTotem(PlayerEntity player) {
-        var item = WaystoneItems.get("void_totem");
+        var item = WaystoneItems.VOID_TOTEM;
 
         var ref = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(player, currentStack -> currentStack.isOf(item));
 
@@ -259,11 +259,11 @@ public class WaystoneComponentEventHooks {
     }
 
     public static String getLocalVoidName(@Nullable ItemStack stack) {
-        return (stack != null && stack.getItem() == WaystoneItems.get("void_totem")) ? "void_totem" : "local_void";
+        return (stack != null && stack.getItem() == WaystoneItems.VOID_TOTEM) ? "void_totem" : "local_void";
     }
 
     public static String getTranslationKey(ItemStack stack) {
-        if (stack.getItem() == WaystoneItems.get("waystone_scroll")) {
+        if (stack.getItem() == WaystoneItems.WAYSTONE_SCROLL) {
             var targets = stack.get(WaystoneDataComponents.HASH_TARGETS);
 
             if (targets == null || targets.ids().isEmpty()) return "item.fwaystones.empty_scroll";

@@ -1,5 +1,36 @@
 {
   "credit": "made by chyzman",
   "parent": "minecraft:builtin/entity",
-  "gui_light": "front"
+  "gui_light": "front",
+  "display": {
+    "thirdperson_righthand": {
+      "translation": [0, 3, 1],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "thirdperson_lefthand": {
+      "translation": [0, 3, 1],
+      "scale": [0.55, 0.55, 0.55]
+    },
+    "firstperson_righthand": {
+      "rotation": [-9, 0, 0],
+      "translation": [-9, 3.5, 1.5],
+      "scale": [0.68, 0.68, 0.68]
+    },
+    "firstperson_lefthand": {
+      "rotation": [-9, 0, 0],
+      "translation": [-9, 3.5, 1.5],
+      "scale": [0.68, 0.68, 0.68]
+    },
+    "ground": {
+      "translation": [0, 2, 0],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "head": {
+      "rotation": [0, 180, 0],
+      "translation": [0, -1, 0]
+    },
+    "fixed": {
+      "rotation": [0, 180, 0]
+    }
+  }
 }

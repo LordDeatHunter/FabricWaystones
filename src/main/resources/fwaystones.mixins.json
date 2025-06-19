@@ -4,6 +4,7 @@
   "package": "wraith.fwaystones.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "CompassItemMixin",
     "ItemMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
@@ -20,10 +21,10 @@
     "xaeros.WaypointRendererMixin"
   ],
   "client": [
-    "client.DrawContextAccessor",
-    "client.ModelPredicateProviderRegistryAccessor",
-    "client.ItemRendererMixin",
     "client.BlockDustParticleMixin",
+    "client.DrawContextAccessor",
+    "client.ItemRendererMixin",
+    "client.ModelPredicateProviderRegistryAccessor",
     "xaeros.WaypointWorldRendererMixin"
   ],
   "injectors": {

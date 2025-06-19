@@ -65,7 +65,7 @@ public sealed interface WaystoneType permits WaystoneTypeImpl {
 
     default String getTranslationKey() {
         var id = getId();
-        return id.getNamespace() + "." + id.getPath() + ".waystone_name";
+        return "waystone." + id.getNamespace() + "." + id.getPath() + ".name";
     }
 
     Identifier particleTexture();
