@@ -52,7 +52,7 @@ public sealed interface WaystoneType permits WaystoneTypeImpl {
 
         if (id == null) throw new IllegalStateException("Unable to get the block texture for the waystone type as its not properly registered!");
 
-        return id.withPath(s -> "block/" + s + "_waystone");
+        return id.withPath(s -> "block/waystone/" + s + "_waystone");
     }
 
     default Identifier itemTexture() {

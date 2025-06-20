@@ -116,6 +116,48 @@ loom {
                 runConfig.vmArg "-javaagent:\"${(file.getPath())}\""
             }
         }
+        client_MixinDebug_Renderdoc {
+            client()
+            ideConfigGenerated true
+            name = "Minecraft Client - (Full Suite)"
+            vmArg "-XX:+AllowEnhancedClassRedefinition"
+
+            vmArg "-Dowo.renderdocPath=${System.getenv('renderDocPath')}"
+
+            // Required due to it kinda being throw out for some reason...
+            vmArg "-Dfabric.dli.config=${file(".gradle/loom-cache/launch.cfg").toString()}"
+            vmArg "-Dfabric.dli.env=client"
+            vmArg "-Dfabric.dli.main=net.fabricmc.loader.impl.launch.knot.KnotClient"
+            vmArg "-Dlog4j.configurationFile=${file(".gradle/loom-cache/log4j.xml").toString()}"
+            vmArg "-Dfabric.log.disableAnsi=false"
+            vmArg "-Dmixin.debug.export=true"
+
+            Object runConfig = it
+
+            project.afterEvaluate {
+                var results = project.configurations.compileClasspath.getIncoming().artifactView((config) -> {
+                    config.withVariantReselection()
+                    config.componentFilter((id) -> {
+                        if (id instanceof ModuleComponentIdentifier) {
+                            return (((ModuleComponentIdentifier) id).getModuleIdentifier().name == "sponge-mixin")
+                        }
+
+                        return false
+                    })
+                }).files.files.toList()
+
+                if (results.size() > 1) {
+                    System.out.println("Found one or more mixin dependencies on the compileClasspath, will just be picking the first so lets hope this works!")
+                } else {
+                    System.out.println("Found mixin dependencies on the compileClasspath!")
+
+                }
+
+                var file = results[0]
+
+                runConfig.vmArg "-javaagent:\"${(file.getPath())}\""
+            }
+        }
     }
 }
 

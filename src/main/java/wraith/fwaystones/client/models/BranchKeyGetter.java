@@ -5,7 +5,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 import org.jetbrains.annotations.Nullable;
 
-public interface BranchKeyGetter<K extends Record> {
+public interface BranchKeyGetter<K extends Record, E> {
     @Nullable
-    K getKey(BlockRenderView blockView, BlockState state, BlockPos pos);
+    K getKey(BlockRenderView blockView, BlockState state, BlockPos pos, E extraData);
 }

@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.model.loading.v1.DelegatingUnbakedModel;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
@@ -32,8 +31,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import org.apache.commons.lang3.tuple.Triple;
-import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
@@ -43,9 +40,7 @@ import wraith.fwaystones.api.core.*;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
-import wraith.fwaystones.client.models.DynamicModelUtils;
-import wraith.fwaystones.client.models.MultiBranchUnbakedModel;
-import wraith.fwaystones.client.models.VariantUnbakedModel;
+import wraith.fwaystones.client.models.*;
 import wraith.fwaystones.integration.accessories.AccessoriesClientCompat;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
@@ -65,7 +60,6 @@ import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.registry.WaystoneParticles;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 @Environment(EnvType.CLIENT)
 public class WaystonesClient implements ClientModInitializer {
@@ -223,93 +217,31 @@ public class WaystonesClient implements ClientModInitializer {
                 return null;
             });
 
-            var validBlockModels = new LinkedHashMap<Identifier, Triple<Boolean, Boolean, WaystoneModelKey>>();
+            var baseBottomModel = FabricWaystones.id("block/waystone_bottom");
+            var baseTopModel = FabricWaystones.id("block/waystone_top");
 
-            for (var blockPosition : WaystoneBlock.HALF.getValues()) {
-                for (var activeState : WaystoneBlock.ACTIVE.getValues()) {
-                    Consumer<Identifier> modelCreator = mossTypeId -> {
-                        for (var type : WaystoneTypes.getTypes()) {
-                            var typeId = type.getId();
-
-                            var isUpper = blockPosition.equals(DoubleBlockHalf.UPPER);
-
-                            var modelId = createId(typeId, isUpper, activeState, mossTypeId);
-
-                            var key = new WaystoneModelKey(typeId, mossTypeId);
-
-                            validBlockModels.put(modelId, Triple.of(isUpper, activeState, key));
-
-                            ctx.addModels(modelId);
-                        }
-                    };
-
-                    modelCreator.accept(MossTypes.EMPTY_ID);
-
-                    for (var mossTypeId : MossTypes.getTypeIds()) {
-                        modelCreator.accept(mossTypeId);
-                    }
-                }
-            }
+            var multiBottomModel = FabricWaystones.id("block/multi_waystone_bottom");
+            var multiTopModel = FabricWaystones.id("block/multi_waystone_top");
 
             ctx.resolveModel().register(context -> {
-                if (validBlockModels.containsKey(context.id())) {
-                    var data = validBlockModels.get(context.id());
+                UnbakedModel possibleModel;
 
-                    var mossType = MossTypes.getType(data.getRight().mossType());
-                    var waystoneType = WaystoneTypes.getType(data.getRight().type());
-
-                    return createWaystoneModel(data.getLeft(), data.getMiddle(), mossType, waystoneType);
+                if (context.id().equals(multiBottomModel)) {
+                    possibleModel = context.getOrLoadModel(baseBottomModel);
+                } else if(context.id().equals(multiTopModel)) {
+                    possibleModel = context.getOrLoadModel(baseTopModel);
+                } else {
+                    return null;
                 }
 
-                return null;
+                return new CustomDelegatingUnbakedModel<>(possibleModel, WaystoneBlockEntity::getBlockEntity, WaystoneBlockQuadEmission.INSTANCE);
             });
 
             ctx.registerBlockStateResolver(WaystoneBlocks.WAYSTONE, stateCtx -> {
                 for (var state : stateCtx.block().getStateManager().getStates()) {
                     var blockPosition = state.get(WaystoneBlock.HALF);
-                    var activeState = state.get(WaystoneBlock.ACTIVE);
-                    var mossyState = state.get(WaystoneBlock.MOSSY);
-                    var direction = state.get(WaystoneBlock.FACING);
 
-                    var yAxisRotation = direction.getOpposite().asRotation();
-
-                    SequencedMap<WaystoneModelKey, UnbakedModel> typeToModel = new LinkedHashMap<>();
-
-                    Consumer<@Nullable MossType> modelCreator = mossType -> {
-                        for (var type : WaystoneTypes.getTypes()) {
-                            var typeId = type.getId();
-
-                            var isUpper = blockPosition.equals(DoubleBlockHalf.UPPER);
-
-                            var mossId = mossType != null ? mossType.getId() : MossTypes.EMPTY_ID;
-
-                            var modelId = createId(typeId, isUpper, activeState, mossId);
-
-                            var model = (yAxisRotation == 0)
-                                ? new DelegatingUnbakedModel(modelId)
-                                : new VariantUnbakedModel(modelId, Math.round(yAxisRotation));
-
-                            typeToModel.put(new WaystoneModelKey(typeId, mossId), model);
-                        }
-                    };
-
-                    modelCreator.accept(MossType.EMPTY);
-
-                    for (var mossType : MossTypes.getTypes()) {
-                        modelCreator.accept(mossType);
-                    }
-
-                    stateCtx.setModel(state, new MultiBranchUnbakedModel<>(typeToModel, (world, state1, pos) -> {
-                        var blockEntity = WaystoneBlockEntity.getBlockEntity(world, pos, state);
-
-                        if (blockEntity == null) return null;
-                        var mossType = blockEntity.getMossType(state);
-
-                        var typeId = blockEntity.getWaystoneTypeIdSafe();
-                        var mossID = mossType != null ? mossType.getId() : MossTypes.EMPTY_ID;
-
-                        return new WaystoneModelKey(typeId, mossID);
-                    }));
+                    stateCtx.setModel(state, stateCtx.getOrLoadModel(blockPosition.equals(DoubleBlockHalf.LOWER) ? multiBottomModel : multiTopModel));
                 }
             });
         });

@@ -20,7 +20,7 @@ public abstract class BlockDustParticleMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/BlockModels;getModelParticleSprite(Lnet/minecraft/block/BlockState;)Lnet/minecraft/client/texture/Sprite;"))
     private Sprite fwaystones$adjustParticle(BlockModels instance, BlockState state, Operation<Sprite> original, @Local(argsOnly = true) ClientWorld world, @Local(argsOnly = true)BlockPos pos){
         return (instance.getModel(state) instanceof BakedModelParticleEffectExtension effectExtension)
-                ? effectExtension.getParticleState(world, pos, state)
+                ? effectExtension.getParticleSprite(world, pos, state)
                 : original.call(instance, state);
     }
 }

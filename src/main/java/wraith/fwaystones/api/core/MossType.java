@@ -41,6 +41,6 @@ public sealed interface MossType permits MossTypeImpl {
 
         if (id == null) throw new IllegalStateException("Unable to get the block texture for the waystone type as its not properly registered!");
 
-        return id.withPath(s -> "block/" + s + "_moss");
+        return id.withPath(s -> "block/waystone/" + s + "_moss");
     }
 }

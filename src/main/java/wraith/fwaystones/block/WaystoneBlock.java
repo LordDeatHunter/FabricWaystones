@@ -261,11 +261,13 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             }
         }
 
+        var breakState = super.onBreak(world, pos, state, player);
+
         world.removeBlock(topPos, false);
         world.removeBlock(botPos, false);
         world.updateNeighbors(topPos, Blocks.AIR);
 
-        return super.onBreak(world, pos, state, player);
+        return breakState;
     }
 
     @Override

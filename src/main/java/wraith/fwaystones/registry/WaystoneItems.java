@@ -32,6 +32,8 @@ public final class WaystoneItems {
             .icon(() -> new ItemStack(WaystoneBlocks.WAYSTONE))
             .displayName(Text.translatable("itemGroup.fwaystones.fwaystones"))
             .entries((enabledFeatures, entries) -> {
+                ITEMS.values().stream().map(ItemStack::new).forEach(entries::add);
+
                 var item = WaystoneBlocks.WAYSTONE.asItem();
 
                 for (var typeId : WaystoneTypes.getTypeIds()) {
@@ -40,7 +42,6 @@ public final class WaystoneItems {
                     stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(typeId));
                     entries.add(stack);
                 }
-                ITEMS.values().stream().map(ItemStack::new).forEach(entries::add);
             })
             .build()
     );
