@@ -4,8 +4,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.color.block.BlockColorProvider;
 import org.jetbrains.annotations.Nullable;
-import wraith.fwaystones.api.core.MossType;
-import wraith.fwaystones.api.core.MossTypes;
+import wraith.fwaystones.api.moss.MossType;
+import wraith.fwaystones.api.moss.MossTypes;
 
 import java.util.HashMap;
 import java.util.Map;

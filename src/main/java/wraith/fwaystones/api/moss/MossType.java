@@ -1,9 +1,7 @@
-package wraith.fwaystones.api.core;
+package wraith.fwaystones.api.moss;
 
-import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
@@ -11,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 public sealed interface MossType permits MossTypeImpl {
 
-    public static final MossType EMPTY = MossType.ofEntry();
+    MossType EMPTY = MossType.ofEntry();
 
     static MossType ofTags(TagKey<Item> tag) {
         return of(Registries.ITEM.getOrCreateEntryList(tag));
@@ -44,3 +42,5 @@ public sealed interface MossType permits MossTypeImpl {
         return id.withPath(s -> "block/waystone/" + s + "_moss");
     }
 }
+
+record MossTypeImpl(RegistryEntryList<Item> items) implements MossType { }

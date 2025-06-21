@@ -80,3 +80,5 @@ public sealed interface WaystoneType permits WaystoneTypeImpl {
 
     RegistryEntryList<Block> materialBlockTag();
 }
+
+record WaystoneTypeImpl(Identifier particleTexture, int defaultRuneColor, RegistryEntryList<Item> materialItemTag, RegistryEntryList<Block> materialBlockTag) implements WaystoneType { }

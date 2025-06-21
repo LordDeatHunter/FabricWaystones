@@ -6,6 +6,7 @@ import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.component.ComponentMap;
@@ -25,7 +26,6 @@ import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -34,16 +34,16 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockRenderView;
-import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.*;
 import wraith.fwaystones.api.core.*;
-import wraith.fwaystones.api.WaystoneDataStorage;
-import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.api.moss.MossType;
+import wraith.fwaystones.api.moss.MossTypes;
+import wraith.fwaystones.api.teleport.TeleportAction;
+import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.client.screen.ExperimentalWaystoneScreenHandler;
-import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.item.components.WaystoneTyped;
 import wraith.fwaystones.particle.RuneParticleEffect;
 import wraith.fwaystones.registry.WaystoneDataComponents;
@@ -82,10 +82,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         super(WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, pos, state);
     }
 
-    public Identifier getWaystoneTypeIdSafe() {
-        return WaystoneTypes.getId(WaystoneTypes.getTypeOrDefault(waystoneTypeId));
-    }
-
     @Nullable
     public static WaystoneBlockEntity getBlockEntity(BlockRenderView world, BlockPos pos, BlockState state) {
         return world.getBlockEntity(state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos, WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY)
@@ -102,55 +98,69 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     @Nullable
-    public MossType getMossType(BlockState state) {
-        var isMossy = state.get(WaystoneBlock.MOSSY);
-
-        return isMossy && !this.mossTypeId.equals(MossTypes.EMPTY_ID)
+    public MossType getMossType() {
+        return !this.mossTypeId.equals(MossTypes.EMPTY_ID)
                 ? MossTypes.getTypeOrDefault(this.mossTypeId)
                 : null;
     }
 
-    public ItemStack getMossStack() {
+    public ItemStack removeMoss() {
+        var mossStack = this.mossStack;
+
+        this.mossStack = ItemStack.EMPTY;
+        this.mossTypeId = MossTypes.EMPTY_ID;
+
         return mossStack;
     }
 
-    public TypedActionResult<ItemStack> attemptMossingInteraction(BlockPos pos, ItemStack stack) {
-        var topState = world.getBlockState(pos.up());
-        var bottomState = world.getBlockState(pos);
+    public TeleportAction createAction(TeleportSource source) {
+        return TeleportAction.networkTeleport(this.getUUID(), source);
+    }
 
+    public boolean isActive() {
+        var data = getData();
+
+        if (data == null) return false;
+
+        return data.hasOwner();
+    }
+
+    public boolean isMossy() {
+        return getMossType() != null;
+    }
+
+    public TypedActionResult<ItemStack> attemptMossingInteraction(BlockPos pos, ItemStack stack) {
         var mossType = MossTypes.getMossType(stack);
 
         if (mossType != null) {
             if (mossType.getId().equals(this.mossTypeId)) return TypedActionResult.pass(ItemStack.EMPTY);
 
+            this.mossTypeId = mossType.getId();
+
             if (!world.isClient) {
                 var prevMoss = this.mossStack;
 
-                world.setBlockState(pos.up(), topState.with(WaystoneBlock.MOSSY, true));
-                world.setBlockState(pos, bottomState.with(WaystoneBlock.MOSSY, true));
-
                 world.playSound(null, pos, WAYSTONE_MOSS_APPLY, SoundCategory.BLOCKS, 1.0F, 1.0F);
 
-                this.mossTypeId = mossType.getId();
+                markDirty();
 
-                world.scheduleBlockRerenderIfNeeded(pos.up(), topState, topState);
-                world.scheduleBlockRerenderIfNeeded(pos, bottomState, bottomState);
+                this.mossStack = stack.copy();
 
                 return TypedActionResult.success(prevMoss);
             }
 
             return TypedActionResult.success(ItemStack.EMPTY);
         } else if (stack.isIn(ConventionalItemTags.SHEAR_TOOLS) && !this.mossTypeId.equals(MossTypes.EMPTY_ID)) {
+            this.mossTypeId = MossTypes.EMPTY_ID;
+
             if (!world.isClient) {
                 var prevMoss = this.mossStack;
 
-                world.setBlockState(pos.up(), topState.with(WaystoneBlock.MOSSY, false));
-                world.setBlockState(pos, bottomState.with(WaystoneBlock.MOSSY, false));
-
                 world.playSound(null, pos, WAYSTONE_SHEAR, SoundCategory.BLOCKS, 1.0F, 1.0F);
 
+                markDirty();
+
                 this.mossStack = ItemStack.EMPTY;
-                this.mossTypeId = MossTypes.EMPTY_ID;
 
                 return TypedActionResult.success(prevMoss);
             }
@@ -180,19 +190,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return uuid;
     }
 
-    public void updateActiveState() {
-        var data = this.getData();
-
-        if (data == null) return;
-
-        if (world != null && !world.isClient && world.getBlockState(pos).get(WaystoneBlock.ACTIVE) == (data.owner() == null)) {
-            world.setBlockState(pos, world.getBlockState(pos).with(WaystoneBlock.ACTIVE, data.ownerName() != null));
-            world.setBlockState(pos.up(), world.getBlockState(pos.up()).with(WaystoneBlock.ACTIVE, data.ownerName() != null));
-        }
-    }
-
     public void createHash(World world, BlockPos pos) {
-        this.waystonePosition = new WaystonePosition(Utils.getDimensionName(world), pos);
+        this.waystonePosition = new WaystonePosition(world.getRegistryKey(), pos);
         markDirty();
     }
 
@@ -287,6 +286,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         this.mossTypeId = tag.get(MOSS_TYPE_ID_KEY);
 
         this.mossStack = ItemStack.fromNbtOrEmpty(lookup, tag.getCompound("moss_stack"));
+
+        // Attempts to force an update of the states for re-rendering
+        if (this.world != null && this.world.isClient) {
+            world.scheduleBlockRerenderIfNeeded(pos.up(), Blocks.AIR.getDefaultState(), world.getBlockState(pos.up()));
+            world.scheduleBlockRerenderIfNeeded(pos, Blocks.AIR.getDefaultState(), world.getBlockState(pos));
+        }
     }
 
     @Override
@@ -345,8 +350,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (this.dataHolder != null) {
             WaystoneDataStorage.getStorage(this.world).createGetOrImportData(this);
-
-            this.updateActiveState();
         }
 
         this.waystoneTypeId = components.getOrDefault(WaystoneDataComponents.WAYSTONE_TYPE, WaystoneTyped.DEFAULT).id();
@@ -354,99 +357,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     //--
 
-    public boolean teleportPlayer(PlayerEntity player, boolean takeCost, TeleportSources source) {
-        if (!(player instanceof ServerPlayerEntity playerEntity) || source == null) return false;
+    public boolean teleportPlayer(PlayerEntity player, TeleportSource source, boolean takeCost) {
+        if (!(player instanceof ServerPlayerEntity serverPlayer)) return false;
 
-        var facing = getCachedState().get(WaystoneBlock.FACING);
-
-        float yaw = (facing.equals(Direction.UP) || facing.equals(Direction.DOWN))
-                ? playerEntity.getYaw()
-                : facing.getOpposite().asRotation();
-
-        var teleportPos = pos.toBottomCenterPos()
-                .add(facing.getOffsetX(), 0, facing.getOffsetZ());
-
-        var target = new TeleportTarget(
-                (ServerWorld) getWorld(),
-                teleportPos,
-                new Vec3d(0, 0, 0),
-                yaw,
-                0,
-                TeleportTarget.ADD_PORTAL_CHUNK_TICKET
-        );
-
-        ExtendedStackReference stackReference = null;
-
-        if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
-            stackReference = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(playerEntity, stack -> {
-                var component = stack.get(WaystoneDataComponents.TELEPORTER);
-
-                return component != null && component.oneTimeUse();
-            });
-
-            if (stackReference == null) return false;
-        }
-
-        var teleported = doTeleport(playerEntity, (ServerWorld) world, target, source, takeCost);
-
-        if (!teleported) return false;
-
-        if (!playerEntity.isCreative() && source == TeleportSources.ABYSS_WATCHER) {
-            if (stackReference != null) {
-                var stack = stackReference.get();
-                var data = stack.get(WaystoneDataComponents.TELEPORTER);
-
-                if (data != null && data.oneTimeUse()) {
-                    stackReference.breakStack(stack.copy());
-
-                    stack.decrement(1);
-
-                    stackReference.set(stack);
-                }
-            }
-
-        }
-
-        return true;
-    }
-
-    private boolean doTeleport(ServerPlayerEntity player, ServerWorld world, TeleportTarget target, TeleportSources source, boolean takeCost) {
-        var data = WaystonePlayerData.getData(player);
-        var cooldown = data.teleportCooldown();
-
-        if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
-            var cooldownSeconds = Utils.df.format(cooldown / 20F);
-            player.sendMessage(TextUtils.translationWithArg(
-                    "no_teleport_message.cooldown",
-                    cooldownSeconds
-            ), false);
-            return false;
-        }
-
-        if (!Utils.canTeleport(player, position(), source, takeCost)) {
-            return false;
-        }
-
-        var cooldowns = FabricWaystones.CONFIG.teleportCooldowns;
-        data.teleportCooldown(switch (source) {
-            case WAYSTONE -> cooldowns.usedWaystone();
-            case ABYSS_WATCHER -> cooldowns.usedAbyssWatcher();
-            case LOCAL_VOID -> cooldowns.usedLocalVoid();
-            case VOID_TOTEM -> cooldowns.usedVoidTotem();
-            case POCKET_WORMHOLE -> cooldowns.usedPockedWormhole();
-        });
-
-        var oldPos = player.getBlockPos();
-        if (!oldPos.isWithinDistance(target.pos(), 6) || !player.getWorld().getRegistryKey().equals(target.world().getRegistryKey())) {
-            player.getWorld().playSound(null, oldPos, FabricWaystones.WAYSTONE_TELEPORT_PLAYER, SoundCategory.BLOCKS, 1F, 1F);
-        }
-        player.detach();
-        player.teleportTo(target);
-        BlockPos playerPos = player.getBlockPos();
-
-        world.playSound(null, playerPos, FabricWaystones.WAYSTONE_TELEPORT_PLAYER, SoundCategory.BLOCKS, 1F, 1F);
-
-        return true;
+        return Utils.teleportPlayer(serverPlayer, createAction(source), takeCost);
     }
 
     public void setOwner(PlayerEntity player) {
@@ -464,7 +378,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 world.playSound(null, pos, FabricWaystones.WAYSTONE_ACTIVATE, SoundCategory.BLOCKS, 1F, 1F);
             }
         }
-        updateActiveState();
+
         markDirty();
     }
 
@@ -472,7 +386,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     public void markDirty() {
         super.markDirty();
         WorldOps.updateIfOnServer(world, pos);
-        WorldOps.updateIfOnServer(world, pos.up());
     }
 
     //--
@@ -482,7 +395,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (world.isClient()) {
             ++tickDelta;
-            if (getCachedState().get(WaystoneBlock.ACTIVE)) {
+            if (this.isActive()) {
                 var center = this.getPos().toBottomCenterPos().add(0, 1, 0);
 
                 var closestPlayer = this.world.getClosestPlayer(

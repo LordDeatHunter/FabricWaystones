@@ -27,7 +27,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
         matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees(entity.lookingRotR));
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90));
         //matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(entity.lookingRotH));
-        if (entity.getCachedState().get(WaystoneBlock.ACTIVE)) {
+        if (entity.isActive()) {
             int lightAbove = WorldRenderer.getLightmapCoordinates(entity.getWorld(), entity.getPos().up());
             MinecraftClient.getInstance().getItemRenderer().renderItem(
                     stack, ModelTransformationMode.FIXED, lightAbove, overlay,

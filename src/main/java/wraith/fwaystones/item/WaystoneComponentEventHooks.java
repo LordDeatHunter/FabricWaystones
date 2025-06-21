@@ -3,9 +3,14 @@ package wraith.fwaystones.item;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -20,11 +25,14 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.item.components.WaystoneHashTarget;
 import wraith.fwaystones.item.components.WaystoneHashTargets;
+import wraith.fwaystones.networking.WaystoneNetworkHandler;
+import wraith.fwaystones.networking.packets.s2c.VoidRevive;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.client.screen.PortableWaystoneScreenHandler;
-import wraith.fwaystones.util.TeleportSources;
+import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.util.Utils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -228,7 +236,7 @@ public class WaystoneComponentEventHooks {
             if (!world.isClient) {
                 if (waystone == null) {
                     stack.remove(WaystoneDataComponents.HASH_TARGET);
-                } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree(), TeleportSources.LOCAL_VOID) && !user.isCreative() && FabricWaystones.CONFIG.shouldConsumeLocalVoid()) {
+                } else if (waystone.teleportPlayer(user, TeleportSource.LOCAL_VOID, !FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree()) && !user.isCreative() && FabricWaystones.CONFIG.shouldConsumeLocalVoid()) {
                     stack.decrement(1);
                 }
             }
@@ -256,6 +264,59 @@ public class WaystoneComponentEventHooks {
         ref.set(currentStack);
 
         return originalStack;
+    }
+
+    public static boolean attemptVoidTotemEffects(PlayerEntity player, ItemStack stack, DamageSource source) {
+        player.setHealth(1.0F);
+        player.clearStatusEffects();
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 900, 1));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 100, 1));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, 800, 0));
+
+        var teleported = false;
+
+        var world = player.getWorld();
+
+        // Try to get the stored waystone
+        var target = WaystoneHashTarget.get(stack, world);
+        var uuid = target != null ? target.uuid() : null;
+
+        var storage = WaystoneDataStorage.getStorage(world);
+
+        if (uuid == null || !storage.hasPosition(uuid)) {
+            // If no such waystone exists, get a random discovered waystone
+            var discovered = WaystonePlayerData.getData(player).discoveredWaystones();
+
+            var validUUIDs = storage.getValidUUID(discovered);
+
+            if (validUUIDs.isEmpty()) {
+                validUUIDs = storage.getValidUUID(storage.getGlobals());
+            }
+
+            if (!validUUIDs.isEmpty()) {
+                var list = new ArrayList<>(validUUIDs);
+
+                uuid = list.get(Utils.random.nextInt(list.size()));
+            }
+        }
+
+        if (uuid != null) {
+            var waystone = WaystoneDataStorage.getStorage(world).getEntity(uuid);
+
+            if (waystone != null) {
+                if (player instanceof ServerPlayerEntity) {
+                    WaystoneNetworkHandler.CHANNEL.serverHandle(player).send(new VoidRevive());
+
+                    player.fallDistance = 0;
+                    waystone.teleportPlayer(player, TeleportSource.VOID_TOTEM, false);
+                }
+
+                teleported = true;
+            }
+        }
+        // TODO: MAYBE LAST DITCH THING IS IT TELEPORTS YOU TO BED OR WORLD SPAWN?
+
+        return teleported || !source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY);
     }
 
     public static String getLocalVoidName(@Nullable ItemStack stack) {

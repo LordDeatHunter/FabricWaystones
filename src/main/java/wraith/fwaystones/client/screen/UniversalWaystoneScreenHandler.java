@@ -11,9 +11,9 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
-import wraith.fwaystones.api.WaystoneDataStorage;
-import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.api.*;
+import wraith.fwaystones.api.teleport.TeleportAction;
+import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.c2s.TeleportToWaystone;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
@@ -110,7 +110,7 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
     public boolean attemptTeleport(UUID uuid) {
         var source = getTeleportSource(player);
 
-        if (Utils.canTeleport(player, uuid, source, false)) {
+        if (Utils.canTeleportCostLess(player, TeleportAction.networkTeleport(uuid, source))) {
             WaystoneNetworkHandler.CHANNEL.clientHandle().send(new TeleportToWaystone(uuid, source));
 
             closeScreen();
@@ -121,16 +121,16 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
         return false;
     }
 
-    private static @NotNull TeleportSources getTeleportSource(PlayerEntity player) {
-        TeleportSources source;
+    private static @NotNull TeleportSource getTeleportSource(PlayerEntity player) {
+        TeleportSource source;
         var type = player.currentScreenHandler.getType();
 
         if (type.equals(WaystoneScreenHandlers.WAYSTONE_SCREEN) || type.equals(WaystoneScreenHandlers.EXPERIMENTAL_WAYSTONE_SCREEN)) {
-            source = TeleportSources.WAYSTONE;
+            source = TeleportSource.WAYSTONE;
         } else if (player.currentScreenHandler instanceof PortableWaystoneScreenHandler portableHandler) {
-            source = portableHandler.isAbyssal() ? TeleportSources.ABYSS_WATCHER : TeleportSources.POCKET_WORMHOLE;
+            source = portableHandler.isAbyssal() ? TeleportSource.ABYSS_WATCHER : TeleportSource.POCKET_WORMHOLE;
         } else {
-            source = TeleportSources.LOCAL_VOID;
+            source = TeleportSource.LOCAL_VOID;
         }
         return source;
     }

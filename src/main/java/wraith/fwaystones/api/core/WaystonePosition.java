@@ -4,26 +4,36 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.util.Utils;
 
 import java.math.BigInteger;
 import java.util.Objects;
 
+//TODO: TRANSITION TO USING GLOBAL POS WITHIN THE FUTURE AFTER SOME TIME
 public final class WaystonePosition {
 
-    public static final WaystonePosition EMPTY = new WaystonePosition("", BlockPos.ORIGIN);
+    public static final WaystonePosition EMPTY = new WaystonePosition(RegistryKey.of(RegistryKeys.WORLD, FabricWaystones.id("empty")), BlockPos.ORIGIN);
 
-    public static final StructEndec<WaystonePosition> ENDEC = StructEndecBuilder.of(
-            Endec.STRING.fieldOf("world_name", WaystonePosition::worldName),
-            MinecraftEndecs.BLOCK_POS.fieldOf("position", WaystonePosition::blockPos),
-            WaystonePosition::new
+    public static final StructEndec<GlobalPos> GLOBAL_POS_ENDEC = StructEndecBuilder.of(
+        MinecraftEndecs.IDENTIFIER.xmap(id -> RegistryKey.of(RegistryKeys.WORLD, id), RegistryKey::getValue).fieldOf("dimension", GlobalPos::dimension),
+        MinecraftEndecs.BLOCK_POS.fieldOf("pos", GlobalPos::pos),
+        GlobalPos::new
     );
 
+    public static final StructEndec<WaystonePosition> ENDEC = StructEndecBuilder.of(
+        GLOBAL_POS_ENDEC.flatFieldOf(WaystonePosition::globalPos),
+        WaystonePosition::new
+    );
 
     // TODO: MAKE THIS STRUCT WITHIN THE FUTURE with structCatchErrors or whatever and deal with future version where this is removed!
     @Deprecated
@@ -34,19 +44,25 @@ public final class WaystonePosition {
         return WaystonePosition.unsafePositonFromHash(stringHash, WaystoneDataStorage.getServer().getScoreboard());
     });
 
-    private final String worldName;
-    private final BlockPos position;
+    private final GlobalPos globalPos;
     private final String hash;
 
     private final boolean isUnsafe;
 
-    public WaystonePosition(String worldName, BlockPos position) {
-        this(worldName, position, createHashString(worldName, position), false);
+    public WaystonePosition(GlobalPos pos) {
+        this(pos, createHashString(pos.dimension(), pos.pos()), false);
     }
 
-    private WaystonePosition(String worldName, BlockPos position, String hash, boolean isUnsafe) {
-        this.worldName = worldName;
-        this.position = position;
+    public WaystonePosition(RegistryKey<World> worldKey, BlockPos position) {
+        this(worldKey, position, createHashString(worldKey, position), false);
+    }
+
+    private WaystonePosition(RegistryKey<World> worldKey, BlockPos position, String hash, boolean isUnsafe) {
+        this(new GlobalPos(worldKey, position), hash, isUnsafe);
+    }
+
+    private WaystonePosition(GlobalPos pos, String hash, boolean isUnsafe) {
+        this.globalPos = pos;
         this.hash = hash;
         this.isUnsafe = isUnsafe;
     }
@@ -65,13 +81,17 @@ public final class WaystonePosition {
     }
 
     @Deprecated
-    public static String createHashString(String worldName, BlockPos position) {
+    public static String createHashString(RegistryKey<World> worldKey, BlockPos position) {
         return Utils.getSHA256(
                 "<POS X:" + position.getX() +
                         ", Y:" + position.getY() +
                         ", Z:" + position.getZ() +
-                        ", WORLD: \">" + worldName + "\">"
+                        ", WORLD: \">" + worldKey.getValue().toString() + "\">"
         );
+    }
+
+    public GlobalPos globalPos(){
+        return this.globalPos;
     }
 
     public String worldName() {
@@ -79,7 +99,11 @@ public final class WaystonePosition {
             throw new IllegalArgumentException("Unable to get the world name from the WaystoneHash as it is unsafe variant!");
         }
 
-        return worldName;
+        return globalPos.dimension().getValue().toString();
+    }
+
+    public RegistryKey<World> worldKey(){
+        return globalPos.dimension();
     }
 
     public BlockPos blockPos() {
@@ -87,7 +111,7 @@ public final class WaystonePosition {
             throw new IllegalArgumentException("Unable to get the position from the WaystoneHash as it is unsafe variant!");
         }
 
-        return position;
+        return globalPos.pos();
     }
 
     public WaystonePosition attemptToFix(Scoreboard scoreboard) {
@@ -140,8 +164,8 @@ public final class WaystonePosition {
     @Override
     public String toString() {
         return "WaystoneHash[" +
-                "worldName=" + worldName + ", " +
-                "position=" + position + ", " +
+                "worldName=" + globalPos.dimension().getValue().toString() + ", " +
+                "position=" + globalPos.pos() + ", " +
                 "hash=" + hash + ']';
     }
 

@@ -10,26 +10,21 @@ import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.ModelPredicateProvider;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.model.UnbakedModel;
 import net.minecraft.client.render.model.json.JsonUnbakedModel;
 import net.minecraft.item.BlockItem;
 import net.minecraft.registry.Registries;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
@@ -37,6 +32,8 @@ import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystoneEvents;
 import wraith.fwaystones.api.client.MossColorProvidersRegistry;
 import wraith.fwaystones.api.core.*;
+import wraith.fwaystones.api.moss.MossType;
+import wraith.fwaystones.api.moss.MossTypes;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
@@ -56,7 +53,6 @@ import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.client.registry.WaystoneModelProviders;
 import wraith.fwaystones.registry.WaystoneBlocks;
 import wraith.fwaystones.registry.WaystoneDataComponents;
-import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.registry.WaystoneParticles;
 
 import java.util.*;
@@ -124,7 +120,7 @@ public class WaystonesClient implements ClientModInitializer {
 
                                 return tintColor;
                             } else if (tintIndex == 2) {
-                                var mossType = blockEntity.getMossType(state);
+                                var mossType = blockEntity.getMossType();
 
                                 if (mossType != null) {
                                     var provider = MossColorProvidersRegistry.getProvider(mossType);

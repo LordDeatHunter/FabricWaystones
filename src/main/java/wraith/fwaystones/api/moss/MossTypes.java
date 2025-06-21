@@ -1,4 +1,4 @@
-package wraith.fwaystones.api.core;
+package wraith.fwaystones.api.moss;
 
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;

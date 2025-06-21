@@ -5,15 +5,15 @@ import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.entity.player.PlayerEntity;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.util.TeleportSources;
+import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.api.WaystoneDataStorage;
 
 import java.util.UUID;
 
-public record TeleportToWaystone(UUID uuid, TeleportSources source) {
+public record TeleportToWaystone(UUID uuid, TeleportSource source) {
     public static final StructEndec<TeleportToWaystone> ENDEC = StructEndecBuilder.of(
             BuiltInEndecs.UUID.fieldOf("uuid", TeleportToWaystone::uuid),
-            TeleportSources.ENDEC.fieldOf("sources", TeleportToWaystone::source),
+            TeleportSource.ENDEC.fieldOf("sources", TeleportToWaystone::source),
             TeleportToWaystone::new
     );
 
@@ -27,10 +27,10 @@ public record TeleportToWaystone(UUID uuid, TeleportSources source) {
             return;
         }
 
-        var entity = storage.getEntity(uuid);
+        var waystone = storage.getEntity(uuid);
 
-        if (entity != null) {
-            entity.teleportPlayer(player, true, packet.source());
+        if (waystone != null) {
+            waystone.teleportPlayer(player, packet.source(), true);
         }
     }
 }

@@ -15,10 +15,13 @@ import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
@@ -47,12 +50,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WaystoneDataStorage {
 
-    private static final Endec<Map<String, Map<BlockPos, UUID>>> MAP_ENDEC =
-            Endec.map(
-                    pos -> String.valueOf(pos.asLong()),
-                    s -> BlockPos.fromLong(Long.parseLong(s)),
-                    BuiltInEndecs.UUID
-            ).mapOf();
+    private static final Endec<Map<RegistryKey<World>, Map<BlockPos, UUID>>> MAP_ENDEC = Endec.map(
+        key -> key.getValue().toString(),
+        s -> RegistryKey.of(RegistryKeys.WORLD, Identifier.of(s)),
+        Endec.map(
+            pos -> String.valueOf(pos.asLong()),
+            s -> BlockPos.fromLong(Long.parseLong(s)),
+            BuiltInEndecs.UUID
+        )
+    );
 
     public static final Endec<WaystoneDataStorage> ENDEC = StructEndecBuilder.of(
             MAP_ENDEC.fieldOf("positions", WaystoneDataStorage::exportPositions),
@@ -78,16 +84,16 @@ public class WaystoneDataStorage {
 
     public final Map<WaystonePosition, WeakReference<WaystoneBlockEntity>> waystoneLookupCache = new ConcurrentHashMap<>();
 
-    WaystoneDataStorage(Map<String, Map<BlockPos, UUID>> waystonePositions, Set<WaystoneData> waystones) {
+    WaystoneDataStorage(Map<RegistryKey<World>, Map<BlockPos, UUID>> waystonePositions, Set<WaystoneData> waystones) {
         for (var data : waystones) {
             uuidToData.put(data.uuid(), data);
         }
 
         for (var worldEntry : waystonePositions.entrySet()) {
-            var worldName = worldEntry.getKey();
+            var worldKey = worldEntry.getKey();
 
             worldEntry.getValue().forEach((blockPos, uuid) -> {
-                var pos = new WaystonePosition(worldName, blockPos);
+                var pos = new WaystonePosition(worldKey, blockPos);
 
                 if (uuidToData.containsKey(uuid)) {
                     positionToUUID.put(pos, uuid);
@@ -97,14 +103,14 @@ public class WaystoneDataStorage {
         }
     }
 
-    public Map<String, Map<BlockPos, UUID>> exportPositions() {
-        var map = new HashMap<String, Map<BlockPos, UUID>>();
+    public Map<RegistryKey<World>, Map<BlockPos, UUID>> exportPositions() {
+        var map = new HashMap<RegistryKey<World>, Map<BlockPos, UUID>>();
 
         for (var entry : uuidToPosition.entrySet()) {
             var uuid = entry.getKey();
             var position = entry.getValue();
 
-            var worldMap = map.computeIfAbsent(position.worldName(), worldName -> new HashMap<>());
+            var worldMap = map.computeIfAbsent(position.worldKey(), worldName -> new HashMap<>());
 
             worldMap.put(position.blockPos(), uuid);
         }
@@ -238,18 +244,20 @@ public class WaystoneDataStorage {
         var waystones = tag.getList(FabricWaystones.MOD_ID, NbtElement.COMPOUND_TYPE);
 
         for (int i = 0; i < waystones.size(); ++i) {
-            NbtCompound waystoneTag = waystones.getCompound(i);
+            var waystoneTag = waystones.getCompound(i);
+
             if (!waystoneTag.contains("hash") || !waystoneTag.contains("name") || !waystoneTag.contains("dimension") || !waystoneTag.contains("position")) {
                 continue;
             }
-            String name = waystoneTag.getString("name");
-            String dimension = waystoneTag.getString("dimension");
-            String nbtHash = waystoneTag.getString("hash");
+
+            var name = waystoneTag.getString("name");
+            var dimension = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(waystoneTag.getString("dimension")));
+            var nbtHash = waystoneTag.getString("hash");
 
             int[] coordinates = waystoneTag.getIntArray("position");
             int color = waystoneTag.contains("color", NbtElement.INT_TYPE) ? waystoneTag.getInt("color") : Utils.getRandomColor();
-            BlockPos pos = new BlockPos(coordinates[0], coordinates[1], coordinates[2]);
-            String hash = WaystonePosition.createHashString(dimension, pos);
+            var pos = new BlockPos(coordinates[0], coordinates[1], coordinates[2]);
+            var hash = WaystonePosition.createHashString(dimension, pos);
 
             // Migrate global hashes from old hash method to new.
             if (!hash.equals(nbtHash) && globals.contains(nbtHash)) {
@@ -337,6 +345,20 @@ public class WaystoneDataStorage {
         return uuidToPosition.containsKey(uuid);
     }
 
+    public Set<UUID> getValidUUID(Collection<UUID> uuids) {
+        var validUUIDs = new LinkedHashSet<UUID>();
+
+        for (var uuid : uuids) {
+            if (hasData(uuid) && hasPosition(uuid)) {
+                validUUIDs.add(uuid);
+            }
+        }
+
+        return validUUIDs;
+    }
+
+    //--
+
     @Nullable
     public WaystonePosition getPosition(WaystoneData data) {
         return getPosition(data.uuid());
@@ -366,7 +388,11 @@ public class WaystoneDataStorage {
 
             var customName = blockEntity.getCustomName();
 
-            return createData(pos, customName != null ? customName.getString() : "", blockEntity.getWaystoneType());
+            var data = createData(pos, customName != null ? customName.getString() : "", blockEntity.getWaystoneType());;
+
+            blockEntity.markDirty();
+
+            return data;
         }
 
         var data = holder.data();
@@ -382,6 +408,8 @@ public class WaystoneDataStorage {
         blockEntity.dataHolder = null;
 
         positionDataInWorld(pos, data);
+
+        blockEntity.markDirty();
 
         return data;
     }

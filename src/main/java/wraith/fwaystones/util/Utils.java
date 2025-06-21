@@ -11,8 +11,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorList;
@@ -23,10 +24,12 @@ import net.minecraft.world.World;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.*;
+import wraith.fwaystones.api.teleport.TeleportAction;
+import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.integration.lithostitched.LithostitchedPlugin;
-import wraith.fwaystones.api.WaystoneDataStorage;
-import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
+import wraith.fwaystones.registry.WaystoneDataComponents;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -167,29 +170,73 @@ public final class Utils {
         });
     }
 
-    public static boolean canTeleport(PlayerEntity player, WaystonePosition position, TeleportSources source, boolean takeCost) {
-        var data = WaystoneDataStorage.getStorage(player);
-        var uuid = data.getUUID(position);
+    //--
 
-        return canTeleport(player, uuid, source, takeCost);
+    public static boolean teleportPlayer(ServerPlayerEntity player, TeleportAction action, boolean takeCost) {
+        if (action == null) return false;
+
+        if (!attemptTeleport(player, action, takeCost)) return false;
+
+        if (!player.isCreative() && action.isFrom(TeleportSource.ABYSS_WATCHER)) {
+            var stackReference = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(player, stack -> {
+                var component = stack.get(WaystoneDataComponents.TELEPORTER);
+
+                return component != null && component.oneTimeUse();
+            });
+
+            if (stackReference != null) {
+                var stack = stackReference.get();
+                var data = stack.get(WaystoneDataComponents.TELEPORTER);
+
+                if (data != null && data.oneTimeUse()) {
+                    stackReference.breakStack(stack.copy());
+
+                    stack.decrement(1);
+
+                    stackReference.set(stack);
+                }
+            }
+        }
+
+        return true;
     }
 
-    public static boolean canTeleport(PlayerEntity player, UUID uuid, TeleportSources source, boolean takeCost) {
-        if (source == TeleportSources.VOID_TOTEM) return true;
+    private static boolean attemptTeleport(ServerPlayerEntity player, TeleportAction action, boolean takeCost) {
+        if (!Utils.canTeleport(player, action, takeCost)) return false;
+
+        var target = action.createTarget(player);
+
+        WaystonePlayerData.getData(player).teleportCooldown(action.getCooldown());
+
+        var oldPos = player.getBlockPos();
+        if (!oldPos.isWithinDistance(target.pos(), 6) || !player.getWorld().getRegistryKey().equals(target.world().getRegistryKey())) {
+            player.getWorld().playSound(null, oldPos, FabricWaystones.WAYSTONE_TELEPORT_PLAYER, SoundCategory.BLOCKS, 1F, 1F);
+        }
+
+        player.detach();
+        player.teleportTo(target);
+
+        var playerPos = player.getBlockPos();
+
+        target.world().playSound(null, playerPos, FabricWaystones.WAYSTONE_TELEPORT_PLAYER, SoundCategory.BLOCKS, 1F, 1F);
+
+        return true;
+    }
+
+    public static boolean canTeleportCostLess(PlayerEntity player, TeleportAction action) {
+        return canTeleport(player, action, false);
+    }
+
+    public static boolean canTeleport(PlayerEntity player, TeleportAction action, boolean takeCost) {
+        if (!action.isValid(player)) return false;
+        if (action.isFrom(TeleportSource.VOID_TOTEM)) return true;
+
+        var globalPos = action.getPos(player.getWorld());
 
         var costType = FabricWaystones.CONFIG.teleportCost.type();
 
-        var storage = WaystoneDataStorage.getStorage(player);
-
-        var position = storage.getPosition(uuid);
-
-        if (!storage.hasData(uuid) || position == null) {
-            player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
-            return false;
-        }
-
         var sourceDim = getDimensionName(player.getWorld());
-        var destDim = position.worldName();
+        var destDim = globalPos.dimension().getValue().toString();
 
         if (!FabricWaystones.CONFIG.ignoreBlacklistForInterdimensionTravel() || !sourceDim.equals(destDim)) {
             if (isDimensionBlacklisted(sourceDim, true)) {
@@ -202,11 +249,11 @@ public final class Utils {
             }
         }
 
-        if (source == TeleportSources.LOCAL_VOID && FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree()) {
+        if (action.isFrom(TeleportSource.VOID_TOTEM) && FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree()) {
             return true;
         }
 
-        int amount = getCost(player.getPos(), Vec3d.ofCenter(position.blockPos()), sourceDim, destDim);
+        int amount = getCost(player.getPos(), globalPos.pos().toCenterPos(), sourceDim, destDim);
 
         if (player.isCreative() || player.isSpectator()) return true;
 
@@ -262,26 +309,7 @@ public final class Utils {
                 if (takeCost) {
                     removeItem(player.getInventory(), item, amount);
 
-                    if (player.getWorld().isClient) {
-                        var waystoneBE = storage.getEntity(position);
-
-                        if (waystoneBE != null) {
-                            var oldInventory = new ArrayList<>(waystoneBE.getInventory());
-                            boolean found = false;
-
-                            for (ItemStack stack : oldInventory) {
-                                if (stack.getItem() == item) {
-                                    stack.increment(amount);
-                                    found = true;
-                                    break;
-                                }
-                            }
-
-                            if (!found) oldInventory.add(new ItemStack(item, amount));
-
-                            waystoneBE.setInventory(oldInventory);
-                        }
-                    }
+                    action.addConsumedItems(player.getWorld(), item, amount);
                 }
             }
         }

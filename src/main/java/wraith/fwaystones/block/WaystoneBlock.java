@@ -2,7 +2,6 @@ package wraith.fwaystones.block;
 
 import com.mojang.serialization.MapCodec;
 import io.wispforest.owo.ops.ItemOps;
-import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -42,7 +41,6 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.api.core.MossTypes;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
@@ -59,9 +57,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     public static final BooleanProperty GENERATED = BooleanProperty.of("generated");
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
-
-    public static final BooleanProperty ACTIVE = BooleanProperty.of("active");
-    public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
 
     public static final MapCodec<WaystoneBlock> CODEC = createCodec(WaystoneBlock::new);
     protected static final VoxelShape VOXEL_SHAPE_TOP;
@@ -96,9 +91,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 getStateManager().getDefaultState()
                         .with(HALF, DoubleBlockHalf.LOWER)
                         .with(FACING, Direction.NORTH)
-                        .with(MOSSY, false)
                         .with(WATERLOGGED, false)
-                        .with(ACTIVE, false)
                         .with(GENERATED, false)
         );
 
@@ -136,7 +129,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
-        stateManager.add(HALF, FACING, MOSSY, WATERLOGGED, ACTIVE, GENERATED);
+        stateManager.add(HALF, FACING, WATERLOGGED, GENERATED);
     }
 
     @Override
@@ -177,8 +170,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         BlockPos blockPos = ctx.getBlockPos();
 
-        var nbt = ctx.getStack().get(DataComponentTypes.BLOCK_ENTITY_DATA);
-        boolean hasOwner = nbt != null && nbt.contains("waystone_owner");
         var world = ctx.getWorld();
         var fluidState = world.getFluidState(blockPos);
 
@@ -187,7 +178,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 .with(FACING, ctx.getHorizontalPlayerFacing().getOpposite())
                 .with(HALF, DoubleBlockHalf.LOWER)
                 .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
-                .with(ACTIVE, hasOwner)
                 .with(GENERATED, false);
         } else {
             return null;
@@ -233,20 +223,16 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
                 var hasData = waystone.hasData();
 
-                var shouldDrop = false;
+                var mossStack = waystone.removeMoss();
 
-                if (hasData) {
+                if ((hasData && player.isCreative()) || !player.isCreative()) {
                     waystone.setStackNbt(itemStack, world.getRegistryManager());
 
-                    shouldDrop = true;
+                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
                 }
 
-                if ((shouldDrop && player.isCreative()) || !player.isCreative()) {
-                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
-
-                    if (waystone.getCachedState().get(MOSSY)) {
-                        ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, waystone.getMossStack());
-                    }
+                if (!mossStack.isEmpty()) {
+                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, mossStack);
                 }
 
                 if (hasData) {
@@ -278,10 +264,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         }
         var fluidState = world.getFluidState(pos.up());
         world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
-
-        if (placer instanceof ServerPlayerEntity && world.getBlockEntity(pos) instanceof WaystoneBlockEntity blockEntity) {
-            blockEntity.updateActiveState();
-        }
     }
 
     @Override
@@ -397,8 +379,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
         if (data.owner() == null) {
             blockEntity.setOwner(player);
-        } else {
-            blockEntity.updateActiveState();
         }
 
         NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);

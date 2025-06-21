@@ -1,9 +1,6 @@
 package wraith.fwaystones;
 
 import com.google.common.reflect.Reflection;
-import io.wispforest.owo.registration.reflect.AutoRegistryContainer;
-import io.wispforest.owo.serialization.CodecUtils;
-import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import io.wispforest.owo.util.Wisdom;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -14,8 +11,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.Item;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
@@ -27,7 +22,7 @@ import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.api.core.MossTypes;
+import wraith.fwaystones.api.moss.MossTypes;
 import wraith.fwaystones.api.core.WaystoneTypes;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
 import wraith.fwaystones.integration.accessories.AccessoriesCompat;
@@ -110,7 +105,7 @@ public class FabricWaystones implements ModInitializer {
 
         WaystoneParticles.init();
 
-        LOGGER.info("Wraith Waystones has successfully been initialized. \\n Here take some wisdom: ");
+        LOGGER.info("Wraith Waystones has successfully been initialized. \n Here take some wisdom: ");
         Wisdom.spread();
 
         if (FabricLoader.getInstance().isModLoaded("accessories")) {

@@ -86,36 +86,38 @@ public class WaystoneBlockQuadEmission implements QuadEmission<WaystoneBlockEnti
         }
 
         {
-            var runeId = FabricWaystones.id("block/waystone/waystone_runes");
+            if (blockEntity.isActive()) {
+                var runeId = FabricWaystones.id("block/waystone/waystone_runes");
 
-            var baseSprite = atlas.getSprite(WaystoneTypes.STONE_TYPE.blockTexture());
-            var sprite = atlas.getSprite(runeId);
+                var baseSprite = atlas.getSprite(WaystoneTypes.STONE_TYPE.blockTexture());
+                var sprite = atlas.getSprite(runeId);
 
-            var uOffset = sprite.getMinU() - baseSprite.getMinU();
-            var vOffset = sprite.getMinV() - baseSprite.getMinV();
+                var uOffset = sprite.getMinU() - baseSprite.getMinU();
+                var vOffset = sprite.getMinV() - baseSprite.getMinV();
 
-            var color = 0xFF000000 | ColorProviderRegistry.BLOCK.get(WaystoneBlocks.WAYSTONE).getColor(state, blockView, pos, 1);
+                var color = 0xFF000000 | ColorProviderRegistry.BLOCK.get(WaystoneBlocks.WAYSTONE).getColor(state, blockView, pos, 1);
 
-            ctx.pushTransform(quad -> {
-                for (int i = 0; i < 4; i++) {
-                    var currentU = quad.u(i);
-                    var currentV = quad.v(i);
+                ctx.pushTransform(quad -> {
+                    for (int i = 0; i < 4; i++) {
+                        var currentU = quad.u(i);
+                        var currentV = quad.v(i);
 
-                    quad.uv(i, currentU + uOffset, currentV + vOffset);
+                        quad.uv(i, currentU + uOffset, currentV + vOffset);
 
-                    quad.color(i, color);
-                }
+                        quad.color(i, color);
+                    }
 
-                return true;
-            });
+                    return true;
+                });
 
-            model.emitBlockQuads(blockView, state, pos, random, ctx);
+                model.emitBlockQuads(blockView, state, pos, random, ctx);
 
-            ctx.popTransform();
+                ctx.popTransform();
+            }
         }
 
         {
-            var mossType = blockEntity.getMossType(state);
+            var mossType = blockEntity.getMossType();
 
             if (mossType != null) {
                 var baseSprite = atlas.getSprite(WaystoneTypes.STONE_TYPE.blockTexture());
@@ -149,7 +151,7 @@ public class WaystoneBlockQuadEmission implements QuadEmission<WaystoneBlockEnti
         var atlas = MinecraftClient.getInstance().getBakedModelManager().getAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
 
         var type = blockEntity.getWaystoneType();
-        var mossType = blockEntity.getMossType(state);
+        var mossType = blockEntity.getMossType();
 
         return (mossType != null)
             ? atlas.getSprite(mossType.blockTexture())
