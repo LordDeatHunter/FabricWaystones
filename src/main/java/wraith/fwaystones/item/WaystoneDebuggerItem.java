@@ -11,9 +11,10 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import wraith.fwaystones.access.PlayerEntityMixinAccess;
+import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
+import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.util.Utils;
 
 import java.util.List;
@@ -40,17 +41,20 @@ public class WaystoneDebuggerItem extends Item {
         if (!(world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone)) {
             return ActionResult.FAIL;
         }
-        var owner = waystone.getOwner();
-        var ownerName = waystone.getOwnerName();
+        var hash = waystone.position();
+        var data = waystone.getData();
+
+        var owner = data.owner();
+        var ownerName = data.owner();
 
         var message = Text.literal("");
-        message.append("§6[§eNAME§6]§e=§3" + waystone.getWaystoneName());
-        message.append("\n§6[§eGLOBAL§6]§e=§3" + waystone.isGlobal());
-        message.append("\n§6[§eHASH§6]§e=§3" + waystone.getHexHash());
-        message.append("\n§6[§eCOLOR§6]§e=§3" + waystone.getColor());
+        message.append("§6[§eNAME§6]§e=§3").append(data.name());
+        message.append("\n§6[§eGLOBAL§6]§e=§3" + data.global());
+        message.append("\n§6[§eHASH§6]§e=§3" + hash.getHexHash());
+        message.append("\n§6[§eCOLOR§6]§e=§3" + data.color());
         if (owner != null && ownerName != null) {
-            message.append("\n§6[§eOWNER-UUID§6]§e=§3" + waystone.getOwner());
-            message.append("\n§6[§eOWNER-NAME§6]§e=§3" + waystone.getOwnerName());
+            message.append("\n§6[§eOWNER-UUID§6]§e=§3" + owner);
+            message.append("\n§6[§eOWNER-NAME§6]§e=§3" + ownerName);
         } else {
             message.append("\n§6[§eNO-OWNER§6]");
         }
@@ -61,15 +65,14 @@ public class WaystoneDebuggerItem extends Item {
 
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
-        if (!(entity instanceof ServerPlayerEntity player)) {
-            return ActionResult.PASS;
-        }
-        var playerAccess = (PlayerEntityMixinAccess) player;
+        if (!(entity instanceof ServerPlayerEntity player)) return ActionResult.PASS;
+
+        var data = WaystonePlayerData.getData(player);
 
         var message = Text.literal("");
         message.append("§6[§eNAME§6]§e=§3" + player.getName().getString());
-        message.append("\n§6[§eKNOWN-WAYSTONES§6]§e=§3" + playerAccess.fabricWaystones$getDiscoveredCount());
-        message.append("\n§6[§eCOOLDOWN§6]§e=§3" + playerAccess.fabricWaystones$getTeleportCooldown());
+        message.append("\n§6[§eKNOWN-WAYSTONES§6]§e=§3" + data.discoveredWaystones().size());
+        message.append("\n§6[§eCOOLDOWN§6]§e=§3" + data.teleportCooldown());
         user.sendMessage(message, false);
 
         return super.useOnEntity(stack, user, entity, hand);
@@ -78,7 +81,7 @@ public class WaystoneDebuggerItem extends Item {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         super.appendTooltip(stack, context, tooltip, type);
-        tooltip.add(Text.translatable("fwaystones.debug.debugger_tooltip" + TOOLTIP_MESSAGE));
+        tooltip.add(TextUtils.translationWithArg("debug.debugger_tooltip_base", TextUtils.translationWithArg("debug.debugger_tooltip" + TOOLTIP_MESSAGE)));
     }
 
 }
