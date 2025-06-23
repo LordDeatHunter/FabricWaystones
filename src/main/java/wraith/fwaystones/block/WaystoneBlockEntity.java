@@ -28,6 +28,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.collection.DefaultedList;
@@ -49,6 +50,7 @@ import wraith.fwaystones.particle.RuneParticleEffect;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
+import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.util.*;
 
 import java.util.List;
@@ -73,6 +75,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private static final KeyedEndec<Identifier> WAYSTONE_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("waystone_type", () -> WaystoneTypes.STONE);
     private Identifier waystoneTypeId = WaystoneTypes.STONE;
 
+    private ItemStack controllerStack = ItemStack.EMPTY;
+
     private static final KeyedEndec<Identifier> MOSS_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("moss_type", () -> MossTypes.EMPTY_ID);
     private Identifier mossTypeId = MossTypes.EMPTY_ID;
 
@@ -88,20 +92,56 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 .orElse(null);
     }
 
+    public int getColor() {
+        var data = getData();
+
+        if (data != null) {
+            return data.color();
+        }
+
+        // TODO: ADD SOMETHING HERE TO HANDLE OTHER STUFF
+        return this.getWaystoneType().defaultRuneColor();
+    }
+
+    //--
+
     @Nullable
     public WaystoneData getData() {
-        return WaystoneDataStorage.getStorage(this.world).getData(this.position());
+        if (this.controllerStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
+            return WaystoneDataStorage.getStorage(this.world).getData(this.position());
+        }
+
+        return null;
+    }
+
+    @Nullable
+    public UUID getUUID() {
+        var uuid = WaystoneDataStorage.getStorage(this.world).getUUID(this.position());
+
+        if (uuid == null) return WaystoneData.EMPTY_UUID;
+
+        return uuid;
     }
 
     public WaystoneType getWaystoneType() {
         return WaystoneTypes.getTypeOrDefault(this.waystoneTypeId);
     }
 
+    public TeleportAction createNetworkTeleport(TeleportSource source) {
+        return TeleportAction.networkTeleport(this.getUUID(), source);
+    }
+
+    //--
+
     @Nullable
     public MossType getMossType() {
         return !this.mossTypeId.equals(MossTypes.EMPTY_ID)
                 ? MossTypes.getTypeOrDefault(this.mossTypeId)
                 : null;
+    }
+
+    public boolean isMossy() {
+        return getMossType() != null;
     }
 
     public ItemStack removeMoss() {
@@ -113,21 +153,21 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return mossStack;
     }
 
-    public TeleportAction createAction(TeleportSource source) {
-        return TeleportAction.networkTeleport(this.getUUID(), source);
-    }
+    //--
 
     public boolean isActive() {
-        var data = getData();
+        if (this.controllerStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
+            var data = getData();
 
-        if (data == null) return false;
+            if (data == null) return false;
 
-        return data.hasOwner();
+            return data.hasOwner();
+        }
+
+        return false;
     }
 
-    public boolean isMossy() {
-        return getMossType() != null;
-    }
+
 
     public TypedActionResult<ItemStack> attemptMossingInteraction(BlockPos pos, ItemStack stack) {
         var mossType = MossTypes.getMossType(stack);
@@ -171,23 +211,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return TypedActionResult.pass(ItemStack.EMPTY);
     }
 
-    public boolean hasData() {
-        return getData() != null;
-    }
-
     public WaystonePosition position() {
         if (this.waystonePosition == null) createHash(world, pos);
 
         return this.waystonePosition;
-    }
-
-    @Nullable
-    public UUID getUUID() {
-        var uuid = WaystoneDataStorage.getStorage(this.world).getUUID(this.position());
-
-        if (uuid == null) return WaystoneData.EMPTY_UUID;
-
-        return uuid;
     }
 
     public void createHash(World world, BlockPos pos) {
@@ -283,6 +310,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         Inventories.readNbt(tag, inventory, lookup);
 
         this.waystoneTypeId = tag.get(WAYSTONE_TYPE_ID_KEY);
+        this.controllerStack = ItemStack.fromNbtOrEmpty(lookup, tag.getCompound("controller_stack"));
+
         this.mossTypeId = tag.get(MOSS_TYPE_ID_KEY);
 
         this.mossStack = ItemStack.fromNbtOrEmpty(lookup, tag.getCompound("moss_stack"));
@@ -303,19 +332,22 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         Inventories.writeNbt(tag, this.inventory, lookup);
 
         tag.put(WAYSTONE_TYPE_ID_KEY, this.waystoneTypeId);
-        tag.put(MOSS_TYPE_ID_KEY, this.mossTypeId);
+        tag.put("controller_stack", this.controllerStack.encodeAllowEmpty(lookup));
 
+        tag.put(MOSS_TYPE_ID_KEY, this.mossTypeId);
         tag.put("moss_stack", this.mossStack.encodeAllowEmpty(lookup));
     }
 
     @Override
     public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registryLookup) {
-        var nbt = super.toInitialChunkDataNbt(registryLookup);
+        var tag = super.toInitialChunkDataNbt(registryLookup);
 
-        nbt.put(WAYSTONE_TYPE_ID_KEY, this.waystoneTypeId);
-        nbt.put(MOSS_TYPE_ID_KEY, this.mossTypeId);
+        tag.put(WAYSTONE_TYPE_ID_KEY, this.waystoneTypeId);
+        tag.put("controller_stack", this.controllerStack.encodeAllowEmpty(registryLookup));
 
-        return nbt;
+        tag.put(MOSS_TYPE_ID_KEY, this.mossTypeId);
+
+        return tag;
     }
 
     @Override
@@ -360,26 +392,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     public boolean teleportPlayer(PlayerEntity player, TeleportSource source, boolean takeCost) {
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return false;
 
-        return Utils.teleportPlayer(serverPlayer, createAction(source), takeCost);
-    }
-
-    public void setOwner(PlayerEntity player) {
-        var storage = WaystoneDataStorage.getStorage(world);
-        var uuid = getUUID();
-
-        if (player == null) {
-            if (storage.setOwner(uuid, null)) {
-                world.playSound(null, pos, FabricWaystones.WAYSTONE_DEATIVATE, SoundCategory.BLOCKS, 1F, 1F);
-                world.playSound(null, pos, FabricWaystones.WAYSTONE_DEACTIVATE2, SoundCategory.BLOCKS, 1F, 1F);
-            }
-        } else {
-            if (storage.setOwner(uuid, player)) {
-                world.playSound(null, pos, FabricWaystones.WAYSTONE_INITIALIZE, SoundCategory.BLOCKS, 1F, 1F);
-                world.playSound(null, pos, FabricWaystones.WAYSTONE_ACTIVATE, SoundCategory.BLOCKS, 1F, 1F);
-            }
-        }
-
-        markDirty();
+        return Utils.teleportPlayer(serverPlayer, createNetworkTeleport(source), takeCost);
     }
 
     @Override
@@ -467,8 +480,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private void addParticle(Entity target, boolean main) {
         if (world == null) return;
         var random = world.getRandom();
-        var data = getData();
-        ParticleEffect p = (random.nextInt(10) > 7) ? new RuneParticleEffect(data == null ? -1 : data.color()) : ParticleTypes.PORTAL;
+        ParticleEffect p = (random.nextInt(10) > 7) ? new RuneParticleEffect(getColor()) : ParticleTypes.PORTAL;
         var basePos = this.getPos().toBottomCenterPos();
         var watcherPos = basePos.add(0, 0.8, 0);
         var targetPos = target.getPos();

@@ -21,6 +21,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
@@ -627,6 +628,10 @@ public class WaystoneDataStorage {
 
         data.setName(name);
         syncDataChange(uuid, DataChangeType.NAME);
+
+        var entity = getEntity(uuid);
+
+        if (entity != null) entity.markDirty();
     }
 
     public void recolorWaystone(UUID uuid, int color) {
@@ -636,6 +641,10 @@ public class WaystoneDataStorage {
 
         data.setColor(color);
         syncDataChange(uuid, DataChangeType.COLOR);
+
+        var entity = getEntity(uuid);
+
+        if (entity != null) entity.markDirty();
     }
 
     public void toggleGlobal(UUID uuid) {
@@ -645,6 +654,10 @@ public class WaystoneDataStorage {
 
         data.setGlobal(!data.global());
         syncDataChange(uuid, DataChangeType.GLOBAL);
+
+        var entity = getEntity(uuid);
+
+        if (entity != null) entity.markDirty();
     }
 
     public boolean setOwner(UUID uuid, @Nullable PlayerEntity owner) {
@@ -658,7 +671,28 @@ public class WaystoneDataStorage {
 
         var changeOccured = !Objects.equals(prevOwner, owner == null ? null : owner.getUuid());
 
-        if (changeOccured) syncDataChange(uuid, DataChangeType.OWNER);
+        if (changeOccured) {
+            syncDataChange(uuid, DataChangeType.OWNER);
+
+            var entity = getEntity(uuid);
+
+            if (entity != null) {
+                var world = entity.getWorld();
+                var pos = entity.getPos();
+
+                entity.markDirty();
+
+                if (world != null) {
+                    if (owner == null) {
+                        world.playSound(null, pos, FabricWaystones.WAYSTONE_DEATIVATE, SoundCategory.BLOCKS, 1F, 1F);
+                        world.playSound(null, pos, FabricWaystones.WAYSTONE_DEACTIVATE2, SoundCategory.BLOCKS, 1F, 1F);
+                    } else {
+                        world.playSound(null, pos, FabricWaystones.WAYSTONE_INITIALIZE, SoundCategory.BLOCKS, 1F, 1F);
+                        world.playSound(null, pos, FabricWaystones.WAYSTONE_ACTIVATE, SoundCategory.BLOCKS, 1F, 1F);
+                    }
+                }
+            }
+        }
 
         return changeOccured;
     }

@@ -148,7 +148,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     case OWNER -> {
                         var data = waystone.getData();
                         if(data != null) {
-                            var owner = waystone.getData().owner();
+                            var owner = data.owner();
                             if (owner != null && !player.getUuid().equals(owner)) return 0;
                         }
                     }
@@ -221,11 +221,9 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             if (!world.isClient) {
                 var itemStack = new ItemStack(state.getBlock().asItem());
 
-                var hasData = waystone.hasData();
-
                 var mossStack = waystone.removeMoss();
 
-                if ((hasData && player.isCreative()) || !player.isCreative()) {
+                if (!player.isCreative()) {
                     waystone.setStackNbt(itemStack, world.getRegistryManager());
 
                     ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
@@ -235,7 +233,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, mossStack);
                 }
 
-                if (hasData) {
+                if (waystone.getData() != null) {
                     var uuid = waystone.getUUID();
 
                     if (uuid != null) {
@@ -316,7 +314,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
         if (stack.isIn(WAYSTONE_CLEANERS)) {
             var type = blockEntity.getWaystoneType();
-            if (data.color() != type.defaultRuneColor()) {
+            if (blockEntity.getColor() != type.defaultRuneColor()) {
                 storage.recolorWaystone(data.uuid(), type.defaultRuneColor());
                 blockEntity.markDirty();
                 if (stack.isIn(WAYSTONE_BUCKET_CLEANERS)) {
@@ -378,7 +376,9 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         }
 
         if (data.owner() == null) {
-            blockEntity.setOwner(player);
+            var uuid = blockEntity.getUUID();
+
+            storage.setOwner(uuid, player);
         }
 
         NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);

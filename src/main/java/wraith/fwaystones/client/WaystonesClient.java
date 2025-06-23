@@ -109,16 +109,7 @@ public class WaystonesClient implements ClientModInitializer {
 
                         if (blockEntity != null) {
                             if (tintIndex == 1) {
-                                var data = blockEntity.getData();
-
-                                var dataColor = (data != null ? data.color() : -1);
-                                var tintColor = blockEntity.getWaystoneType().defaultRuneColor();
-
-                                if (dataColor != -1 && dataColor != tintColor) {
-                                    tintColor = dataColor;
-                                }
-
-                                return tintColor;
+                                return blockEntity.getColor();
                             } else if (tintIndex == 2) {
                                 var mossType = blockEntity.getMossType();
 
