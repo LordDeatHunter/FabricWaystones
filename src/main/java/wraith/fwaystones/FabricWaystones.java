@@ -105,14 +105,14 @@ public class FabricWaystones implements ModInitializer {
 
         WaystoneParticles.init();
 
-        LOGGER.info("Wraith Waystones has successfully been initialized. \n Here take some wisdom: ");
-        Wisdom.spread();
-
         if (FabricLoader.getInstance().isModLoaded("accessories")) {
             AccessoriesCompat.init();
         }
 
         Reflection.initialize(MossTypes.class, WaystoneTypes.class);
+
+        LOGGER.info("Wraith Waystones has successfully been initialized. \n Here take some wisdom: ");
+        Wisdom.spread();
     }
 
     public static void registerEvents() {

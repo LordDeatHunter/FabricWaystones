@@ -114,6 +114,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return null;
     }
 
+    public ItemStack getControllerStack() {
+        return this.controllerStack;
+    }
+
     @Nullable
     public UUID getUUID() {
         var uuid = WaystoneDataStorage.getStorage(this.world).getUUID(this.position());

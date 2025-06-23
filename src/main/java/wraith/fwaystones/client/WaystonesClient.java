@@ -1,6 +1,10 @@
 package wraith.fwaystones.client;
 
 import com.google.common.reflect.Reflection;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.mojang.authlib.minecraft.client.ObjectMapper;
+import io.wispforest.owo.ui.core.Color;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -49,11 +53,8 @@ import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.client.registry.WaystoneScreens;
 import wraith.fwaystones.networking.packets.c2s.AttemptTeleporterUse;
 import wraith.fwaystones.particle.RuneParticleEffect;
-import wraith.fwaystones.registry.WaystoneBlockEntities;
+import wraith.fwaystones.registry.*;
 import wraith.fwaystones.client.registry.WaystoneModelProviders;
-import wraith.fwaystones.registry.WaystoneBlocks;
-import wraith.fwaystones.registry.WaystoneDataComponents;
-import wraith.fwaystones.registry.WaystoneParticles;
 
 import java.util.*;
 
@@ -123,12 +124,25 @@ public class WaystonesClient implements ClientModInitializer {
                             }
                         }
                     }
-
                     return -1;
                 }, block);
                 BlockRenderLayerMap.INSTANCE.putBlock(block, RenderLayer.getCutoutMipped());
             }
         }
+
+        ColorProviderRegistry.ITEM.register(
+            (stack, tintIndex) -> {
+                if (tintIndex == 1) {
+                    var data = stack.getOrDefault(WaystoneDataComponents.DATA_HOLDER, null);
+                    var type = stack.getOrDefault(WaystoneDataComponents.WAYSTONE_TYPE, null);
+                    if (type == null) return Color.ofHsv(((System.currentTimeMillis() + stack.hashCode()) % 5000) / 5000f, 1, 1).rgb();
+                    if (data == null) return type.getType().defaultRuneColor();
+                    return data.data().color();
+                }
+                return -1;
+            },
+            WaystoneItems.WAYSTONE
+        );
 
         WaystoneEvents.ON_WAYSTONE_DATA_UPDATE.register((uuid, type) -> {
             if (type.equals(DataChangeType.COLOR)) {
@@ -147,20 +161,15 @@ public class WaystonesClient implements ClientModInitializer {
         ParticleFactoryRegistry.getInstance().register(WaystoneParticles.RUNE, RuneParticleEffect.Factory::new);
 
         register(FabricWaystones.id("waystone_type"), (stack, world, entity, seed) -> {
-            var id = stack.getOrDefault(WaystoneDataComponents.WAYSTONE_TYPE, WaystoneTyped.DEFAULT).id();
-
             var types = WaystoneTypes.getTypeIds();
-
+            var id = stack.getOrDefault(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(types.get((int) ((System.currentTimeMillis() / (1000 + (stack.hashCode() % 100)) + stack.hashCode()) % types.size())))).id();
             if (types.contains(id)) return types.indexOf(id) + 1;
-
             return 1;
         });
 
         WaystoneCompassRenderer.init();
 
         ModelLoadingPlugin.register(ctx -> {
-            ctx.addModels(FabricWaystones.id("item/waystone_compass_base"));
-
             var validItemModels = new LinkedHashMap<Identifier, Identifier>();
 
             for (var typeId : WaystoneTypes.getTypeIds()) {
@@ -172,15 +181,17 @@ public class WaystonesClient implements ClientModInitializer {
             }
 
             ctx.resolveModel().register(context -> {
+                var gsonBuilder = new GsonBuilder().setPrettyPrinting().create();
+                var runes = FabricWaystones.id("item/waystone_runes");
                 if (context.id().equals(FabricWaystones.id("item/waystone"))) {
                     var obj = DynamicModelUtils.createOverridenItemModel(
-                        List.of(FabricWaystones.id("item/stone_waystone")),
+                        List.of(FabricWaystones.id("item/stone_waystone"), runes),
                         WaystoneTypes.getTypeIds().stream().map(id -> id.withPath(s -> "item/" + s + "_waystone")),
                         FabricWaystones.id("waystone_type")
                     );
 
                     if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-                        FabricWaystones.LOGGER.info(obj);
+                        FabricWaystones.LOGGER.info(gsonBuilder.toJson(obj));
                     }
 
                     return JsonUnbakedModel.deserialize(obj.toString());
@@ -192,10 +203,10 @@ public class WaystonesClient implements ClientModInitializer {
                         throw new IllegalStateException("Unable to get the required WaystoneType for getting the texture!");
                     }
 
-                    var obj = DynamicModelUtils.createItemModel(List.of(type.itemTexture()));
+                    var obj = DynamicModelUtils.createItemModel(List.of(type.itemTexture(), runes));
 
                     if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-                        FabricWaystones.LOGGER.info(obj);
+                        FabricWaystones.LOGGER.info(gsonBuilder.toJson(obj));
                     }
 
                     return JsonUnbakedModel.deserialize(obj.toString());
@@ -215,7 +226,7 @@ public class WaystonesClient implements ClientModInitializer {
 
                 if (context.id().equals(multiBottomModel)) {
                     possibleModel = context.getOrLoadModel(baseBottomModel);
-                } else if(context.id().equals(multiTopModel)) {
+                } else if (context.id().equals(multiTopModel)) {
                     possibleModel = context.getOrLoadModel(baseTopModel);
                 } else {
                     return null;

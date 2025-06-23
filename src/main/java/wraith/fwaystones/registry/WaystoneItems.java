@@ -1,23 +1,20 @@
 package wraith.fwaystones.registry;
 
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.minecraft.component.DataComponentTypes;
+import io.wispforest.owo.itemgroup.Icon;
+import io.wispforest.owo.itemgroup.OwoItemGroup;
+import io.wispforest.owo.itemgroup.gui.ItemGroupButton;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
+import net.minecraft.util.Util;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.api.core.WaystoneType;
 import wraith.fwaystones.api.core.WaystoneTypes;
-import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.item.*;
 import wraith.fwaystones.item.components.*;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -25,47 +22,40 @@ public final class WaystoneItems {
 
     private static final Map<String, Item> ITEMS = new LinkedHashMap<>();
 
-    public static final ItemGroup WAYSTONE_GROUP = Registry.register(
-        Registries.ITEM_GROUP,
-        FabricWaystones.id(FabricWaystones.MOD_ID),
-        FabricItemGroup.builder()
-            .icon(() -> new ItemStack(WaystoneBlocks.WAYSTONE))
-            .displayName(Text.translatable("itemGroup.fwaystones.fwaystones"))
-            .entries((enabledFeatures, entries) -> {
-                ITEMS.values().stream().map(ItemStack::new).forEach(entries::add);
+    public static final OwoItemGroup WAYSTONES_GROUP = OwoItemGroup.builder(
+            FabricWaystones.id(FabricWaystones.MOD_ID),
+            () -> Icon.of(WaystoneItems.WAYSTONE.getDefaultStack())
+        )
+        .initializer(group -> {
+            group.addCustomTab(
+                Util.make(() -> {
+                    var stack = WaystoneItems.WAYSTONE.getDefaultStack();
+                    stack.remove(WaystoneDataComponents.WAYSTONE_TYPE);
+                    return Icon.of(stack);
+                }),
+                "waystones",
+                (context, entries) -> {
+                    for (var typeId : WaystoneTypes.getTypeIds()) {
+                        var stack = WaystoneItems.WAYSTONE.getDefaultStack();
+                        stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(typeId));
+                        entries.add(stack);
+                    }
+                },
+                true
+            );
+            group.addCustomTab(
+                Icon.of(WaystoneItems.ABYSS_WATCHER.getDefaultStack()),
+                "items",
+                (context, entries) -> ITEMS.values().stream().map(ItemStack::new).forEach(entries::add),
+                false
+            );
+            group.addButton(ItemGroupButton.modrinth(WaystoneItems.WAYSTONES_GROUP, "https://modrinth.com/mod/fwaystones"));
+            group.addButton(ItemGroupButton.curseforge(WaystoneItems.WAYSTONES_GROUP, "https://www.curseforge.com/minecraft/mc-mods/fabric-waystones"));
+            group.addButton(ItemGroupButton.github(WaystoneItems.WAYSTONES_GROUP, "https://github.com/LordDeatHunter/FabricWaystones"));
+            group.addButton(ItemGroupButton.discord(WaystoneItems.WAYSTONES_GROUP, "https://discord.gg/zFHWx42VXU"));
+        })
+        .build();
 
-                var item = WaystoneBlocks.WAYSTONE.asItem();
-
-                for (var typeId : WaystoneTypes.getTypeIds()) {
-                    var stack = item.getDefaultStack();
-
-                    stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(typeId));
-                    entries.add(stack);
-                }
-            })
-            .build()
-    );
-
-    public static final Item WAYSTONE_SCROLL = register(
-        "waystone_scroll",
-        new Item.Settings()
-            .maxCount(1)
-            .component(WaystoneDataComponents.HASH_TARGETS, WaystoneHashTargets.EMPTY)
-    );
-    public static final Item INFINITE_KNOWLEDGE_SCROLL = register(
-        "infinite_knowledge_scroll",
-        new Item.Settings()
-            .component(WaystoneDataComponents.HAS_INFINITE_KNOWLEDGE, new InfiniteKnowledge())
-            .maxCount(1)
-            .fireproof()
-    );
-    public static final Item POCKET_WORMHOLE = register(
-        "pocket_wormhole",
-        new Item.Settings()
-            .component(WaystoneDataComponents.TELEPORTER, new WaystoneTeleporter(false))
-            .maxCount(1)
-            .fireproof()
-    );
     public static final Item ABYSS_WATCHER = register(
         "abyss_watcher",
         new Item(
@@ -80,6 +70,14 @@ public final class WaystoneItems {
         }
     );
 
+    public static final Item POCKET_WORMHOLE = register(
+        "pocket_wormhole",
+        new Item.Settings()
+            .component(WaystoneDataComponents.TELEPORTER, new WaystoneTeleporter(false))
+            .maxCount(1)
+            .fireproof()
+    );
+
     public static final Item LOCAL_VOID = register(
         "local_void",
         new Item.Settings()
@@ -91,6 +89,37 @@ public final class WaystoneItems {
         new Item.Settings()
             .maxCount(1)
             .rarity(Rarity.UNCOMMON)
+    );
+
+    public static final Item WAYSTONE_SCROLL = register(
+        "waystone_scroll",
+        new Item.Settings()
+            .maxCount(1)
+            .component(WaystoneDataComponents.HASH_TARGETS, WaystoneHashTargets.EMPTY)
+    );
+
+    public static final Item INFINITE_KNOWLEDGE_SCROLL = register(
+        "infinite_knowledge_scroll",
+        new Item.Settings()
+            .component(WaystoneDataComponents.HAS_INFINITE_KNOWLEDGE, new InfiniteKnowledge())
+            .maxCount(1)
+            .fireproof()
+    );
+
+    public static final Item WAYSTONE_COMPASS = register(
+        "waystone_compass",
+        new WaystoneCompassItem(
+            new Item.Settings()
+                .maxCount(1)
+        )
+    );
+
+    public static final Item BINDSTONE = register(
+        "bindstone",
+        new BindstoneItem(
+            new Item.Settings()
+                .maxCount(1)
+        )
     );
 
     public static final Item WAYSTONE_DEBUGGER = register(
@@ -119,17 +148,11 @@ public final class WaystoneItems {
         }
     );
 
-    public static final Item WAYSTONE_COMPASS = register(
-        "waystone_compass",
-        new WaystoneCompassItem(
-            new Item.Settings()
-                .maxCount(1)
-        )
-    );
 
-    private WaystoneItems() {}
 
-    public static void init() {}
+    public static void init() {
+        WAYSTONES_GROUP.initialize();
+    }
 
     private static Item register(String id, Item.Settings settings) {
         return register(id, new Item(settings));

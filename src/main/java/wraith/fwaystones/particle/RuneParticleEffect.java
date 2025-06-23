@@ -39,7 +39,7 @@ public record RuneParticleEffect(int color) implements ParticleEffect {
             double x, double y, double z,
             double velocityX, double velocityY, double velocityZ
         ) {
-            ConnectionParticle connectionParticle = new ConnectionParticle(world, x, y, z, velocityX, velocityY, velocityZ);
+            ConnectionParticle connectionParticle = new ConnectionParticle(world, x, y, z, velocityX, velocityY, velocityZ, true, Particle.DynamicAlpha.OPAQUE);
             connectionParticle.setSprite(this.spriteProvider);
             var color = Color.ofRgb(parameters.color);
             var shade = random.nextFloat(0.85f, 1f);

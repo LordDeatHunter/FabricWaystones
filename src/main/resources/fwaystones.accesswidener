@@ -1,5 +1,5 @@
 accessWidener v1 named
 accessible class net/minecraft/structure/pool/StructurePoolBasedGenerator$StructurePoolGenerator
 accessible    method    net/minecraft/structure/pool/StructurePoolBasedGenerator    generate    (Lnet/minecraft/world/gen/noise/NoiseConfig;IZLnet/minecraft/world/gen/chunk/ChunkGenerator;Lnet/minecraft/structure/StructureTemplateManager;Lnet/minecraft/world/HeightLimitView;Lnet/minecraft/util/math/random/Random;Lnet/minecraft/registry/Registry;Lnet/minecraft/structure/PoolStructurePiece;Ljava/util/List;Lnet/minecraft/util/shape/VoxelShape;Lnet/minecraft/structure/pool/alias/StructurePoolAliasLookup;Lnet/minecraft/structure/StructureLiquidSettings;)V
-accessible method net/minecraft/client/particle/ConnectionParticle <init> (Lnet/minecraft/client/world/ClientWorld;DDDDDD)V
+accessible method net/minecraft/client/particle/ConnectionParticle <init> (Lnet/minecraft/client/world/ClientWorld;DDDDDDZLnet/minecraft/client/particle/Particle$DynamicAlpha;)V
 accessible field net/minecraft/client/particle/BillboardParticle scale F

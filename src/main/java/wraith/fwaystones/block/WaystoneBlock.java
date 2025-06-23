@@ -7,7 +7,6 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -16,7 +15,6 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
@@ -38,6 +36,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
@@ -88,11 +87,11 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         super(settings);
 
         setDefaultState(
-                getStateManager().getDefaultState()
-                        .with(HALF, DoubleBlockHalf.LOWER)
-                        .with(FACING, Direction.NORTH)
-                        .with(WATERLOGGED, false)
-                        .with(GENERATED, false)
+            getStateManager().getDefaultState()
+                .with(HALF, DoubleBlockHalf.LOWER)
+                .with(FACING, Direction.NORTH)
+                .with(WATERLOGGED, false)
+                .with(GENERATED, false)
         );
 
         WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY.addSupportedBlock(this);
@@ -101,13 +100,8 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     @Nullable
     public static WaystoneBlockEntity getEntity(World world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
-        if (!(state.getBlock() instanceof WaystoneBlock)) {
-            return null;
-        }
-        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-            pos = pos.down();
-        }
-        return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
+        if (!(state.getBlock() instanceof WaystoneBlock)) return null;
+        return world.getBlockEntity(getBottomHalfPos(pos, state)) instanceof WaystoneBlockEntity waystone ? waystone : null;
     }
 
     public MapCodec<WaystoneBlock> getCodec() {
@@ -137,17 +131,15 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         var bottomState = world.getBlockState(pos);
         var config = FabricWaystones.CONFIG;
 
-        if (config.unbreakableGeneratedWaystones() && state.get(GENERATED)) {
-            return 0;
-        }
+        if (config.unbreakableGeneratedWaystones() && state.get(GENERATED)) return 0;
 
-        if (bottomState.getBlock() instanceof WaystoneBlock) {
-            BlockPos entityPos = bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
-            if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone){
+        if (bottomState.isOf(this)) {
+            BlockPos entityPos = getBottomHalfPos(pos, bottomState);
+            if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone) {
                 switch (config.breakingWaystonePermission()) {
                     case OWNER -> {
                         var data = waystone.getData();
-                        if(data != null) {
+                        if (data != null) {
                             var owner = data.owner();
                             if (owner != null && !player.getUuid().equals(owner)) return 0;
                         }
@@ -163,25 +155,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
         }
         return super.calcBlockBreakingDelta(state, player, world, pos);
-    }
-
-    @Nullable
-    @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        BlockPos blockPos = ctx.getBlockPos();
-
-        var world = ctx.getWorld();
-        var fluidState = world.getFluidState(blockPos);
-
-        if (blockPos.getY() < world.getTopY() - 1 && world.getBlockState(blockPos.up()).canReplace(ctx)) {
-            return this.getDefaultState()
-                .with(FACING, ctx.getHorizontalPlayerFacing().getOpposite())
-                .with(HALF, DoubleBlockHalf.LOWER)
-                .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
-                .with(GENERATED, false);
-        } else {
-            return null;
-        }
     }
 
     @Override
@@ -254,14 +227,33 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         return breakState;
     }
 
+    @Nullable
+    @Override
+    public BlockState getPlacementState(ItemPlacementContext ctx) {
+        var blockPos = ctx.getBlockPos();
+        var world = ctx.getWorld();
+        var fluidState = world.getFluidState(blockPos);
+        if (blockPos.getY() < world.getTopY() - 1 && world.getBlockState(blockPos.up()).canReplace(ctx)) {
+            return this.getDefaultState()
+                .with(FACING, ctx.getHorizontalPlayerFacing().getOpposite())
+                .with(HALF, DoubleBlockHalf.LOWER)
+                .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
+                .with(GENERATED, false);
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-            super.onPlaced(world, pos, state, placer, itemStack);
-            return;
-        }
         var fluidState = world.getFluidState(pos.up());
-        world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
+        world.setBlockState(
+            pos.up(),
+            state
+                .with(HALF, DoubleBlockHalf.UPPER)
+                .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER),
+            Block.NOTIFY_ALL
+        );
     }
 
     @Override
@@ -271,7 +263,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        var blockEntityPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
+        var blockEntityPos = getBottomHalfPos(pos, state);
 
         var hand = player.getActiveHand();
         var stack = player.getStackInHand(hand);
@@ -351,11 +343,11 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                     int discoverAmount = FabricWaystones.CONFIG.requiredDiscoveryAmount();
                     if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
                         player.sendMessage(
-                                TextUtils.translationWithArg(
-                                        "missing_discover_item",
-                                        discoverAmount,
-                                        Text.translatable(discoverItem.getTranslationKey())
-                                ), false);
+                            TextUtils.translationWithArg(
+                                "missing_discover_item",
+                                discoverAmount,
+                                Text.translatable(discoverItem.getTranslationKey())
+                            ), false);
                         return ActionResult.FAIL;
                     } else if (discoverItem != Items.AIR) {
                         Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
@@ -369,7 +361,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
                 player.sendMessage(TextUtils.translationWithArg(
                     "discover_waystone",
-                        data.name()
+                    data.name()
                 ), false);
             }
             WaystonePlayerData.getData(player).discoverWaystone(blockEntity.getUUID());
@@ -392,7 +384,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     @Nullable
     @Override
     public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
-        return super.createScreenHandlerFactory(state, world, state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos);
+        return super.createScreenHandlerFactory(state, world, getBottomHalfPos(pos, state));
     }
 
     @Override
@@ -400,7 +392,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         BlockPos newPos;
         DoubleBlockHalf verticalPosition;
 
-        if (state.getBlock() != this) {
+        if (!state.isOf(this)) {
             super.onStateReplaced(state, world, pos, newState, moved);
             return;
         }
@@ -434,15 +426,39 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         super.onStateReplaced(state, world, pos, newState, moved);
     }
 
+    @Override
     public FluidState getFluidState(BlockState state) {
         return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
     }
 
+    @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-        if (state.get(WATERLOGGED)) {
-            world.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+        if (state.get(WATERLOGGED)) world.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+        var half = state.get(HALF);
+        if (direction.getAxis() != Direction.Axis.Y || half == DoubleBlockHalf.LOWER != (direction == Direction.UP)) {
+            return half == DoubleBlockHalf.LOWER && direction == Direction.DOWN && !state.canPlaceAt(world, pos)
+                ? Blocks.AIR.getDefaultState()
+                : super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+        } else {
+            return neighborState.isOf(this) && neighborState.get(HALF) != half
+                ? neighborState.with(HALF, half)
+                : Blocks.AIR.getDefaultState();
         }
-        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }
 
+    @Override
+    protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
+        return state.get(HALF) == DoubleBlockHalf.LOWER || isCorrectOtherHalf(state, world.getBlockState(pos.down()));
+    }
+
+    protected static BlockPos getBottomHalfPos(BlockPos pos, BlockState state) {
+        return state.get(HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
+    }
+
+    protected boolean isCorrectOtherHalf(BlockState state, BlockState other) {
+        return state.isOf(this) && other.isOf(this) &&
+               state.get(HALF).getOtherHalf().equals(other.get(HALF)) &&
+               state.get(FACING).equals(other.get(FACING)) &&
+               state.get(GENERATED).equals(other.get(GENERATED));
+    }
 }

@@ -1,16 +1,5 @@
 {
-  "item.fwaystones.waystone_debugger": "Waystone Debugger",
-  "item.fwaystones.waystone": "Waystone",
-  "item.fwaystones.desert_waystone": "Desert Waystone",
-  "item.fwaystones.red_desert_waystone": "Red Desert Waystone",
-  "item.fwaystones.stone_brick_waystone": "Stone Brick Waystone",
-  "item.fwaystones.nether_brick_waystone": "Nether Brick Waystone",
-  "item.fwaystones.end_stone_brick_waystone": "End Stone Brick Waystone",
-  "item.fwaystones.blackstone_brick_waystone": "Blackstone Brick Waystone",
-  "item.fwaystones.deepslate_brick_waystone": "Deepslate Brick Waystone",
-  "item.fwaystones.red_nether_brick_waystone": "Red Nether Brick Waystone",
-
-  "waystone.blank.name": "Waystone",
+  "waystone.blank.name": "You shouldn't have this Waystone",
 
   "waystone.fwaystones.stone.name": "Stone Waystone",
   "waystone.fwaystones.desert.name": "Desert Waystone",
@@ -22,13 +11,28 @@
   "waystone.fwaystones.deepslate_brick.name": "Deepslate Brick Waystone",
   "waystone.fwaystones.red_nether_brick.name": "Red Nether Brick Waystone",
 
+  "item.fwaystones.abyss_watcher": "Abyss Watcher",
   "item.fwaystones.pocket_wormhole": "Pocket Wormhole",
   "item.fwaystones.local_void": "Local Void",
-  "item.fwaystones.waystone_scroll": "Waystone Scroll",
-  "item.fwaystones.empty_scroll": "Empty Scroll",
-  "item.fwaystones.abyss_watcher": "Abyss Watcher",
   "item.fwaystones.void_totem": "Void Totem",
+  "item.fwaystones.waystone_scroll": "Waystone Scroll",
   "item.fwaystones.infinite_knowledge_scroll": "Scroll of Infinite Knowledge",
+  "item.fwaystones.waystone_compass": "Waystone Compass",
+  "item.fwaystones.bindstone": "Bindstone",
+
+  "item.fwaystones.waystone_debugger": "Waystone Debugger",
+
+  "itemGroup.fwaystones.fwaystones": "Wraith Waystones",
+
+  "itemGroup.fwaystones.fwaystones.tab.waystones": "Waystones",
+  "itemGroup.fwaystones.fwaystones.tab.items": "Items",
+
+  "itemGroup.fwaystones.fwaystones.button.modrinth": "Wraith Waystones on Modrinth",
+  "itemGroup.fwaystones.fwaystones.button.curseforge": "Wraith Waystones on Curseforge",
+  "itemGroup.fwaystones.fwaystones.button.github": "Wraith Waystones on GitHub",
+  "itemGroup.fwaystones.fwaystones.button.discord": "Wraith Waystones on Discord",
+
+
   "block.fwaystones.waystone": "Waystone",
   "block.fwaystones.desert_waystone": "Desert Waystone",
   "block.fwaystones.red_desert_waystone": "Red Desert Waystone",
@@ -55,21 +59,21 @@
   "fwaystones.gui.dimension_tooltip": "Dimension: %s",
   "fwaystones.gui.forget_tooltip": "Forget Waystone",
   "fwaystones.cool_down.tooltip": [
-    { "text": "Cooldown amount: ", "color": "#FFAA00" },
-    { "index": 0, "color": "#00AAAA" },
-    { "text": " Seconds", "color": "#FFFF55" }
+    {"text": "Cooldown amount: ", "color": "#FFAA00"},
+    {"index": 0, "color": "#00AAAA"},
+    {"text": " Seconds", "color": "#FFFF55"}
   ],
   "fwaystones.waystone.tooltip.name": [
-    { "text": "[", "color": "#FFAA00" },
-    { "text": "Stored name", "color": "#FFFF55" },
-    { "text": "]: ", "color": "#FFAA00" },
-    { "index": 0, "color": "#00AAAA" }
+    {"text": "[", "color": "#FFAA00"},
+    {"text": "Stored name", "color": "#FFFF55"},
+    {"text": "]: ", "color": "#FFAA00"},
+    {"index": 0, "color": "#00AAAA"}
   ],
   "fwaystones.waystone.tooltip.global": [
-    { "text": "[", "color": "#FFAA00" },
-    { "text": "Global", "color": "#FFFF55" },
-    { "text": "]: ", "color": "#FFAA00" },
-    { "index": 0 }
+    {"text": "[", "color": "#FFAA00"},
+    {"text": "Global", "color": "#FFFF55"},
+    {"text": "]: ", "color": "#FFAA00"},
+    {"index": 0}
   ],
   "fwaystones.waystone.tooltip.global_on": {
     "text": "ON", "color": "#00AAAA"
@@ -78,26 +82,26 @@
     "text": "OFF", "color": "#00AAAA"
   },
   "fwaystones.scroll.tooltip": [
-    { "text": "Stored waystones: ", "color": "#FFAA00" },
-    { "index": 0, "color": "#FFFF55" }
+    {"text": "Stored waystones: ", "color": "#FFAA00"},
+    {"index": 0, "color": "#FFFF55"}
   ],
   "fwaystones.scroll_infinite": {
     "text": "Discover everything there is to discover", "color": "#FFAA00"
   },
   "fwaystones.scroll_infinite.tooltip": [
-    { "text": "Existing waystones: ", "color": "#FFAA00" },
-    { "index": 0, "color": "#FFFF55" }
+    {"text": "Existing waystones: ", "color": "#FFAA00"},
+    {"index": 0, "color": "#FFFF55"}
   ],
   "fwaystones.local_void.tooltip": [
-    { "text": "Bound to: ", "color": "#FFAA00" },
-    { "index": 0, "color": "#FFFF55" }
+    {"text": "Bound to: ", "color": "#FFAA00"},
+    {"index": 0, "color": "#FFFF55"}
   ],
   "fwaystones.local_void.empty_tooltip": {
     "text": "Unbound", "color": "#00AAAA"
   },
   "fwaystones.void_totem.tooltip": [
-    { "text": "Respawn point: ", "color": "#FFAA00" },
-    { "index": 0, "color": "#FFFF55" }
+    {"text": "Respawn point: ", "color": "#FFAA00"},
+    {"index": 0, "color": "#FFFF55"}
   ],
   "fwaystones.void_totem.empty_tooltip": {
     "text": "Unbound", "color": "#00AAAA"
@@ -118,9 +122,9 @@
     "text": "Learned one new waystone!", "color": "#00AAAA"
   },
   "fwaystones.learned.multiple": [
-    { "text": "Learned ", "color": "#00AAAA" },
-    { "index": 0, "color": "#55FFFF" },
-    { "text": " new waystones!", "color": "#00AAAA" }
+    {"text": "Learned ", "color": "#00AAAA"},
+    {"index": 0, "color": "#55FFFF"},
+    {"text": " new waystones!", "color": "#00AAAA"}
   ],
   "fwaystones.learned.none": {
     "text": "No new waystones learned!", "color": "#00AAAA"
@@ -129,30 +133,30 @@
     "text": "Learned one waystone!", "color": "#00AAAA"
   },
   "fwaystones.learned.infinite.multiple": [
-    { "text": "Learned ", "color": "#00AAAA" },
-    { "index": 0, "color": "#55FFFF" },
-    { "text": " waystones!", "color": "#00AAAA" }
+    {"text": "Learned ", "color": "#00AAAA"},
+    {"index": 0, "color": "#55FFFF"},
+    {"text": " waystones!", "color": "#00AAAA"}
   ],
   "fwaystones.learned.infinite.none": {
     "text": "You already know everything there is to know!", "color": "#FFAA00"
   },
   "fwaystones.discover_waystone": [
-    { "text": "【", "color": "#FFAA00" },
-    { "index": 0, "color": "#55FFFF" },
-    { "text": "】", "color": "#FFAA00" },
-    { "text": "has been discovered!", "color": "#00AAAA" }
+    {"text": "【", "color": "#FFAA00"},
+    {"index": 0, "color": "#55FFFF"},
+    {"text": "】", "color": "#FFAA00"},
+    {"text": "has been discovered!", "color": "#00AAAA"}
   ],
   "fwaystones.missing_discover_item": [
-    { "text": "Missing ", "color": "#FF5555" },
-    { "index": 0 },
-    { "text": "of discover item: ", "color": "#FF5555" },
-    { "index": 1, "color": "#AA0000" }
+    {"text": "Missing ", "color": "#FF5555"},
+    {"index": 0},
+    {"text": "of discover item: ", "color": "#FF5555"},
+    {"index": 1, "color": "#AA0000"}
   ],
   "fwaystones.discover_item_paid": [
-    { "text": "Paid ", "color": "#FFAA00" },
-    { "index": 0 },
-    { "index": 1, "color": "#FFFF55" },
-    { "text": " for discovery", "color": "#FFAA00" }
+    {"text": "Paid ", "color": "#FFAA00"},
+    {"index": 0},
+    {"index": 1, "color": "#FFFF55"},
+    {"text": " for discovery", "color": "#FFAA00"}
   ],
   "fwaystones.config.global": "Toggle global waystone",
   "fwaystones.config.view_discovered": "View discovered waystones",
@@ -166,9 +170,9 @@
   "fwaystones.cost.hunger": "Hunger",
   "fwaystones.cost.level": "Level(s)",
   "fwaystones.no_teleport_message.cooldown": [
-    { "text": "You must rest for ", "color": "#AA0000" },
-    { "index": 0, "color": "#FF5555" },
-    { "text": " more seconds", "color": "#AA0000" }
+    {"text": "You must rest for ", "color": "#AA0000"},
+    {"index": 0, "color": "#FF5555"},
+    {"text": " more seconds", "color": "#AA0000"}
   ],
   "fwaystones.no_teleport.blacklisted_dimension_source": {
     "text": "You are unable to travel from the dimension of this Waystone", "color": "#FF5555", "bold": true
@@ -194,20 +198,11 @@
   "fwaystones.no_teleport.item": {
     "text": "You lack the required items to travel", "color": "#FF5555", "bold": true
   },
-  "itemGroup.fwaystones.fwaystones": "Waystones",
   "fwaystones.debug.debugger_tooltip_base": [
-    {
-      "text": "[", "color": "#FFAA00"
-    },
-    {
-      "text": "?", "color": "#FFFF55"
-    },
-    {
-      "text": "] ", "color": "#FFAA00"
-    },
-    {
-      "index": 0, "color": "#00AAAA"
-    }
+    {"text": "[", "color": "#FFAA00"},
+    {"text": "?", "color": "#FFFF55"},
+    {"text": "] ", "color": "#FFAA00"},
+    {"index": 0, "color": "#00AAAA"}
   ],
   "fwaystones.debug.debugger_tooltip1": "What are we testing today?",
   "fwaystones.debug.debugger_tooltip2": "What needs testing?",
