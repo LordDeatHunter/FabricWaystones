@@ -148,13 +148,22 @@ public class WaystoneBlockQuadEmission implements QuadEmission<WaystoneBlockEnti
 
     @Override
     public Sprite getParticleSprite(BlockRenderView world, BlockPos pos, BlockState state, WaystoneBlockEntity blockEntity) {
-        var atlas = MinecraftClient.getInstance().getBakedModelManager().getAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+        var modelManager = MinecraftClient.getInstance().getBakedModelManager();
+        var atlas = modelManager.getAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
 
         var type = blockEntity.getWaystoneType();
         var mossType = blockEntity.getMossType();
 
-        return (mossType != null)
-            ? atlas.getSprite(mossType.blockTexture())
-            : atlas.getSprite(type.blockTexture());
+        if (mossType != null) return atlas.getSprite(mossType.blockTexture());
+
+        var entries = type.materialBlockTag();
+
+        if (entries.size() >= 1) {
+            return modelManager.getBlockModels()
+                .getModel(entries.get(0).value().getDefaultState())
+                .getParticleSprite();
+        }
+
+        return atlas.getSprite(type.blockTexture());
     }
 }

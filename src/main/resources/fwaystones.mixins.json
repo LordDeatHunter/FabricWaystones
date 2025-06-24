@@ -17,7 +17,10 @@
     "scoreboard.ScoreboardMixin",
     "scoreboard.ScoreboardStateMixin",
     "xaeros.WaypointMapRendererMixin",
-    "xaeros.WaypointRendererMixin"
+    "xaeros.WaypointRendererMixin",
+    "BlockStateParticleEffectMixin",
+    "BlockDustParticleMixin",
+    "EntityMixin"
   ],
   "client": [
     "client.BlockDustParticleMixin",

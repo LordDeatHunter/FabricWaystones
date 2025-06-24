@@ -10,6 +10,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.component.ComponentMap;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -30,6 +31,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
@@ -53,6 +55,7 @@ import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.util.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -101,6 +104,75 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         // TODO: ADD SOMETHING HERE TO HANDLE OTHER STUFF
         return this.getWaystoneType().defaultRuneColor();
+    }
+
+    public ItemStack controllerStack() {
+        return controllerStack;
+    }
+
+    public ItemStack swapControllerStack(ItemStack stack) {
+        var returnStack = ItemStack.EMPTY;
+
+        if (!world.isClient) {
+            if (!controllerStack.isEmpty()) {
+                this.spawnItemStackAbove(exportControllerStack());
+            }
+
+            returnStack = importControllerStack(stack);
+
+            this.markDirty();
+        }
+
+        return returnStack;
+    }
+
+    public ItemStack exportControllerStack() {
+        var currentStack = this.controllerStack;
+
+        this.controllerStack = ItemStack.EMPTY;
+
+        if (currentStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
+            var storage = WaystoneDataStorage.getStorage(this.world);
+
+            var data = storage.getData(this.position());
+
+            if (data != null) {
+                currentStack.set(WaystoneDataComponents.DATA_HOLDER, new WaystoneDataHolder(data));
+            }
+
+            storage.removePositionAndData(this);
+        }
+
+        this.markDirty();
+
+        return currentStack;
+    }
+
+    private ItemStack importControllerStack(ItemStack stack) {
+        if (stack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
+            var holder = stack.get(WaystoneDataComponents.DATA_HOLDER);
+
+            if (holder != null) {
+                stack.remove(WaystoneDataComponents.DATA_HOLDER);
+
+                this.dataHolder = holder;
+            }
+
+            this.controllerStack = stack.split(1);
+        } else {
+            this.controllerStack = stack;
+
+            stack = ItemStack.EMPTY;
+        }
+
+        return stack;
+    }
+
+    public void spawnItemStackAbove(ItemStack stack) {
+        if (!stack.isEmpty()) {
+            var dropPos = this.pos.up(2);
+            ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, stack);
+        }
     }
 
     //--
@@ -170,8 +242,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         return false;
     }
-
-
 
     public TypedActionResult<ItemStack> attemptMossingInteraction(BlockPos pos, ItemStack stack) {
         var mossType = MossTypes.getMossType(stack);
@@ -363,17 +433,18 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     protected void addComponents(ComponentMap.Builder componentMapBuilder) {
         super.addComponents(componentMapBuilder);
 
-        var storage = WaystoneDataStorage.getStorage(this.world);
+        componentMapBuilder.add(DataComponentTypes.CONTAINER, null);
 
-        if (FabricWaystones.CONFIG.allowSavingWaystoneData()) {
-            var holder = storage.removePositionAndExport(this);
-
-            if (holder != null) {
-                componentMapBuilder.add(WaystoneDataComponents.DATA_HOLDER, holder);
-            }
-        } else {
-            storage.removePositionAndData(this);
-        }
+//        var storage = WaystoneDataStorage.getStorage(this.world);
+//        if (FabricWaystones.CONFIG.allowSavingWaystoneData()) {
+//            var holder = storage.removePositionAndExport(this);
+//
+//            if (holder != null) {
+//                componentMapBuilder.add(WaystoneDataComponents.DATA_HOLDER, holder);
+//            }
+//        } else {
+//            storage.removePositionAndData(this);
+//        }
 
         componentMapBuilder.add(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(this.waystoneTypeId));
     }
@@ -412,7 +483,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (world.isClient()) {
             ++tickDelta;
-            if (this.isActive()) {
+            if (!this.controllerStack.isEmpty()) {
                 var center = this.getPos().toBottomCenterPos().add(0, 1, 0);
 
                 var closestPlayer = this.world.getClosestPlayer(
@@ -482,7 +553,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     private void addParticle(Entity target, boolean main) {
-        if (world == null) return;
+        if (world == null || !this.isActive()) return;
         var random = world.getRandom();
         ParticleEffect p = (random.nextInt(10) > 7) ? new RuneParticleEffect(getColor()) : ParticleTypes.PORTAL;
         var basePos = this.getPos().toBottomCenterPos();
@@ -544,9 +615,15 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     private boolean shouldWatchEntity(@Nullable Entity entity) {
         if (entity instanceof PlayerEntity player && EntityPredicates.EXCEPT_SPECTATOR.test(player)) {
-            var data = WaystonePlayerData.getData(player);
+            var uuid = getUUID();
 
-            return data.hasDiscoverdWaystone(getUUID());
+            if (uuid != null) {
+                var data = WaystonePlayerData.getData(player);
+
+                return data.hasDiscoverdWaystone(uuid);
+            } else {
+                return !this.controllerStack.isEmpty();
+            }
         }
 
         return false;

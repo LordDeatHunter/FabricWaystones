@@ -8,6 +8,7 @@ import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
@@ -40,10 +41,12 @@ import net.minecraft.world.WorldView;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneDataComponents;
+import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.api.WaystoneDataStorage;
 
@@ -131,6 +134,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         var bottomState = world.getBlockState(pos);
         var config = FabricWaystones.CONFIG;
 
+        // TODO: HAVE SUCH BE REALLY REALLY REALLY HARD TO BREAK AND PREVENT DROPPING
         if (config.unbreakableGeneratedWaystones() && state.get(GENERATED)) return 0;
 
         if (bottomState.isOf(this)) {
@@ -194,17 +198,21 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             if (!world.isClient) {
                 var itemStack = new ItemStack(state.getBlock().asItem());
 
-                var mossStack = waystone.removeMoss();
-
                 if (!player.isCreative()) {
-                    waystone.setStackNbt(itemStack, world.getRegistryManager());
-
-                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
+                    itemStack.applyComponentsFrom(waystone.createComponentMap());
+                    waystone.spawnItemStackAbove(itemStack);
                 }
 
-                if (!mossStack.isEmpty()) {
-                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, mossStack);
+                var controllerStack = waystone.exportControllerStack();
+                waystone.spawnItemStackAbove(controllerStack);
+
+                if (!waystone.getInventory().isEmpty()) {
+                    ItemScatterer.spawn(world, waystone.getPos().up(2), waystone.getInventory());
+                    waystone.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
                 }
+
+                var mossStack = waystone.removeMoss();
+                waystone.spawnItemStackAbove(mossStack);
 
                 if (waystone.getData() != null) {
                     var uuid = waystone.getUUID();
@@ -276,21 +284,33 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(blockEntityPos);
         if (blockEntity == null) return ActionResult.FAIL;
 
-        var result = blockEntity.attemptMossingInteraction(blockEntityPos, stack);
+        if (!stack.isEmpty()) {
+            var returnedStack = blockEntity.swapControllerStack(stack);
 
-        if (result.getResult().isAccepted()) {
-            var value = result.getValue();
-
-            if (!value.isEmpty()) {
-                var dropPos = blockEntityPos.up(2);
-                ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, result.getValue());
+            if (!world.isClient) {
+                player.setStackInHand(hand, returnedStack);
             }
 
             return ActionResult.SUCCESS;
         }
 
+        var result = blockEntity.attemptMossingInteraction(blockEntityPos, stack);
+
+        if (result.getResult().isAccepted()) {
+            var value = result.getValue();
+
+            blockEntity.spawnItemStackAbove(value);
+
+            return ActionResult.SUCCESS;
+        }
+
         var storage = WaystoneDataStorage.getStorage(player);
-        var data = storage.createGetOrImportData(blockEntity);
+        WaystoneData data = null;
+
+        if (blockEntity.controllerStack().isOf(WaystoneItems.ABYSS_WATCHER)) {
+            data = storage.createGetOrImportData(blockEntity);
+        }
+
         if (data == null) return ActionResult.PASS;
 
         if (item instanceof DyeItem dyeItem) {

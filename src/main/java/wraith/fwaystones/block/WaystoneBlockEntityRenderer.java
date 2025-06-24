@@ -18,7 +18,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
     @Override
     public void render(WaystoneBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        ItemStack stack = new ItemStack(WaystoneItems.ABYSS_WATCHER);
+        ItemStack stack = entity.controllerStack();
 
         matrices.push();
         matrices.scale(0.5f, 0.5f, 0.5f);
@@ -27,7 +27,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
         matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees(entity.lookingRotR));
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90));
         //matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(entity.lookingRotH));
-        if (entity.isActive()) {
+        if (!stack.isEmpty()) {
             int lightAbove = WorldRenderer.getLightmapCoordinates(entity.getWorld(), entity.getPos().up());
             MinecraftClient.getInstance().getItemRenderer().renderItem(
                     stack, ModelTransformationMode.FIXED, lightAbove, overlay,

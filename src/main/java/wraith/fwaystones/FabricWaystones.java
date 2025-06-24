@@ -2,13 +2,18 @@ package wraith.fwaystones;
 
 import com.google.common.reflect.Reflection;
 import io.wispforest.owo.util.Wisdom;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -18,12 +23,15 @@ import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.moss.MossTypes;
 import wraith.fwaystones.api.core.WaystoneTypes;
+import wraith.fwaystones.block.WaystoneBlock;
+import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
 import wraith.fwaystones.integration.accessories.AccessoriesCompat;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
@@ -111,8 +119,35 @@ public class FabricWaystones implements ModInitializer {
 
         Reflection.initialize(MossTypes.class, WaystoneTypes.class);
 
+        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
+            var targetState = world.getBlockState(pos);
+
+            if (targetState.getBlock() instanceof WaystoneBlock) {
+                var blockEntity = WaystoneBlockEntity.getBlockEntity(world, pos, targetState);
+
+                if (blockEntity != null && !blockEntity.controllerStack().isEmpty()) {
+                    if (!world.isClient()) {
+                        blockEntity.spawnItemStackAbove(blockEntity.exportControllerStack());
+
+                        return ActionResult.FAIL;
+                    } else {
+                        resetClientAttacking();
+                    }
+
+                    return ActionResult.CONSUME;
+                }
+            }
+
+            return ActionResult.PASS;
+        });
+
         LOGGER.info("Wraith Waystones has successfully been initialized. \n Here take some wisdom: ");
         Wisdom.spread();
+    }
+
+    @Environment(EnvType.CLIENT)
+    private static void resetClientAttacking() {
+        MinecraftClient.getInstance().options.attackKey.setPressed(false);
     }
 
     public static void registerEvents() {
