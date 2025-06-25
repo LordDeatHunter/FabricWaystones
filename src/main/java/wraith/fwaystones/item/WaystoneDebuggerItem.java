@@ -44,21 +44,23 @@ public class WaystoneDebuggerItem extends Item {
         var hash = waystone.position();
         var data = waystone.getData();
 
-        var owner = data.owner();
-        var ownerName = data.owner();
+        if (data != null) {
+            var owner = data.owner();
+            var ownerName = data.owner();
 
-        var message = Text.literal("");
-        message.append("§6[§eNAME§6]§e=§3").append(data.name());
-        message.append("\n§6[§eGLOBAL§6]§e=§3" + data.global());
-        message.append("\n§6[§eHASH§6]§e=§3" + hash.getHexHash());
-        message.append("\n§6[§eCOLOR§6]§e=§3" + data.color());
-        if (owner != null && ownerName != null) {
-            message.append("\n§6[§eOWNER-UUID§6]§e=§3" + owner);
-            message.append("\n§6[§eOWNER-NAME§6]§e=§3" + ownerName);
-        } else {
-            message.append("\n§6[§eNO-OWNER§6]");
+            var message = Text.literal("");
+            message.append("§6[§eNAME§6]§e=§3").append(data.name());
+            message.append("\n§6[§eGLOBAL§6]§e=§3" + data.global());
+            message.append("\n§6[§eHASH§6]§e=§3" + hash.getHexHash());
+            message.append("\n§6[§eCOLOR§6]§e=§3" + data.color());
+            if (owner != null && ownerName != null) {
+                message.append("\n§6[§eOWNER-UUID§6]§e=§3" + owner);
+                message.append("\n§6[§eOWNER-NAME§6]§e=§3" + ownerName);
+            } else {
+                message.append("\n§6[§eNO-OWNER§6]");
+            }
+            player.sendMessage(message, false);
         }
-        player.sendMessage(message, false);
 
         return super.useOnBlock(context);
     }
