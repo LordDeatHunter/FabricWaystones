@@ -153,6 +153,19 @@ public final class WaystoneData {
         return this;
     }
 
+    @ApiStatus.Internal
+    public WaystoneData setWaystoneType(WaystoneType type) {
+        if (!this.type.equals(type)){
+            if (this.color == this.type.defaultRuneColor()) {
+                this.color = type.defaultRuneColor();
+            }
+
+            this.type = type;
+        }
+
+        return this;
+    }
+
     @Override
     public boolean equals(Object object) {
         if (!(object instanceof WaystoneData that)) return false;

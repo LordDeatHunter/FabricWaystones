@@ -157,13 +157,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
                 this.dataHolder = holder;
             }
-
-            this.controllerStack = stack.split(1);
-        } else {
-            this.controllerStack = stack;
-
-            stack = ItemStack.EMPTY;
         }
+
+        this.controllerStack = stack.split(1);
 
         return stack;
     }

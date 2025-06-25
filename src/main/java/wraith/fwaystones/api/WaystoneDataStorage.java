@@ -404,6 +404,8 @@ public class WaystoneDataStorage {
             data = data.cloneWithUUID(uuid);
         }
 
+        data.setWaystoneType(blockEntity.getWaystoneType());
+
         addData(data);
 
         blockEntity.dataHolder = null;

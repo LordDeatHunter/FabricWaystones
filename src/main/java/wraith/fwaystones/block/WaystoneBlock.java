@@ -284,7 +284,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(blockEntityPos);
         if (blockEntity == null) return ActionResult.FAIL;
 
-        if (!stack.isEmpty()) {
+        if (!stack.isEmpty() && blockEntity.getControllerStack().isEmpty()) {
             var returnedStack = blockEntity.swapControllerStack(stack);
 
             if (!world.isClient) {
