@@ -10,7 +10,7 @@ import net.minecraft.particle.ParticleType;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import wraith.fwaystones.util.pond.BlockStateParticleEffectExtension;
+import wraith.fwaystones.pond.BlockStateParticleEffectExtension;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {

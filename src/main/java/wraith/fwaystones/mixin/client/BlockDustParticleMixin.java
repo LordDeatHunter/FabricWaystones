@@ -11,7 +11,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import wraith.fwaystones.util.pond.BakedModelParticleEffectExtension;
+import wraith.fwaystones.pond.BakedModelParticleEffectExtension;
 
 @Mixin(BlockDustParticle.class)
 public abstract class BlockDustParticleMixin {

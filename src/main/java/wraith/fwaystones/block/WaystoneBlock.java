@@ -284,14 +284,19 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(blockEntityPos);
         if (blockEntity == null) return ActionResult.FAIL;
 
-        if (!stack.isEmpty() && blockEntity.getControllerStack().isEmpty()) {
-            var returnedStack = blockEntity.swapControllerStack(stack);
 
-            if (!world.isClient) {
-                player.setStackInHand(hand, returnedStack);
+        if (blockEntity.getControllerStack().isEmpty()) {
+            if (!stack.isEmpty()) {
+                var returnedStack = blockEntity.swapControllerStack(stack);
+
+                if (!world.isClient) {
+                    player.setStackInHand(hand, returnedStack);
+                }
+
+                return ActionResult.SUCCESS;
             }
-
-            return ActionResult.SUCCESS;
+        } else {
+            if (player.getStackInHand(player.getActiveHand()).isOf(Items.FILLED_MAP)) {return ActionResult.PASS;}
         }
 
         var result = blockEntity.attemptMossingInteraction(blockEntityPos, stack);
@@ -471,7 +476,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         return state.get(HALF) == DoubleBlockHalf.LOWER || isCorrectOtherHalf(state, world.getBlockState(pos.down()));
     }
 
-    protected static BlockPos getBottomHalfPos(BlockPos pos, BlockState state) {
+    public static BlockPos getBottomHalfPos(BlockPos pos, BlockState state) {
         return state.get(HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
     }
 

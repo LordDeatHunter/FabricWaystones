@@ -185,7 +185,7 @@ public class WaystoneCompassRenderer {
                 var camDirection = displayPos.add(holder.getLerpedPos(tickDelta)).subtract(client.gameRenderer.getCamera().getPos()).normalize();
                 matrices.multiply(RotationAxis.POSITIVE_Y.rotation((float) Math.atan2(-camDirection.x, camDirection.z)));
 
-                drawLabel(client, Text.literal(String.format("%.1f", holderPos.distanceTo(waystonePos)).replaceAll("\\.0+$", "")), matrices, vertexConsumers, light);
+                drawLabel(client, Text.literal(String.format("%.1f", holderPos.distanceTo(waystonePos))), matrices, vertexConsumers, light);
                 drawLabel(client,waystone.parsedName(), matrices, vertexConsumers, light);
 
                 matrices.pop();

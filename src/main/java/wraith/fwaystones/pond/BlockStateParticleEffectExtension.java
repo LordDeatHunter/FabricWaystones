@@ -1,4 +1,4 @@
-package wraith.fwaystones.util.pond;
+package wraith.fwaystones.pond;
 
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;

@@ -36,6 +36,8 @@ public class WaystoneNetworkHandler {
         CHANNEL.registerClientboundDeferred(SyncWaystoneStorage.class, SyncWaystoneStorage.ENDEC);
 
         CHANNEL.registerClientboundDeferred(VoidRevive.class, VoidRevive.ENDEC);
+
+        CHANNEL.registerClientboundDeferred(UpdateMapStateWaystoneMarkers.class, UpdateMapStateWaystoneMarkers.ENDEC);
     }
 
     @Environment(EnvType.CLIENT)
@@ -50,6 +52,8 @@ public class WaystoneNetworkHandler {
         CHANNEL.registerClientbound(SyncWaystoneStorage.class, SyncWaystoneStorage.ENDEC, handler(SyncWaystoneStorage::handle));
 
         CHANNEL.registerClientbound(VoidRevive.class, VoidRevive.ENDEC, handler(VoidRevive::handle));
+
+        CHANNEL.registerClientbound(UpdateMapStateWaystoneMarkers.class, UpdateMapStateWaystoneMarkers.ENDEC, handler(UpdateMapStateWaystoneMarkers::handle));
     }
 
     public static <P extends PlayerEntity, R, N, A extends OwoNetChannel.EnvironmentAccess<P, R, N>, M extends Record> OwoNetChannel.ChannelHandler<M, A> handler(BiConsumer<M, PlayerEntity> handler) {

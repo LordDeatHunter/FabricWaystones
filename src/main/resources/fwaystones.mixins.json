@@ -4,9 +4,14 @@
   "package": "wraith.fwaystones.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BlockDustParticleMixin",
+    "BlockStateParticleEffectMixin",
+    "EntityMixin",
+    "FilledMapItemMixin",
     "ItemMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
+    "MapStateMixin",
     "PlayerEntityMixin",
     "SinglePoolElementAccessor",
     "StructurePoolAccessor",
@@ -17,17 +22,16 @@
     "scoreboard.ScoreboardMixin",
     "scoreboard.ScoreboardStateMixin",
     "xaeros.WaypointMapRendererMixin",
-    "xaeros.WaypointRendererMixin",
-    "BlockStateParticleEffectMixin",
-    "BlockDustParticleMixin",
-    "EntityMixin"
+    "xaeros.WaypointRendererMixin"
   ],
   "client": [
     "client.BlockDustParticleMixin",
     "client.DrawContextAccessor",
     "client.EntityRenderDispatcherMixin",
     "client.ItemRendererMixin",
+    "client.MapRendererMixin",
     "client.ModelPredicateProviderRegistryAccessor",
+    "client.SpriteAtlasHolderAccessor",
     "xaeros.WaypointWorldRendererMixin"
   ],
   "injectors": {

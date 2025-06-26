@@ -166,7 +166,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     public void spawnItemStackAbove(ItemStack stack) {
         if (!stack.isEmpty()) {
-            var dropPos = this.pos.up(2);
+            var dropPos = this.pos.up(1);
             ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, stack);
         }
     }

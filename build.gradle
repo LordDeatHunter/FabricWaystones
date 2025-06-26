@@ -21,6 +21,8 @@ repositories {
     maven { url 'https://maven.fabricmc.net' }
     maven { url 'https://maven.shedaniel.me/' }
     maven {url "https://maven.nucleoid.xyz/" }
+    mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -36,6 +38,8 @@ dependencies {
 
     annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
     include ("io.wispforest:owo-sentinel:${project.owo_version}")
+
+    modImplementation include("me.xdrop:fuzzywuzzy:${project.fuzzywuzzy_version}")
 
     // Compat Mods
 

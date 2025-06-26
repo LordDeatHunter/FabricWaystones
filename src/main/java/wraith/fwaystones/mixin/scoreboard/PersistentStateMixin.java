@@ -12,6 +12,6 @@ public abstract class PersistentStateMixin {
     @ModifyReturnValue(method = "isDirty", at = @At("RETURN"))
     private boolean wraithWaystones$forceDirty(boolean original) {
         // TODO: THIS SEEMS QUITE HACKY
-        return (!original && (((Object)(this)) instanceof ScoreboardState));
+        return (original || (Object) this instanceof ScoreboardState);
     }
 }

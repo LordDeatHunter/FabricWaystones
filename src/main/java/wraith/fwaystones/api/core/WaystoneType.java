@@ -50,7 +50,7 @@ public sealed interface WaystoneType permits WaystoneTypeImpl {
     default Identifier blockTexture() {
         var id = WaystoneTypes.getId(this);
 
-        if (id == null) throw new IllegalStateException("Unable to get the block texture for the waystone type as its not properly registered!");
+        if (id == null) throw new IllegalStateException("Unable to get block texture for the waystone type: " + id);
 
         return id.withPath(s -> "block/waystone/" + s + "_waystone");
     }
@@ -58,7 +58,7 @@ public sealed interface WaystoneType permits WaystoneTypeImpl {
     default Identifier itemTexture() {
         var id = WaystoneTypes.getId(this);
 
-        if (id == null) throw new IllegalStateException("Unable to get the block texture for the waystone type as its not properly registered!");
+        if (id == null) throw new IllegalStateException("Unable to get item texture for the waystone type: " + id);
 
         return id.withPath(s -> "item/" + s + "_waystone");
     }

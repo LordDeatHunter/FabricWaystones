@@ -9,7 +9,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.particle.BlockStateParticleEffect;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import wraith.fwaystones.util.pond.BlockStateParticleEffectExtension;
+import wraith.fwaystones.pond.BlockStateParticleEffectExtension;
 
 @Mixin(BlockDustParticle.class)
 public abstract class BlockDustParticleMixin {

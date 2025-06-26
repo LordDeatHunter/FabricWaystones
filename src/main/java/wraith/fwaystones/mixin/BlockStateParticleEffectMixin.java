@@ -4,7 +4,7 @@ import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import wraith.fwaystones.util.pond.BlockStateParticleEffectExtension;
+import wraith.fwaystones.pond.BlockStateParticleEffectExtension;
 
 @Mixin(BlockStateParticleEffect.class)
 public abstract class BlockStateParticleEffectMixin implements BlockStateParticleEffectExtension {

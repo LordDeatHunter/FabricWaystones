@@ -17,6 +17,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 // Copy of Fabric API implementation of AttachmentTargetImpl
+@SuppressWarnings("UnstableApiUsage")
 @Mixin(Scoreboard.class)
 public abstract class ScoreboardMixin implements AttachmentTargetImpl {
     @Nullable

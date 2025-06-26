@@ -1,4 +1,4 @@
-package wraith.fwaystones.util.pond;
+package wraith.fwaystones.pond;
 
 public interface StructurePoolGeneratorExtension {
 

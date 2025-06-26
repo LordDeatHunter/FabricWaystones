@@ -13,13 +13,12 @@ import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.noise.NoiseConfig;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.util.pond.StructurePoolGeneratorExtension;
+import wraith.fwaystones.pond.StructurePoolGeneratorExtension;
 import wraith.fwaystones.util.Utils;
 
 import java.util.List;

@@ -13,7 +13,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockRenderView;
 import org.jetbrains.annotations.Nullable;
-import wraith.fwaystones.util.pond.BakedModelParticleEffectExtension;
+import wraith.fwaystones.pond.BakedModelParticleEffectExtension;
 
 import java.util.*;
 import java.util.function.Supplier;

@@ -1,4 +1,4 @@
-package wraith.fwaystones.util.pond;
+package wraith.fwaystones.pond;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.texture.Sprite;
