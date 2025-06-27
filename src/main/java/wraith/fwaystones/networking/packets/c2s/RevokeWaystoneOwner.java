@@ -24,7 +24,7 @@ public record RevokeWaystoneOwner(UUID uuid) {
 
         if (data == null) return;
 
-        if (player.getUuid().equals(data.owner()) || player.hasPermissionLevel(2)) {
+        if (player.getUuid().equals(data.ownerID()) || player.hasPermissionLevel(2)) {
             storage.setOwner(uuid, null);
         }
     }

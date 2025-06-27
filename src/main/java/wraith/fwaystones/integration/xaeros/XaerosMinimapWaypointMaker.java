@@ -5,7 +5,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.integration.WaystoneWaypointMaker;
 import xaero.common.minimap.waypoints.Waypoint;
@@ -82,7 +82,7 @@ public class XaerosMinimapWaypointMaker extends WaystoneWaypointMaker<Waypoint> 
     }
 
     @Override
-    public Waypoint createWaypoint(WaystonePosition pos, WaystoneData data) {
+    public Waypoint createWaypoint(WaystonePosition pos, NetworkedWaystoneData data) {
         var waypoint = new Waypoint(
                 pos.blockPos().getX(),
                 pos.blockPos().getY() + 1,

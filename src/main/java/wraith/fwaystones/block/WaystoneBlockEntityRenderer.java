@@ -22,7 +22,14 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
         matrices.push();
         matrices.scale(0.5f, 0.5f, 0.5f);
-        matrices.translate(1f, 3.5f, 1f);
+
+        var heightOffset = 3.5f;
+
+        if (((WaystoneBlock) entity.getCachedState().getBlock()).singleBlock()) {
+            heightOffset = 1.625f;
+        }
+
+        matrices.translate(1f, heightOffset, 1f);
 
         matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees(entity.lookingRotR));
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90));
@@ -37,5 +44,4 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
         matrices.pop();
     }
-
 }

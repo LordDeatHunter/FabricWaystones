@@ -30,7 +30,7 @@ public record ToggleGlobalWaystone(UUID uuid) {
             case OP:
                 if (!player.hasPermissionLevel(2)) return;
             case OWNER:
-                if (!player.getUuid().equals(storage.getData(uuid).owner())) return;
+                if (!player.getUuid().equals(storage.getData(uuid).ownerID())) return;
         }
 
         if (storage.hasData(uuid)) storage.toggleGlobal(uuid);

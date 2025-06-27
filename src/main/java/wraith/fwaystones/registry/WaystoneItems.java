@@ -8,6 +8,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.Util;
 import wraith.fwaystones.FabricWaystones;
@@ -37,6 +38,11 @@ public final class WaystoneItems {
                 (context, entries) -> {
                     for (var typeId : WaystoneTypes.getTypeIds()) {
                         var stack = WaystoneItems.WAYSTONE.getDefaultStack();
+                        stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(typeId));
+                        entries.add(stack);
+                    }
+                    for (var typeId : WaystoneTypes.getTypeIds()) {
+                        var stack = WaystoneItems.WAYSTONE_SMALL.getDefaultStack();
                         stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(typeId));
                         entries.add(stack);
                     }
@@ -148,6 +154,22 @@ public final class WaystoneItems {
         }
     );
 
+    public static final Item WAYSTONE_SMALL = Registry.register(
+        Registries.ITEM,
+        FabricWaystones.id("waystone_small"),
+        new BlockItem(
+            WaystoneBlocks.WAYSTONE_SMALL,
+            new Item.Settings()
+                .component(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(WaystoneTypes.STONE))
+        ) {
+            @Override
+            public String getTranslationKey(ItemStack stack) {
+                var data = stack.get(WaystoneDataComponents.WAYSTONE_TYPE);
+                if (data != null) return data.getType().getTranslationKeyForSmall();
+                return "waystone.blank.name";
+            }
+        }
+    );
 
 
     public static void init() {

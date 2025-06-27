@@ -23,6 +23,7 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystoneEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.client.screen.components.ComponentUtils;
 
@@ -59,12 +60,12 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         var existingWaystones = playerData.discoveredWaystones().stream()
             .map(storage::getData)
             .filter(Objects::nonNull)
-            .sorted(Comparator.comparing(WaystoneData::sortingName))
+            .sorted(Comparator.comparing(NetworkedWaystoneData::sortingName))
             .toList();
 
         return (searchText.isBlank()
             ? existingWaystones.stream().map(WaystoneData::uuid)
-            : FuzzySearch.extractSorted(searchText.toLowerCase(Locale.ROOT), existingWaystones, WaystoneData::sortingName, 75).stream().map(result -> result.getReferent().uuid()))
+            : FuzzySearch.extractSorted(searchText.toLowerCase(Locale.ROOT), existingWaystones, NetworkedWaystoneData::sortingName, 75).stream().map(result -> result.getReferent().uuid()))
 //            .sorted(Comparator.comparing(data -> storage.getPosition(data) == null))
             .toList();
 

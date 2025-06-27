@@ -22,7 +22,8 @@ public final class WaystoneBlocks {
 //    public static final Block RED_DESERT_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
 //    public static final Block RED_NETHER_BRICK_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
 //    public static final Block STONE_BRICK_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
-    public static final Block WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
+    public static final Block WAYSTONE = WaystoneBlock.of(createBaseSettings().mapColor(MapColor.STONE_GRAY), false);
+    public static final Block WAYSTONE_SMALL = WaystoneBlock.of(createBaseSettings().mapColor(MapColor.STONE_GRAY), true);
 
     public static final HashMap<String, Block> WAYSTONE_BLOCKS = new HashMap<>();
 
@@ -32,6 +33,7 @@ public final class WaystoneBlocks {
 
     public static void init() {
         registerAndAdd("waystone", WAYSTONE);
+        registerAndAdd("waystone_small", WAYSTONE_SMALL);
 //        registerAndAdd("desert_waystone", DESERT_WAYSTONE);
 //        registerAndAdd("stone_brick_waystone", STONE_BRICK_WAYSTONE);
 //        registerAndAdd("red_desert_waystone", RED_DESERT_WAYSTONE);

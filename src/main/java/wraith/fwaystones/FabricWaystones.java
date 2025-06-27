@@ -119,22 +119,18 @@ public class FabricWaystones implements ModInitializer {
         Reflection.initialize(MossTypes.class, WaystoneTypes.class);
 
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
-            var targetState = world.getBlockState(pos);
+            var blockEntity = WaystoneBlock.getEntity(world, pos);
 
-            if (targetState.getBlock() instanceof WaystoneBlock) {
-                var blockEntity = WaystoneBlockEntity.getBlockEntity(world, pos, targetState);
+            if (blockEntity != null && !blockEntity.controllerStack().isEmpty()) {
+                if (!world.isClient()) {
+                    blockEntity.spawnItemStackAbove(blockEntity.exportControllerStack());
 
-                if (blockEntity != null && !blockEntity.controllerStack().isEmpty()) {
-                    if (!world.isClient()) {
-                        blockEntity.spawnItemStackAbove(blockEntity.exportControllerStack());
-
-                        return ActionResult.FAIL;
-                    } else {
-                        resetClientAttacking();
-                    }
-
-                    return ActionResult.CONSUME;
+                    return ActionResult.FAIL;
+                } else {
+                    resetClientAttacking();
                 }
+
+                return ActionResult.CONSUME;
             }
 
             return ActionResult.PASS;

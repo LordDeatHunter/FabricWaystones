@@ -64,8 +64,8 @@ public class WaystoneComponentEventHooks {
                             if (!playerData.hasDiscoverdWaystone(uuid)) {
                                 var data = storage.getData(uuid);
 
-                                if (data != null && data.owner() == null) {
-                                    data.setOwner(user);
+                                if (data != null && data.ownerID() == null) {
+                                    data.owner(user);
                                 }
 
                                 toLearn.add(uuid);
@@ -110,8 +110,8 @@ public class WaystoneComponentEventHooks {
                             if (!playerData.hasDiscoverdWaystone(uuid)) {
                                 var data = storage.getData(uuid);
 
-                                if (data != null && data.owner() == null) {
-                                    data.setOwner(user);
+                                if (data != null && data.ownerID() == null) {
+                                    data.owner(user);
                                 }
 
                                 toLearn.add(uuid);

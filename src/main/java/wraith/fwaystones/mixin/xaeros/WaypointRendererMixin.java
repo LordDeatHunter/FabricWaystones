@@ -9,13 +9,12 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import xaero.common.minimap.waypoints.Waypoint;
 import xaero.common.misc.Misc;
@@ -30,7 +29,7 @@ public abstract class WaypointRendererMixin {
     private int modifyFullscreenWaypointColor(
         xaero.map.mods.gui.Waypoint instance,
         Operation<Integer> original,
-        @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable WaystoneData> sharedData
+        @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable NetworkedWaystoneData> sharedData
     ) {
         if (instance.getOriginal() instanceof Waypoint w) {
             var data = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneData(w);
@@ -59,7 +58,7 @@ public abstract class WaypointRendererMixin {
         Operation<Void> original,
         @Local(argsOnly = true) DrawContext ctx,
         @Local MatrixStack matrices,
-        @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable WaystoneData> sharedData
+        @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable NetworkedWaystoneData> sharedData
     ) {
         var data = sharedData.get();
         if (data != null) {
@@ -84,7 +83,7 @@ public abstract class WaypointRendererMixin {
     private int modifyFullscreenWaypointNameWidth(
             TextRenderer instance,
             String text,
-            Operation<Integer> original, @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable WaystoneData> sharedData
+            Operation<Integer> original, @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable NetworkedWaystoneData> sharedData
     ) {
         var data = sharedData.get();
 
@@ -102,7 +101,7 @@ public abstract class WaypointRendererMixin {
         boolean shadow,
         VertexConsumerProvider.Immediate renderTypeBuffer,
         Operation<Void> original,
-        @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable WaystoneData> sharedData
+        @Share(namespace = FabricWaystones.MOD_ID, value = "WaystoneData") LocalRef<@Nullable NetworkedWaystoneData> sharedData
     ) {
         var data = sharedData.get();
         if (data == null) {

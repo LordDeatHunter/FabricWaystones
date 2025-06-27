@@ -7,15 +7,15 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.core.DataChangeType;
-import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.WaystoneDataStorage;
 
 import java.util.UUID;
 
-public record SyncWaystoneDataChange(UUID uuid, @Nullable WaystoneData data, DataChangeType change) {
+public record SyncWaystoneDataChange(UUID uuid, @Nullable NetworkedWaystoneData data, DataChangeType change) {
     public static final StructEndec<SyncWaystoneDataChange> ENDEC = StructEndecBuilder.of(
             BuiltInEndecs.UUID.fieldOf("uuid", SyncWaystoneDataChange::uuid),
-            WaystoneData.ENDEC.nullableOf().fieldOf("data", SyncWaystoneDataChange::data),
+            NetworkedWaystoneData.ENDEC.nullableOf().fieldOf("data", SyncWaystoneDataChange::data),
             Endec.forEnum(DataChangeType.class).fieldOf("change", SyncWaystoneDataChange::change),
             SyncWaystoneDataChange::new
     );

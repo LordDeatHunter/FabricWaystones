@@ -41,7 +41,7 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler<W
 
         this.name = waystoneData.name();
 
-        this.owner = waystoneData.owner();
+        this.owner = waystoneData.ownerID();
         this.ownerName = waystoneData.ownerName();
 
         this.isGlobal = waystoneData.global();

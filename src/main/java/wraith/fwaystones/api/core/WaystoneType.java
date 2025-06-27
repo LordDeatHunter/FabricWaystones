@@ -2,7 +2,6 @@ package wraith.fwaystones.api.core;
 
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
-import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
@@ -66,6 +65,11 @@ public sealed interface WaystoneType permits WaystoneTypeImpl {
     default String getTranslationKey() {
         var id = getId();
         return "waystone." + id.getNamespace() + "." + id.getPath() + ".name";
+    }
+
+    default String getTranslationKeyForSmall() {
+        var id = getId();
+        return "waystone.small." + id.getNamespace() + "." + id.getPath() + ".name";
     }
 
     Identifier particleTexture();

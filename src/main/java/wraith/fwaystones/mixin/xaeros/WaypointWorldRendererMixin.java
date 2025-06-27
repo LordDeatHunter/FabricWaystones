@@ -11,22 +11,17 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.api.WaystoneDataStorage;
-import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import wraith.fwaystones.mixin.client.DrawContextAccessor;
 import xaero.common.minimap.render.MinimapRendererHelper;
 import xaero.common.minimap.waypoints.Waypoint;
 import xaero.common.misc.Misc;
-
-import java.util.UUID;
 
 @Mixin(xaero.hud.minimap.waypoint.render.world.WaypointWorldRenderer.class)
 public abstract class WaypointWorldRendererMixin {
@@ -87,7 +82,7 @@ public abstract class WaypointWorldRendererMixin {
         TextRenderer instance,
         String text,
         Operation<Integer> original,
-        @Share(value = "waystone_data", namespace = "fwaystones") LocalRef<WaystoneData> waystoneDataRef
+        @Share(value = "waystone_data", namespace = "fwaystones") LocalRef<NetworkedWaystoneData> waystoneDataRef
     ) {
         var waypoint = WAYPOINT_STORAGE.get();
 
@@ -105,7 +100,7 @@ public abstract class WaypointWorldRendererMixin {
     }
 
     @WrapOperation(method = "renderWaypointLabel", at = @At(value = "INVOKE", target = "Lxaero/common/misc/Misc;drawNormalText(Lnet/minecraft/client/util/math/MatrixStack;Ljava/lang/String;FFIZLnet/minecraft/client/render/VertexConsumerProvider$Immediate;)V"))
-    private void drawCorrectText(MatrixStack matrices, String name, float x, float y, int color, boolean shadow, VertexConsumerProvider.Immediate renderTypeBuffer, Operation<Void> original, @Share(value = "waystone_data", namespace = "fwaystones") LocalRef<WaystoneData> waystoneDataRef) {
+    private void drawCorrectText(MatrixStack matrices, String name, float x, float y, int color, boolean shadow, VertexConsumerProvider.Immediate renderTypeBuffer, Operation<Void> original, @Share(value = "waystone_data", namespace = "fwaystones") LocalRef<NetworkedWaystoneData> waystoneDataRef) {
         var data = waystoneDataRef.get();
 
         if (data != null) {

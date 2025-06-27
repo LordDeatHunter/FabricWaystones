@@ -30,7 +30,7 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.item.components.WaystoneTyped;
@@ -138,7 +138,7 @@ public class WaystoneCompassRenderer {
                 .sorted(Comparator.comparingDouble(pair -> pair.getRight().blockPos().up().toBottomCenterPos().distanceTo(holder.getPos())))
                 .toList();
 
-            for (Pair<WaystoneData, WaystonePosition> pair : waystones) {
+            for (Pair<NetworkedWaystoneData, WaystonePosition> pair : waystones) {
                 var waystone = pair.getLeft();
                 var waystonePosition = pair.getRight();
                 if (!player.getWorld().getRegistryKey().getValue().toString().equals(waystonePosition.worldName())) continue;

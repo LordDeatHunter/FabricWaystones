@@ -29,24 +29,23 @@ public class WaystoneDebuggerItem extends Item {
 
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
+        var player = context.getPlayer();
+
+        if (player == null) return ActionResult.FAIL;
+
         var world = context.getWorld();
         var pos = context.getBlockPos();
-        var blockState = world.getBlockState(pos);
-        var block = blockState.getBlock();
-        var player = context.getPlayer();
-        if (!(block instanceof WaystoneBlock) || player == null) {
-            return ActionResult.FAIL;
-        }
-        var entityPos = blockState.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
-        if (!(world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone)) {
-            return ActionResult.FAIL;
-        }
+
+        var waystone = WaystoneBlock.getEntity(world, pos);
+
+        if (waystone == null) return ActionResult.FAIL;
+
         var hash = waystone.position();
         var data = waystone.getData();
 
         if (data != null) {
-            var owner = data.owner();
-            var ownerName = data.owner();
+            var owner = data.ownerID();
+            var ownerName = data.ownerID();
 
             var message = Text.literal("");
             message.append("§6[§eNAME§6]§e=§3").append(data.name());

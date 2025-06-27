@@ -8,13 +8,13 @@ import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.registry.WaystoneDataComponents;
-import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 
 import java.util.function.Consumer;
 
-public record WaystoneDataHolder(WaystoneData data) implements ExtendedTooltipAppender {
+public record WaystoneDataHolder(NetworkedWaystoneData data) implements ExtendedTooltipAppender {
     public static final StructEndec<WaystoneDataHolder> ENDEC = StructEndecBuilder.of(
-            WaystoneData.ENDEC.flatFieldOf(WaystoneDataHolder::data),
+            NetworkedWaystoneData.ENDEC.flatFieldOf(WaystoneDataHolder::data),
             WaystoneDataHolder::new
     );
 

@@ -4,9 +4,7 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
-import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
 import wraith.fwaystones.api.WaystoneDataStorage;
 
 import java.util.UUID;
@@ -28,7 +26,7 @@ public record RenameWaystone(UUID uuid, String name) {
 
         if (data == null) return;
 
-        if (player.getUuid().equals(data.owner()) || player.hasPermissionLevel(2)) {
+        if (player.getUuid().equals(data.ownerID()) || player.hasPermissionLevel(2)) {
             storage.renameWaystone(uuid, packet.name());
         }
     }

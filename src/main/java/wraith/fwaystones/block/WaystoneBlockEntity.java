@@ -29,7 +29,6 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
-import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.TypedActionResult;
@@ -55,7 +54,6 @@ import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.util.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -89,11 +87,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         super(WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, pos, state);
     }
 
-    @Nullable
-    public static WaystoneBlockEntity getBlockEntity(BlockRenderView world, BlockPos pos, BlockState state) {
-        return world.getBlockEntity(state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos, WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY)
-                .orElse(null);
-    }
 
     public int getColor() {
         var data = getData();
@@ -174,7 +167,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     //--
 
     @Nullable
-    public WaystoneData getData() {
+    public NetworkedWaystoneData getData() {
         if (this.controllerStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
             return WaystoneDataStorage.getStorage(this.world).getData(this.position());
         }
@@ -553,14 +546,18 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         var random = world.getRandom();
         ParticleEffect p = (random.nextInt(10) > 7) ? new RuneParticleEffect(getColor()) : ParticleTypes.PORTAL;
         var basePos = this.getPos().toBottomCenterPos();
-        var watcherPos = basePos.add(0, 0.8, 0);
+
+        var singleBlock = ((WaystoneBlock) this.getCachedState().getBlock()).singleBlock();
+
+        var watcherPos = basePos.add(0, singleBlock ? 0.0 : 0.8, 0);
         var targetPos = target.getPos();
 
         int rd = random.nextInt(10);
+
         if (rd > 5) {
             if (p instanceof RuneParticleEffect) {
                 var start = targetPos
-                    .add(0, 1.25, 0);
+                    .add(0, singleBlock ? 0.35 : 1.25, 0);
                 var distanceCheck = Double.compare(Math.abs(watcherPos.x - targetPos.x), Math.abs(watcherPos.z - targetPos.z));
                 var end = basePos
                     .subtract(
@@ -576,7 +573,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 );
             } else if (main) {
                 var start = watcherPos
-                    .add(0, 0.95, 0);
+                    .add(0, singleBlock ? 75 : 0.95, 0);
 //                velocity = eyePos
 //                    .subtract(watcherPos)
 //                    .subtract(randomDirection(random));
@@ -587,7 +584,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 var endY = bbMin.y + (bbMax.y - bbMin.y) * random.nextDouble();
                 var endZ = bbMin.z + (bbMax.z - bbMin.z) * random.nextDouble();
                 var end = new Vec3d(endX, endY, endZ)
-                    .subtract(watcherPos.add(0, 1.8, 0));
+                    .subtract(watcherPos.add(0, singleBlock ? 1.0 : 1.8, 0));
 //                    .add(randomDirection(random).multiply(0.005));
 //                    .subtract(0, 1.25, 0);
                 this.world.addParticle(
@@ -599,7 +596,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                     var randomDirection = randomDirection(random);
                     this.world.addParticle(
                         p,
-                        watcherPos.x, watcherPos.y + 0.95, watcherPos.z,
+                        watcherPos.x, watcherPos.y + (/*singleBlock ? 0.0 :*/ 0.95), watcherPos.z,
                         randomDirection.x * 2,
                         randomDirection.y * 2 - 0.2,
                         randomDirection.z * 2

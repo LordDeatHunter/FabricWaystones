@@ -18,6 +18,7 @@ import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.client.MossColorProvidersRegistry;
 import wraith.fwaystones.api.core.WaystoneTypes;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
@@ -27,6 +28,29 @@ import wraith.fwaystones.registry.WaystoneBlocks;
 import java.util.function.Supplier;
 
 public class WaystoneBlockQuadEmission implements QuadEmission<WaystoneBlockEntity> {
+
+    public static final BlockColorProvider COLOR_PROVIDER = (state, world, pos, tintIndex) -> {
+        if (world != null && pos != null) {
+            var blockEntity = WaystoneBlock.getEntity(world, pos, state);
+
+            if (blockEntity != null) {
+                if (tintIndex == 1) {
+                    return blockEntity.getColor();
+                } else if (tintIndex == 2) {
+                    var mossType = blockEntity.getMossType();
+
+                    if (mossType != null) {
+                        var provider = MossColorProvidersRegistry.getProvider(mossType);
+
+                        if (provider != null) {
+                            return provider.getColor(state, world, pos, tintIndex);
+                        }
+                    }
+                }
+            }
+        }
+        return -1;
+    };
 
     public static final WaystoneBlockQuadEmission INSTANCE = new WaystoneBlockQuadEmission();
 
@@ -95,7 +119,7 @@ public class WaystoneBlockQuadEmission implements QuadEmission<WaystoneBlockEnti
                 var uOffset = sprite.getMinU() - baseSprite.getMinU();
                 var vOffset = sprite.getMinV() - baseSprite.getMinV();
 
-                var color = 0xFF000000 | ColorProviderRegistry.BLOCK.get(WaystoneBlocks.WAYSTONE).getColor(state, blockView, pos, 1);
+                var color = 0xFF000000 | COLOR_PROVIDER.getColor(state, blockView, pos, 1);
 
                 ctx.pushTransform(quad -> {
                     for (int i = 0; i < 4; i++) {

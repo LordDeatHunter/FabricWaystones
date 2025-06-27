@@ -281,8 +281,8 @@ public class WaystonePlayerData {
 
             var server = this.player.getServer();
 
-            if ((server != null && !server.isDedicated()) || this.player.getUuid().equals(data.owner())) {
-                data.setOwner(null);
+            if ((server != null && !server.isDedicated()) || this.player.getUuid().equals(data.ownerID())) {
+                data.owner(null);
             }
         }
 

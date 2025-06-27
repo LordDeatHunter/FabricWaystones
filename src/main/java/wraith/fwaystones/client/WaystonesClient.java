@@ -102,33 +102,8 @@ public class WaystonesClient implements ClientModInitializer {
             Reflection.initialize(XaerosMinimapWaypointMaker.class);
         }
 
-        for (Block block : Registries.BLOCK) {
-            if (block instanceof WaystoneBlock) {
-                ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
-                    if (world != null && pos != null) {
-                        var blockEntity = WaystoneBlockEntity.getBlockEntity(world, pos, state);
-
-                        if (blockEntity != null) {
-                            if (tintIndex == 1) {
-                                return blockEntity.getColor();
-                            } else if (tintIndex == 2) {
-                                var mossType = blockEntity.getMossType();
-
-                                if (mossType != null) {
-                                    var provider = MossColorProvidersRegistry.getProvider(mossType);
-
-                                    if (provider != null) {
-                                        return provider.getColor(state, world, pos, tintIndex);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    return -1;
-                }, block);
-                BlockRenderLayerMap.INSTANCE.putBlock(block, RenderLayer.getCutoutMipped());
-            }
-        }
+        ColorProviderRegistry.BLOCK.register(WaystoneBlockQuadEmission.COLOR_PROVIDER, WaystoneBlocks.WAYSTONE, WaystoneBlocks.WAYSTONE_SMALL);
+        BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getCutoutMipped(), WaystoneBlocks.WAYSTONE, WaystoneBlocks.WAYSTONE_SMALL);
 
         ColorProviderRegistry.ITEM.register(
             (stack, tintIndex) -> {
@@ -183,7 +158,7 @@ public class WaystonesClient implements ClientModInitializer {
             ctx.resolveModel().register(context -> {
                 var gsonBuilder = new GsonBuilder().setPrettyPrinting().create();
                 var runes = FabricWaystones.id("item/waystone_runes");
-                if (context.id().equals(FabricWaystones.id("item/waystone"))) {
+                if (context.id().equals(FabricWaystones.id("item/waystone")) || context.id().equals(FabricWaystones.id("item/waystone_small")) ) {
                     var obj = DynamicModelUtils.createOverridenItemModel(
                         List.of(FabricWaystones.id("item/stone_waystone"), runes),
                         WaystoneTypes.getTypeIds().stream().map(id -> id.withPath(s -> "item/" + s + "_waystone")),
@@ -215,57 +190,42 @@ public class WaystonesClient implements ClientModInitializer {
                 return null;
             });
 
-            var baseBottomModel = FabricWaystones.id("block/waystone_bottom");
-            var baseTopModel = FabricWaystones.id("block/waystone_top");
+            var bigModel = FabricWaystones.id("block/waystone_big");
+            var bigMultiModel = FabricWaystones.id("block/multi_waystone_big");
 
-            var multiBottomModel = FabricWaystones.id("block/multi_waystone_bottom");
-            var multiTopModel = FabricWaystones.id("block/multi_waystone_top");
+            var smallModel = FabricWaystones.id("block/waystone_small");
+            var smallMultiModel = FabricWaystones.id("block/multi_waystone_small");
 
             ctx.resolveModel().register(context -> {
                 UnbakedModel possibleModel;
 
-                if (context.id().equals(multiBottomModel)) {
-                    possibleModel = context.getOrLoadModel(baseBottomModel);
-                } else if (context.id().equals(multiTopModel)) {
-                    possibleModel = context.getOrLoadModel(baseTopModel);
+                if (context.id().equals(bigMultiModel)) {
+                    possibleModel = context.getOrLoadModel(bigModel);
+                } else if (context.id().equals(smallMultiModel)) {
+                    possibleModel = context.getOrLoadModel(smallModel);
                 } else {
                     return null;
                 }
 
-                return new CustomDelegatingUnbakedModel<>(possibleModel, WaystoneBlockEntity::getBlockEntity, WaystoneBlockQuadEmission.INSTANCE);
+                return new CustomDelegatingUnbakedModel<>(possibleModel, WaystoneBlock::getEntity, WaystoneBlockQuadEmission.INSTANCE);
             });
 
             ctx.registerBlockStateResolver(WaystoneBlocks.WAYSTONE, stateCtx -> {
                 for (var state : stateCtx.block().getStateManager().getStates()) {
-                    var blockPosition = state.get(WaystoneBlock.HALF);
+                    var modelId = stateCtx.getOrLoadModel(bigMultiModel);
 
-                    stateCtx.setModel(state, stateCtx.getOrLoadModel(blockPosition.equals(DoubleBlockHalf.LOWER) ? multiBottomModel : multiTopModel));
+                    stateCtx.setModel(state, modelId);
+                }
+            });
+
+            ctx.registerBlockStateResolver(WaystoneBlocks.WAYSTONE_SMALL, stateCtx -> {
+                for (var state : stateCtx.block().getStateManager().getStates()) {
+                    var modelId = stateCtx.getOrLoadModel(smallMultiModel);
+
+                    stateCtx.setModel(state, modelId);
                 }
             });
         });
-    }
-
-    public static Identifier createId(Identifier waystoneTypeId, boolean isUpper, boolean isActive, Identifier mossTypeId) {
-        return waystoneTypeId.withPath(typeName -> {
-            return "block/" + typeName + "waystone_" + (isUpper ? "top" : "bottom") + "_" + (isActive ? "active" : "inactive") + (!mossTypeId.equals(MossTypes.EMPTY_ID) ? "_moss_" + mossTypeId.getPath() : "");
-        });
-    }
-
-    public static JsonUnbakedModel createWaystoneModel(boolean isUpper, boolean isActive, MossType mossType, WaystoneType waystoneType) {
-        var mossy = mossType != MossType.EMPTY;
-
-        return JsonUnbakedModel.deserialize(
-            DynamicModelUtils.createBlockModel(
-                FabricWaystones.id("block/base_waystone_" + (isUpper ? "top" : "bottom") + (isActive ? "" : "_off") + (mossy ? "_mossy" : "")),
-                waystoneType.particleTexture(),
-                map -> {
-                    map.put("body", waystoneType.blockTexture());
-                    if (mossy) {
-                        map.put("moss", mossType.blockTexture());
-                    }
-                }
-            ).toString()
-        );
     }
 
     public static void reloadPos(World world, BlockPos pos) {
