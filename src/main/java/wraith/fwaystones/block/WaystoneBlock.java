@@ -167,9 +167,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return validateTicker(type, WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, (world1, pos, state1, be) -> {
-            be.tick();
-        });
+        return world.isClient ? validateTicker(type, WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, WaystoneBlockEntity::tick) : null;
     }
 
     @Override

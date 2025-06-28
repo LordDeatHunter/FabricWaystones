@@ -8,8 +8,8 @@ import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
-import wraith.fwaystones.registry.WaystoneItems;
 
 public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<WaystoneBlockEntity> {
 
@@ -17,31 +17,27 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
     }
 
     @Override
-    public void render(WaystoneBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        ItemStack stack = entity.controllerStack();
+    public void render(WaystoneBlockEntity waystone, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+        ItemStack stack = waystone.controllerStack();
 
-        matrices.push();
-        matrices.scale(0.5f, 0.5f, 0.5f);
-
-        var heightOffset = 3.5f;
-
-        if (((WaystoneBlock) entity.getCachedState().getBlock()).singleBlock()) {
-            heightOffset = 1.625f;
-        }
-
-        matrices.translate(1f, heightOffset, 1f);
-
-        matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees(entity.lookingRotR));
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90));
-        //matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(entity.lookingRotH));
         if (!stack.isEmpty()) {
-            int lightAbove = WorldRenderer.getLightmapCoordinates(entity.getWorld(), entity.getPos().up());
-            MinecraftClient.getInstance().getItemRenderer().renderItem(
-                    stack, ModelTransformationMode.FIXED, lightAbove, overlay,
-                    matrices, vertexConsumers, entity.getWorld(), (int) entity.getPos().asLong()
-            );
+            matrices.push();
+            matrices.translate(0.5, waystone.getControllerHeight() - 0.25f, 0.5f);
+            var height = waystone.ticks + tickDelta;
+            matrices.translate(0.0F, 0.1F + MathHelper.sin(height * 0.1F) * 0.01F, 0.0F);
+            var rotation = waystone.controllerRotation - waystone.lastControllerRotation;
+
+            while (rotation >= Math.PI) rotation -= (float) Math.TAU;
+            while (rotation < -Math.PI) rotation += (float) Math.TAU;
+
+            var lerped = waystone.lastControllerRotation + rotation * tickDelta;
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotation(lerped));
+
+            if (waystone.getWorld() != null) light = WorldRenderer.getLightmapCoordinates(waystone.getWorld(), waystone.getPos());
+            MinecraftClient.getInstance().getItemRenderer().renderItem(stack, ModelTransformationMode.GROUND, light, overlay, matrices, vertexConsumers, waystone.getWorld(), waystone.getPos().hashCode());
+
+            matrices.pop();
         }
 
-        matrices.pop();
     }
 }

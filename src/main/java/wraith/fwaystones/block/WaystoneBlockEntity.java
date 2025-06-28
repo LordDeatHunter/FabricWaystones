@@ -3,12 +3,14 @@ package wraith.fwaystones.block;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.owo.ops.WorldOps;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.EnchantingTableBlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
@@ -35,9 +37,9 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.*;
 import wraith.fwaystones.api.core.*;
@@ -62,10 +64,11 @@ import static wraith.fwaystones.FabricWaystones.WAYSTONE_SHEAR;
 
 public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory<WaystoneScreenOpenDataPacket>, WaystoneAccess {
 
-    public float lookingRotR = 0;
-    private float turningSpeedR = 2;
-
-    private long tickDelta = 0;
+    public int ticks;
+    public float controllerRotation;
+    public float lastControllerRotation;
+    public float targetControllerRotation;
+    private static final Random RANDOM = Random.create();
 
     private WaystonePosition waystonePosition;
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
@@ -158,10 +161,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public void spawnItemStackAbove(ItemStack stack) {
-        if (!stack.isEmpty()) {
-            var dropPos = this.pos.up(1);
-            ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, stack);
-        }
+        var dropPos = this.pos.up(1).toCenterPos();
+        ItemScatterer.spawn(world, dropPos.getX(), dropPos.getY(), dropPos.getZ(), stack);
     }
 
     //--
@@ -201,8 +202,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Nullable
     public MossType getMossType() {
         return !this.mossTypeId.equals(MossTypes.EMPTY_ID)
-                ? MossTypes.getTypeOrDefault(this.mossTypeId)
-                : null;
+            ? MossTypes.getTypeOrDefault(this.mossTypeId)
+            : null;
     }
 
     public boolean isMossy() {
@@ -467,78 +468,44 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     //--
 
-    public void tick() {
-        if (world == null) return;
+    public static void tick(World world, BlockPos pos, BlockState state, WaystoneBlockEntity waystone) {
+        waystone.lastControllerRotation = waystone.controllerRotation;
+        var controller = pos.toCenterPos().add(0, waystone.getControllerHeight(), 0);
 
-        if (world.isClient()) {
-            ++tickDelta;
-            if (!this.controllerStack.isEmpty()) {
-                var center = this.getPos().toBottomCenterPos().add(0, 1, 0);
+        var closestPlayer = world.getClosestPlayer(
+            controller.x, controller.y, controller.z,
+            4.5,
+            waystone::shouldWatchEntity
+        );
 
-                var closestPlayer = this.world.getClosestPlayer(
-                        center.x, center.y, center.z,
-                        4.5,
-                        this::shouldWatchEntity
-                );
-                var others = this.world.getOtherEntities(
-                        closestPlayer,
-                        Box.of(center, 10, 10, 10),
-                        this::shouldWatchEntity
-                );
-                if (closestPlayer != null) {
-//                    for (int i = 0; i < 100; i++)
-                    addParticle(closestPlayer, true);
-                    double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
-                    double z = closestPlayer.getZ() - this.getPos().getZ() - 0.5D;
-                    float rotY = (float) ((float) Math.atan2(z, x) / Math.PI * 180 + 180);
-                    moveOnTickR(rotY);
-                } else {
-                    lookingRotR += 2;
-                }
-                others.forEach(otherEntity -> addParticle(otherEntity, false));
+        var others = world.getOtherEntities(
+            closestPlayer,
+            Box.of(controller, 10, 10, 10),
+            waystone::shouldWatchEntity
+        );
+        others.forEach(entity -> waystone.addParticle(entity, false));
 
-                lookingRotR = rotClamp(360, lookingRotR);
-            }
-
-            if (tickDelta >= 360) {
-                tickDelta = 0;
-            }
-        }
-    }
-
-    private void moveOnTickR(float rot) {
-        if (!checkBound(2, rot)) {
-            double check = (rotClamp(180, rot) - rotClamp(180, lookingRotR) + 180) % 180;
-            if (check < 90) {
-                lookingRotR += turningSpeedR;
-            } else {
-                lookingRotR -= turningSpeedR;
-            }
-            lookingRotR = rotClamp(360, lookingRotR);
-            if (checkBound(10, rot)) {
-                turningSpeedR = 2;
-            } else {
-                turningSpeedR += 1;
-                turningSpeedR = MathHelper.clamp(turningSpeedR, 2, 20);
-            }
-        }
-    }
-
-    private boolean checkBound(int amount, float rot) {
-        float Rot = Math.round(rot);
-        float Rot2 = rotClamp(360, Rot + 180);
-        return ((Rot - amount <= lookingRotR && lookingRotR <= Rot + amount) || (
-                Rot2 - amount <= lookingRotR && lookingRotR <= Rot2 + amount));
-    }
-
-    private float rotClamp(int clampTo, float value) {
-        if (value >= clampTo) {
-            return value - clampTo;
-        } else if (value < 0) {
-            return value + clampTo;
+        if (closestPlayer != null) {
+            var offset = closestPlayer.getPos().subtract(controller).normalize();
+            waystone.targetControllerRotation = (float) Math.atan2(offset.x, offset.z);
+            waystone.addParticle(closestPlayer, true);
         } else {
-            return value;
+            waystone.targetControllerRotation += 0.02f;
         }
+
+        while (waystone.controllerRotation >= Math.PI) waystone.controllerRotation -= (float) Math.TAU;
+        while (waystone.controllerRotation < -Math.PI) waystone.controllerRotation += (float) Math.TAU;
+
+        while (waystone.targetControllerRotation >= Math.PI) waystone.targetControllerRotation -= (float) Math.TAU;
+        while (waystone.targetControllerRotation < -Math.PI) waystone.targetControllerRotation += (float) Math.TAU;
+
+        var nextRotation = waystone.targetControllerRotation - waystone.controllerRotation;
+
+        while (nextRotation >= Math.PI) nextRotation -= (float) Math.TAU;
+        while (nextRotation < -Math.PI) nextRotation += (float) Math.TAU;
+
+        waystone.controllerRotation += nextRotation * 0.4f;
+        waystone.ticks++;
     }
 
     private void addParticle(Entity target, boolean main) {
@@ -547,56 +514,48 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         ParticleEffect p = (random.nextInt(10) > 7) ? new RuneParticleEffect(getColor()) : ParticleTypes.PORTAL;
         var basePos = this.getPos().toBottomCenterPos();
 
-        var singleBlock = ((WaystoneBlock) this.getCachedState().getBlock()).singleBlock();
-
-        var watcherPos = basePos.add(0, singleBlock ? 0.0 : 0.8, 0);
+        var watcherPos = basePos.add(0, getControllerHeight(), 0);
         var targetPos = target.getPos();
 
         int rd = random.nextInt(10);
 
         if (rd > 5) {
             if (p instanceof RuneParticleEffect) {
-                var start = targetPos
-                    .add(0, singleBlock ? 0.35 : 1.25, 0);
                 var distanceCheck = Double.compare(Math.abs(watcherPos.x - targetPos.x), Math.abs(watcherPos.z - targetPos.z));
+                var start = targetPos.add(0, 1.25, 0);
                 var end = basePos
-                    .subtract(
-                        distanceCheck > 0 ? Double.compare(watcherPos.x, targetPos.x) * 0.4 : 0,
-                        0.05,
-                        distanceCheck < 0 ? Double.compare(watcherPos.z, targetPos.z) * 0.4 : 0
-                    )
-                    .subtract(targetPos);
+                    .subtract(start)
+                    .add(
+                        distanceCheck > 0 ? Double.compare(targetPos.x, watcherPos.x) * 0.4 : 0,
+                        getEmitterRunesHeight(),
+                        distanceCheck < 0 ? Double.compare(targetPos.z, watcherPos.z) * 0.4 : 0
+                    );
                 this.world.addParticle(
                     p,
                     start.x, start.y, start.z,
                     end.x, end.y, end.z
                 );
             } else if (main) {
-                var start = watcherPos
-                    .add(0, singleBlock ? 75 : 0.95, 0);
-//                velocity = eyePos
-//                    .subtract(watcherPos)
-//                    .subtract(randomDirection(random));
                 var bb = target.getBoundingBox();
                 var bbMin = bb.getMinPos();
                 var bbMax = bb.getMaxPos();
-                var endX = bbMin.x + (bbMax.x - bbMin.x) * random.nextDouble();
-                var endY = bbMin.y + (bbMax.y - bbMin.y) * random.nextDouble();
-                var endZ = bbMin.z + (bbMax.z - bbMin.z) * random.nextDouble();
-                var end = new Vec3d(endX, endY, endZ)
-                    .subtract(watcherPos.add(0, singleBlock ? 1.0 : 1.8, 0));
-//                    .add(randomDirection(random).multiply(0.005));
-//                    .subtract(0, 1.25, 0);
+                var end = new Vec3d(
+                    bbMin.x + (bbMax.x - bbMin.x) * random.nextDouble(),
+                    bbMin.y + (bbMax.y - bbMin.y) * random.nextDouble(),
+                    bbMin.z + (bbMax.z - bbMin.z) * random.nextDouble()
+                )
+                    .subtract(watcherPos)
+                    .subtract(0, 0.75, 0);
                 this.world.addParticle(
                     p,
-                    start.x, start.y, start.z,
+                    watcherPos.x, watcherPos.y, watcherPos.z,
                     end.x, end.y, end.z
                 );
                 if (rd > 8) {
                     var randomDirection = randomDirection(random);
                     this.world.addParticle(
                         p,
-                        watcherPos.x, watcherPos.y + (/*singleBlock ? 0.0 :*/ 0.95), watcherPos.z,
+                        watcherPos.x, watcherPos.y, watcherPos.z,
                         randomDirection.x * 2,
                         randomDirection.y * 2 - 0.2,
                         randomDirection.z * 2
@@ -604,6 +563,18 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 }
             }
         }
+    }
+
+    public boolean isSingleBlock() {
+        return ((WaystoneBlock) this.getCachedState().getBlock()).singleBlock();
+    }
+
+    public double getControllerHeight() {
+        return (isSingleBlock() ? 14 : 29) / 16f;
+    }
+
+    public double getEmitterRunesHeight() {
+        return (isSingleBlock() ? 5 : 20) / 16f - 0.05f;
     }
 
     private boolean shouldWatchEntity(@Nullable Entity entity) {

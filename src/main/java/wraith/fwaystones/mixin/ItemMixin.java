@@ -10,7 +10,7 @@ import wraith.fwaystones.item.WaystoneComponentEventHooks;
 @Mixin(Item.class)
 public abstract class ItemMixin {
     @WrapMethod(method = "getTranslationKey(Lnet/minecraft/item/ItemStack;)Ljava/lang/String;")
-    private String fabricWaystone$adjustKey(ItemStack stack, Operation<String> original) {
+    private String adjustKey(ItemStack stack, Operation<String> original) {
         var alternativeKey = WaystoneComponentEventHooks.getTranslationKey(stack);
 
         if (alternativeKey != null) return alternativeKey;
