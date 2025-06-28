@@ -1,9 +1,11 @@
 package wraith.fwaystones.networking;
 
 import io.wispforest.owo.network.OwoNetChannel;
+import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.GlobalPos;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.networking.packets.SyncWaystonePlayerDataChange;
 import wraith.fwaystones.networking.packets.c2s.*;
@@ -38,6 +40,8 @@ public class WaystoneNetworkHandler {
         CHANNEL.registerClientboundDeferred(VoidRevive.class, VoidRevive.ENDEC);
 
         CHANNEL.registerClientboundDeferred(UpdateMapStateWaystoneMarkers.class, UpdateMapStateWaystoneMarkers.ENDEC);
+
+        CHANNEL.registerClientboundDeferred(SpawnWaystoneActivationParticles.class, SpawnWaystoneActivationParticles.ENDEC);
     }
 
     @Environment(EnvType.CLIENT)
@@ -54,6 +58,8 @@ public class WaystoneNetworkHandler {
         CHANNEL.registerClientbound(VoidRevive.class, VoidRevive.ENDEC, handler(VoidRevive::handle));
 
         CHANNEL.registerClientbound(UpdateMapStateWaystoneMarkers.class, UpdateMapStateWaystoneMarkers.ENDEC, handler(UpdateMapStateWaystoneMarkers::handle));
+
+        CHANNEL.registerClientbound(SpawnWaystoneActivationParticles.class, SpawnWaystoneActivationParticles.ENDEC, handler(SpawnWaystoneActivationParticles::handle));
     }
 
     public static <P extends PlayerEntity, R, N, A extends OwoNetChannel.EnvironmentAccess<P, R, N>, M extends Record> OwoNetChannel.ChannelHandler<M, A> handler(BiConsumer<M, PlayerEntity> handler) {

@@ -34,17 +34,18 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
-import wraith.fwaystones.networking.packets.s2c.SyncWaystoneDataChange;
-import wraith.fwaystones.networking.packets.s2c.SyncWaystoneDataChanges;
-import wraith.fwaystones.networking.packets.s2c.SyncWaystonePositionChange;
-import wraith.fwaystones.networking.packets.s2c.SyncWaystonePositionChanges;
+import wraith.fwaystones.networking.packets.s2c.*;
 import wraith.fwaystones.client.screen.UniversalWaystoneScreenHandler;
+import wraith.fwaystones.particle.RuneParticleEffect;
+import wraith.fwaystones.registry.WaystoneParticles;
 import wraith.fwaystones.util.Utils;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static wraith.fwaystones.networking.WaystoneNetworkHandler.CHANNEL;
 
 public class WaystoneDataStorage {
 
@@ -59,15 +60,15 @@ public class WaystoneDataStorage {
     );
 
     public static final Endec<WaystoneDataStorage> ENDEC = StructEndecBuilder.of(
-            MAP_ENDEC.fieldOf("positions", WaystoneDataStorage::exportPositions),
-            NetworkedWaystoneData.ENDEC.setOf().fieldOf("waystones", WaystoneDataStorage::exportData),
-            WaystoneDataStorage::new
+        MAP_ENDEC.fieldOf("positions", WaystoneDataStorage::exportPositions),
+        NetworkedWaystoneData.ENDEC.setOf().fieldOf("waystones", WaystoneDataStorage::exportData),
+        WaystoneDataStorage::new
     );
 
     private static final AttachmentType<WaystoneDataStorage> ATTACHMENT_TYPE = AttachmentRegistry.<WaystoneDataStorage>builder()
-            .persistent(CodecUtils.toCodec(ENDEC))
-            .initializer(() -> new WaystoneDataStorage(Map.of(), Set.of()))
-            .buildAndRegister(FabricWaystones.id("waystone_data_storage"));
+        .persistent(CodecUtils.toCodec(ENDEC))
+        .initializer(() -> new WaystoneDataStorage(Map.of(), Set.of()))
+        .buildAndRegister(FabricWaystones.id("waystone_data_storage"));
 
     private static MinecraftServer SERVER;
 
@@ -209,7 +210,7 @@ public class WaystoneDataStorage {
         SERVER = server;
 
         ServerBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
-            if (blockEntity instanceof WaystoneBlockEntity waystoneBe){
+            if (blockEntity instanceof WaystoneBlockEntity waystoneBe) {
                 waystoneLookupCache.remove(waystoneBe.position());
             }
         });
@@ -278,7 +279,7 @@ public class WaystoneDataStorage {
     public UUID getUniqueUUID() {
         var uuid = WaystoneData.EMPTY_UUID;
 
-        while(Objects.equals(uuid, WaystoneData.EMPTY_UUID) || hasData(uuid)) {
+        while (Objects.equals(uuid, WaystoneData.EMPTY_UUID) || hasData(uuid)) {
             uuid = UUID.randomUUID();
         }
 
@@ -386,7 +387,8 @@ public class WaystoneDataStorage {
 
             var customName = blockEntity.getCustomName();
 
-            var data = createData(pos, customName != null ? customName.getString() : "", blockEntity.getWaystoneType());;
+            var data = createData(pos, customName != null ? customName.getString() : "", blockEntity.getWaystoneType());
+            ;
 
             blockEntity.markDirty();
 
@@ -477,10 +479,10 @@ public class WaystoneDataStorage {
             }
         }
 
-        var positionChanges = new SyncWaystonePositionChanges(uuids.stream().map(uuid -> new SyncWaystonePositionChange(uuid,null)).toList());
+        var positionChanges = new SyncWaystonePositionChanges(uuids.stream().map(uuid -> new SyncWaystonePositionChange(uuid, null)).toList());
         var dataChanges = new SyncWaystoneDataChanges(uuids.stream().map(uuid -> new SyncWaystoneDataChange(uuid, null, DataChangeType.REMOVAL)).toList());
 
-        WaystoneNetworkHandler.CHANNEL.serverHandle(SERVER).send(positionChanges, dataChanges);
+        CHANNEL.serverHandle(SERVER).send(positionChanges, dataChanges);
     }
 
     private void positionDataInWorld(WaystonePosition position, NetworkedWaystoneData data) {
@@ -556,7 +558,7 @@ public class WaystoneDataStorage {
 
     public SequencedCollection<UUID> getGlobals() {
         return this.uuidToData.entrySet().stream().filter(entry -> entry.getValue().global())
-                .map(Map.Entry::getKey).toList();
+            .map(Map.Entry::getKey).toList();
     }
 
 
@@ -579,7 +581,7 @@ public class WaystoneDataStorage {
 
         WaystoneEvents.ON_WAYSTONE_DATA_UPDATE.invoker().onChange(uuid, type);
 
-        WaystoneNetworkHandler.CHANNEL.serverHandle(SERVER).send(new SyncWaystoneDataChange(uuid, getData(uuid), type));
+        CHANNEL.serverHandle(SERVER).send(new SyncWaystoneDataChange(uuid, getData(uuid), type));
     }
 
     public void syncPositionChange(UUID uuid, WaystonePosition position, boolean wasRemoved) {
@@ -587,7 +589,7 @@ public class WaystoneDataStorage {
 
         WaystoneEvents.ON_WAYSTONE_POSITION_UPADTE.invoker().onChange(uuid, position, wasRemoved);
 
-        WaystoneNetworkHandler.CHANNEL.serverHandle(SERVER).send(new SyncWaystonePositionChange(uuid, wasRemoved ? null : position));
+        CHANNEL.serverHandle(SERVER).send(new SyncWaystonePositionChange(uuid, wasRemoved ? null : position));
     }
 
     public void onSyncData(UUID uuid, @Nullable NetworkedWaystoneData data, DataChangeType type) {
@@ -688,6 +690,9 @@ public class WaystoneDataStorage {
                     } else {
                         world.playSound(null, pos, FabricWaystones.WAYSTONE_INITIALIZE, SoundCategory.BLOCKS, 1F, 1F);
                         world.playSound(null, pos, FabricWaystones.WAYSTONE_ACTIVATE, SoundCategory.BLOCKS, 1F, 1F);
+                        if (world instanceof ServerWorld serverWorld && getPosition(data) instanceof WaystonePosition position) {
+                            CHANNEL.serverHandle(serverWorld, pos).send(new SpawnWaystoneActivationParticles(position.globalPos(), data.color()));
+                        }
                     }
                 }
             }
