@@ -9,7 +9,6 @@ import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
 
 public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<WaystoneBlockEntity> {
 
@@ -22,16 +21,14 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
         if (!stack.isEmpty()) {
             matrices.push();
-            matrices.translate(0.5, waystone.getControllerHeight() - 0.25f, 0.5f);
+            matrices.translate(0.5, waystone.getControllerHeight(), 0.5f);
             var height = waystone.ticks + tickDelta;
             matrices.translate(0.0F, 0.1F + MathHelper.sin(height * 0.1F) * 0.01F, 0.0F);
-            var rotation = waystone.controllerRotation - waystone.lastControllerRotation;
 
-            while (rotation >= Math.PI) rotation -= (float) Math.TAU;
-            while (rotation < -Math.PI) rotation += (float) Math.TAU;
+            matrices.multiply(waystone.lastControllerRotation.nlerp(waystone.controllerRotation, tickDelta * 0.025f));
+            matrices.translate(0, -0.125, 0);
 
-            var lerped = waystone.lastControllerRotation + rotation * tickDelta;
-            matrices.multiply(RotationAxis.POSITIVE_Y.rotation(lerped));
+//            matrices.multiply(waystone.controllerRotation);
 
             if (waystone.getWorld() != null) light = WorldRenderer.getLightmapCoordinates(waystone.getWorld(), waystone.getPos());
             MinecraftClient.getInstance().getItemRenderer().renderItem(stack, ModelTransformationMode.GROUND, light, overlay, matrices, vertexConsumers, waystone.getWorld(), waystone.getPos().hashCode());

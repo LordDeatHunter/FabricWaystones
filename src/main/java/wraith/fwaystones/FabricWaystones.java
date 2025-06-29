@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.Item;
@@ -31,7 +30,6 @@ import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.moss.MossTypes;
 import wraith.fwaystones.api.core.WaystoneTypes;
 import wraith.fwaystones.block.WaystoneBlock;
-import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
 import wraith.fwaystones.integration.accessories.AccessoriesCompat;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
@@ -66,7 +64,6 @@ public class FabricWaystones implements ModInitializer {
     public static final TagKey<Item> LOCAL_VOID_ITEM = TagKey.of(RegistryKeys.ITEM, id("local_void_item"));
     public static final TagKey<Item> DIRECTED_TELEPORT_ITEM = TagKey.of(RegistryKeys.ITEM, id("directed_teleport_item"));
 
-
     public static final TagKey<Item> WAYSTONE_CLEANERS = TagKey.of(Registries.ITEM.getKey(), id("cleans_waystones"));
     public static final TagKey<Item> WAYSTONE_BUCKET_CLEANERS = TagKey.of(Registries.ITEM.getKey(), id("cleans_waystones_bucket"));
 
@@ -75,8 +72,6 @@ public class FabricWaystones implements ModInitializer {
 
     public static final SoundEvent WAYSTONE_DEATIVATE = registerSoundEvent(id("block.waystone.deactivate"));
     public static final SoundEvent WAYSTONE_DEACTIVATE2 = registerSoundEvent(id("block.waystone.deactivate2"));
-
-    public static final SoundEvent WAYSTONE_TELEPORT_PLAYER = registerSoundEvent(id("block.waystone.teleport_player"));
 
     public static final SoundEvent WAYSTONE_MOSS_APPLY = registerSoundEvent(id("block.waystone.moss_apply"));
     public static final SoundEvent WAYSTONE_SHEAR = registerSoundEvent(id("block.waystone.shear"));
@@ -121,13 +116,17 @@ public class FabricWaystones implements ModInitializer {
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
             var blockEntity = WaystoneBlock.getEntity(world, pos);
 
-            if (blockEntity != null && !blockEntity.controllerStack().isEmpty()) {
-                if (!world.isClient()) {
-                    blockEntity.spawnItemStackAbove(blockEntity.exportControllerStack());
+            if (blockEntity != null) {
+                if (!blockEntity.controllerStack().isEmpty()) {
+                    if (!world.isClient()) {
+                        blockEntity.spawnItemStackAbove(blockEntity.exportControllerStack());
 
-                    return ActionResult.FAIL;
-                } else {
-                    resetClientAttacking();
+                        return ActionResult.FAIL;
+                    } else {
+                        resetClientAttacking();
+                    }
+                } else if (CONFIG.unbreakableGeneratedWaystones() == world.getBlockState(pos).get(WaystoneBlock.GENERATED)) {
+                    return ActionResult.PASS;
                 }
 
                 return ActionResult.CONSUME;
@@ -177,49 +176,49 @@ public class FabricWaystones implements ModInitializer {
         });
 
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
-            if(!joined) return;
+            if (!joined) return;
 
             WaystonePlayerData.getData(player).syncDataChange();
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal(MOD_ID)
-                .then(CommandManager.literal("delete")
-                        .requires(source -> source.hasPermissionLevel(1))
-                        .executes(context -> {
-                            var player = context.getSource().getPlayer();
-                            var storage = WaystoneDataStorage.getStorage(context.getSource().getWorld());
-                            if (player == null || storage.isSetup()) return 1;
+                                                                                                                        .then(CommandManager.literal("delete")
+                                                                                                                                  .requires(source -> source.hasPermissionLevel(1))
+                                                                                                                                  .executes(context -> {
+                                                                                                                                      var player = context.getSource().getPlayer();
+                                                                                                                                      var storage = WaystoneDataStorage.getStorage(context.getSource().getWorld());
+                                                                                                                                      if (player == null || storage.isSetup()) return 1;
 
-                            var dimension = Utils.getDimensionName(player.getWorld());
-                            storage.removeAllFromWorld(dimension);
-                            player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3Removed all waystones from " + dimension + "!"), false);
-                            return 1;
-                        })
-                )
-                .then(CommandManager.literal("forget_all")
-                        .executes(context -> {
-                            var player = context.getSource().getPlayer();
-                            if (player == null) return 1;
+                                                                                                                                      var dimension = Utils.getDimensionName(player.getWorld());
+                                                                                                                                      storage.removeAllFromWorld(dimension);
+                                                                                                                                      player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3Removed all waystones from " + dimension + "!"), false);
+                                                                                                                                      return 1;
+                                                                                                                                  })
+                                                                                                                        )
+                                                                                                                        .then(CommandManager.literal("forget_all")
+                                                                                                                                  .executes(context -> {
+                                                                                                                                      var player = context.getSource().getPlayer();
+                                                                                                                                      if (player == null) return 1;
 
-                            WaystonePlayerData.getData(player).forgetAllWaystones();
-                            player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten!"), false);
-                            return 1;
-                        })
-                        .then(CommandManager.argument("player", EntityArgumentType.player())
-                                .requires(source -> source.hasPermissionLevel(1))
-                                .executes(context -> {
-                                    var player = context.getSource().getPlayer();
-                                    if (player == null) return 1;
+                                                                                                                                      WaystonePlayerData.getData(player).forgetAllWaystones();
+                                                                                                                                      player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten!"), false);
+                                                                                                                                      return 1;
+                                                                                                                                  })
+                                                                                                                                  .then(CommandManager.argument("player", EntityArgumentType.player())
+                                                                                                                                            .requires(source -> source.hasPermissionLevel(1))
+                                                                                                                                            .executes(context -> {
+                                                                                                                                                var player = context.getSource().getPlayer();
+                                                                                                                                                if (player == null) return 1;
 
-                                    var target = EntityArgumentType.getPlayer(context, "player");
-                                    if (target == null) return 1;
+                                                                                                                                                var target = EntityArgumentType.getPlayer(context, "player");
+                                                                                                                                                if (target == null) return 1;
 
-                                    WaystonePlayerData.getData(target).forgetAllWaystones();
-                                    player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
-                                    return 1;
-                                })
-                        )
-                )
+                                                                                                                                                WaystonePlayerData.getData(target).forgetAllWaystones();
+                                                                                                                                                player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
+                                                                                                                                                return 1;
+                                                                                                                                            })
+                                                                                                                                  )
+                                                                                                                        )
         ));
     }
 

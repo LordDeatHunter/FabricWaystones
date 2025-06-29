@@ -13,11 +13,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import wraith.fwaystones.api.WaystoneDataStorage;
-import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.pond.MapStateDuck;
-import wraith.fwaystones.registry.WaystoneBlocks;
 
 import static wraith.fwaystones.registry.WaystoneBlocks.WAYSTONE;
 
@@ -39,7 +37,7 @@ public abstract class FilledMapItemMixin {
         var contextState = world.getBlockState(context.getBlockPos());
         if (!contextState.isOf(WAYSTONE)) return;
 
-        var targetPos = WaystoneBlock.getBottomHalfPos(context.getBlockPos(), contextState);
+        var targetPos = WaystoneBlock.getBasePos(context.getBlockPos(), contextState);
         var state = world.getBlockState(targetPos);
         if (!state.isOf(WAYSTONE)) return;
         var blockEntity = world.getBlockEntity(targetPos);

@@ -18,6 +18,7 @@
     "StructurePoolBasedGeneratorMixin",
     "StructurePoolGeneratorMixin",
     "StructureStartAccessor",
+    "TallBlantBlockAccessor",
     "scoreboard.PersistentStateMixin",
     "scoreboard.ScoreboardMixin",
     "scoreboard.ScoreboardStateMixin",

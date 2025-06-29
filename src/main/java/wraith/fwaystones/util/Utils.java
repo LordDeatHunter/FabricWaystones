@@ -14,6 +14,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorList;
@@ -210,7 +211,7 @@ public final class Utils {
 
         var oldPos = player.getBlockPos();
         if (!oldPos.isWithinDistance(target.pos(), 6) || !player.getWorld().getRegistryKey().equals(target.world().getRegistryKey())) {
-            player.getWorld().playSound(null, oldPos, FabricWaystones.WAYSTONE_TELEPORT_PLAYER, SoundCategory.BLOCKS, 1F, 1F);
+            player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         }
 
         player.detach();
@@ -218,7 +219,7 @@ public final class Utils {
 
         var playerPos = player.getBlockPos();
 
-        target.world().playSound(null, playerPos, FabricWaystones.WAYSTONE_TELEPORT_PLAYER, SoundCategory.BLOCKS, 1F, 1F);
+        target.world().playSound(null, playerPos, SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
 
         return true;
     }

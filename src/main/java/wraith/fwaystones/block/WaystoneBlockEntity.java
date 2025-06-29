@@ -1,13 +1,20 @@
 package wraith.fwaystones.block;
 
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.owo.ops.WorldOps;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
@@ -20,22 +27,28 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.BlockStateRaycastContext;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.*;
 import wraith.fwaystones.api.core.*;
@@ -60,11 +73,21 @@ import static wraith.fwaystones.FabricWaystones.WAYSTONE_SHEAR;
 
 public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory<WaystoneScreenOpenDataPacket>, WaystoneAccess {
 
+    public Quaternionf controllerRotation;
+    public Quaternionf lastControllerRotation;
     public int ticks;
-    public float controllerRotation;
-    public float lastControllerRotation;
-    public float targetControllerRotation;
+
+    @Nullable
+    public Integer focusedEntityId = null;
+    @Nullable
+    public Vec3d focusVector = null;
+
+    private static final KeyedEndec<Integer> FOCUSED_ENTITY_KEY = Endec.INT.nullableOf().keyed("focusedEntity", () -> null);
+    private static final KeyedEndec<Vec3d> FOCUS_VECTOR_KEY = MinecraftEndecs.VEC3D.nullableOf().keyed("focusVector", () -> Vec3d.ZERO);
+
     private static final Random RANDOM = Random.create();
+
+    //--
 
     private WaystonePosition waystonePosition;
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
@@ -376,6 +399,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         this.mossStack = ItemStack.fromNbtOrEmpty(lookup, tag.getCompound("moss_stack"));
 
+        this.focusedEntityId = tag.get(FOCUSED_ENTITY_KEY);
+        this.focusVector = tag.get(FOCUS_VECTOR_KEY);
+
         // Attempts to force an update of the states for re-rendering
         if (this.world != null && this.world.isClient) {
             world.scheduleBlockRerenderIfNeeded(pos.up(), Blocks.AIR.getDefaultState(), world.getBlockState(pos.up()));
@@ -406,6 +432,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         tag.put("controller_stack", this.controllerStack.encodeAllowEmpty(registryLookup));
 
         tag.put(MOSS_TYPE_ID_KEY, this.mossTypeId);
+
+        //        if (this.focusedEntityId != null)
+        tag.put(FOCUSED_ENTITY_KEY, this.focusedEntityId);
+//        if (this.focusVector != null)
+        tag.put(FOCUS_VECTOR_KEY, this.focusVector);
 
         return tag;
     }
@@ -464,53 +495,117 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     //--
 
-    public static void tick(World world, BlockPos pos, BlockState state, WaystoneBlockEntity waystone) {
-        waystone.lastControllerRotation = waystone.controllerRotation;
-        var controller = pos.toCenterPos().add(0, waystone.getControllerHeight(), 0);
-        var random = world.getRandom();
+    public static void tickServer(World world, BlockPos pos, BlockState state, WaystoneBlockEntity waystone) {
+        if (world.isClient) return;
+        var controller = waystone.getControllerPos();
+        var update = RANDOM.nextInt(100) == 0;
 
-        var closestPlayer = world.getClosestPlayer(
-            controller.x, controller.y, controller.z,
-            4.5,
-            waystone::shouldWatchEntity
-        );
+        Entity nextTarget = world.getClosestPlayer(controller.x, controller.y, controller.z, 4.5, waystone::shouldWatchEntity);
+        Vec3d nextVector = getRandomDirection();
+        if (nextTarget == null) {
+            var nearbyEntities = world.getOtherEntities(
+                null,
+                Box.from(controller).expand(10),
+                EntityPredicates.EXCEPT_SPECTATOR
+            );
+            if (!nearbyEntities.isEmpty() && RANDOM.nextFloat() >= 0.3) {
+                nextTarget = nearbyEntities.get(RANDOM.nextInt(nearbyEntities.size()));
+            } else {
+                var hit = world.raycast(
+                    new RaycastContext(
+                        controller,
+                        controller.add(nextVector.multiply(10)),
+                        RaycastContext.ShapeType.OUTLINE,
+                        RaycastContext.FluidHandling.NONE,
+                        ShapeContext.absent()
+                    )
+                );
+                if (hit.getType() == HitResult.Type.BLOCK) {
+                    world.setBlockBreakingInfo(
+                        -1,
+                        hit.getBlockPos(),
+                        100
+                    );
+                }
+            }
+        } else {
+            update = true;
+            waystone.shootRuneAt(nextTarget);
+            waystone.suckPortalParticleFrom(nextTarget);
+        }
+        if (nextTarget != null) nextVector = nextTarget.getPos();
+        if (update) {
+            waystone.focusedEntityId = nextTarget != null ? nextTarget.getId() : null;
+            waystone.focusVector = nextVector;
+            waystone.markDirty();
+        }
 
-        var others = world.getOtherEntities(
-            closestPlayer,
-            Box.of(controller, 10, 10, 10),
+        world.getOtherEntities(
+            null,
+            Box.from(controller).expand(6),
             waystone::shouldWatchEntity
-        );
-        others.forEach(waystone::shootRuneAt);
+        ).forEach(waystone::shootRuneAt);
 
         waystone.suckARandomPortalParticle();
 
-        if (closestPlayer != null) {
-            var offset = closestPlayer.getPos().subtract(controller).normalize();
-            waystone.targetControllerRotation = (float) Math.atan2(offset.x, offset.z);
-            waystone.shootRuneAt(closestPlayer);
-            waystone.suckPortalParticleFrom(closestPlayer);
-        } else {
-            waystone.targetControllerRotation += 0.02f;
-        }
+//        Entity adhdTarget = ;
+//        if (adhdTarget == null) {
+//            var adhdRandom = Random.create(waystone.ADHD_SEED + world.getTime());
+//            var distractions = world.getOtherEntities(
+//                null,
+//                Box.of(controller, 20, 20, 20),
+//                EntityPredicates.EXCEPT_SPECTATOR
+//            );
+//            if (distractions.isEmpty()) {
+//                adhdTarget = null;
+//            } else {
+//                adhdTarget = distractions.get(world.random.nextInt(distractions.size()));
+//            }
+//        }
+//
+//        if (nextTarget != null) {
+//            var offset = nextTarget.getEyePos().subtract(controller).normalize();
+//            waystone.targetControllerRotation = new Quaternionf().lookAlong(offset.toVector3f(), new Vector3f(0, 1, 0));
+//        } else {
+//            waystone.targetControllerRotation += 0.02f;
+//        }
+//
+//        while (waystone.controllerRotation >= Math.PI) waystone.controllerRotation -= (float) Math.TAU;
+//        while (waystone.controllerRotation < -Math.PI) waystone.controllerRotation += (float) Math.TAU;
+//
+//        while (waystone.targetControllerRotation >= Math.PI) waystone.targetControllerRotation -= (float) Math.TAU;
+//        while (waystone.targetControllerRotation < -Math.PI) waystone.targetControllerRotation += (float) Math.TAU;
+//
+//        var nextRotation = waystone.targetControllerRotation - waystone.controllerRotation;
+//
+//        while (nextRotation >= Math.PI) nextRotation -= (float) Math.TAU;
+//        while (nextRotation < -Math.PI) nextRotation += (float) Math.TAU;
+//
+//        waystone.controllerRotation += nextRotation * 0.4f;
+//        waystone.ticks++;
+    }
 
-        while (waystone.controllerRotation >= Math.PI) waystone.controllerRotation -= (float) Math.TAU;
-        while (waystone.controllerRotation < -Math.PI) waystone.controllerRotation += (float) Math.TAU;
+    @Environment(EnvType.CLIENT)
+    public static void tickClient(World world, BlockPos pos, BlockState state, WaystoneBlockEntity waystone) {
+        waystone.lastControllerRotation = waystone.controllerRotation;
+        var controller = waystone.getControllerPos();
 
-        while (waystone.targetControllerRotation >= Math.PI) waystone.targetControllerRotation -= (float) Math.TAU;
-        while (waystone.targetControllerRotation < -Math.PI) waystone.targetControllerRotation += (float) Math.TAU;
+        var target = waystone.focusedEntityId != null ? world.getEntityById(waystone.focusedEntityId) : null;
 
-        var nextRotation = waystone.targetControllerRotation - waystone.controllerRotation;
+        var targetVector = waystone.focusVector;
+        if (target != null) targetVector = target.getPos().subtract(controller).normalize();
+        if (targetVector == null) targetVector = getRandomDirection();
 
-        while (nextRotation >= Math.PI) nextRotation -= (float) Math.TAU;
-        while (nextRotation < -Math.PI) nextRotation += (float) Math.TAU;
-
-        waystone.controllerRotation += nextRotation * 0.4f;
+        waystone.controllerRotation = new Quaternionf().lookAlong(
+            targetVector.toVector3f(),
+            new Vector3f(0, 1, 0)
+        );
         waystone.ticks++;
     }
 
     private void shootRuneAt(Entity target) {
         if (world == null || !this.isActive()) return;
-        if (world.random.nextInt(20) != 0) return;
+        if (RANDOM.nextInt(20) != 0) return;
         var basePos = this.getPos().toBottomCenterPos();
         var watcherPos = basePos.add(0, getControllerHeight(), 0);
         var targetPos = target.getPos();
@@ -532,16 +627,15 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     private void suckPortalParticleFrom(Entity target) {
         if (world == null || !this.isActive()) return;
-        var random = world.getRandom();
-        if (random.nextInt(40) != 0) return;
+        if (RANDOM.nextInt(40) != 0) return;
         var watcherPos = this.getPos().toBottomCenterPos().add(0, getControllerHeight(), 0);
         var bb = target.getBoundingBox();
         var bbMin = bb.getMinPos();
         var bbMax = bb.getMaxPos();
         var end = new Vec3d(
-            bbMin.x + (bbMax.x - bbMin.x) * random.nextDouble(),
-            bbMin.y + (bbMax.y - bbMin.y) * random.nextDouble(),
-            bbMin.z + (bbMax.z - bbMin.z) * random.nextDouble()
+            bbMin.x + (bbMax.x - bbMin.x) * RANDOM.nextDouble(),
+            bbMin.y + (bbMax.y - bbMin.y) * RANDOM.nextDouble(),
+            bbMin.z + (bbMax.z - bbMin.z) * RANDOM.nextDouble()
         )
             .subtract(watcherPos)
             .subtract(0, 0.75, 0);
@@ -554,25 +648,30 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     private void suckARandomPortalParticle() {
         if (world == null || !this.isActive()) return;
-        var random = world.getRandom();
-        if (random.nextInt(100) != 0) return;
+        if (RANDOM.nextInt(100) != 0) return;
 
-        double theta = random.nextDouble() * 2 * Math.PI;
-        double u = random.nextDouble();
-        double phi = Math.acos(2 * u - 1);
-
-        var controllerPos = this.getPos().toBottomCenterPos().add(0, getControllerHeight(), 0);
+        var controllerPos = getControllerPos();
+        var randomDirection = getRandomDirection();
         this.world.addParticle(
             ParticleTypes.PORTAL,
             controllerPos.x,
             controllerPos.y,
             controllerPos.z,
-            Math.sin(phi) * Math.cos(theta) * 2,
-            Math.sin(phi) * Math.sin(theta) * 2 - 0.2,
-            Math.cos(phi) * 2
+            randomDirection.x * 2,
+            randomDirection.y * 2 - 0.2,
+            randomDirection.z * 2
         );
+    }
 
-
+    private static Vec3d getRandomDirection() {
+        double theta = RANDOM.nextDouble() * 2 * Math.PI;
+        double u = RANDOM.nextDouble();
+        double phi = Math.acos(2 * u - 1);
+        return new Vec3d(
+            Math.sin(phi) * Math.cos(theta),
+            Math.sin(phi) * Math.sin(theta),
+            Math.cos(phi)
+        );
     }
 
     public boolean isSingleBlock() {
@@ -581,6 +680,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     public double getControllerHeight() {
         return (isSingleBlock() ? 14 : 29) / 16f;
+    }
+
+    public Vec3d getControllerPos() {
+        return this.pos.toBottomCenterPos().add(0, getControllerHeight(), 0);
     }
 
     public double getEmitterRunesHeight() {
