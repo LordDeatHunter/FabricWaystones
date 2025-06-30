@@ -583,10 +583,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         world.getOtherEntities(
             null,
             Box.from(controller).expand(6),
-            waystone::canSeeEntity
-        ).forEach(waystone::isValidFocus);
+            waystone::isValidFocus
+        ).forEach(waystone::shootRuneAt);
 
-        waystone.suckARandomPortalParticle();
+        if (waystone.getData() != null) waystone.suckARandomPortalParticle();
     }
 
     @SuppressWarnings("RedundantIfStatement")
