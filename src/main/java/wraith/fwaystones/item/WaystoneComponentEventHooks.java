@@ -48,7 +48,7 @@ public class WaystoneComponentEventHooks {
 
                 TypedActionResult<ItemStack> result = null;
 
-                if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) {
+                if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS)) {
                     result = useLocalVoid(world, user, stack);
                 } else if (stack.contains(WaystoneDataComponents.TELEPORTER)) {
                     result = useTeleporter(user, stack);
@@ -160,7 +160,7 @@ public class WaystoneComponentEventHooks {
                 var entity = WaystoneBlock.getEntity(world, pos);
                 var stack = user.getStackInHand(hand);
 
-                if (entity != null && stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) {
+                if (entity != null && stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS)) {
                     if (!world.isClient) {
                         stack.set(WaystoneDataComponents.HASH_TARGET, new WaystoneHashTarget(entity.getUUID(), null));
 
@@ -220,7 +220,7 @@ public class WaystoneComponentEventHooks {
     public static TypedActionResult<ItemStack> useLocalVoid(World world, PlayerEntity user, ItemStack stack) {
         var target = WaystoneHashTarget.get(stack, world);
 
-        var canTeleport = stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEM);
+        var canTeleport = stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEMS);
 
         if (target == null) return canTeleport ? TypedActionResult.pass(stack) : TypedActionResult.fail(stack);
 

@@ -37,8 +37,8 @@ import wraith.fwaystones.networking.packets.s2c.SyncWaystoneStorage;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.registry.*;
-import wraith.fwaystones.util.FWConfig;
 import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.util.FWConfig;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.registry.WaystonesWorldgen;
 
@@ -61,8 +61,13 @@ public class FabricWaystones implements ModInitializer {
         CONFIG = FWConfig.createAndLoad();
     }
 
-    public static final TagKey<Item> LOCAL_VOID_ITEM = TagKey.of(RegistryKeys.ITEM, id("local_void_item"));
-    public static final TagKey<Item> DIRECTED_TELEPORT_ITEM = TagKey.of(RegistryKeys.ITEM, id("directed_teleport_item"));
+    public static final TagKey<Item> PORTABLE_TELEPORTER_ITEMS = TagKey.of(RegistryKeys.ITEM, id("portable_teleporter_items"));
+    public static final TagKey<Item> LOCAL_VOID_ITEMS = TagKey.of(RegistryKeys.ITEM, id("local_void_items"));
+    public static final TagKey<Item> DIRECTED_TELEPORT_ITEMS = TagKey.of(RegistryKeys.ITEM, id("directed_teleporter_items"));
+    public static final TagKey<Item> VALID_CONTROLLER_STACKS = TagKey.of(Registries.ITEM.getKey(), id("valid_controller_stacks"));
+
+    public static final TagKey<Item> WAYSTONE_DISPLAY_ALIVE = TagKey.of(Registries.ITEM.getKey(), id("waystone_display/alive"));
+    public static final TagKey<Item> WAYSTONE_DISPLAY_GYRO = TagKey.of(Registries.ITEM.getKey(), id("waystone_display/gyro"));
 
     public static final TagKey<Item> WAYSTONE_CLEANERS = TagKey.of(Registries.ITEM.getKey(), id("cleans_waystones"));
     public static final TagKey<Item> WAYSTONE_BUCKET_CLEANERS = TagKey.of(Registries.ITEM.getKey(), id("cleans_waystones_bucket"));

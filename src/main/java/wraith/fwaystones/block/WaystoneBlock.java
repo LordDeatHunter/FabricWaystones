@@ -371,7 +371,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         var item = stack.getItem();
 
         if (stack.contains(WaystoneDataComponents.HASH_TARGETS)) return ActionResult.PASS;
-        if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) return ActionResult.PASS;
+        if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS)) return ActionResult.PASS;
         if (item instanceof WaystoneDebuggerItem) return ActionResult.PASS;
 
         var blockEntity = WaystoneBlock.getEntity(world, pos, state);

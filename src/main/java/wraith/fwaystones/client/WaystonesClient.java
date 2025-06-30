@@ -1,9 +1,7 @@
 package wraith.fwaystones.client;
 
 import com.google.common.reflect.Reflection;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mojang.authlib.minecraft.client.ObjectMapper;
 import io.wispforest.owo.ui.core.Color;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -16,8 +14,6 @@ import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.Block;
-import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.ModelPredicateProvider;
 import net.minecraft.client.option.KeyBinding;
@@ -26,7 +22,6 @@ import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.model.UnbakedModel;
 import net.minecraft.client.render.model.json.JsonUnbakedModel;
 import net.minecraft.item.BlockItem;
-import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -34,12 +29,8 @@ import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystoneEvents;
-import wraith.fwaystones.api.client.MossColorProvidersRegistry;
 import wraith.fwaystones.api.core.*;
-import wraith.fwaystones.api.moss.MossType;
-import wraith.fwaystones.api.moss.MossTypes;
 import wraith.fwaystones.block.WaystoneBlock;
-import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
 import wraith.fwaystones.client.models.*;
 import wraith.fwaystones.integration.accessories.AccessoriesClientCompat;
@@ -75,7 +66,7 @@ public class WaystonesClient implements ClientModInitializer {
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (USE_TELEPORTER.wasPressed()) {
                 var ref = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(client.player, stack -> {
-                    return stack.contains(WaystoneDataComponents.TELEPORTER) || stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEM);
+                    return stack.contains(WaystoneDataComponents.TELEPORTER) || stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEMS);
                 });
 
                 if (ref != null) {

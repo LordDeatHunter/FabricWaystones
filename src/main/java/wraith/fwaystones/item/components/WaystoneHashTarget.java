@@ -48,7 +48,7 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
                     if (!position.isUnsafe()) {
                         var uuid = WaystoneDataStorage.getStorage(world).getUUID(position);
 
-                        var target = new WaystoneHashTarget(uuid, stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEM));
+                        var target = new WaystoneHashTarget(uuid, stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEMS));
 
                         if (!world.isClient()) {
                             stack.set(WaystoneDataComponents.HASH_TARGET, target);
@@ -93,7 +93,7 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
         var cooldowns = FabricWaystones.CONFIG.teleportCooldowns;
 
         if (stack != null) {
-            var canTeleport = stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEM);
+            var canTeleport = stack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEMS);
 
             var allowTeleportOnUse = this.allowTeleportOnUse;
 

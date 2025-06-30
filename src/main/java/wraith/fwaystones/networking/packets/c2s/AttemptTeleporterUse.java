@@ -21,7 +21,7 @@ public record AttemptTeleporterUse() {
             return;
         }
 
-        ref = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(player, stack -> stack.isIn(FabricWaystones.LOCAL_VOID_ITEM));
+        ref = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(player, stack -> stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS));
 
         if (ref != null) {
             var result = WaystoneComponentEventHooks.useLocalVoid(player.getWorld(), player, ref.get());

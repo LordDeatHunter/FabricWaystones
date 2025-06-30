@@ -27,6 +27,7 @@ import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
@@ -49,8 +50,6 @@ public class WaystoneCompassRenderer {
         .concurrencyLevel(1)
         .expireAfterAccess(Duration.ofSeconds(30))
         .build(CacheLoader.from(() -> new HashMap<>()));
-
-    private static final List<UUID> activePointers = new ArrayList<>();
 
     public static void init() {
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {
@@ -117,7 +116,7 @@ public class WaystoneCompassRenderer {
         var player = client.player;
         if (player == null) return;
 
-        var storage = WaystoneDataStorage.getStorage(player);
+//        var storage = WaystoneDataStorage.getStorage(player);
         var owner = getOwner(holder);
         var playerStorage = WaystonePlayerData.getData(owner != null ? owner : player);
 
@@ -126,74 +125,101 @@ public class WaystoneCompassRenderer {
         matrices.translate(0, holder.getEyeHeight(holder.getPose()), 0);
 
         for (ItemStack compass : WAYSTONE_COMPASS_STACKS.removeAll(holder.getUuid())) {
+            drawWaystonePointers(
+                compass,
+                matrices,
+                vertexConsumers,
+                playerStorage,
+                holder.getUuid(),
+                player.getWorld(),
+                holder.getLerpedPos(tickDelta).add(0, holder.getEyeHeight(holder.getPose()), 0),
+                light,
+                overlay,
+                tickDelta,
+                1
+            );
+        }
+        matrices.pop();
+    }
+
+    public static void drawWaystonePointers(
+        ItemStack compass,
+        MatrixStack matrices,
+        VertexConsumerProvider vertexConsumers,
+        @Nullable WaystonePlayerData waystonePlayerData,
+        UUID holderUUID,
+        World world,
+        Vec3d holderPos,
+        int light,
+        int overlay,
+        float tickDelta,
+        double scale
+    ) {
+        var client = MinecraftClient.getInstance();
+        var storage = WaystoneDataStorage.getStorage(world);
+
+        var pointers = waystonePointers.getUnchecked(holderUUID);
+
+        var waystones = (waystonePlayerData != null ? waystonePlayerData.discoveredWaystones().stream() : storage.getAllIds().stream())
+            .map(storage::getData)
+            .filter(Objects::nonNull)
+            .map(waystoneData -> new Pair<>(waystoneData, storage.getPosition(waystoneData)))
+            .filter(pair -> pair.getRight() != null)
+            .sorted(Comparator.comparingDouble(pair -> pair.getRight().blockPos().up().toBottomCenterPos().distanceTo(holderPos)))
+            .toList();
+
+        matrices.push();
+        for (Pair<WaystoneData, WaystonePosition> pair : waystones) {
+            var waystone = pair.getLeft();
+            var waystonePosition = pair.getRight();
+            if (!world.getRegistryKey().equals(waystonePosition.worldKey())) continue;
+
+            var waystonePos = waystonePosition.blockPos().up().toBottomCenterPos();
+
+            var pointer = pointers.computeIfAbsent(waystone.uuid(), k -> new WaystonePointer());
+            pointer.update(holderPos, waystonePos, waystones.size() - waystones.indexOf(pair));
+
+            if (Math.abs(1 - pointer.value) < 0.1f) continue;
+            var displayPos = Vec3d.ZERO.lerp(waystonePos.subtract(holderPos), pointer.value);
 
             matrices.push();
+            matrices.translate(displayPos.x, displayPos.y, displayPos.z);
 
-            var myPointers = waystonePointers.getUnchecked(holder.getUuid());
-            activePointers.add(holder.getUuid());
+            displayPos.multiply(scale);
 
-            var waystones = playerStorage.discoveredWaystones().stream()
-                .map(storage::getData)
-                .filter(Objects::nonNull)
-                .map(waystoneData -> new Pair<>(waystoneData, storage.getPosition(waystoneData)))
-                .filter(pair -> pair.getRight() != null)
-                .sorted(Comparator.comparingDouble(pair -> pair.getRight().blockPos().up().toBottomCenterPos().distanceTo(holder.getPos())))
-                .toList();
+            var stack = WaystoneItems.WAYSTONE.getDefaultStack();
+            stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(waystone.type().getId()));
+            stack.set(WaystoneDataComponents.DATA_HOLDER, new WaystoneDataHolder(waystone));
 
-            for (Pair<WaystoneData, WaystonePosition> pair : waystones) {
-                var waystone = pair.getLeft();
-                var waystonePosition = pair.getRight();
-                if (!player.getWorld().getRegistryKey().getValue().toString().equals(waystonePosition.worldName())) continue;
+            matrices.scale(1 / 6f, 1 / 6f, 1 / 6f);
 
-                var holderPos = holder.getLerpedPos(tickDelta).add(0, holder.getEyeHeight(holder.getPose()), 0);
-                var waystonePos = waystonePosition.blockPos().up().toBottomCenterPos();
+            matrices.push();
+            var iconDirection = displayPos.normalize().multiply(scale);
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotation((float) Math.atan2(iconDirection.x, iconDirection.z)));
+            client.getItemRenderer().renderItem(
+                stack,
+                ModelTransformationMode.FIXED,
+                light,
+                overlay,
+                matrices,
+                vertexConsumers,
+                client.world,
+                0
+            );
+            matrices.pop();
 
-                var pointer = myPointers.computeIfAbsent(waystone.uuid(), k -> new WaystonePointer());
-                pointer.update(holderPos, waystonePos, waystones.size() - waystones.indexOf(pair));
+            matrices.translate(0, 0.75f, 0);
 
-                if (Math.abs(1 - pointer.value) < 0.1f) continue;
-                var displayPos = Vec3d.ZERO.lerp(waystonePos.subtract(holderPos), pointer.value);
+            matrices.scale(1 / 64f, 1 / 64f, 1 / 64f);
 
-                matrices.push();
-                matrices.translate(displayPos.x, displayPos.y, displayPos.z);
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180));
 
-                var stack = WaystoneItems.WAYSTONE.getDefaultStack();
-                stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(waystone.type().getId()));
-                stack.set(WaystoneDataComponents.DATA_HOLDER, new WaystoneDataHolder(waystone));
+            var camDirection = displayPos.add(holderPos).subtract(client.gameRenderer.getCamera().getPos()).normalize();
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotation((float) Math.atan2(-camDirection.x, camDirection.z)));
 
-                matrices.scale(1 / 6f, 1 / 6f, 1 / 6f);
+            drawLabel(client, Text.literal(String.format("%.1f", holderPos.distanceTo(waystonePos))), matrices, vertexConsumers, light);
+            if (waystone instanceof Named named) drawLabel(client, named.parsedName(), matrices, vertexConsumers, light);
 
-                matrices.push();
-                var iconDirection = displayPos.normalize();
-                matrices.multiply(RotationAxis.POSITIVE_Y.rotation((float) Math.atan2(iconDirection.x, iconDirection.z)));
-                client.getItemRenderer().renderItem(
-                    stack,
-                    ModelTransformationMode.FIXED,
-                    light,
-                    overlay,
-                    matrices,
-                    vertexConsumers,
-                    client.world,
-                    0
-                );
-                matrices.pop();
-
-                matrices.translate(0, 0.75f, 0);
-
-                matrices.scale(1 / 64f, 1 / 64f, 1 / 64f);
-
-                matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180));
-
-                var camDirection = displayPos.add(holder.getLerpedPos(tickDelta)).subtract(client.gameRenderer.getCamera().getPos()).normalize();
-                matrices.multiply(RotationAxis.POSITIVE_Y.rotation((float) Math.atan2(-camDirection.x, camDirection.z)));
-
-                drawLabel(client, Text.literal(String.format("%.1f", holderPos.distanceTo(waystonePos))), matrices, vertexConsumers, light);
-                if (waystone instanceof Named named) {
-                    drawLabel(client, named.parsedName(), matrices, vertexConsumers, light);
-                }
-
-                matrices.pop();
-            }
             matrices.pop();
         }
         matrices.pop();
@@ -231,7 +257,7 @@ public class WaystoneCompassRenderer {
     }
 
     @Environment(EnvType.CLIENT)
-    private static class WaystonePointer {
+    public static class WaystonePointer {
         private static final long MS_TO_NS = 1000000L;
 
         double value = 0;
