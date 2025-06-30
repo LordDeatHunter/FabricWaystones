@@ -15,24 +15,32 @@ public class WaystoneData {
 
     public static final WaystoneData EMPTY = new WaystoneData(EMPTY_UUID, WaystoneTypes.STONE_TYPE, -1);
 
-    public static final StructEndec<WaystoneData> ENDEC = StructEndecBuilder.of(
+    private static final StructEndec<WaystoneData> SIMPLE_ENDEC = StructEndecBuilder.of(
         BuiltInEndecs.UUID.fieldOf("uuid", WaystoneData::uuid),
         WaystoneTypes.ENDEC.fieldOf("type", WaystoneData::type),
         Endec.INT.fieldOf("color", WaystoneData::color),
         WaystoneData::new
     );
 
+    public static final StructEndec<WaystoneData> ENDEC = (StructEndec<WaystoneData>) Endec.dispatchedStruct(
+        type -> {
+            return switch (type){
+                case SIMPLE -> SIMPLE_ENDEC;
+                case NETWORKED -> NetworkedWaystoneData.ENDEC;
+            };
+        },
+        WaystoneData::dataType,
+        Endec.forEnum(Type.class),
+        "variant"
+    );
+
     protected final UUID uuid;
 
-    protected WaystoneType type = WaystoneTypes.STONE_TYPE;
+    protected WaystoneType type;
     protected int color;
 
-    public WaystoneData() {
-        this(UUID.randomUUID());
-    }
-
     public WaystoneData(UUID uuid) {
-        this.uuid = uuid;
+        this(uuid, WaystoneTypes.STONE_TYPE, WaystoneTypes.STONE_TYPE.defaultRuneColor());
     }
 
     public WaystoneData(UUID uuid, WaystoneType type, int color) {
@@ -67,6 +75,9 @@ public class WaystoneData {
         this.color = value;
     }
 
+    public WaystoneData cloneWithUUID(UUID uuid) {
+        return new WaystoneData(uuid, type, color);
+    }
 
     @Override
     public boolean equals(Object object) {
@@ -76,5 +87,14 @@ public class WaystoneData {
     @Override
     public int hashCode() {
         return Objects.hashCode(uuid);
+    }
+
+    public Type dataType() {
+        return Type.SIMPLE;
+    }
+
+    public enum Type {
+        SIMPLE,
+        NETWORKED
     }
 }

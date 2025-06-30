@@ -12,6 +12,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import wraith.fwaystones.api.*;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.api.teleport.TeleportAction;
 import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
@@ -21,12 +23,13 @@ import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.util.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
 
     protected final PlayerEntity player;
-    protected ArrayList<UUID> sortedWaystones = new ArrayList<>();
-    protected ArrayList<UUID> filteredWaystones = new ArrayList<>();
+    protected List<UUID> sortedWaystones = new ArrayList<>();
+    protected List<UUID> filteredWaystones = new ArrayList<>();
     protected String filter = "";
     protected ScreenHandlerType<? extends UniversalWaystoneScreenHandler<?>> type;
 
@@ -50,39 +53,57 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
             this.addSlot(new Slot(this.player.getInventory(), x, 2000000000, 2000000000));
         }
 
-        setupHandler();
-        updateWaystones(player);
+        if (setupHandler()) {
+            updateWaystones(player);
+        } else {
+            closeScreen();
+        }
     }
 
-    public void setupHandler() {
-
+    public boolean setupHandler() {
+        return true;
     }
 
     public void updateWaystones(PlayerEntity player) {
         if (!player.getWorld().isClient) return;
 
-        this.sortedWaystones = new ArrayList<>();
+        var waystones = new ArrayList<UUID>();
 
         var data = WaystonePlayerData.getData(player);
         var storage = WaystoneDataStorage.getStorage(player);
 
         if (data.viewDiscoveredWaystones()) {
-            this.sortedWaystones.addAll(data.sortedPositionedDiscoveredHashs());
+            waystones.addAll(data.discoveredWaystones());
         }
 
         if (data.viewGlobalWaystones()) {
             for (var waystone : storage.getGlobals()) {
-                if (!this.sortedWaystones.contains(waystone)) {
-                    this.sortedWaystones.add(waystone);
+                if (!waystones.contains(waystone)) {
+                    waystones.add(waystone);
                 }
             }
         } else {
-            this.sortedWaystones.removeIf(storage::isGlobal);
+            waystones.removeIf(storage::isGlobal);
         }
 
-        this.sortedWaystones.sort(Comparator.comparing(a -> storage.getData(a).sortingName(), String::compareTo));
+        this.sortedWaystones = sortUUIDs(waystones);
         filterWaystones();
     }
+
+    public List<UUID> sortUUIDs(List<UUID> waystoneUUIDs) {
+        var storage = WaystoneDataStorage.getStorage(player);
+
+        return waystoneUUIDs
+            .stream()
+            .map(uuid -> {
+                return storage.hasPosition(uuid) && storage.getData(uuid) instanceof NetworkedWaystoneData networkedData ? networkedData : null;
+            })
+            .filter(Objects::nonNull)
+            .sorted(Comparator.comparing(NetworkedWaystoneData::sortingName, String::compareTo))
+            .map(WaystoneData::uuid)
+            .collect(Collectors.toList());
+    }
+
 
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
@@ -180,7 +201,8 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
         var searchType = WaystonePlayerData.getData(player).waystoneSearchType();
         var storage = WaystoneDataStorage.getStorage(player);
         for (var uuid : this.sortedWaystones) {
-            String name = storage.getData(uuid).sortingName();
+            if (!(storage.getData(uuid) instanceof NetworkedWaystoneData networkedData)) continue;
+            String name = networkedData.sortingName();
             if ("".equals(this.filter) || searchType.match(name, filter)) {
                 filteredWaystones.add(uuid);
             }

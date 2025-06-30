@@ -8,6 +8,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.map.MapState;
+import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
@@ -19,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.api.core.WaystoneTypes;
 import wraith.fwaystones.pond.MapStateDuck;
 
@@ -92,7 +94,7 @@ public abstract class MapRendererMixin {
 
             matrices.pop();
             var textRenderer = client.textRenderer;
-            var name = waystone.parsedName();
+            var name = waystone instanceof Named named ? named.parsedName() : Text.empty();
             float o = textRenderer.getWidth(name);
             float p = MathHelper.clamp(25.0F / o, 0.0F, 6.0F / 9.0F);
             matrices.push();

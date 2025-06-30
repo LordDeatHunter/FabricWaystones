@@ -13,6 +13,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.c2s.RenameWaystone;
 import wraith.fwaystones.networking.packets.c2s.RevokeWaystoneOwner;
@@ -289,7 +290,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen<WaystoneBlockSc
         this.nameField.setDrawsBackground(false);
         this.nameField.setFocusUnlocked(true);
         var data = WaystoneDataStorage.getStorage(this.player).getData(handler.uuid());
-        this.nameField.setText(data == null ? "" : data.name());
+        this.nameField.setText((data instanceof Named named) ? named.name() : "");
         this.nameField.setChangedListener((s) -> {
             boolean settable = !handler.getName().equals(s);
             // TODO: unhardcode this

@@ -12,6 +12,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.item.components.TextUtils;
@@ -44,20 +45,22 @@ public class WaystoneDebuggerItem extends Item {
         var data = waystone.getData();
 
         if (data != null) {
-            var owner = data.ownerID();
-            var ownerName = data.ownerID();
-
             var message = Text.literal("");
-            message.append("§6[§eNAME§6]§e=§3").append(data.name());
-            message.append("\n§6[§eGLOBAL§6]§e=§3" + data.global());
+
+            if (data instanceof NetworkedWaystoneData networkedData) {
+                var owner = networkedData.ownerID();
+                var ownerName = networkedData.ownerID();
+
+                message.append("§6[§eNAME§6]§e=§3").append(networkedData.name());
+                message.append("\n§6[§eGLOBAL§6]§e=§3" + networkedData.global());
+
+                message.append("\n§6[§eOWNER-UUID§6]§e=§3" + (owner != null ? owner : "NONE"));
+                message.append("\n§6[§eOWNER-NAME§6]§e=§3" + (ownerName != null ? ownerName : "NONE"));
+            }
+
             message.append("\n§6[§eHASH§6]§e=§3" + hash.getHexHash());
             message.append("\n§6[§eCOLOR§6]§e=§3" + data.color());
-            if (owner != null && ownerName != null) {
-                message.append("\n§6[§eOWNER-UUID§6]§e=§3" + owner);
-                message.append("\n§6[§eOWNER-NAME§6]§e=§3" + ownerName);
-            } else {
-                message.append("\n§6[§eNO-OWNER§6]");
-            }
+
             player.sendMessage(message, false);
         }
 

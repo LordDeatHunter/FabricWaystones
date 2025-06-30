@@ -12,6 +12,7 @@ import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
@@ -82,7 +83,7 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
         if (storage != null) {
             var data = storage.getData(uuid);
 
-            if (data != null) name = data.parsedName();
+            if (data instanceof Named named) name = named.parsedName();
         }
 
         if (name != null) {

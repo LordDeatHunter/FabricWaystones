@@ -32,8 +32,8 @@ public final class NetworkedWaystoneData extends WaystoneData implements Ownable
     private UUID owner = null;
     private String ownerName = null;
 
-    public NetworkedWaystoneData(String name, WaystoneType type) {
-        this(UUID.randomUUID(), Utils.generateWaystoneName(name), type.defaultRuneColor(), false);
+    public NetworkedWaystoneData(UUID uuid, String name) {
+        this(uuid, Utils.generateWaystoneName(name), false);
     }
 
     public NetworkedWaystoneData(UUID uuid, WaystoneType type, int color, String name, boolean global, UUID owner, String ownerName) {
@@ -45,15 +45,11 @@ public final class NetworkedWaystoneData extends WaystoneData implements Ownable
         this.setOwnerData(owner, ownerName);
     }
 
-    public NetworkedWaystoneData(UUID uuid, String name, int color, boolean global) {
-        super(uuid, WaystoneTypes.STONE_TYPE, color);
+    public NetworkedWaystoneData(UUID uuid, String name, boolean global) {
+        super(uuid);
 
         this.name = name;
         this.global = global;
-    }
-
-    public static NetworkedWaystoneData createFrom(WaystoneDataStorage storage, WaystoneData prevData, String name) {
-        return new NetworkedWaystoneData(storage.getUniqueUUID(), prevData.type(), prevData.color(), name, false, null, null);
     }
 
     @Override
@@ -127,6 +123,10 @@ public final class NetworkedWaystoneData extends WaystoneData implements Ownable
                 "global=" + global + ", " +
                 "ownerUUID=" + owner + ", " +
                 "ownerName=" + ownerName + ']';
+    }
+
+    public Type dataType() {
+        return Type.NETWORKED;
     }
 
     public NetworkedWaystoneData cloneWithUUID(UUID uuid) {

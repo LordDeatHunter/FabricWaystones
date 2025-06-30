@@ -26,6 +26,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
+import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
@@ -44,6 +45,8 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static wraith.fwaystones.networking.WaystoneNetworkHandler.CHANNEL;
 
@@ -61,7 +64,7 @@ public class WaystoneDataStorage {
 
     public static final Endec<WaystoneDataStorage> ENDEC = StructEndecBuilder.of(
         MAP_ENDEC.fieldOf("positions", WaystoneDataStorage::exportPositions),
-        NetworkedWaystoneData.ENDEC.setOf().fieldOf("waystones", WaystoneDataStorage::exportData),
+        WaystoneData.ENDEC.setOf().fieldOf("waystones", WaystoneDataStorage::exportData),
         WaystoneDataStorage::new
     );
 
@@ -79,11 +82,11 @@ public class WaystoneDataStorage {
     public final Map<WaystonePosition, UUID> positionToUUID = new ConcurrentHashMap<>();
     public final Map<UUID, WaystonePosition> uuidToPosition = new ConcurrentHashMap<>();
 
-    public final Map<UUID, NetworkedWaystoneData> uuidToData = new ConcurrentHashMap<>();
+    public final Map<UUID, WaystoneData> uuidToData = new ConcurrentHashMap<>();
 
     public final Map<WaystonePosition, WeakReference<WaystoneBlockEntity>> waystoneLookupCache = new ConcurrentHashMap<>();
 
-    WaystoneDataStorage(Map<RegistryKey<World>, Map<BlockPos, UUID>> waystonePositions, Set<NetworkedWaystoneData> waystones) {
+    WaystoneDataStorage(Map<RegistryKey<World>, Map<BlockPos, UUID>> waystonePositions, Set<WaystoneData> waystones) {
         for (var data : waystones) {
             uuidToData.put(data.uuid(), data);
         }
@@ -117,7 +120,7 @@ public class WaystoneDataStorage {
         return map;
     }
 
-    public Set<NetworkedWaystoneData> exportData() {
+    public Set<WaystoneData> exportData() {
         return Set.copyOf(uuidToData.values());
     }
 
@@ -312,7 +315,7 @@ public class WaystoneDataStorage {
     //--
 
     @Nullable
-    public NetworkedWaystoneData getData(WaystonePosition position) {
+    public WaystoneData getData(WaystonePosition position) {
         if (position.equals(WaystonePosition.EMPTY)) return null;
 
         var uuid = positionToUUID.get(position);
@@ -322,7 +325,7 @@ public class WaystoneDataStorage {
         return getData(uuid);
     }
 
-    public NetworkedWaystoneData getData(UUID uuid) {
+    public WaystoneData getData(UUID uuid) {
         return uuidToData.get(uuid);
     }
 
@@ -359,7 +362,7 @@ public class WaystoneDataStorage {
     //--
 
     @Nullable
-    public WaystonePosition getPosition(NetworkedWaystoneData data) {
+    public WaystonePosition getPosition(WaystoneData data) {
         return getPosition(data.uuid());
     }
 
@@ -376,52 +379,34 @@ public class WaystoneDataStorage {
         return Collections.unmodifiableSet(uuidToData.keySet());
     }
 
-    public NetworkedWaystoneData createGetOrImportData(WaystoneBlockEntity blockEntity) {
+    @ApiStatus.Internal
+    public WaystoneData createGetOrImportData(WaystoneBlockEntity blockEntity, @Nullable WaystoneData seedData, Function<UUID, WaystoneData> waystoneDataCreator) {
         if (isClient) return this.getData(blockEntity.getUUID());
 
         var pos = blockEntity.position();
-        var holder = blockEntity.dataHolder;
+        var waystoneType = blockEntity.getWaystoneType();
 
-        if (holder == null) {
+        WaystoneData data = null;
+
+        if (seedData == null) {
             if (hasData(pos)) return getData(pos);
 
-            var customName = blockEntity.getCustomName();
-
-            var data = createData(pos, customName != null ? customName.getString() : "", blockEntity.getWaystoneType());
-            ;
-
-            blockEntity.markDirty();
-
-            return data;
+            data = waystoneDataCreator.apply(getUniqueUUID());
+        } else if (hasData(seedData.uuid()) && hasPosition(seedData.uuid())) {
+            data = seedData.cloneWithUUID(getUniqueUUID());
+        } else {
+            data = seedData;
         }
 
-        var data = holder.data();
+        data.type(waystoneType);
 
-        if (hasData(data.uuid()) && hasPosition(data.uuid())) {
-            var uuid = getUniqueUUID();
-
-            data = data.cloneWithUUID(uuid);
-        }
-
-        data.type(blockEntity.getWaystoneType());
+        if (data == null) return null;
 
         addData(data);
-
-        blockEntity.dataHolder = null;
 
         positionDataInWorld(pos, data);
 
         blockEntity.markDirty();
-
-        return data;
-    }
-
-    public NetworkedWaystoneData createData(WaystonePosition position, String name, WaystoneType type) {
-        var data = new NetworkedWaystoneData(name, type);
-
-        addData(data);
-
-        positionDataInWorld(position, data);
 
         return data;
     }
@@ -485,7 +470,7 @@ public class WaystoneDataStorage {
         CHANNEL.serverHandle(SERVER).send(positionChanges, dataChanges);
     }
 
-    private void positionDataInWorld(WaystonePosition position, NetworkedWaystoneData data) {
+    private void positionDataInWorld(WaystonePosition position, WaystoneData data) {
         if (position.equals(WaystonePosition.EMPTY)) {
             FabricWaystones.LOGGER.warn("Unable to create WaystoneData as it was found to be EMPTY Hash!");
             return;
@@ -503,7 +488,7 @@ public class WaystoneDataStorage {
         syncPositionChange(uuid, position, false);
     }
 
-    public NetworkedWaystoneData removeData(UUID uuid, boolean sync) {
+    public WaystoneData removeData(UUID uuid, boolean sync) {
         var data = uuidToData.remove(uuid);
 
         if (sync) syncDataChange(uuid, DataChangeType.REMOVAL);
@@ -511,7 +496,7 @@ public class WaystoneDataStorage {
         return data;
     }
 
-    private void addData(NetworkedWaystoneData data) {
+    private void addData(WaystoneData data) {
         var uuid = data.uuid();
 
         uuidToData.put(uuid, data);
@@ -520,7 +505,7 @@ public class WaystoneDataStorage {
     }
 
     @Nullable
-    public WaystoneBlockEntity getEntity(NetworkedWaystoneData data) {
+    public WaystoneBlockEntity getEntity(WaystoneData data) {
         return getEntity(data.uuid());
     }
 
@@ -557,7 +542,10 @@ public class WaystoneDataStorage {
     }
 
     public SequencedCollection<UUID> getGlobals() {
-        return this.uuidToData.entrySet().stream().filter(entry -> entry.getValue().global())
+        return this.uuidToData.entrySet().stream()
+            .filter(entry -> {
+                return entry.getValue() instanceof NetworkedWaystoneData networkedData && networkedData.global();
+            })
             .map(Map.Entry::getKey).toList();
     }
 
@@ -571,7 +559,7 @@ public class WaystoneDataStorage {
     public boolean isGlobal(UUID uuid) {
         var data = getData(uuid);
 
-        return data != null && data.global();
+        return data instanceof NetworkedWaystoneData networkedData && networkedData.global();
     }
 
     //--
@@ -592,7 +580,7 @@ public class WaystoneDataStorage {
         CHANNEL.serverHandle(SERVER).send(new SyncWaystonePositionChange(uuid, wasRemoved ? null : position));
     }
 
-    public void onSyncData(UUID uuid, @Nullable NetworkedWaystoneData data, DataChangeType type) {
+    public void onSyncData(UUID uuid, @Nullable WaystoneData data, DataChangeType type) {
         if (data == null) {
             this.uuidToData.remove(uuid);
         } else {
@@ -625,9 +613,9 @@ public class WaystoneDataStorage {
     public void renameWaystone(UUID uuid, String name) {
         var data = getData(uuid);
 
-        if (data == null) return;
+        if (!(data instanceof NetworkedWaystoneData networkedData)) return;
 
-        data.name(name);
+        networkedData.name(name);
         syncDataChange(uuid, DataChangeType.NAME);
 
         var entity = getEntity(uuid);
@@ -651,9 +639,9 @@ public class WaystoneDataStorage {
     public void toggleGlobal(UUID uuid) {
         var data = getData(uuid);
 
-        if (data == null) return;
+        if (!(data instanceof NetworkedWaystoneData networkedData)) return;
 
-        data.global(!data.global());
+        networkedData.global(!networkedData.global());
         syncDataChange(uuid, DataChangeType.GLOBAL);
 
         var entity = getEntity(uuid);
@@ -664,11 +652,11 @@ public class WaystoneDataStorage {
     public boolean setOwner(UUID uuid, @Nullable PlayerEntity owner) {
         var data = getData(uuid);
 
-        if (data == null) return false;
+        if (!(data instanceof NetworkedWaystoneData networkedData)) return false;
 
-        var prevOwner = data.ownerID();
+        var prevOwner = networkedData.ownerID();
 
-        data.owner(owner);
+        networkedData.owner(owner);
 
         var changeOccured = !Objects.equals(prevOwner, owner == null ? null : owner.getUuid());
 

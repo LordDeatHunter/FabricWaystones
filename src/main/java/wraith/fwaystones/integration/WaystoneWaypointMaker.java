@@ -10,6 +10,7 @@ import wraith.fwaystones.api.WaystoneEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.DataChangeType;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.api.core.WaystonePosition;
 
 import java.util.*;
@@ -125,7 +126,7 @@ public abstract class WaystoneWaypointMaker<T> {
     }
 
     @Nullable
-    public NetworkedWaystoneData getWaystoneData(T waypoint) {
+    public WaystoneData getWaystoneData(T waypoint) {
         var uuid = getWaystoneUUID(waypoint);
 
         if (uuid != null) {
@@ -200,7 +201,7 @@ public abstract class WaystoneWaypointMaker<T> {
 
     //--
 
-    public abstract T createWaypoint(WaystonePosition pos, NetworkedWaystoneData data);
+    public abstract T createWaypoint(WaystonePosition pos, WaystoneData data);
 
     public abstract boolean validToCreateWaypoints();
 

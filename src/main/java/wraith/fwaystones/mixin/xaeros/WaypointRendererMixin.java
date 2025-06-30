@@ -14,6 +14,7 @@ import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import xaero.common.minimap.waypoints.Waypoint;
@@ -34,8 +35,8 @@ public abstract class WaypointRendererMixin {
         if (instance.getOriginal() instanceof Waypoint w) {
             var data = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneData(w);
 
-            if (data != null) {
-                sharedData.set(data);
+            if (data instanceof NetworkedWaystoneData networkedData) {
+                sharedData.set(networkedData);
                 return data.color();
             }
         }

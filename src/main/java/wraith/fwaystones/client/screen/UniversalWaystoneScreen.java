@@ -22,6 +22,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.c2s.WaystoneGUISlotClick;
 import wraith.fwaystones.util.FWConfigModel;
@@ -351,7 +352,7 @@ public class UniversalWaystoneScreen<U extends UniversalWaystoneScreenHandler<?>
             var waystoneData = data.getData(uuid);
             var positon = data.getPosition(uuid);
 
-            if (waystoneData == null || positon == null) continue;
+            if (!(waystoneData instanceof Named named) || positon == null) continue;
 
             var startDim = Utils.getDimensionName(player.getWorld());
             var endDim = positon.worldName();
@@ -359,7 +360,7 @@ public class UniversalWaystoneScreen<U extends UniversalWaystoneScreenHandler<?>
             var cost = Utils.getCost(Vec3d.ofCenter(positon.blockPos()), player.getPos(), startDim, endDim);
             tooltipContents.add(Text.translatable("fwaystones.gui.cost_tooltip", cost == 0 ? Text.translatable("fwaystones.cost.free").getString() : cost));
             if (hasShiftDown()) {
-                tooltipContents.add(Text.translatable("fwaystones.gui.dimension_tooltip", waystoneData.name()));
+                tooltipContents.add(Text.translatable("fwaystones.gui.dimension_tooltip", named.name()));
             }
             context.drawTooltip(textRenderer, tooltipContents, mouseX, mouseY);
         }
@@ -373,9 +374,9 @@ public class UniversalWaystoneScreen<U extends UniversalWaystoneScreenHandler<?>
 
             var data = WaystoneDataStorage.getStorage(player).getData(waystones.get(n));
 
-            if (data == null) continue;
+            if (!(data instanceof Named named)) continue;
 
-            Text name = data.parsedName();
+            Text name = named.parsedName();
             context.drawText(textRenderer, name, x + 5, r - 1 + 5, 0x161616, false);
         }
     }

@@ -7,14 +7,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
+import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 
 import java.util.function.Consumer;
 
-public record WaystoneDataHolder(NetworkedWaystoneData data) implements ExtendedTooltipAppender {
+public record WaystoneDataHolder(WaystoneData data) implements ExtendedTooltipAppender {
     public static final StructEndec<WaystoneDataHolder> ENDEC = StructEndecBuilder.of(
-            NetworkedWaystoneData.ENDEC.flatFieldOf(WaystoneDataHolder::data),
+            WaystoneData.ENDEC.flatFieldOf(WaystoneDataHolder::data),
             WaystoneDataHolder::new
     );
 
@@ -24,10 +25,12 @@ public record WaystoneDataHolder(NetworkedWaystoneData data) implements Extended
 
         if (holder == null) return;
 
-        var name = holder.data().name();
-        var global = holder.data().global();
+        if (data instanceof NetworkedWaystoneData networkData) {
+            var name = networkData.name();
+            var global = networkData.global();
 
-        tooltip.accept(TextUtils.translationWithArg("waystone.tooltip.name", name));
-        tooltip.accept(TextUtils.translationWithArg("waystone.tooltip.global", TextUtils.translation("waystone.tooltip.global_" + (global ? "on" : "off"))));
+            tooltip.accept(TextUtils.translationWithArg("waystone.tooltip.name", name));
+            tooltip.accept(TextUtils.translationWithArg("waystone.tooltip.global", TextUtils.translation("waystone.tooltip.global_" + (global ? "on" : "off"))));
+        }
     }
 }

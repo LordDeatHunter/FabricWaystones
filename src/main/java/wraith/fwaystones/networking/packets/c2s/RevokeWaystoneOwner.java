@@ -5,6 +5,7 @@ import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.entity.player.PlayerEntity;
 import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 
 import java.util.UUID;
 
@@ -22,9 +23,9 @@ public record RevokeWaystoneOwner(UUID uuid) {
 
         var data = storage.getData(uuid);
 
-        if (data == null) return;
+        if (!(data instanceof NetworkedWaystoneData networkedData)) return;
 
-        if (player.getUuid().equals(data.ownerID()) || player.hasPermissionLevel(2)) {
+        if (player.getUuid().equals(networkedData.ownerID()) || player.hasPermissionLevel(2)) {
             storage.setOwner(uuid, null);
         }
     }

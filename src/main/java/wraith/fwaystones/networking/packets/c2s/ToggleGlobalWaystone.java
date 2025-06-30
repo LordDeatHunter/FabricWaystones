@@ -6,6 +6,7 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.entity.player.PlayerEntity;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 
 import java.util.UUID;
 
@@ -23,14 +24,14 @@ public record ToggleGlobalWaystone(UUID uuid) {
 
         if (!storage.hasData(uuid)) return;
 
-        PermissionLevel permissionLevel = FabricWaystones.CONFIG.globalTogglePermission();
+        var level = FabricWaystones.CONFIG.globalTogglePermission();
 
-        switch (permissionLevel) {
-            case NONE: return;
-            case OP:
-                if (!player.hasPermissionLevel(2)) return;
-            case OWNER:
-                if (!player.getUuid().equals(storage.getData(uuid).ownerID())) return;
+        if (level.equals(PermissionLevel.NONE)) return;
+        if (level.equals(PermissionLevel.OP) && !player.hasPermissionLevel(2)) return;
+        if (level.equals(PermissionLevel.OWNER)) {
+            if (storage.getData(uuid) instanceof NetworkedWaystoneData networkedData && !player.getUuid().equals(networkedData.ownerID())) {
+                return;
+            }
         }
 
         if (storage.hasData(uuid)) storage.toggleGlobal(uuid);

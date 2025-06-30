@@ -8,6 +8,7 @@ import io.wispforest.owo.ui.container.DraggableContainer;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
+import io.wispforest.owo.ui.inject.GreedyInputComponent;
 import io.wispforest.owo.ui.util.NinePatchTexture;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
 import me.xdrop.fuzzywuzzy.model.BoundExtractedResult;
@@ -19,10 +20,12 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystoneEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.client.screen.components.ComponentUtils;
@@ -58,7 +61,7 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
 
     private List<UUID> getSortedWaystones(String searchText) {
         var existingWaystones = playerData.discoveredWaystones().stream()
-            .map(storage::getData)
+            .map(uuid -> storage.getData(uuid) instanceof NetworkedWaystoneData networkedData ? networkedData : null)
             .filter(Objects::nonNull)
             .sorted(Comparator.comparing(NetworkedWaystoneData::sortingName))
             .toList();
@@ -117,6 +120,10 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
     }
 
     private FlowLayout createButtonLayout(UUID uuid) {
+        // TODO: BETTER HANDLING FOR THIS
+        if (!(storage.getData(uuid) instanceof NetworkedWaystoneData networkedData)) {
+            throw new IllegalStateException("This should not happen and idk how it did");
+        }
         var data = storage.getData(uuid);
         var existsWithinTheWorld = storage.getPosition(uuid) != null;
 
@@ -167,6 +174,20 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
 
                 waystoneButton.padding(Insets.of(3));
             })
-            .child(ComponentUtils.wrapNonInteractive(Components.label(data.parsedName())));
+            .child(ComponentUtils.wrapNonInteractive(Components.label(networkedData.parsedName())));
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if ((modifiers & GLFW.GLFW_MOD_CONTROL) == 0
+            && this.uiAdapter.rootComponent.focusHandler().focused() instanceof GreedyInputComponent inputComponent
+            && keyCode != GLFW.GLFW_KEY_ESCAPE) {
+
+            inputComponent.onKeyPress(keyCode, scanCode, modifiers);
+
+            return true;
+        }
+
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 }

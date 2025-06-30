@@ -89,10 +89,10 @@ public abstract class WaypointWorldRendererMixin {
         if (waypoint != null) {
             var data = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneData(waypoint);
 
-            if (data != null) {
-                waystoneDataRef.set(data);
+            if (data instanceof NetworkedWaystoneData networkedData) {
+                waystoneDataRef.set(networkedData);
 
-                return instance.getWidth(data.parsedName());
+                return instance.getWidth(networkedData.parsedName());
             }
         }
 

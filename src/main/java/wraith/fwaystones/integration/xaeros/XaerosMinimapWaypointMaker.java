@@ -1,11 +1,13 @@
 package wraith.fwaystones.integration.xaeros;
 
+import joptsimple.internal.Strings;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.integration.WaystoneWaypointMaker;
 import xaero.common.minimap.waypoints.Waypoint;
@@ -82,12 +84,14 @@ public class XaerosMinimapWaypointMaker extends WaystoneWaypointMaker<Waypoint> 
     }
 
     @Override
-    public Waypoint createWaypoint(WaystonePosition pos, NetworkedWaystoneData data) {
+    public Waypoint createWaypoint(WaystonePosition pos, WaystoneData data) {
+        var name = (data instanceof NetworkedWaystoneData networkedData ? networkedData.name() : "");
+
         var waypoint = new Waypoint(
                 pos.blockPos().getX(),
                 pos.blockPos().getY() + 1,
                 pos.blockPos().getZ(),
-                data.name(),
+                Strings.isNullOrEmpty(name) ? "Unnamed Waystone" : name,
                 "",
                 WaypointColor.PURPLE, //TODO: override this color with 0x5F3D75
                 WaypointPurpose.NORMAL,

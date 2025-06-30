@@ -37,10 +37,12 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.mixin.TallBlantBlockAccessor;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
+import wraith.fwaystones.registry.WaystoneBlocks;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.util.Utils;
@@ -197,23 +199,24 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (bottomState.isOf(this)) {
             BlockPos entityPos = getBasePos(pos, bottomState);
             if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone) {
-                switch (config.breakingWaystonePermission()) {
-                    case OWNER -> {
-                        var data = waystone.getData();
-                        if (data != null) {
-                            var owner = data.ownerID();
-                            if (owner != null && !player.getUuid().equals(owner)) return 0;
+                if (!player.hasPermissionLevel(4)) {
+                    switch (config.breakingWaystonePermission()) {
+                        case OWNER -> {
+                            var data = waystone.getData();
+                            if (data instanceof NetworkedWaystoneData networkedData) {
+                                var owner = networkedData.ownerID();
+                                if (owner != null && !player.getUuid().equals(owner)) return 0;
+                            }
                         }
-                    }
-                    case OP -> {
-                        if (!player.hasPermissionLevel(2)) return 0;
-                    }
-                    case NONE -> {
-                        return 0;
+                        case OP -> {
+                            if (!player.hasPermissionLevel(2)) return 0;
+                        }
+                        case NONE -> {
+                            return 0;
+                        }
                     }
                 }
             }
-
         }
         return super.calcBlockBreakingDelta(state, player, world, pos);
     }
@@ -363,8 +366,6 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        var blockEntityPos = getBasePos(pos, state);
-
         var hand = player.getActiveHand();
         var stack = player.getStackInHand(hand);
         var item = stack.getItem();
@@ -373,91 +374,95 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEM)) return ActionResult.PASS;
         if (item instanceof WaystoneDebuggerItem) return ActionResult.PASS;
 
-        WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(blockEntityPos);
+        var blockEntity = WaystoneBlock.getEntity(world, pos, state);
         if (blockEntity == null) return ActionResult.FAIL;
 
+        var result = ActionResult.PASS;
 
         if (blockEntity.getControllerStack().isEmpty()) {
-            if (!stack.isEmpty()) {
-                var returnedStack = blockEntity.swapControllerStack(stack);
+            if (!stack.isEmpty() && !player.isSneaking()) {
+                blockEntity.swapControllerStack(player, hand);
 
-                if (!world.isClient) {
-                    player.setStackInHand(hand, returnedStack);
-                }
-
-                return ActionResult.SUCCESS;
+                result = ActionResult.SUCCESS;
             }
+        } else if (player.getStackInHand(player.getActiveHand()).isOf(Items.FILLED_MAP)) {
+            return ActionResult.PASS;
         } else {
-            if (player.getStackInHand(player.getActiveHand()).isOf(Items.FILLED_MAP)) {return ActionResult.PASS;}
-        }
+            var viningResults = blockEntity.attemptMossingInteraction(player, hand);
 
-        var result = blockEntity.attemptMossingInteraction(blockEntityPos, stack);
-
-        if (result.getResult().isAccepted()) {
-            var value = result.getValue();
-
-            blockEntity.spawnItemStackAbove(value);
-
-            return ActionResult.SUCCESS;
+            if (viningResults.isAccepted()) return viningResults;
         }
 
         var storage = WaystoneDataStorage.getStorage(player);
-        NetworkedWaystoneData data = null;
+        WaystoneData data = blockEntity.getData();
 
-        if (blockEntity.controllerStack().isOf(WaystoneItems.ABYSS_WATCHER)) {
-            data = storage.createGetOrImportData(blockEntity);
-        }
-
-        if (data == null) return ActionResult.PASS;
+        if (data == null) return result;
 
         if (item instanceof DyeItem dyeItem) {
             var color = dyeItem.getColor().getSignColor();
             if (data.color() != color) {
-                ItemOps.decrementPlayerHandItem(player, hand);
-                storage.recolorWaystone(data.uuid(), color);
-                blockEntity.markDirty();
-                world.playSound(null, pos, SoundEvents.ITEM_DYE_USE, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                if (world.isClient) {
+                    ItemOps.decrementPlayerHandItem(player, hand);
+
+                    storage.recolorWaystone(data.uuid(), color);
+
+                    world.playSound(null, pos, SoundEvents.ITEM_DYE_USE, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                }
+
                 return ActionResult.SUCCESS;
             }
         }
 
         if (stack.isIn(WAYSTONE_CLEANERS)) {
             var type = blockEntity.getWaystoneType();
+
             if (blockEntity.getColor() != type.defaultRuneColor()) {
-                storage.recolorWaystone(data.uuid(), type.defaultRuneColor());
-                blockEntity.markDirty();
-                if (stack.isIn(WAYSTONE_BUCKET_CLEANERS)) {
-                    if (world.getRandom().nextInt(100) == 69) {
-                        world.playSound(null, pos, WAYSTONE_CLEAN_BUCKET_STEAL, SoundCategory.BLOCKS, 1.0F, 1.0F);
-                        player.sendEquipmentBreakStatus(item, hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
-                        stack.decrement(1);
+                if (world.isClient) {
+                    storage.recolorWaystone(data.uuid(), type.defaultRuneColor());
+
+                    if (stack.isIn(WAYSTONE_BUCKET_CLEANERS)) {
+                        if (world.getRandom().nextInt(100) == 69) {
+                            world.playSound(null, pos, WAYSTONE_CLEAN_BUCKET_STEAL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+
+                            player.sendEquipmentBreakStatus(item, hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+
+                            ItemOps.decrementPlayerHandItem(player, hand);
+                        } else {
+                            world.playSound(null, pos, WAYSTONE_CLEAN_BUCKET, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                        }
                     } else {
-                        world.playSound(null, pos, WAYSTONE_CLEAN_BUCKET, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                        world.playSound(null, pos, WAYSTONE_CLEAN_SPONGE, SoundCategory.BLOCKS, 1.0F, 1.0F);
                     }
-                } else {
-                    world.playSound(null, pos, WAYSTONE_CLEAN_SPONGE, SoundCategory.BLOCKS, 1.0F, 1.0F);
                 }
+
                 return ActionResult.SUCCESS;
             }
         }
 
+        if (!(data instanceof NetworkedWaystoneData networkedData)) return ActionResult.PASS;
+
         if (world.isClient) return ActionResult.SUCCESS;
 
-        if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(data.ownerID())))) {
+        if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(networkedData.ownerID())))) {
             if (!blockEntity.getInventory().isEmpty()) {
-                ItemScatterer.spawn(world, blockEntityPos.up(2), blockEntity.getInventory());
+                blockEntity.spawnItemStackAbove(blockEntity.getInventory());
+
                 blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
                 return ActionResult.SUCCESS;
             }
         }
 
-        var discovered = WaystonePlayerData.getData(player).discoveredWaystones();
+        var playerData = WaystonePlayerData.getData(player);
+
+        var discovered = playerData.discoveredWaystones();
         if (!discovered.contains(blockEntity.getUUID())) {
-            if (!data.global()) {
-                Identifier discoverItemId = Utils.getDiscoverItem();
+            if (!networkedData.global()) {
+                var discoverItemId = Utils.getDiscoverItem();
+
                 if (!player.isCreative()) {
-                    Item discoverItem = Registries.ITEM.get(discoverItemId);
+                    var discoverItem = Registries.ITEM.get(discoverItemId);
                     int discoverAmount = FabricWaystones.CONFIG.requiredDiscoveryAmount();
+
                     if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
                         player.sendMessage(
                             TextUtils.translationWithArg(
@@ -465,9 +470,11 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                                 discoverAmount,
                                 Text.translatable(discoverItem.getTranslationKey())
                             ), false);
+
                         return ActionResult.FAIL;
                     } else if (discoverItem != Items.AIR) {
                         Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
+
                         player.sendMessage(TextUtils.translationWithArg(
                             "discover_item_paid",
                             discoverAmount,
@@ -478,23 +485,25 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
                 player.sendMessage(TextUtils.translationWithArg(
                     "discover_waystone",
-                    data.name()
+                    networkedData.name()
                 ), false);
             }
-            WaystonePlayerData.getData(player).discoverWaystone(blockEntity.getUUID());
+
+            playerData.discoverWaystone(blockEntity.getUUID());
         }
 
-        if (data.ownerID() == null) {
+        if (networkedData.ownerID() == null) {
             var uuid = blockEntity.getUUID();
 
             storage.setOwner(uuid, player);
         }
 
-        NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
+        if (result == ActionResult.PASS) {
+            var screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
 
-        if (screenHandlerFactory != null) player.openHandledScreen(screenHandlerFactory);
+            if (screenHandlerFactory != null) player.openHandledScreen(screenHandlerFactory);
+        }
 
-        blockEntity.markDirty();
         return ActionResult.success(false);
     }
 

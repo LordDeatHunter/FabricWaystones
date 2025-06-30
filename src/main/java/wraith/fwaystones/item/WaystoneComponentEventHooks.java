@@ -21,6 +21,7 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.ExtendedStackReference;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.item.components.WaystoneHashTarget;
@@ -64,8 +65,10 @@ public class WaystoneComponentEventHooks {
                             if (!playerData.hasDiscoverdWaystone(uuid)) {
                                 var data = storage.getData(uuid);
 
-                                if (data != null && data.ownerID() == null) {
-                                    data.owner(user);
+                                if (data instanceof NetworkedWaystoneData networkedData) {
+                                    if (networkedData.ownerID() == null) {
+                                        storage.setOwner(uuid, user);
+                                    }
                                 }
 
                                 toLearn.add(uuid);
@@ -110,8 +113,10 @@ public class WaystoneComponentEventHooks {
                             if (!playerData.hasDiscoverdWaystone(uuid)) {
                                 var data = storage.getData(uuid);
 
-                                if (data != null && data.ownerID() == null) {
-                                    data.owner(user);
+                                if (data instanceof NetworkedWaystoneData networkedData) {
+                                    if (networkedData.ownerID() == null) {
+                                        storage.setOwner(uuid, user);
+                                    }
                                 }
 
                                 toLearn.add(uuid);

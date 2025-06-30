@@ -1,20 +1,18 @@
 package wraith.fwaystones.block;
 
 import io.wispforest.endec.Endec;
-import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.KeyedEndec;
+import io.wispforest.owo.ops.ItemOps;
 import io.wispforest.owo.ops.WorldOps;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
-import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
@@ -32,18 +30,13 @@ import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.*;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockStateRaycastContext;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -109,7 +102,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         super(WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, pos, state);
     }
 
-
     public int getColor() {
         var data = getData();
 
@@ -125,20 +117,16 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return controllerStack;
     }
 
-    public ItemStack swapControllerStack(ItemStack stack) {
-        var returnStack = ItemStack.EMPTY;
+    public void swapControllerStack(PlayerEntity player, Hand hand) {
+        if (world.isClient) return;
 
-        if (!world.isClient) {
-            if (!controllerStack.isEmpty()) {
-                this.spawnItemStackAbove(exportControllerStack());
-            }
-
-            returnStack = importControllerStack(stack);
-
-            this.markDirty();
+        if (!controllerStack.isEmpty()) {
+            this.spawnItemStackAbove(exportControllerStack());
         }
 
-        return returnStack;
+        importControllerStack(player, hand);
+
+        this.markDirty();
     }
 
     public ItemStack exportControllerStack() {
@@ -147,7 +135,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         this.controllerStack = ItemStack.EMPTY;
 
         if (currentStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
-            var storage = WaystoneDataStorage.getStorage(this.world);
+            var storage = getWaystoneStorage();
 
             var data = storage.getData(this.position());
 
@@ -163,36 +151,79 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return currentStack;
     }
 
-    private ItemStack importControllerStack(ItemStack stack) {
+    private void importControllerStack(PlayerEntity player, Hand hand) {
+        var stack = player.getStackInHand(hand);
+
         if (stack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
             var holder = stack.get(WaystoneDataComponents.DATA_HOLDER);
 
             if (holder != null) {
-                stack.remove(WaystoneDataComponents.DATA_HOLDER);
+                if (!player.isCreative()) {
+                    stack.remove(WaystoneDataComponents.DATA_HOLDER);
+                }
 
                 this.dataHolder = holder;
             }
         }
 
-        this.controllerStack = stack.split(1);
+        this.controllerStack = stack.copyWithCount(1);
 
-        return stack;
+        ItemOps.decrementPlayerHandItem(player, hand);
     }
 
     public void spawnItemStackAbove(ItemStack stack) {
+        if (world.isClient) return;
         var dropPos = this.pos.up(1).toCenterPos();
         ItemScatterer.spawn(world, dropPos.getX(), dropPos.getY(), dropPos.getZ(), stack);
     }
 
+    public void spawnItemStackAbove(List<ItemStack> stacks) {
+        if (world.isClient) return;
+
+        for (var stack : stacks) {
+            var dropPos = this.pos.up(1).toCenterPos();
+            ItemScatterer.spawn(world, dropPos.getX(), dropPos.getY(), dropPos.getZ(), stack);
+        }
+    }
+
+
     //--
 
     @Nullable
-    public NetworkedWaystoneData getData() {
+    public WaystoneData getData() {
+        var storage = getWaystoneStorage();
+        var position = position();
+
+        var data = storage.getData(position);
+
+        boolean setupData = false;
+
         if (this.controllerStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
-            return WaystoneDataStorage.getStorage(this.world).getData(this.position());
+            setupData = !(data instanceof NetworkedWaystoneData);
         }
 
-        return null;
+        if (setupData) {
+            var seedData = (this.dataHolder != null) ? this.dataHolder.data() : storage.getData(position);
+
+            if (this.controllerStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
+                data = storage.createGetOrImportData(
+                    this,
+                    (seedData instanceof NetworkedWaystoneData networkedData) ? networkedData : null,
+                    (uuid) -> {
+                        var customName = this.getCustomName();
+
+                        var name = customName != null ? customName.getString() : "";
+
+                        return new NetworkedWaystoneData(uuid, name);
+                    });
+            } else {
+                data = storage.createGetOrImportData(this, seedData, WaystoneData::new);
+            }
+
+            this.dataHolder = null;
+        }
+
+        return data;
     }
 
     public ItemStack getControllerStack() {
@@ -201,7 +232,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Nullable
     public UUID getUUID() {
-        var uuid = WaystoneDataStorage.getStorage(this.world).getUUID(this.position());
+        var uuid = getWaystoneStorage().getUUID(this.position());
 
         if (uuid == null) return WaystoneData.EMPTY_UUID;
 
@@ -244,54 +275,53 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (this.controllerStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
             var data = getData();
 
-            if (data == null) return false;
+            if (!(data instanceof NetworkedWaystoneData networkedData)) return false;
 
-            return data.hasOwner();
+            return networkedData.hasOwner();
+        } else if (!this.controllerStack.isEmpty()) {
+            return true;
         }
 
         return false;
     }
 
-    public TypedActionResult<ItemStack> attemptMossingInteraction(BlockPos pos, ItemStack stack) {
+    public ActionResult attemptMossingInteraction(PlayerEntity player, Hand hand) {
+        var stack = player.getStackInHand(hand);
         var mossType = MossTypes.getMossType(stack);
 
-        if (mossType != null) {
-            if (mossType.getId().equals(this.mossTypeId)) return TypedActionResult.pass(ItemStack.EMPTY);
-
+        if (mossType != null && !this.mossTypeId.equals(mossType.getId())) {
             this.mossTypeId = mossType.getId();
 
             if (!world.isClient) {
-                var prevMoss = this.mossStack;
+                if (!this.mossStack.isEmpty()) spawnItemStackAbove(this.mossStack);
 
-                world.playSound(null, pos, WAYSTONE_MOSS_APPLY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                world.playSound(null, getPos(), WAYSTONE_MOSS_APPLY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+
+                this.mossStack = stack.copyWithCount(1);
+
+                ItemOps.decrementPlayerHandItem(player, hand);
 
                 markDirty();
-
-                this.mossStack = stack.copy();
-
-                return TypedActionResult.success(prevMoss);
             }
 
-            return TypedActionResult.success(ItemStack.EMPTY);
+            return ActionResult.SUCCESS;
         } else if (stack.isIn(ConventionalItemTags.SHEAR_TOOLS) && !this.mossTypeId.equals(MossTypes.EMPTY_ID)) {
             this.mossTypeId = MossTypes.EMPTY_ID;
 
             if (!world.isClient) {
-                var prevMoss = this.mossStack;
+                if (!this.mossStack.isEmpty()) spawnItemStackAbove(this.mossStack);
 
-                world.playSound(null, pos, WAYSTONE_SHEAR, SoundCategory.BLOCKS, 1.0F, 1.0F);
-
-                markDirty();
+                world.playSound(null, getPos(), WAYSTONE_SHEAR, SoundCategory.BLOCKS, 1.0F, 1.0F);
 
                 this.mossStack = ItemStack.EMPTY;
 
-                return TypedActionResult.success(prevMoss);
+                markDirty();
             }
 
-            return TypedActionResult.success(ItemStack.EMPTY);
+            return ActionResult.SUCCESS;
         }
 
-        return TypedActionResult.pass(ItemStack.EMPTY);
+        return ActionResult.PASS;
     }
 
     public WaystonePosition position() {
@@ -473,7 +503,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         this.dataHolder = components.get(WaystoneDataComponents.DATA_HOLDER);
 
         if (this.dataHolder != null) {
-            WaystoneDataStorage.getStorage(this.world).createGetOrImportData(this);
+            getData();
         }
 
         this.waystoneTypeId = components.getOrDefault(WaystoneDataComponents.WAYSTONE_TYPE, WaystoneTyped.DEFAULT).id();
@@ -708,5 +738,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     public boolean canAccess(PlayerEntity player) {
         return player.squaredDistanceTo(this.pos.toCenterPos()) <= 64.0D;
+    }
+
+    private WaystoneDataStorage getWaystoneStorage() {
+        return WaystoneDataStorage.getStorage(this.world);
     }
 }

@@ -14,6 +14,7 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.integration.WaystoneWaypointMaker;
 import wraith.fwaystones.item.components.TextUtils;
@@ -65,7 +66,7 @@ public class JourneymapWaypointMaker extends WaystoneWaypointMaker<String> imple
     }
 
     @Override
-    public String createWaypoint(WaystonePosition pos, NetworkedWaystoneData data) {
+    public String createWaypoint(WaystonePosition pos, WaystoneData data) {
         var group = this.api.getWaypointGroupByName(FabricWaystones.MOD_ID, "Waystones");
 
         if (group == null) {
@@ -78,7 +79,7 @@ public class JourneymapWaypointMaker extends WaystoneWaypointMaker<String> imple
         var oldWaypoint = api.getWaypoint(getModId(), waypointId);
         if (oldWaypoint != null) return oldWaypoint.getGuid();
 
-        var name = data.name();
+        var name = (data instanceof NetworkedWaystoneData networkedData ? networkedData.name() : "");
 
         var waypoint = WaypointFactory.createClientWaypoint(
                 getModId(),

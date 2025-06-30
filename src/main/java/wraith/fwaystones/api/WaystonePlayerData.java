@@ -19,6 +19,8 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.SyncWaystonePlayerDataChange;
 import wraith.fwaystones.networking.packets.s2c.SyncWaystonePlayerData;
@@ -232,6 +234,8 @@ public class WaystonePlayerData {
 
         var storage = WaystoneDataStorage.getStorage(player);
 
+        if (!(storage.getData(uuid) instanceof NetworkedWaystoneData)) return;
+
         WaystoneEvents.ON_WAYSTONE_DISCOVERY.invoker().onDiscovery(this.player, uuid, storage.getPosition(uuid));
         addDiscoveredWaystone(uuid);
         if (sync) syncDataChange(DISCOVERED_WAYSTONES_KEY);
@@ -274,15 +278,14 @@ public class WaystonePlayerData {
     }
 
     private void forgetWaystone(UUID uuid, boolean sync) {
-        var data = WaystoneDataStorage.getStorage(player).getData(uuid);
+        var storage = WaystoneDataStorage.getStorage(player);
+        var data = storage.getData(uuid);
 
         if (data != null) {
-            if (data.global()) return;
+            if (storage.isGlobal(uuid)) return;
 
-            var server = this.player.getServer();
-
-            if ((server != null && !server.isDedicated()) || this.player.getUuid().equals(data.ownerID())) {
-                data.owner(null);
+            if (data instanceof NetworkedWaystoneData networkedData && this.player.getUuid().equals(networkedData.ownerID())) {
+                storage.setOwner(uuid, null);
             }
         }
 
@@ -303,8 +306,8 @@ public class WaystonePlayerData {
         var waystoneNames = new ArrayList<Text>();
 
         for (var uuid : discoveredWaystones) {
-            if (storage.hasPosition(uuid)) {
-                waystoneNames.add(storage.getData(uuid).parsedName());
+            if (storage.hasPosition(uuid) && storage.getData(uuid) instanceof NetworkedWaystoneData networkedData) {
+                waystoneNames.add(networkedData.parsedName());
             }
         }
 
@@ -316,49 +319,42 @@ public class WaystonePlayerData {
     public List<UUID> sortedPositionedDiscoveredHashs() {
         var storage = WaystoneDataStorage.getStorage(player);
 
-        var waystones = new ArrayList<UUID>();
-
-        for (var uuid : discoveredWaystones) {
-            if (storage.hasPosition(uuid)) {
-                waystones.add(uuid);
-            }
-        }
-
-        waystones.sort(Comparator.comparing(a -> storage.getData(a).name(), String::compareTo));
-
-        return waystones;
+        return discoveredWaystones
+            .stream()
+            .map(uuid -> {
+                return storage.hasPosition(uuid) && storage.getData(uuid) instanceof NetworkedWaystoneData networkedData ? networkedData : null;
+            })
+            .filter(Objects::nonNull)
+            .sorted(Comparator.comparing(NetworkedWaystoneData::name, String::compareTo))
+            .map(WaystoneData::uuid)
+            .toList();
     }
 
     public List<Text> sortedDiscoveredWaystones() {
         var storage = WaystoneDataStorage.getStorage(player);
 
-        var waystoneNames = new ArrayList<Text>();
-
-        for (var uuid : discoveredWaystones) {
-            if (storage.hasData(uuid)) {
-                waystoneNames.add(storage.getData(uuid).parsedName());
-            }
-        }
-
-        waystoneNames.sort(Comparator.comparing(Text::getString, String::compareTo));
-
-        return waystoneNames;
+        return discoveredWaystones
+            .stream()
+            .map(uuid -> {
+                return storage.hasPosition(uuid) && storage.getData(uuid) instanceof NetworkedWaystoneData networkedData ? networkedData.parsedName() : null;
+            })
+            .filter(Objects::nonNull)
+            .sorted(Comparator.comparing(Text::getString, String::compareTo))
+            .toList();
     }
 
     public List<UUID> sortedDiscoveredHashs() {
         var storage = WaystoneDataStorage.getStorage(player);
 
-        var waystones = new ArrayList<UUID>();
-
-        for (var hash : discoveredWaystones) {
-            if (storage.hasData(hash)) {
-                waystones.add(hash);
-            }
-        }
-
-        waystones.sort(Comparator.comparing(a -> storage.getData(a).name(), String::compareTo));
-
-        return waystones;
+        return discoveredWaystones
+            .stream()
+            .map(uuid -> {
+                return storage.getData(uuid) instanceof NetworkedWaystoneData networkedData ? networkedData : null;
+            })
+            .filter(Objects::nonNull)
+            .sorted(Comparator.comparing(NetworkedWaystoneData::name, String::compareTo))
+            .map(WaystoneData::uuid)
+            .toList();
     }
 
     public boolean viewDiscoveredWaystones() {

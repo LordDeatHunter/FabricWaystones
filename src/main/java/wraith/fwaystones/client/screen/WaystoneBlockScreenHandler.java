@@ -2,6 +2,7 @@ package wraith.fwaystones.client.screen;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.c2s.ToggleGlobalWaystone;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
@@ -32,20 +33,26 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler<W
     }
 
     @Override
-    public void setupHandler() {
+    public boolean setupHandler() {
         this.isClient = player.getWorld().isClient;
 
         this.hash = data.position();
         var waystoneData = WaystoneDataStorage.getStorage(player).getData(hash);
+
+        if (!(waystoneData instanceof NetworkedWaystoneData networkedData)) return false;
+
         this.uuid = waystoneData.uuid();
 
-        this.name = waystoneData.name();
+        this.name = networkedData.name();
 
-        this.owner = waystoneData.ownerID();
-        this.ownerName = waystoneData.ownerName();
+        this.owner = networkedData.ownerID();
+        this.ownerName = networkedData.ownerName();
 
-        this.isGlobal = waystoneData.global();
+        this.isGlobal = networkedData.global();
+
         this.canUse = data::canAccess;
+
+        return true;
     }
 
     @Override
