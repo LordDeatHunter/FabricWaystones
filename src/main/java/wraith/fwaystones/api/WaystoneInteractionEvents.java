@@ -2,6 +2,7 @@ package wraith.fwaystones.api;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
@@ -27,6 +28,6 @@ public class WaystoneInteractionEvents {
     );
 
     public interface StackReferenceFinder {
-        @Nullable ExtendedStackReference getStack(PlayerEntity player, Predicate<ItemStack> predicate);
+        @Nullable ExtendedStackReference getStack(LivingEntity entity, Predicate<ItemStack> predicate);
     }
 }

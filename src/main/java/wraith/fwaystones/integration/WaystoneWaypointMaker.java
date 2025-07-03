@@ -153,6 +153,8 @@ public abstract class WaystoneWaypointMaker<T> {
         var data = storage.getData(pos);
         if (data == null) return;
 
+        if (!getPlayerData().hasDiscoverdWaystone(uuid)) return;
+
         var waypoint = createWaypoint(pos, data);
 
         deleteWaypoint(data.uuid());

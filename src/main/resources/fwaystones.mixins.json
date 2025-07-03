@@ -19,6 +19,8 @@
     "StructurePoolGeneratorMixin",
     "StructureStartAccessor",
     "TallBlantBlockAccessor",
+    "ParticleUtilMixin",
+    "ServerPlayerEntityMixin",
     "scoreboard.PersistentStateMixin",
     "scoreboard.ScoreboardMixin",
     "scoreboard.ScoreboardStateMixin",

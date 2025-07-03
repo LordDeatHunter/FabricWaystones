@@ -1,8 +1,9 @@
 package wraith.fwaystones.api.teleport;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
@@ -10,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.api.teleport.impl.NetworkedWaystoneTeleportAction;
+import wraith.fwaystones.api.teleport.impl.WaystoneTeleportAction;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.util.Utils;
@@ -24,32 +25,36 @@ public interface TeleportAction {
         return source().equals(source);
     }
 
-    default boolean isValid(PlayerEntity player) {
-        if (isFrom(TeleportSource.VOID_TOTEM)) {
-            var cooldown = WaystonePlayerData.getData(player).teleportCooldown();
+    default boolean isValid(Entity entity) {
+        if (entity instanceof LivingEntity livingEntity) {
+            if (isFrom(TeleportSource.VOID_TOTEM)) {
+                if (livingEntity instanceof PlayerEntity player) {
+                    var cooldown = WaystonePlayerData.getData(player).teleportCooldown();
 
-            if (cooldown > 0) {
-                var cooldownSeconds = Utils.df.format(cooldown / 20F);
-                player.sendMessage(TextUtils.translationWithArg(
-                    "no_teleport_message.cooldown",
-                    cooldownSeconds
-                ), false);
-                return false;
+                    if (cooldown > 0) {
+                        var cooldownSeconds = Utils.df.format(cooldown / 20F);
+                        player.sendMessage(TextUtils.translationWithArg(
+                            "no_teleport_message.cooldown",
+                            cooldownSeconds
+                        ), false);
+                        return false;
+                    }
+                }
+            } else if(isFrom(TeleportSource.ABYSS_WATCHER)) {
+                var stackReference = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(livingEntity, stack -> {
+                    var component = stack.get(WaystoneDataComponents.TELEPORTER);
+
+                    return component != null && component.oneTimeUse();
+                });
+
+                return stackReference != null;
             }
-        } else if(isFrom(TeleportSource.ABYSS_WATCHER)) {
-            var stackReference = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(player, stack -> {
-                var component = stack.get(WaystoneDataComponents.TELEPORTER);
-
-                return component != null && component.oneTimeUse();
-            });
-
-            return stackReference != null;
         }
 
         return true;
     }
 
-    TeleportTarget createTarget(ServerPlayerEntity player);
+    TeleportTarget createTarget(Entity entity);
 
     GlobalPos getPos(World world);
 
@@ -66,8 +71,8 @@ public interface TeleportAction {
 
     default void addConsumedItems(World world, Item item, int amount){}
 
-    static NetworkedWaystoneTeleportAction networkTeleport(@Nullable UUID uuid, TeleportSource source) {
-        return new NetworkedWaystoneTeleportAction(uuid, source);
+    static WaystoneTeleportAction of(@Nullable UUID uuid, TeleportSource source) {
+        return new WaystoneTeleportAction(uuid, source);
     }
 
 }

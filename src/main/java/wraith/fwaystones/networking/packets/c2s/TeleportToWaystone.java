@@ -30,7 +30,7 @@ public record TeleportToWaystone(UUID uuid, TeleportSource source) {
         var waystone = storage.getEntity(uuid);
 
         if (waystone != null) {
-            waystone.teleportPlayer(player, packet.source(), true);
+            waystone.teleportEntity(player, packet.source(), true);
         }
     }
 }

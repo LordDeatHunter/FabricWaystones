@@ -83,7 +83,13 @@ public record WaystoneHashTarget(UUID uuid, @Nullable Boolean allowTeleportOnUse
         if (storage != null) {
             var data = storage.getData(uuid);
 
-            if (data instanceof Named named) name = named.parsedName();
+            if (data instanceof Named named) {
+                name = named.parsedName();
+            } else if (data != null) {
+                name = Text.of(data.uuid().toString());
+            } else {
+                name = Text.of("Unknown");
+            }
         }
 
         if (name != null) {

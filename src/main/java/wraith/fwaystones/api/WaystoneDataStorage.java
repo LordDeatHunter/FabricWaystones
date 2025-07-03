@@ -12,6 +12,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.datafixer.DataFixTypes;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -150,8 +152,8 @@ public class WaystoneDataStorage {
         return getStorage(world.getScoreboard());
     }
 
-    public static WaystoneDataStorage getStorage(PlayerEntity player) {
-        return getStorage(player.getScoreboard());
+    public static WaystoneDataStorage getStorage(Entity entity) {
+        return getStorage(entity.getWorld());
     }
 
     public static WaystoneDataStorage getStorage(MinecraftServer server) {
@@ -386,7 +388,7 @@ public class WaystoneDataStorage {
         var pos = blockEntity.position();
         var waystoneType = blockEntity.getWaystoneType();
 
-        WaystoneData data = null;
+        WaystoneData data;
 
         if (seedData == null) {
             if (hasData(pos)) return getData(pos);

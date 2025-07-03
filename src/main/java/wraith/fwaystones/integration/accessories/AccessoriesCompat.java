@@ -10,8 +10,8 @@ import wraith.fwaystones.registry.WaystoneItems;
 
 public class AccessoriesCompat {
     public static void init() {
-        WaystoneInteractionEvents.LOCATE_EQUIPMENT.register((player, predicate) -> {
-            var capability = AccessoriesCapability.get(player);
+        WaystoneInteractionEvents.LOCATE_EQUIPMENT.register((entity, predicate) -> {
+            var capability = AccessoriesCapability.get(entity);
 
             if (capability != null) {
                 var ref = capability.getFirstEquipped(predicate);

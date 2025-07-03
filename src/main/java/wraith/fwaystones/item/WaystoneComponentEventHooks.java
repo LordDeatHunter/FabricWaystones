@@ -2,7 +2,9 @@ package wraith.fwaystones.item;
 
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -43,6 +45,8 @@ public class WaystoneComponentEventHooks {
 
     public static void init() {
         UseItemCallback.EVENT.register((user, world, hand) -> {
+            //if (true) return TypedActionResult.pass(ItemStack.EMPTY);
+
             if (!user.isSpectator()) {
                 var stack = user.getStackInHand(hand);
 
@@ -160,7 +164,7 @@ public class WaystoneComponentEventHooks {
                 var entity = WaystoneBlock.getEntity(world, pos);
                 var stack = user.getStackInHand(hand);
 
-                if (entity != null && stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS)) {
+                if (entity != null && stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS) && user.isSneaking()) {
                     if (!world.isClient) {
                         stack.set(WaystoneDataComponents.HASH_TARGET, new WaystoneHashTarget(entity.getUUID(), null));
 
@@ -188,14 +192,16 @@ public class WaystoneComponentEventHooks {
             return ActionResult.PASS;
         });
 
-        WaystoneInteractionEvents.LOCATE_EQUIPMENT.register((player, predicate) -> {
-            for (var hand : Hand.values()) {
-                var currentStack = player.getStackInHand(hand);
+        WaystoneInteractionEvents.LOCATE_EQUIPMENT.register((entity, predicate) -> {
+            if (entity instanceof PlayerEntity player) {
+                for (var hand : Hand.values()) {
+                    var currentStack = player.getStackInHand(hand);
 
-                if (predicate.test(currentStack)) {
-                    return ExtendedStackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack), stack -> {
-                        player.sendEquipmentBreakStatus(stack.getItem(), hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
-                    });
+                    if (predicate.test(currentStack)) {
+                        return ExtendedStackReference.of(() -> player.getStackInHand(hand), stack -> player.setStackInHand(hand, stack), stack -> {
+                            player.sendEquipmentBreakStatus(stack.getItem(), hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+                        });
+                    }
                 }
             }
 
@@ -235,21 +241,29 @@ public class WaystoneComponentEventHooks {
         }
 
         if (canTeleport) {
-            var storage = WaystoneDataStorage.getStorage(world);
-            var waystone = storage.getEntity(target.uuid());
-
-            if (!world.isClient) {
-                if (waystone == null) {
-                    stack.remove(WaystoneDataComponents.HASH_TARGET);
-                } else if (waystone.teleportPlayer(user, TeleportSource.LOCAL_VOID, !FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree()) && !user.isCreative() && FabricWaystones.CONFIG.shouldConsumeLocalVoid()) {
-                    stack.decrement(1);
-                }
-            }
-
-            return TypedActionResult.consume(stack);
+            return TypedActionResult.success(attemptTeleport(target, world, user, stack));
         }
 
         return TypedActionResult.fail(stack);
+    }
+
+    @Nullable
+    public static ItemStack attemptTeleport(WaystoneHashTarget target, World world, Entity entity, ItemStack stack) {
+        var waystone = WaystoneDataStorage.getStorage(world).getEntity(target.uuid());
+
+        if (!world.isClient) {
+            if (waystone == null) {
+                stack.remove(WaystoneDataComponents.HASH_TARGET);
+            } else if (waystone.teleportEntity(entity, TeleportSource.LOCAL_VOID, !FabricWaystones.CONFIG.shouldLocalVoidTeleportBeFree()) && FabricWaystones.CONFIG.shouldConsumeLocalVoid()) {
+                var newStack = stack.copy();
+
+                newStack.decrementUnlessCreative(1, entity instanceof LivingEntity livingEntity ? livingEntity : null);
+
+                return newStack;
+            }
+        }
+
+        return null;
     }
 
     @Nullable
@@ -313,7 +327,7 @@ public class WaystoneComponentEventHooks {
                     WaystoneNetworkHandler.CHANNEL.serverHandle(player).send(new VoidRevive());
 
                     player.fallDistance = 0;
-                    waystone.teleportPlayer(player, TeleportSource.VOID_TOTEM, false);
+                    waystone.teleportEntity(player, TeleportSource.VOID_TOTEM, false);
                 }
 
                 teleported = true;

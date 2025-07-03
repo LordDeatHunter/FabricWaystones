@@ -1,10 +1,12 @@
 package wraith.fwaystones.block;
 
-import io.wispforest.endec.Endec;
+import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.owo.ops.ItemOps;
 import io.wispforest.owo.ops.WorldOps;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
+import io.wispforest.owo.util.Observable;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -16,6 +18,7 @@ import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -26,6 +29,7 @@ import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -49,6 +53,8 @@ import wraith.fwaystones.api.moss.MossTypes;
 import wraith.fwaystones.api.teleport.TeleportAction;
 import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.client.screen.ExperimentalWaystoneScreenHandler;
+import wraith.fwaystones.item.WaystoneComponentEventHooks;
+import wraith.fwaystones.item.components.WaystoneHashTarget;
 import wraith.fwaystones.item.components.WaystoneTyped;
 import wraith.fwaystones.particle.RuneParticleEffect;
 import wraith.fwaystones.registry.WaystoneDataComponents;
@@ -72,13 +78,15 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     public int ticks;
 
     public int lookTime;
-    public Entity focusedEntity = null;
+    public Observable<@Nullable Entity> focusedEntity = Observable.of(null);
 
     public Vec3d focusVector = getRandomControllerOffset();
 
     private static final KeyedEndec<Vec3d> FOCUS_VECTOR_KEY = MinecraftEndecs.VEC3D.keyed("focusVector", () -> Vec3d.ZERO);
 
     //--
+
+    public Entity teleportTarget = null;
 
     private WaystonePosition waystonePosition;
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
@@ -89,15 +97,23 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private static final KeyedEndec<Identifier> WAYSTONE_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("waystone_type", () -> WaystoneTypes.STONE);
     private Identifier waystoneTypeId = WaystoneTypes.STONE;
 
+    private static final KeyedEndec<ItemStack> CONTROLLER_STACK_KEY = MinecraftEndecs.ITEM_STACK.keyed("controller_stack", () -> ItemStack.EMPTY);
     private ItemStack controllerStack = ItemStack.EMPTY;
 
     private static final KeyedEndec<Identifier> MOSS_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("moss_type", () -> MossTypes.EMPTY_ID);
     private Identifier mossTypeId = MossTypes.EMPTY_ID;
 
+    private static final KeyedEndec<ItemStack> MOSS_STACK_KEY = MinecraftEndecs.ITEM_STACK.keyed("moss_stack", () -> ItemStack.EMPTY);
     private ItemStack mossStack = ItemStack.EMPTY;
 
     public WaystoneBlockEntity(BlockPos pos, BlockState state) {
         super(WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, pos, state);
+
+        focusedEntity.observe(entity -> {
+            if (entity != null) {
+                setFocusVector(entity.getEyePos().subtract(this.getControllerPos()).normalize());
+            }
+        });
     }
 
     public int getColor() {
@@ -194,10 +210,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         var data = storage.getData(position);
 
-        boolean setupData = false;
+        boolean setupData;
 
         if (this.controllerStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
             setupData = !(data instanceof NetworkedWaystoneData);
+        } else {
+            setupData = data == null;
         }
 
         if (setupData) {
@@ -228,7 +246,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return this.controllerStack;
     }
 
-    @Nullable
     public UUID getUUID() {
         var uuid = getWaystoneStorage().getUUID(this.position());
 
@@ -241,8 +258,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return WaystoneTypes.getTypeOrDefault(this.waystoneTypeId);
     }
 
-    public TeleportAction createNetworkTeleport(TeleportSource source) {
-        return TeleportAction.networkTeleport(this.getUUID(), source);
+    public TeleportAction createTeleportAction(TeleportSource source) {
+        return TeleportAction.of(this.getUUID(), source);
     }
 
     //--
@@ -415,17 +432,16 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup lookup) {
         super.readNbt(tag, lookup);
+        var ctx = SerializationContext.attributes(RegistriesAttribute.of((DynamicRegistryManager) lookup));
 
         this.inventory = DefaultedList.ofSize(tag.getInt("inventory_size"), ItemStack.EMPTY);
-
         Inventories.readNbt(tag, inventory, lookup);
 
         this.waystoneTypeId = tag.get(WAYSTONE_TYPE_ID_KEY);
-        this.controllerStack = ItemStack.fromNbtOrEmpty(lookup, tag.getCompound("controller_stack"));
+        this.controllerStack = tag.get(ctx, CONTROLLER_STACK_KEY);
 
         this.mossTypeId = tag.get(MOSS_TYPE_ID_KEY);
-
-        this.mossStack = ItemStack.fromNbtOrEmpty(lookup, tag.getCompound("moss_stack"));
+        this.mossStack = tag.get(ctx, MOSS_STACK_KEY);
 
         this.focusVector = tag.get(FOCUS_VECTOR_KEY);
 
@@ -439,24 +455,25 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     protected void writeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup lookup) {
         super.writeNbt(tag, lookup);
+        var ctx = SerializationContext.attributes(RegistriesAttribute.of((DynamicRegistryManager) lookup));
 
         tag.putInt("inventory_size", this.inventory.size());
-
         Inventories.writeNbt(tag, this.inventory, lookup);
 
         tag.put(WAYSTONE_TYPE_ID_KEY, this.waystoneTypeId);
-        tag.put("controller_stack", this.controllerStack.encodeAllowEmpty(lookup));
+        tag.put(ctx, CONTROLLER_STACK_KEY, this.controllerStack);
 
         tag.put(MOSS_TYPE_ID_KEY, this.mossTypeId);
-        tag.put("moss_stack", this.mossStack.encodeAllowEmpty(lookup));
+        tag.put(ctx, MOSS_STACK_KEY, this.mossStack);
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registryLookup) {
-        var tag = super.toInitialChunkDataNbt(registryLookup);
+    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup lookup) {
+        var tag = super.toInitialChunkDataNbt(lookup);
+        var ctx = SerializationContext.attributes(RegistriesAttribute.of((DynamicRegistryManager) lookup));
 
         tag.put(WAYSTONE_TYPE_ID_KEY, this.waystoneTypeId);
-        tag.put("controller_stack", this.controllerStack.encodeAllowEmpty(registryLookup));
+        tag.put(ctx, CONTROLLER_STACK_KEY, this.controllerStack);
 
         tag.put(MOSS_TYPE_ID_KEY, this.mossTypeId);
 
@@ -476,17 +493,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         componentMapBuilder.add(DataComponentTypes.CONTAINER, null);
 
-//        var storage = WaystoneDataStorage.getStorage(this.world);
-//        if (FabricWaystones.CONFIG.allowSavingWaystoneData()) {
-//            var holder = storage.removePositionAndExport(this);
-//
-//            if (holder != null) {
-//                componentMapBuilder.add(WaystoneDataComponents.DATA_HOLDER, holder);
-//            }
-//        } else {
-//            storage.removePositionAndData(this);
-//        }
-
         componentMapBuilder.add(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(this.waystoneTypeId));
     }
 
@@ -505,10 +511,19 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     //--
 
-    public boolean teleportPlayer(PlayerEntity player, TeleportSource source, boolean takeCost) {
-        if (!(player instanceof ServerPlayerEntity serverPlayer)) return false;
+    public boolean teleportEntity(Entity entity, TeleportSource source, boolean takeCost) {
+        if (entity.getWorld().isClient) return false;
 
-        return Utils.teleportPlayer(serverPlayer, createNetworkTeleport(source), takeCost);
+        return Utils.teleportPlayer(entity, createTeleportAction(source), takeCost);
+    }
+
+    private int teleportWaitCounter = 0;
+
+    public void setupForTeleport(Entity entity) {
+        if (entity.getWorld().isClient() || this.teleportTarget != null) return;
+
+        this.teleportTarget = entity;
+        this.teleportWaitCounter = 30;
     }
 
     @Override
@@ -522,81 +537,126 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private static final double MAX_ADHD_DISTANCE = 12;
     private static final double MAX_FOCUS_DISTANCE = 4.5;
 
-    public static void tickServer(World world, BlockPos pos, BlockState state, WaystoneBlockEntity waystone) {
-        var controller = waystone.getControllerPos();
-        --waystone.lookTime;
+    public void tickServer(World world, BlockPos pos, BlockState state) {
+        var controllerStack = this.controllerStack();
+        if (controllerStack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEMS)) {
+            if (this.teleportTarget != null) {
 
-        if (world.getClosestPlayer(controller.x, controller.y, controller.z, MAX_FOCUS_DISTANCE, waystone::isValidFocus) instanceof PlayerEntity closestPlayer) {
-            waystone.focusedEntity = closestPlayer;
-        } else {
-            if (waystone.focusedEntity != null && (!waystone.canSeeEntity(waystone.focusedEntity) || waystone.lookTime <= 0)) {
-                waystone.focusedEntity = null;
+
+                var heightOffset = (isSingleBlock()) ? 1 : 2;
+
+                var box = new Box(this.pos)
+                    .offset(0, heightOffset / 2f, 0)
+                    .expand(0, heightOffset, 0);
+
+                if (!box.intersects(this.teleportTarget.getBoundingBox())) {
+                    this.teleportTarget = null;
+                } else {
+                    if (this.teleportWaitCounter <= 0) {
+                        var target = WaystoneHashTarget.get(controllerStack, world);
+                        if (target != null) {
+                            WaystoneComponentEventHooks.attemptTeleport(target, world, teleportTarget, controllerStack);
+                        }
+                        this.teleportWaitCounter = 0;
+                    } else {
+                        this.teleportWaitCounter--;
+                    }
+                }
+            } else {
+
             }
-            if (waystone.focusedEntity == null && RANDOM.get().nextFloat() < 0.02) {
-                var nearbyEntities = world.getOtherEntities(null, Box.from(controller).expand(MAX_FOCUS_DISTANCE), waystone::canSeeEntity);
+        } else {
+            this.teleportTarget = null;
+        }
+
+
+        //--
+
+        var controller = this.getControllerPos();
+        --this.lookTime;
+
+        if (world.getClosestPlayer(controller.x, controller.y, controller.z, MAX_FOCUS_DISTANCE, this::isValidFocus) instanceof PlayerEntity closestPlayer) {
+            this.focusedEntity.set(closestPlayer);
+        } else {
+            //noinspection DataFlowIssue
+            // First check if the given focused entity can be seen or if look time for specific entity has run out
+            if (this.focusedEntity.get() != null && (!this.canSeeEntity(this.focusedEntity.get()) || this.lookTime <= 0)) {
+                this.focusedEntity.set(null);
+            }
+            // Second attempt to focus a new entity if the stars align
+            if (this.focusedEntity.get() == null && RANDOM.get().nextFloat() < 0.02) {
+                var nearbyEntities = world.getOtherEntities(null, Box.from(controller).expand(MAX_FOCUS_DISTANCE), this::canSeeEntity);
                 if (!nearbyEntities.isEmpty()) {
-                    waystone.focusedEntity = nearbyEntities.get(RANDOM.get().nextInt(nearbyEntities.size()));
-                    waystone.lookTime = 40 + RANDOM.get().nextInt(40);
+                    this.focusedEntity.set(nearbyEntities.get(RANDOM.get().nextInt(nearbyEntities.size())));
+                    this.lookTime = 40 + RANDOM.get().nextInt(40);
                 }
             }
-            if (waystone.focusedEntity == null) {
+            // Third and finally look at something if the entity is found to be null
+            if (this.focusedEntity.get() == null) {
                 if (RANDOM.get().nextFloat() < 0.02) {
                     var offset = getRandomControllerOffset();
-                    waystone.focusVector = waystone.focusVector != null ? waystone.focusVector.add(offset) : offset;
-                    waystone.lookTime = 40 + RANDOM.get().nextInt(20);
+                    this.setFocusVector(this.focusVector != null ? this.focusVector.add(offset) : offset);
+                    this.lookTime = 40 + RANDOM.get().nextInt(20);
                 } else if (RANDOM.get().nextFloat() < 0.02) {
                     var storage = WaystoneDataStorage.getStorage(world);
                     var allWaystones = storage.getAllPositions().stream()
-                        .filter(waystonePos -> !waystonePos.equals(waystone.position()))
-                        .filter(waystonePos -> waystonePos.worldKey().equals(world.getRegistryKey()))
+                        .filter(thisPos -> !thisPos.equals(this.position()))
+                        .filter(thisPos -> thisPos.worldKey().equals(world.getRegistryKey()))
                         .toList();
                     if (!allWaystones.isEmpty()) {
                         var choice = allWaystones.stream().toList().get(RANDOM.get().nextInt(allWaystones.size()));
-                        waystone.focusVector = choice.blockPos().toBottomCenterPos().add(waystone.getControllerPos()).subtract(controller).normalize();
-                        waystone.lookTime = 40 + RANDOM.get().nextInt(20);
+                        this.setFocusVector(choice.blockPos().toBottomCenterPos().add(this.getControllerPos()).subtract(controller).normalize());
+                        this.lookTime = 40 + RANDOM.get().nextInt(20);
                     }
                 }
 
             }
         }
-        if (waystone.focusedEntity != null) waystone.focusVector = waystone.focusedEntity.getEyePos().subtract(controller).normalize();
-        waystone.markDirty();
     }
 
     @Environment(EnvType.CLIENT)
-    public static void tickClient(World world, BlockPos pos, BlockState state, WaystoneBlockEntity waystone) {
-        var controller = waystone.getControllerPos();
+    public void tickClient(World world, BlockPos pos, BlockState state) {
+        this.controllerRotation = new Quaternionf().lookAlong(this.focusVector.toVector3f(), new Vector3f(0, 1, 0)).invert();
+        this.ticks++;
 
-        waystone.controllerRotation = new Quaternionf().lookAlong(waystone.focusVector.toVector3f(), new Vector3f(0, 1, 0)).invert();
-        waystone.ticks++;
+        if (!this.isActive()) return;
+
+        var controller = this.getControllerPos();
 
         var closestPlayer = world.getClosestPlayer(
             controller.x, controller.y, controller.z, 4.5,
-            waystone::isValidFocus
+            this::isValidFocus
         );
 
         if (closestPlayer != null) {
-            waystone.shootRuneAt(closestPlayer);
-            waystone.suckPortalParticleFrom(closestPlayer);
+            this.shootRuneAt(closestPlayer);
+            this.suckPortalParticleFrom(closestPlayer);
         }
 
         world.getOtherEntities(
             null,
             Box.from(controller).expand(6),
-            waystone::isValidFocus
-        ).forEach(waystone::shootRuneAt);
+            this::isValidFocus
+        ).forEach(this::shootRuneAt);
 
-        if (waystone.getData() != null) waystone.suckARandomPortalParticle();
+        if (this.getData() != null) this.suckARandomPortalParticle();
+    }
+
+    private void setFocusVector(Vec3d vector) {
+        if (this.focusVector.equals(vector)) return;
+
+        this.focusVector = vector;
+
+        this.markDirty();
     }
 
     @SuppressWarnings("RedundantIfStatement")
-    private boolean canSeeEntity(@Nullable Entity entity) {
-        if (entity == null) return false;
+    private boolean canSeeEntity(Entity entity) {
         if (!entity.isAlive()) return false;
         if (entity.isSpectator()) return false;
         if (entity.isInvisible()) return false;
-        if (world == null) return false;
         if (!entity.getWorld().equals(world)) return false;
+
         var controllerPos = getControllerPos();
         var entityPos = entity.getEyePos();
         if (controllerPos.distanceTo(entityPos) > MAX_ADHD_DISTANCE) return false;
@@ -607,13 +667,13 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private boolean isValidFocus(Entity entity) {
         if (!(entity instanceof PlayerEntity player)) return false;
         if (!canSeeEntity(player)) return false;
-        if (getUUID() instanceof UUID uuid) return WaystonePlayerData.getData(player).hasDiscoverdWaystone(uuid);
-        return false;
+
+        return WaystonePlayerData.getData(player).hasDiscoverdWaystone(getUUID());
     }
 
     private void shootRuneAt(Entity target) {
-        if (world == null || !this.isActive()) return;
         if (RANDOM.get().nextInt(10) != 0) return;
+
         var basePos = this.getPos().toBottomCenterPos();
         var watcherPos = basePos.add(0, getControllerHeight(), 0);
         var targetPos = target.getPos();
@@ -626,6 +686,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 getEmitterRunesHeight(),
                 distanceCheck < 0 ? Double.compare(targetPos.z, watcherPos.z) * 0.4 : 0
             );
+        //noinspection DataFlowIssue
         this.world.addParticle(
             new RuneParticleEffect(getColor()),
             start.x, start.y, start.z,
@@ -634,8 +695,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     private void suckPortalParticleFrom(Entity target) {
-        if (world == null || !this.isActive()) return;
         if (RANDOM.get().nextInt(30) != 0) return;
+
         var watcherPos = this.getPos().toBottomCenterPos().add(0, getControllerHeight(), 0);
         var bb = target.getBoundingBox();
         var bbMin = bb.getMinPos();
@@ -647,6 +708,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         )
             .subtract(watcherPos)
             .subtract(0, 0.75, 0);
+        //noinspection DataFlowIssue
         this.world.addParticle(
             ParticleTypes.PORTAL,
             watcherPos.x, watcherPos.y, watcherPos.z,
@@ -655,11 +717,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     private void suckARandomPortalParticle() {
-        if (world == null || !this.isActive()) return;
         if (RANDOM.get().nextInt(50) != 0) return;
 
         var controllerPos = getControllerPos();
         var randomDirection = getRandomDirection();
+        //noinspection DataFlowIssue
         this.world.addParticle(
             ParticleTypes.PORTAL,
             controllerPos.x,
@@ -692,7 +754,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public double getControllerHeight() {
-        return (isSingleBlock() ? 14 : 29) / 16f;
+        return (isSingleBlock() ? 16 : 29) / 16f;
     }
 
     public Vec3d getControllerPos() {

@@ -4,6 +4,8 @@ import com.mojang.datafixers.util.Pair;
 import eu.pb4.placeholders.api.ParserContext;
 import eu.pb4.placeholders.api.parsers.TagParser;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -173,28 +175,30 @@ public final class Utils {
 
     //--
 
-    public static boolean teleportPlayer(ServerPlayerEntity player, TeleportAction action, boolean takeCost) {
+    public static boolean teleportPlayer(Entity entity, TeleportAction action, boolean takeCost) {
         if (action == null) return false;
 
-        if (!attemptTeleport(player, action, takeCost)) return false;
+        if (!attemptTeleport(entity, action, takeCost)) return false;
 
-        if (!player.isCreative() && action.isFrom(TeleportSource.ABYSS_WATCHER)) {
-            var stackReference = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(player, stack -> {
-                var component = stack.get(WaystoneDataComponents.TELEPORTER);
+        if (entity instanceof LivingEntity livingEntity) {
+            if (!livingEntity.isInCreativeMode() && action.isFrom(TeleportSource.ABYSS_WATCHER)) {
+                var stackReference = WaystoneInteractionEvents.LOCATE_EQUIPMENT.invoker().getStack(livingEntity, stack -> {
+                    var component = stack.get(WaystoneDataComponents.TELEPORTER);
 
-                return component != null && component.oneTimeUse();
-            });
+                    return component != null && component.oneTimeUse();
+                });
 
-            if (stackReference != null) {
-                var stack = stackReference.get();
-                var data = stack.get(WaystoneDataComponents.TELEPORTER);
+                if (stackReference != null) {
+                    var stack = stackReference.get();
+                    var data = stack.get(WaystoneDataComponents.TELEPORTER);
 
-                if (data != null && data.oneTimeUse()) {
-                    stackReference.breakStack(stack.copy());
+                    if (data != null && data.oneTimeUse()) {
+                        stackReference.breakStack(stack.copy());
 
-                    stack.decrement(1);
+                        stack.decrement(1);
 
-                    stackReference.set(stack);
+                        stackReference.set(stack);
+                    }
                 }
             }
         }
@@ -202,22 +206,24 @@ public final class Utils {
         return true;
     }
 
-    private static boolean attemptTeleport(ServerPlayerEntity player, TeleportAction action, boolean takeCost) {
-        if (!Utils.canTeleport(player, action, takeCost)) return false;
+    private static boolean attemptTeleport(Entity entity, TeleportAction action, boolean takeCost) {
+        if (!Utils.canTeleport(entity, action, takeCost)) return false;
 
-        var target = action.createTarget(player);
+        var target = action.createTarget(entity);
 
-        WaystonePlayerData.getData(player).teleportCooldown(action.getCooldown());
-
-        var oldPos = player.getBlockPos();
-        if (!oldPos.isWithinDistance(target.pos(), 6) || !player.getWorld().getRegistryKey().equals(target.world().getRegistryKey())) {
-            player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        if (entity instanceof PlayerEntity player) {
+            WaystonePlayerData.getData(player).teleportCooldown(action.getCooldown());
         }
 
-        player.detach();
-        player.teleportTo(target);
+        var oldPos = entity.getBlockPos();
+        if (!oldPos.isWithinDistance(target.pos(), 6) || !entity.getWorld().getRegistryKey().equals(target.world().getRegistryKey())) {
+            entity.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        }
 
-        var playerPos = player.getBlockPos();
+        //entity.detach();
+        entity.teleportTo(target);
+
+        var playerPos = entity.getBlockPos();
 
         target.world().playSound(null, playerPos, SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
 
@@ -228,24 +234,26 @@ public final class Utils {
         return canTeleport(player, action, false);
     }
 
-    public static boolean canTeleport(PlayerEntity player, TeleportAction action, boolean takeCost) {
-        if (!action.isValid(player)) return false;
+    public static boolean canTeleport(Entity entity, TeleportAction action, boolean takeCost) {
+        PlayerEntity player = (entity instanceof PlayerEntity playerEntity) ? playerEntity : null;
+
+        if (!action.isValid(entity)) return false;
         if (action.isFrom(TeleportSource.VOID_TOTEM)) return true;
 
-        var globalPos = action.getPos(player.getWorld());
+        var globalPos = action.getPos(entity.getWorld());
 
         var costType = FabricWaystones.CONFIG.teleportCost.type();
 
-        var sourceDim = getDimensionName(player.getWorld());
+        var sourceDim = getDimensionName(entity.getWorld());
         var destDim = globalPos.dimension().getValue().toString();
 
         if (!FabricWaystones.CONFIG.ignoreBlacklistForInterdimensionTravel() || !sourceDim.equals(destDim)) {
             if (isDimensionBlacklisted(sourceDim, true)) {
-                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
+                if(player != null) player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
                 return false;
             }
             if (isDimensionBlacklisted(destDim, false)) {
-                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
+                if(player != null) player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
                 return false;
             }
         }
@@ -254,63 +262,65 @@ public final class Utils {
             return true;
         }
 
-        int amount = getCost(player.getPos(), globalPos.pos().toCenterPos(), sourceDim, destDim);
+        if (player != null) {
+            if (player.isCreative() || player.isSpectator()) return true;
 
-        if (player.isCreative() || player.isSpectator()) return true;
+            int amount = getCost(entity.getPos(), globalPos.pos().toCenterPos(), sourceDim, destDim);
 
-        switch (costType) {
-            case HEALTH -> {
-                if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.health"), true);
-                    return false;
+            switch (costType) {
+                case HEALTH -> {
+                    if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
+                        player.sendMessage(Text.translatable("fwaystones.no_teleport.health"), true);
+                        return false;
+                    }
+                    if (takeCost) {
+                        player.damage(player.getWorld().getDamageSources().magic(), amount);
+                    }
                 }
-                if (takeCost) {
-                    player.damage(player.getWorld().getDamageSources().magic(), amount);
+                case HUNGER -> {
+                    var hungerManager = player.getHungerManager();
+                    var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
+                    if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustion() / 4F <= amount) {
+                        player.sendMessage(Text.translatable("fwaystones.no_teleport.hunger"), true);
+                        return false;
+                    }
+                    if (takeCost) {
+                        hungerManager.addExhaustion(4 * amount);
+                    }
                 }
-            }
-            case HUNGER -> {
-                var hungerManager = player.getHungerManager();
-                var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
-                if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustion() / 4F <= amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.hunger"), true);
-                    return false;
+                case EXPERIENCE -> {
+                    long total = determineLevelXP(player);
+                    if (total < amount) {
+                        player.sendMessage(Text.translatable("fwaystones.no_teleport.xp"), true);
+                        return false;
+                    }
+                    if (takeCost) {
+                        player.addExperience(-amount);
+                    }
                 }
-                if (takeCost) {
-                    hungerManager.addExhaustion(4 * amount);
+                case LEVEL -> {
+                    if (player.experienceLevel < amount) {
+                        player.sendMessage(Text.translatable("fwaystones.no_teleport.level"), true);
+                        return false;
+                    }
+                    if (takeCost) {
+                        player.addExperienceLevels(-amount);
+                    }
                 }
-            }
-            case EXPERIENCE -> {
-                long total = determineLevelXP(player);
-                if (total < amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.xp"), true);
-                    return false;
-                }
-                if (takeCost) {
-                    player.addExperience(-amount);
-                }
-            }
-            case LEVEL -> {
-                if (player.experienceLevel < amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.level"), true);
-                    return false;
-                }
-                if (takeCost) {
-                    player.addExperienceLevels(-amount);
-                }
-            }
-            case ITEM -> {
-                var itemId = getTeleportCostItem();
-                var item = Registries.ITEM.get(itemId);
+                case ITEM -> {
+                    var itemId = getTeleportCostItem();
+                    var item = Registries.ITEM.get(itemId);
 
-                if (!containsItem(player.getInventory(), item, amount)) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.item"), true);
-                    return false;
-                }
+                    if (!containsItem(player.getInventory(), item, amount)) {
+                        player.sendMessage(Text.translatable("fwaystones.no_teleport.item"), true);
+                        return false;
+                    }
 
-                if (takeCost) {
-                    removeItem(player.getInventory(), item, amount);
+                    if (takeCost) {
+                        removeItem(player.getInventory(), item, amount);
 
-                    action.addConsumedItems(player.getWorld(), item, amount);
+                        action.addConsumedItems(player.getWorld(), item, amount);
+                    }
                 }
             }
         }

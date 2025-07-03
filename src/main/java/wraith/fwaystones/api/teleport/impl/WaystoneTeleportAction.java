@@ -1,9 +1,10 @@
 package wraith.fwaystones.api.teleport.impl;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.Vec3d;
@@ -19,49 +20,51 @@ import wraith.fwaystones.item.components.TextUtils;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public record NetworkedWaystoneTeleportAction(@Nullable UUID uuid, TeleportSource source) implements TeleportAction {
+public record WaystoneTeleportAction(@Nullable UUID uuid, TeleportSource source) implements TeleportAction {
     @Override
-    public boolean isValid(PlayerEntity player) {
+    public boolean isValid(Entity entity) {
         if (uuid != null) {
-            var position = WaystoneDataStorage.getStorage(player).getPosition(uuid);
+            var position = WaystoneDataStorage.getStorage(entity).getPosition(uuid);
 
             if (position != null) {
-                var server = player.getServer();
+                var server = entity.getServer();
 
                 if (server != null && server.getWorld(position.worldKey()) == null) {
                     return false;
                 }
 
-                return TeleportAction.super.isValid(player);
+                return TeleportAction.super.isValid(entity);
             }
         }
 
-        player.sendMessage(TextUtils.translation("no_teleport.invalid_waystone"), true);
+        if (entity instanceof PlayerEntity player) {
+            player.sendMessage(TextUtils.translation("no_teleport.invalid_waystone"), true);
+        }
 
         return false;
     }
 
     @Override
     public GlobalPos getPos(World world) {
-        var position = WaystoneDataStorage.getStorage(world).getPosition(uuid);
-
-        return position.globalPos();
+        return WaystoneDataStorage.getStorage(world)
+            .getPosition(uuid)
+            .globalPos();
     }
 
     @Override
-    public TeleportTarget createTarget(ServerPlayerEntity player) {
-        var server = player.getServer();
+    public TeleportTarget createTarget(Entity entity) {
+        var server = entity.getServer();
 
-        var storage = WaystoneDataStorage.getStorage(player);
+        var storage = WaystoneDataStorage.getStorage(entity);
 
         var position = storage.getPosition(uuid);
-        var entity = storage.getEntity(uuid);
+        var waystone = storage.getEntity(uuid);
 
-        var positionDir = entity.getCachedState().get(WaystoneBlock.FACING);
+        var positionDir = waystone.getCachedState().get(WaystoneBlock.FACING);
 
         float yaw = (positionDir.getAxis().getType().equals(Direction.Type.HORIZONTAL))
             ? positionDir.getOpposite().asRotation()
-            : player.getYaw();
+            : entity.getYaw();
 
         var teleportPos = position.blockPos().toBottomCenterPos()
             .add(positionDir.getOffsetX(), 0, positionDir.getOffsetZ());
@@ -87,7 +90,7 @@ public record NetworkedWaystoneTeleportAction(@Nullable UUID uuid, TeleportSourc
 
             var found = false;
 
-            for (ItemStack stack : oldInventory) {
+            for (var stack : oldInventory) {
                 if (stack.getItem() == item) {
                     stack.increment(amount);
                     found = true;

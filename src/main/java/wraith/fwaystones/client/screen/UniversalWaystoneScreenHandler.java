@@ -131,7 +131,7 @@ public abstract class UniversalWaystoneScreenHandler<D> extends ScreenHandler {
     public boolean attemptTeleport(UUID uuid) {
         var source = getTeleportSource(player);
 
-        if (Utils.canTeleportCostLess(player, TeleportAction.networkTeleport(uuid, source))) {
+        if (Utils.canTeleportCostLess(player, TeleportAction.of(uuid, source))) {
             WaystoneNetworkHandler.CHANNEL.clientHandle().send(new TeleportToWaystone(uuid, source));
 
             closeScreen();

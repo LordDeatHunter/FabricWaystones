@@ -23,6 +23,7 @@ repositories {
     maven {url "https://maven.nucleoid.xyz/" }
     mavenCentral()
     mavenLocal()
+    maven { url "https://maven.shedaniel.me" }
 }
 
 dependencies {
@@ -58,6 +59,9 @@ dependencies {
     modCompileOnly modRuntimeOnly("maven.modrinth:lithostitched:${project.lithostiched_version}")
 
     modCompileOnly modRuntimeOnly("eu.pb4:placeholder-api:${project.placeholder_api_version}")
+
+    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
+    modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 }
 
 loom {

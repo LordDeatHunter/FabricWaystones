@@ -4,11 +4,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.wispforest.owo.ops.ItemOps;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -30,6 +33,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.*;
@@ -38,8 +42,10 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.components.TextUtils;
+import wraith.fwaystones.item.components.WaystoneHashTarget;
 import wraith.fwaystones.mixin.TallBlantBlockAccessor;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneBlocks;
@@ -47,6 +53,9 @@ import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.registry.WaystoneItems;
 import wraith.fwaystones.util.Utils;
 import wraith.fwaystones.api.WaystoneDataStorage;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static wraith.fwaystones.FabricWaystones.*;
 
@@ -66,45 +75,56 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             .apply(instance, WaystoneBlock::of)
     );
 
-    protected static final VoxelShape VOXEL_SHAPE_BOTTOM;
-    protected static final VoxelShape VOXEL_SHAPE_TOP;
-    protected static final VoxelShape VOXEL_SHAPE_SINGLE;
+    protected static final VoxelShape OUTLINE_SHAPE_BOTTOM = VoxelShapes.union(
+        Block.createCuboidShape(1f, 0f, 1f, 15f, 2f, 15f),
+        Block.createCuboidShape(2f, 2f, 2f, 14f, 5f, 14f),
+        Block.createCuboidShape(3f, 5f, 3f, 13f, 16f, 13f)
+    );
+    protected static final VoxelShape OUTLINE_SHAPE_TOP = createTopShape(true, false);
+    protected static final VoxelShape OUTLINE_SHAPE_SINGLE = createTopShape(true, true);
 
-    static {
-        // BOTTOM
-        VoxelShape vs1_1 = Block.createCuboidShape(1f, 0f, 1f, 15f, 2f, 15f);
-        VoxelShape vs2_1 = Block.createCuboidShape(2f, 2f, 2f, 14f, 5f, 14f);
-        VoxelShape vs3_1 = Block.createCuboidShape(3f, 5f, 3f, 13f, 16f, 13f);
-        // TOP
-        VoxelShape vs1_2 = Block.createCuboidShape(3f, 0f, 3f, 13f, 1f, 13f);
-        VoxelShape vs2_2 = Block.createCuboidShape(2f, 1f, 2f, 14f, 5f, 14f);
-        VoxelShape vs3_2 = Block.createCuboidShape(3f, 5f, 3f, 13f, 7f, 13f);
-        VoxelShape vs4_2 = Block.createCuboidShape(7f, 5f, 1f, 9f, 8f, 3f);
-        VoxelShape vs5_2 = Block.createCuboidShape(7f, 7f, 3f, 9f, 10f, 4f);
-        VoxelShape vs6_2 = Block.createCuboidShape(1f, 5f, 7f, 3f, 8f, 9f);
-        VoxelShape vs7_2 = Block.createCuboidShape(3f, 7f, 7f, 4f, 10f, 9f);
-        VoxelShape vs8_2 = Block.createCuboidShape(7f, 5f, 13f, 9f, 8f, 15f);
-        VoxelShape vs9_2 = Block.createCuboidShape(7f, 7f, 12f, 9f, 10f, 13f);
-        VoxelShape vs10_2 = Block.createCuboidShape(13f, 5f, 7f, 15f, 8f, 9f);
-        VoxelShape vs11_2 = Block.createCuboidShape(12f, 7f, 7f, 13f, 10f, 9f);
-        // SINGLE
-        VoxelShape vs1_3 = Block.createCuboidShape(3f, 0f, 3f, 13f, 2f, 13f);
-        VoxelShape vs2_3 = Block.createCuboidShape(2f, 2f, 2f, 14f, 6f, 14f);
-        VoxelShape vs3_3 = Block.createCuboidShape(3f, 6f, 3f, 13f, 8f, 13f);
-        VoxelShape vs4_3 = Block.createCuboidShape(7f, 6f, 1f, 9f, 9f, 3f);
-        VoxelShape vs5_3 = Block.createCuboidShape(7f, 8f, 3f, 9f, 11f, 4f);
-        VoxelShape vs6_3 = Block.createCuboidShape(1f, 6f, 7f, 3f, 9f, 9f);
-        VoxelShape vs7_3 = Block.createCuboidShape(3f, 8f, 7f, 4f, 11f, 9f);
-        VoxelShape vs8_3 = Block.createCuboidShape(7f, 6f, 13f, 9f, 9f, 15f);
-        VoxelShape vs9_3 = Block.createCuboidShape(7f, 8f, 12f, 9f, 11f, 13f);
-        VoxelShape vs10_3 = Block.createCuboidShape(13f, 6f, 7f, 15f, 9f, 9f);
-        VoxelShape vs11_3 = Block.createCuboidShape(12f, 8f, 7f, 13f, 11f, 9f);
+    protected static final VoxelShape COLLISION_SHAPE_BOTTOM = OUTLINE_SHAPE_BOTTOM;
+    protected static final VoxelShape COLLISION_SHAPE_TOP = createTopShape(false, false);
+    protected static final VoxelShape COLLISION_SHAPE_SINGLE = createTopShape(false, true);
 
-        VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1);
-        VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2);
-        VOXEL_SHAPE_SINGLE = VoxelShapes.union(vs1_3, vs2_3, vs3_3, vs4_3, vs5_3, vs6_3, vs7_3, vs8_3, vs9_3, vs10_3, vs11_3);
+    private static VoxelShape createTopShape(boolean addSpikes, boolean singleBlock) {
+        var shapes = new ArrayList<VoxelShape>();
+
+        if (singleBlock) {
+            shapes.add(Block.createCuboidShape(1f, 0f, 1f, 15f, 1f, 15f));
+            shapes.add(Block.createCuboidShape(2f, 1f, 2f, 14f, 2f, 14f));
+            shapes.add(Block.createCuboidShape(3f, 2f, 3f, 13f, 4f, 13f));
+            shapes.add(Block.createCuboidShape(2f, 4f, 2f, 14f, 8f, 14f));
+            shapes.add(Block.createCuboidShape(3f, 8f, 3f, 13f, 10f, 13f));
+        } else {
+            shapes.add(Block.createCuboidShape(3f, 0f, 3f, 13f, 1f, 13f));
+            shapes.add(Block.createCuboidShape(2f, 1f, 2f, 14f, 5f, 14f));
+            shapes.add(Block.createCuboidShape(3f, 5f, 3f, 13f, 7f, 13f));
+        }
+
+        if (addSpikes) {
+            List<VoxelShape> spikes = new ArrayList<>();
+
+            spikes.add(Block.createCuboidShape(7f, 5f, 1f, 9f, 8f, 3f));
+            spikes.add(Block.createCuboidShape(7f, 7f, 3f, 9f, 10f, 4f));
+            spikes.add(Block.createCuboidShape(1f, 5f, 7f, 3f, 8f, 9f));
+            spikes.add(Block.createCuboidShape(3f, 7f, 7f, 4f, 10f, 9f));
+            spikes.add(Block.createCuboidShape(7f, 5f, 13f, 9f, 8f, 15f));
+            spikes.add(Block.createCuboidShape(7f, 7f, 12f, 9f, 10f, 13f));
+            spikes.add(Block.createCuboidShape(13f, 5f, 7f, 15f, 8f, 9f));
+            spikes.add(Block.createCuboidShape(12f, 7f, 7f, 13f, 10f, 9f));
+
+            if (singleBlock) {
+                spikes = spikes.stream()
+                    .map(voxelShape -> voxelShape.offset(0, 3 / 16f, 0))
+                    .toList();
+            }
+
+            shapes.addAll(spikes);
+        }
+
+        return VoxelShapes.union(shapes.getFirst(), shapes.subList(1, shapes.size()).toArray(VoxelShape[]::new));
     }
-
 
     // Cursed work around for issues with BlockState setup
     private static boolean cursedField_singleBlock = false;
@@ -142,7 +162,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     }
 
     @Nullable
-    public static WaystoneBlockEntity getEntity(BlockRenderView world, BlockPos pos) {
+    public static WaystoneBlockEntity getEntity(BlockView world, BlockPos pos) {
         var state = world.getBlockState(pos);
 
         return (state.getBlock() instanceof WaystoneBlock)
@@ -150,7 +170,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             : null;
     }
 
-    public static WaystoneBlockEntity getEntity(BlockRenderView world, BlockPos pos, BlockState state) {
+    public static WaystoneBlockEntity getEntity(BlockView world, BlockPos pos, BlockState state) {
         pos = getBasePos(pos, state);
 
         return world.getBlockEntity(pos, WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY).orElse(null);
@@ -173,9 +193,13 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         return validateTicker(
             type,
             WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY,
-            world.isClient ?
-                WaystoneBlockEntity::tickClient :
-                WaystoneBlockEntity::tickServer
+            (world1, pos, state1, blockEntity) -> {
+                if (world1.isClient) {
+                    blockEntity.tickClient(world, pos, state1);
+                } else {
+                    blockEntity.tickServer(world, pos, state1);
+                }
+            }
         );
     }
 
@@ -223,8 +247,14 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext context) {
-        if (!state.contains(HALF)) return VOXEL_SHAPE_SINGLE;
-        return state.get(HALF) == DoubleBlockHalf.LOWER ? VOXEL_SHAPE_BOTTOM : VOXEL_SHAPE_TOP;
+        if (!state.contains(HALF)) return OUTLINE_SHAPE_SINGLE;
+        return state.get(HALF) == DoubleBlockHalf.LOWER ? OUTLINE_SHAPE_BOTTOM : OUTLINE_SHAPE_TOP;
+    }
+
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        if (!state.contains(HALF)) return COLLISION_SHAPE_SINGLE;
+        return state.get(HALF) == DoubleBlockHalf.LOWER ? COLLISION_SHAPE_BOTTOM : COLLISION_SHAPE_TOP;
     }
 
     @Override
@@ -365,13 +395,42 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     }
 
     @Override
+    public void onEntityLand(BlockView world, Entity entity) {
+        if (!entity.bypassesLandingEffects()) {
+            var waystone = WaystoneBlock.getEntity(world, entity.getLandingPos());
+
+            if (waystone != null && waystone.controllerStack().isIn(ConventionalItemTags.STORAGE_BLOCKS_SLIME)) {
+                this.bounce(entity);
+
+                return;
+            }
+        }
+
+        super.onEntityLand(world, entity);
+    }
+
+    private void bounce(Entity entity) {
+        Vec3d vec3d = entity.getVelocity();
+        if (vec3d.y < 0.0) {
+            double d = entity instanceof LivingEntity ? 1.0 : 0.8;
+            entity.setVelocity(vec3d.x, -vec3d.y * d, vec3d.z);
+        }
+    }
+
+    @Override
+    public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
+        var waystone = WaystoneBlock.getEntity(world, pos);
+        if (waystone != null) waystone.setupForTeleport(entity);
+    }
+
+    @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         var hand = player.getActiveHand();
         var stack = player.getStackInHand(hand);
         var item = stack.getItem();
 
         if (stack.contains(WaystoneDataComponents.HASH_TARGETS)) return ActionResult.PASS;
-        if (stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS)) return ActionResult.PASS;
+        if ((player.isSneaking() || !stack.contains(WaystoneDataComponents.HASH_TARGET)) && stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS)) return ActionResult.PASS;
         if (item instanceof WaystoneDebuggerItem) return ActionResult.PASS;
 
         var blockEntity = WaystoneBlock.getEntity(world, pos, state);
@@ -396,7 +455,17 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         var storage = WaystoneDataStorage.getStorage(player);
         WaystoneData data = blockEntity.getData();
 
-        if (data == null) return result;
+        if (data == null || result.isAccepted()) return result;
+
+        if (blockEntity.controllerStack().isIn(DIRECTED_TELEPORT_ITEMS)) {
+            var target = WaystoneHashTarget.get(blockEntity.controllerStack(), world);
+
+            if (target != null) {
+                var returnStack = WaystoneComponentEventHooks.attemptTeleport(target, world, player, blockEntity.controllerStack());
+
+                return ActionResult.SUCCESS;
+            }
+        }
 
         if (item instanceof DyeItem dyeItem) {
             var color = dyeItem.getColor().getSignColor();
