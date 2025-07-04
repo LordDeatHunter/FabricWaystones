@@ -508,66 +508,66 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             }
         }
 
-        if (!(data instanceof NetworkedWaystoneData networkedData)) return ActionResult.PASS;
-
         if (world.isClient) return ActionResult.SUCCESS;
 
-        if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(networkedData.ownerID())))) {
-            if (!blockEntity.getInventory().isEmpty()) {
-                blockEntity.spawnItemStackAbove(blockEntity.getInventory());
+        if (data instanceof NetworkedWaystoneData networkedData) {
+            if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(networkedData.ownerID())))) {
+                if (!blockEntity.getInventory().isEmpty()) {
+                    blockEntity.spawnItemStackAbove(blockEntity.getInventory());
 
-                blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
-                return ActionResult.SUCCESS;
+                    blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
+                    return ActionResult.SUCCESS;
+                }
             }
-        }
 
-        var playerData = WaystonePlayerData.getData(player);
+            var playerData = WaystonePlayerData.getData(player);
 
-        var discovered = playerData.discoveredWaystones();
-        if (!discovered.contains(blockEntity.getUUID())) {
-            if (!networkedData.global()) {
-                var discoverItemId = Utils.getDiscoverItem();
+            var discovered = playerData.discoveredWaystones();
+            if (!discovered.contains(blockEntity.getUUID())) {
+                if (!networkedData.global()) {
+                    var discoverItemId = Utils.getDiscoverItem();
 
-                if (!player.isCreative()) {
-                    var discoverItem = Registries.ITEM.get(discoverItemId);
-                    int discoverAmount = FabricWaystones.CONFIG.requiredDiscoveryAmount();
+                    if (!player.isCreative()) {
+                        var discoverItem = Registries.ITEM.get(discoverItemId);
+                        int discoverAmount = FabricWaystones.CONFIG.requiredDiscoveryAmount();
 
-                    if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
-                        player.sendMessage(
-                            TextUtils.translationWithArg(
-                                "missing_discover_item",
+                        if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
+                            player.sendMessage(
+                                TextUtils.translationWithArg(
+                                    "missing_discover_item",
+                                    discoverAmount,
+                                    Text.translatable(discoverItem.getTranslationKey())
+                                ), false);
+
+                            return ActionResult.FAIL;
+                        } else if (discoverItem != Items.AIR) {
+                            Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
+
+                            player.sendMessage(TextUtils.translationWithArg(
+                                "discover_item_paid",
                                 discoverAmount,
                                 Text.translatable(discoverItem.getTranslationKey())
                             ), false);
-
-                        return ActionResult.FAIL;
-                    } else if (discoverItem != Items.AIR) {
-                        Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
-
-                        player.sendMessage(TextUtils.translationWithArg(
-                            "discover_item_paid",
-                            discoverAmount,
-                            Text.translatable(discoverItem.getTranslationKey())
-                        ), false);
+                        }
                     }
+
+                    player.sendMessage(TextUtils.translationWithArg(
+                        "discover_waystone",
+                        networkedData.name()
+                    ), false);
                 }
 
-                player.sendMessage(TextUtils.translationWithArg(
-                    "discover_waystone",
-                    networkedData.name()
-                ), false);
+                playerData.discoverWaystone(blockEntity.getUUID());
             }
 
-            playerData.discoverWaystone(blockEntity.getUUID());
+            if (networkedData.ownerID() == null) {
+                var uuid = blockEntity.getUUID();
+
+                storage.setOwner(uuid, player);
+            }
         }
 
-        if (networkedData.ownerID() == null) {
-            var uuid = blockEntity.getUUID();
-
-            storage.setOwner(uuid, player);
-        }
-
-        if (result == ActionResult.PASS) {
+        if (result == ActionResult.PASS && blockEntity.getControllerStack().isIn(VALID_NETWORK_CONNECTORS)) {
             var screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
 
             if (screenHandlerFactory != null) player.openHandledScreen(screenHandlerFactory);

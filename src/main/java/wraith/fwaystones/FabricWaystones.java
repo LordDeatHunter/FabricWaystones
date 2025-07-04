@@ -65,6 +65,7 @@ public class FabricWaystones implements ModInitializer {
     public static final TagKey<Item> LOCAL_VOID_ITEMS = TagKey.of(RegistryKeys.ITEM, id("local_void_items"));
     public static final TagKey<Item> DIRECTED_TELEPORT_ITEMS = TagKey.of(RegistryKeys.ITEM, id("directed_teleporter_items"));
     public static final TagKey<Item> VALID_CONTROLLER_STACKS = TagKey.of(Registries.ITEM.getKey(), id("valid_controller_stacks"));
+    public static final TagKey<Item> VALID_NETWORK_CONNECTORS = TagKey.of(Registries.ITEM.getKey(), id("valid_controller_stacks"));
 
     public static final TagKey<Item> WAYSTONE_DISPLAY_ALIVE = TagKey.of(Registries.ITEM.getKey(), id("waystone_display/alive"));
     public static final TagKey<Item> WAYSTONE_DISPLAY_GYRO = TagKey.of(Registries.ITEM.getKey(), id("waystone_display/gyro"));

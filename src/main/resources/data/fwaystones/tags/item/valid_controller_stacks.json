@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "#fwaystones:portable_teleporter_items",
-    "#fwaystones:local_void_items"
+    "#fwaystones:local_void_items",
+    "minecraft:ender_eye"
   ]
 }

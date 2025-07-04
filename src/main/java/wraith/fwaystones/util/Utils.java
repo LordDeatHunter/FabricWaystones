@@ -220,7 +220,6 @@ public final class Utils {
             entity.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         }
 
-        //entity.detach();
         entity.teleportTo(target);
 
         var playerPos = entity.getBlockPos();

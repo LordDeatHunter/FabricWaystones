@@ -18,6 +18,7 @@ import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -29,6 +30,7 @@ import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
@@ -71,28 +73,28 @@ import static wraith.fwaystones.FabricWaystones.WAYSTONE_SHEAR;
 
 public class WaystoneBlockEntity extends LootableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory<WaystoneScreenOpenDataPacket>, WaystoneAccess {
 
-    private static final ThreadLocal<Random> RANDOM = ThreadLocal.withInitial(Random::create);
+    private static final Random RANDOM = Random.createThreadSafe();
 
-    public Quaternionf controllerRotation;
-    public Quaternionf lastControllerRotation;
-    public int ticks;
+    private Quaternionf controllerRotation = null;
+    private Quaternionf lastControllerRotation = null;
+    private int ticks;
 
-    public int lookTime;
-    public Observable<@Nullable Entity> focusedEntity = Observable.of(null);
+    private int lookTime;
+    private Observable<@Nullable Entity> focusedEntity = Observable.of(null);
 
-    public Vec3d focusVector = getRandomControllerOffset();
+    private Vec3d focusVector = getRandomControllerOffset();
 
     private static final KeyedEndec<Vec3d> FOCUS_VECTOR_KEY = MinecraftEndecs.VEC3D.keyed("focusVector", () -> Vec3d.ZERO);
 
     //--
 
-    public Entity teleportTarget = null;
+    private Entity teleportTarget = null;
 
     private WaystonePosition waystonePosition;
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(0, ItemStack.EMPTY);
 
     @Nullable
-    public WaystoneDataHolder dataHolder = null;
+    private WaystoneDataHolder dataHolder = null;
 
     private static final KeyedEndec<Identifier> WAYSTONE_TYPE_ID_KEY = MinecraftEndecs.IDENTIFIER.keyed("waystone_type", () -> WaystoneTypes.STONE);
     private Identifier waystoneTypeId = WaystoneTypes.STONE;
@@ -109,11 +111,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     public WaystoneBlockEntity(BlockPos pos, BlockState state) {
         super(WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, pos, state);
 
-        focusedEntity.observe(entity -> {
-            if (entity != null) {
-                setFocusVector(entity.getEyePos().subtract(this.getControllerPos()).normalize());
-            }
-        });
+        focusedEntity.observe(entity -> setFocusVectorFromEntity());
     }
 
     public int getColor() {
@@ -443,7 +441,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         this.mossTypeId = tag.get(MOSS_TYPE_ID_KEY);
         this.mossStack = tag.get(ctx, MOSS_STACK_KEY);
 
-        this.focusVector = tag.get(FOCUS_VECTOR_KEY);
+        this.setFocusVector(tag.get(FOCUS_VECTOR_KEY));
 
         // Attempts to force an update of the states for re-rendering
         if (this.world != null && this.world.isClient) {
@@ -537,86 +535,111 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private static final double MAX_ADHD_DISTANCE = 12;
     private static final double MAX_FOCUS_DISTANCE = 4.5;
 
+    public Box getTeleportBox(BlockPos pos) {
+        var heightOffset = (isSingleBlock()) ? 8 : 21;
+
+        return new Box(pos)
+            .offset(0, heightOffset / 16f, 0)
+            .contract(3/16f,2 / 16f,3/16f)
+            .expand(0, 0, 0);
+    }
+
     public void tickServer(World world, BlockPos pos, BlockState state) {
         var controllerStack = this.controllerStack();
+
+        //--
+
+        boolean attemptTargetReset = true;
+
         if (controllerStack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEMS)) {
+            var teleportTargetingBox = getTeleportBox(this.pos);
+
+            if (this.teleportTarget == null) {
+                var entities = world.getOtherEntities(null, teleportTargetingBox, EntityPredicates.VALID_ENTITY);
+
+                if (!entities.isEmpty()) {
+                    var entity = entities.getFirst().getRootVehicle();
+
+                    setupForTeleport(entity);
+                }
+            }
+
             if (this.teleportTarget != null) {
+                attemptTargetReset = !teleportTargetingBox.intersects(this.teleportTarget.getBoundingBox());
 
-
-                var heightOffset = (isSingleBlock()) ? 1 : 2;
-
-                var box = new Box(this.pos)
-                    .offset(0, heightOffset / 2f, 0)
-                    .expand(0, heightOffset, 0);
-
-                if (!box.intersects(this.teleportTarget.getBoundingBox())) {
-                    this.teleportTarget = null;
-                } else {
+                if (!attemptTargetReset) {
                     if (this.teleportWaitCounter <= 0) {
-                        var target = WaystoneHashTarget.get(controllerStack, world);
-                        if (target != null) {
-                            WaystoneComponentEventHooks.attemptTeleport(target, world, teleportTarget, controllerStack);
-                        }
                         this.teleportWaitCounter = 0;
+                        var target = WaystoneHashTarget.get(controllerStack, world);
+
+                        if (target != null) {
+                            WaystoneComponentEventHooks.attemptTeleport(target, world, teleportTarget.getRootVehicle(), controllerStack);
+                        }
+
+                        attemptTargetReset = true;
                     } else {
                         this.teleportWaitCounter--;
                     }
                 }
-            } else {
-
             }
-        } else {
+        }
+
+        if (attemptTargetReset && this.teleportTarget != null) {
             this.teleportTarget = null;
         }
 
-
         //--
 
-        var controller = this.getControllerPos();
         --this.lookTime;
 
-        if (world.getClosestPlayer(controller.x, controller.y, controller.z, MAX_FOCUS_DISTANCE, this::isValidFocus) instanceof PlayerEntity closestPlayer) {
-            this.focusedEntity.set(closestPlayer);
-        } else {
-            //noinspection DataFlowIssue
-            // First check if the given focused entity can be seen or if look time for specific entity has run out
-            if (this.focusedEntity.get() != null && (!this.canSeeEntity(this.focusedEntity.get()) || this.lookTime <= 0)) {
-                this.focusedEntity.set(null);
-            }
-            // Second attempt to focus a new entity if the stars align
-            if (this.focusedEntity.get() == null && RANDOM.get().nextFloat() < 0.02) {
-                var nearbyEntities = world.getOtherEntities(null, Box.from(controller).expand(MAX_FOCUS_DISTANCE), this::canSeeEntity);
-                if (!nearbyEntities.isEmpty()) {
-                    this.focusedEntity.set(nearbyEntities.get(RANDOM.get().nextInt(nearbyEntities.size())));
-                    this.lookTime = 40 + RANDOM.get().nextInt(40);
+        if (controllerStack.isIn(FabricWaystones.WAYSTONE_DISPLAY_ALIVE)) {
+            var controller = this.getControllerPos();
+
+            if (world.getClosestPlayer(controller.x, controller.y, controller.z, MAX_FOCUS_DISTANCE, this::isValidFocus) instanceof PlayerEntity closestPlayer) {
+                this.focusedEntity.set(closestPlayer);
+            } else {
+                //noinspection DataFlowIssue
+                // First check if the given focused entity can be seen or if look time for specific entity has run out
+                if (this.focusedEntity.get() != null && (!this.canSeeEntity(this.focusedEntity.get()) || this.lookTime <= 0)) {
+                    this.focusedEntity.set(null);
                 }
-            }
-            // Third and finally look at something if the entity is found to be null
-            if (this.focusedEntity.get() == null) {
-                if (RANDOM.get().nextFloat() < 0.02) {
-                    var offset = getRandomControllerOffset();
-                    this.setFocusVector(this.focusVector != null ? this.focusVector.add(offset) : offset);
-                    this.lookTime = 40 + RANDOM.get().nextInt(20);
-                } else if (RANDOM.get().nextFloat() < 0.02) {
-                    var storage = WaystoneDataStorage.getStorage(world);
-                    var allWaystones = storage.getAllPositions().stream()
-                        .filter(thisPos -> !thisPos.equals(this.position()))
-                        .filter(thisPos -> thisPos.worldKey().equals(world.getRegistryKey()))
-                        .toList();
-                    if (!allWaystones.isEmpty()) {
-                        var choice = allWaystones.stream().toList().get(RANDOM.get().nextInt(allWaystones.size()));
-                        this.setFocusVector(choice.blockPos().toBottomCenterPos().add(this.getControllerPos()).subtract(controller).normalize());
-                        this.lookTime = 40 + RANDOM.get().nextInt(20);
+                // Second attempt to focus a new entity if the stars align
+                if (this.focusedEntity.get() == null && RANDOM.nextFloat() < 0.02) {
+                    var nearbyEntities = world.getOtherEntities(null, Box.from(controller).expand(MAX_FOCUS_DISTANCE), this::canSeeEntity);
+                    if (!nearbyEntities.isEmpty()) {
+                        this.focusedEntity.set(nearbyEntities.get(RANDOM.nextInt(nearbyEntities.size())));
+                        this.lookTime = 40 + RANDOM.nextInt(40);
                     }
                 }
-
+                // Third and finally look at something if the entity is found to be null
+                if (this.focusedEntity.get() == null) {
+                    if (RANDOM.nextFloat() < 0.02) {
+                        var offset = getRandomControllerOffset();
+                        this.setFocusVector(this.focusVector != null ? this.focusVector.add(offset) : offset);
+                        this.lookTime = 40 + RANDOM.nextInt(20);
+                    } else if (RANDOM.nextFloat() < 0.02) {
+                        var storage = WaystoneDataStorage.getStorage(world);
+                        var allWaystones = storage.getAllPositions().stream()
+                            .filter(thisPos -> !thisPos.equals(this.position()))
+                            .filter(thisPos -> thisPos.worldKey().equals(world.getRegistryKey()))
+                            .toList();
+                        if (!allWaystones.isEmpty()) {
+                            var choice = allWaystones.stream().toList().get(RANDOM.nextInt(allWaystones.size()));
+                            this.setFocusVector(choice.blockPos().toBottomCenterPos().add(this.getControllerPos()).subtract(controller).normalize());
+                            this.lookTime = 40 + RANDOM.nextInt(20);
+                        }
+                    }
+                }
             }
+
+            setFocusVectorFromEntity();
+        } else if (this.focusedEntity.get() != null) {
+            this.focusedEntity.set(null);
         }
     }
 
     @Environment(EnvType.CLIENT)
     public void tickClient(World world, BlockPos pos, BlockState state) {
-        this.controllerRotation = new Quaternionf().lookAlong(this.focusVector.toVector3f(), new Vector3f(0, 1, 0)).invert();
         this.ticks++;
 
         if (!this.isActive()) return;
@@ -642,16 +665,45 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (this.getData() != null) this.suckARandomPortalParticle();
     }
 
+    public Quaternionf getRenderRotation(float tickDelta) {
+        if (this.lastControllerRotation == null && this.controllerRotation == null) return null;
+        if (this.lastControllerRotation == null) this.lastControllerRotation = this.controllerRotation;
+        if (Float.isNaN(this.lastControllerRotation.x)) this.lastControllerRotation.x = this.controllerRotation.x;
+        if (Float.isNaN(this.lastControllerRotation.y)) this.lastControllerRotation.y = this.controllerRotation.y;
+        if (Float.isNaN(this.lastControllerRotation.z)) this.lastControllerRotation.z = this.controllerRotation.z;
+        if (Float.isNaN(this.lastControllerRotation.w)) this.lastControllerRotation.w = this.controllerRotation.w;
+        this.lastControllerRotation.slerp(this.controllerRotation, tickDelta * 0.125f);
+        return lastControllerRotation;
+    }
+
+    public int ticks() {
+        return ticks;
+    }
+
+    private void setFocusVectorFromEntity() {
+        var entity = focusedEntity.get();
+        if (entity != null) {
+            setFocusVector(entity.getEyePos().subtract(this.getControllerPos()).normalize());
+        }
+    }
+
     private void setFocusVector(Vec3d vector) {
         if (this.focusVector.equals(vector)) return;
 
         this.focusVector = vector;
 
-        this.markDirty();
+        if (world != null) {
+            if (!world.isClient()) {
+                this.markDirty();
+            } else {
+                this.controllerRotation = new Quaternionf().lookAlong(this.focusVector.toVector3f(), new Vector3f(0, 1, 0)).invert();
+            }
+        }
     }
 
     @SuppressWarnings("RedundantIfStatement")
     private boolean canSeeEntity(Entity entity) {
+        if (entity == null) return false;
         if (!entity.isAlive()) return false;
         if (entity.isSpectator()) return false;
         if (entity.isInvisible()) return false;
@@ -668,11 +720,13 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (!(entity instanceof PlayerEntity player)) return false;
         if (!canSeeEntity(player)) return false;
 
-        return WaystonePlayerData.getData(player).hasDiscoverdWaystone(getUUID());
+        var data = getData();
+
+        return !(data instanceof NetworkedWaystoneData) || WaystonePlayerData.getData(player).hasDiscoverdWaystone(data.uuid());
     }
 
     private void shootRuneAt(Entity target) {
-        if (RANDOM.get().nextInt(10) != 0) return;
+        if (RANDOM.nextInt(10) != 0) return;
 
         var basePos = this.getPos().toBottomCenterPos();
         var watcherPos = basePos.add(0, getControllerHeight(), 0);
@@ -695,16 +749,16 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     private void suckPortalParticleFrom(Entity target) {
-        if (RANDOM.get().nextInt(30) != 0) return;
+        if (RANDOM.nextInt(30) != 0) return;
 
         var watcherPos = this.getPos().toBottomCenterPos().add(0, getControllerHeight(), 0);
         var bb = target.getBoundingBox();
         var bbMin = bb.getMinPos();
         var bbMax = bb.getMaxPos();
         var end = new Vec3d(
-            bbMin.x + (bbMax.x - bbMin.x) * RANDOM.get().nextDouble(),
-            bbMin.y + (bbMax.y - bbMin.y) * RANDOM.get().nextDouble(),
-            bbMin.z + (bbMax.z - bbMin.z) * RANDOM.get().nextDouble()
+            bbMin.x + (bbMax.x - bbMin.x) * RANDOM.nextDouble(),
+            bbMin.y + (bbMax.y - bbMin.y) * RANDOM.nextDouble(),
+            bbMin.z + (bbMax.z - bbMin.z) * RANDOM.nextDouble()
         )
             .subtract(watcherPos)
             .subtract(0, 0.75, 0);
@@ -717,7 +771,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     private void suckARandomPortalParticle() {
-        if (RANDOM.get().nextInt(50) != 0) return;
+        if (RANDOM.nextInt(50) != 0) return;
 
         var controllerPos = getControllerPos();
         var randomDirection = getRandomDirection();
@@ -734,8 +788,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     private static Vec3d getRandomDirection() {
-        double theta = RANDOM.get().nextDouble() * 2 * Math.PI;
-        double u = RANDOM.get().nextDouble();
+        double theta = RANDOM.nextDouble() * 2 * Math.PI;
+        double u = RANDOM.nextDouble();
         double phi = Math.acos(2 * u - 1);
         return new Vec3d(
             Math.sin(phi) * Math.cos(theta),
@@ -745,7 +799,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     private static Vec3d getRandomControllerOffset() {
-        var rand = (Math.PI * 2) * RANDOM.get().nextDouble();
+        var rand = (Math.PI * 2) * RANDOM.nextDouble();
         return new Vec3d(Math.cos(rand), 0, Math.sin(rand));
     }
 

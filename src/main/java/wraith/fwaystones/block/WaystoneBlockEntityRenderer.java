@@ -1,16 +1,21 @@
 package wraith.fwaystones.block;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.wispforest.owo.ui.core.Color;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
+import net.minecraft.client.render.debug.DebugRenderer;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 import wraith.fwaystones.FabricWaystones;
@@ -30,12 +35,23 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
         if (world != null) light = WorldRenderer.getLightmapCoordinates(waystone.getWorld(), waystone.getPos());
 
+        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+            var camera = MinecraftClient.getInstance().gameRenderer.getCamera();
+
+            if (camera.isReady()) {
+                var box = waystone.getTeleportBox(BlockPos.ORIGIN);
+
+                var color = Color.RED.interpolate(new Color(1f, 1f, 1f, 0.8f), 0.25f);
+
+                WorldRenderer.drawBox(matrices, vertexConsumers.getBuffer(RenderLayer.getLines()), box, color.red(), color.green(), color.blue(), color.alpha());
+            }
+        }
 
         if (!stack.isEmpty()) {
             matrices.push();
             matrices.translate(0.5, waystone.getControllerHeight(), 0.5f);
 
-            var offset = waystone.ticks + tickDelta + waystone.getPos().hashCode();
+            var offset = waystone.ticks() + tickDelta + waystone.getPos().hashCode();
 
             //TODO: convention tag?
             if (stack.isOf(Items.CLOCK)) renderSky(waystone, MinecraftClient.getInstance(), matrices, vertexConsumers, waystone.getWorld(), tickDelta);
@@ -43,15 +59,10 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
             matrices.translate(0.0F, 0.1F + MathHelper.sin(offset * 0.1F) * 0.01F, 0.0F);
 
-            if (waystone.lastControllerRotation == null) waystone.lastControllerRotation = waystone.controllerRotation;
-            if (Float.isNaN(waystone.lastControllerRotation.x)) waystone.lastControllerRotation.x = waystone.controllerRotation.x;
-            if (Float.isNaN(waystone.lastControllerRotation.y)) waystone.lastControllerRotation.y = waystone.controllerRotation.y;
-            if (Float.isNaN(waystone.lastControllerRotation.z)) waystone.lastControllerRotation.z = waystone.controllerRotation.z;
-            if (Float.isNaN(waystone.lastControllerRotation.w)) waystone.lastControllerRotation.w = waystone.controllerRotation.w;
-            waystone.lastControllerRotation.slerp(waystone.controllerRotation, tickDelta * 0.125f);
-
             if (stack.isIn(FabricWaystones.WAYSTONE_DISPLAY_ALIVE)) {
-                matrices.multiply(waystone.lastControllerRotation);
+                var rotation = waystone.getRenderRotation(tickDelta);
+
+                if (rotation != null) matrices.multiply(rotation);
             } else if (stack.isIn(FabricWaystones.WAYSTONE_DISPLAY_GYRO)) {
                 matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(offset * 5f));
                 matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(offset * 7.5f));
