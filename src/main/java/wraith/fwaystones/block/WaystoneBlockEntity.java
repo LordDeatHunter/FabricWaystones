@@ -86,6 +86,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     private int lookTime;
     private Observable<@Nullable Entity> focusedEntity = Observable.of(null);
+    private Observable<@Nullable UUID> focusedWaystone = Observable.of(null);
 
     private Vec3d focusVector = getRandomControllerOffset();
 
@@ -117,6 +118,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         super(WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY, pos, state);
 
         focusedEntity.observe(entity -> setFocusVectorFromEntity());
+
     }
 
     public int getColor() {
@@ -592,10 +594,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (controllerStack.isIn(FabricWaystones.WAYSTONE_DISPLAY_ALIVE)) {
             var controller = this.getControllerPos();
 
-            if (world.getClosestPlayer(controller.x, controller.y, controller.z, MAX_FOCUS_DISTANCE, this::isValidFocus) instanceof PlayerEntity closestPlayer) {
+            if (controllerStack.contains(WaystoneDataComponents.HASH_TARGET)) {
+                this.focusedWaystone.set(controllerStack.get(WaystoneDataComponents.HASH_TARGET).uuid());
+            } else if (world.getClosestPlayer(controller.x, controller.y, controller.z, MAX_FOCUS_DISTANCE, this::isValidFocus) instanceof PlayerEntity closestPlayer) {
                 this.focusedEntity.set(closestPlayer);
             } else {
-                //noinspection DataFlowIssue
                 // First check if the given focused entity can be seen or if look time for specific entity has run out
                 if (this.focusedEntity.get() != null && (!this.canSeeEntity(this.focusedEntity.get()) || this.lookTime <= 0)) {
                     this.focusedEntity.set(null);
@@ -622,7 +625,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                             .toList();
                         if (!allWaystones.isEmpty()) {
                             var choice = allWaystones.stream().toList().get(RANDOM.nextInt(allWaystones.size()));
-                            this.setFocusVector(choice.blockPos().toBottomCenterPos().add(this.getControllerPos()).subtract(controller).normalize());
+                            this.focusedWaystone.set(storage.getUUID(choice));
                             this.lookTime = 200 + RANDOM.nextInt(200);
                         }
                     }
@@ -630,6 +633,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             }
 
             setFocusVectorFromEntity();
+            setFocusVectorFromWaystone();
         } else if (this.focusedEntity.get() != null) {
             this.focusedEntity.set(null);
         }
@@ -685,9 +689,19 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     private void setFocusVectorFromEntity() {
         var entity = focusedEntity.get();
-        if (entity != null) {
-            setFocusVector(entity.getEyePos().subtract(this.getControllerPos()).normalize());
-        }
+        if (entity == null) return;
+        setFocusVector(entity.getEyePos().subtract(this.getControllerPos()).normalize());
+        focusedWaystone.set(null);
+    }
+
+    private void setFocusVectorFromWaystone() {
+        var waystoneId = focusedWaystone.get();
+        if (waystoneId == null) return;
+        var storage = getWaystoneStorage();
+        var targetWaystone = storage.getEntity(waystoneId);
+        if (targetWaystone == null) return;
+        setFocusVector(targetWaystone.getControllerPos().subtract(this.getControllerPos()).normalize());
+        focusedEntity.set(null);
     }
 
     private void setFocusVector(Vec3d vector) {
