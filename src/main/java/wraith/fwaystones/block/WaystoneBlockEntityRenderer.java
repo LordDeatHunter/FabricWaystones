@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 import wraith.fwaystones.FabricWaystones;
@@ -47,7 +48,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
             matrices.push();
             matrices.translate(0.5, waystone.getControllerY() / 16f, 0.5f);
 
-            var offset = waystone.ticks() + tickDelta + waystone.getPos().hashCode();
+            var offset = waystone.ticks() + tickDelta + waystone.hashCode() % 1000;
 
             //TODO: convention tag?
             if (stack.isOf(Items.CLOCK)) renderSky(waystone, MinecraftClient.getInstance(), matrices, vertexConsumers, waystone.getWorld(), tickDelta);

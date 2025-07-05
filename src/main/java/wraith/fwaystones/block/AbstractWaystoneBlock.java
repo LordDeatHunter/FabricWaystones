@@ -47,7 +47,6 @@ import wraith.fwaystones.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static wraith.fwaystones.FabricWaystones.*;
 

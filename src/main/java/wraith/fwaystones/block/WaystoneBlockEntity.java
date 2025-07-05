@@ -234,7 +234,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                         var name = customName != null ? customName.getString() : "";
 
                         return new NetworkedWaystoneData(uuid, name);
-                    });
+                    }
+                );
             } else {
                 data = storage.createGetOrImportData(this, seedData, WaystoneData::new);
             }
@@ -668,6 +669,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (Float.isNaN(this.lastControllerRotation.y)) this.lastControllerRotation.y = this.controllerRotation.y;
         if (Float.isNaN(this.lastControllerRotation.z)) this.lastControllerRotation.z = this.controllerRotation.z;
         if (Float.isNaN(this.lastControllerRotation.w)) this.lastControllerRotation.w = this.controllerRotation.w;
+        if (
+            Float.isNaN(this.controllerRotation.x) ||
+            Float.isNaN(this.controllerRotation.y) ||
+            Float.isNaN(this.controllerRotation.z) ||
+            Float.isNaN(this.controllerRotation.w)
+        ) return this.lastControllerRotation;
         this.lastControllerRotation.slerp(this.controllerRotation, tickDelta * 0.125f);
         return lastControllerRotation;
     }
@@ -692,7 +699,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             if (!world.isClient()) {
                 this.markDirty();
             } else {
-                this.controllerRotation = new Quaternionf().lookAlong(this.focusVector.toVector3f(), new Vector3f(0, 1, 0)).invert();
+                this.controllerRotation = new Quaternionf().lookAlong(
+                    this.focusVector.toVector3f(),
+                    new Vector3f(0, 1, 0)
+                ).invert();
             }
         }
     }
@@ -824,7 +834,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     }
 
     public Box getTeleportBox() {
-        var boxSize = 10/16f;
+        var boxSize = 10 / 16f;
         var boxPos = getTopPos()
             .offset(Direction.UP, 5 / 16f);
 
