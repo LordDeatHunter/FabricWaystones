@@ -7,7 +7,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.debug.DebugRenderer;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
@@ -39,7 +38,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
             var camera = MinecraftClient.getInstance().gameRenderer.getCamera();
 
             if (camera.isReady()) {
-                var box = waystone.getTeleportBox(BlockPos.ORIGIN);
+                var box = waystone.getTeleportBox().offset(Vec3d.of(waystone.getPos()).negate());
 
                 var color = Color.RED.interpolate(new Color(1f, 1f, 1f, 0.8f), 0.25f);
 
@@ -49,7 +48,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
         if (!stack.isEmpty()) {
             matrices.push();
-            matrices.translate(0.5, waystone.getControllerHeight(), 0.5f);
+            matrices.translate(0.5, waystone.getControllerY() / 16f, 0.5f);
 
             var offset = waystone.ticks() + tickDelta + waystone.getPos().hashCode();
 

@@ -1,5 +1,4 @@
 {
-	"format_version": "1.21.6",
 	"credit": "Made with Blockbench",
 	"texture_size": [64, 64],
 	"textures": {
@@ -165,10 +164,5 @@
 				"down": {"uv": [3, 3.5, 6.5, 7], "texture": "#texture"}
 			}
 		}
-	],
-	"display": {
-		"thirdperson_righthand": {
-			"translation": [0, 17.25, 0]
-		}
-	}
+	]
 }

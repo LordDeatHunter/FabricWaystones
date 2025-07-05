@@ -9,21 +9,15 @@ import net.minecraft.registry.Registry;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.core.WaystoneTypes;
 import wraith.fwaystones.block.WaystoneBlock;
+import wraith.fwaystones.block.WaystoneShape;
 
 import java.util.HashMap;
 
 public final class WaystoneBlocks {
 
-//    public static final Block BLACKSTONE_BRICK_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
-//    public static final Block DEEPSLATE_BRICK_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
-//    public static final Block DESERT_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
-//    public static final Block ENDSTONE_BRICK_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
-//    public static final Block NETHER_BRICK_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
-//    public static final Block RED_DESERT_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
-//    public static final Block RED_NETHER_BRICK_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
-//    public static final Block STONE_BRICK_WAYSTONE = new WaystoneBlock(createBaseSettings().mapColor(MapColor.STONE_GRAY));
-    public static final Block WAYSTONE = WaystoneBlock.of(createBaseSettings().mapColor(MapColor.STONE_GRAY), false);
-    public static final Block WAYSTONE_SMALL = WaystoneBlock.of(createBaseSettings().mapColor(MapColor.STONE_GRAY), true);
+    public static final Block WAYSTONE = WaystoneBlock.of(createBaseSettings().mapColor(MapColor.STONE_GRAY), WaystoneShape.NORMAL);
+    public static final Block WAYSTONE_SMALL = WaystoneBlock.of(createBaseSettings().mapColor(MapColor.STONE_GRAY), WaystoneShape.SMALL);
+    public static final Block WAYSTONE_MINI = WaystoneBlock.of(createBaseSettings().mapColor(MapColor.STONE_GRAY), WaystoneShape.MINI);
 
     public static final HashMap<String, Block> WAYSTONE_BLOCKS = new HashMap<>();
 
@@ -34,14 +28,7 @@ public final class WaystoneBlocks {
     public static void init() {
         registerAndAdd("waystone", WAYSTONE);
         registerAndAdd("waystone_small", WAYSTONE_SMALL);
-//        registerAndAdd("desert_waystone", DESERT_WAYSTONE);
-//        registerAndAdd("stone_brick_waystone", STONE_BRICK_WAYSTONE);
-//        registerAndAdd("red_desert_waystone", RED_DESERT_WAYSTONE);
-//        registerAndAdd("nether_brick_waystone", NETHER_BRICK_WAYSTONE);
-//        registerAndAdd("red_nether_brick_waystone", RED_NETHER_BRICK_WAYSTONE);
-//        registerAndAdd("end_stone_brick_waystone", ENDSTONE_BRICK_WAYSTONE);
-//        registerAndAdd("deepslate_brick_waystone", DEEPSLATE_BRICK_WAYSTONE);
-//        registerAndAdd("blackstone_brick_waystone", BLACKSTONE_BRICK_WAYSTONE);
+        registerAndAdd("waystone_mini", WAYSTONE_MINI);
     }
 
     private static void registerAndAdd(String id, Block block) {

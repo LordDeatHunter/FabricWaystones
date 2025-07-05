@@ -46,6 +46,11 @@ public final class WaystoneItems {
                         stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(typeId));
                         entries.add(stack);
                     }
+                    for (var typeId : WaystoneTypes.getTypeIds()) {
+                        var stack = WaystoneItems.WAYSTONE_MINI.getDefaultStack();
+                        stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(typeId));
+                        entries.add(stack);
+                    }
                 },
                 true
             );
@@ -171,6 +176,22 @@ public final class WaystoneItems {
         }
     );
 
+    public static final Item WAYSTONE_MINI = Registry.register(
+        Registries.ITEM,
+        FabricWaystones.id("waystone_mini"),
+        new BlockItem(
+            WaystoneBlocks.WAYSTONE_MINI,
+            new Item.Settings()
+                .component(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(WaystoneTypes.STONE))
+        ) {
+            @Override
+            public String getTranslationKey(ItemStack stack) {
+                var data = stack.get(WaystoneDataComponents.WAYSTONE_TYPE);
+                if (data != null) return data.getType().getTranslationKeyForMini();
+                return "waystone.blank.name";
+            }
+        }
+    );
 
     public static void init() {
         WAYSTONES_GROUP.initialize();

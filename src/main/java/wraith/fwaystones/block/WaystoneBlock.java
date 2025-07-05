@@ -3,7 +3,9 @@ package wraith.fwaystones.block;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.wispforest.endec.Endec;
 import io.wispforest.owo.ops.ItemOps;
+import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.*;
@@ -70,7 +72,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     public static final MapCodec<WaystoneBlock> CODEC = RecordCodecBuilder.mapCodec(
         instance -> instance.group(
                 createSettingsCodec(),
-                Codec.BOOL.fieldOf("single_block").forGetter(WaystoneBlock::singleBlock)
+                CodecUtils.toCodec(Endec.forEnum(WaystoneShape.class)).fieldOf("shape").forGetter(WaystoneBlock::shape)
             )
             .apply(instance, WaystoneBlock::of)
     );
@@ -127,18 +129,18 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     }
 
     // Cursed work around for issues with BlockState setup
-    private static boolean cursedField_singleBlock = false;
+    private static WaystoneShape cursedField_shape = WaystoneShape.NORMAL;
 
-    private final boolean singleBlock;
+    private final WaystoneShape shape;
 
-    private WaystoneBlock(AbstractBlock.Settings settings, boolean singleBlock) {
+    private WaystoneBlock(Settings settings, WaystoneShape shape) {
         super(settings);
 
-        this.singleBlock = singleBlock;
+        this.shape = shape;
 
         var defaultState = getStateManager().getDefaultState();
 
-        if (!singleBlock) {
+        if (shape.equals(WaystoneShape.NORMAL)) {
             defaultState = defaultState.with(HALF, DoubleBlockHalf.LOWER);
         }
 
@@ -152,13 +154,13 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY.addSupportedBlock(this);
     }
 
-    public static WaystoneBlock of(AbstractBlock.Settings settings, boolean singleBlock) {
-        cursedField_singleBlock = singleBlock;
-        return new WaystoneBlock(settings, singleBlock);
+    public static WaystoneBlock of(Settings settings, WaystoneShape shape) {
+        cursedField_shape = shape;
+        return new WaystoneBlock(settings, shape);
     }
 
-    public boolean singleBlock() {
-        return singleBlock;
+    public WaystoneShape shape() {
+        return shape;
     }
 
     @Nullable
@@ -205,9 +207,9 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
-        var properties = (cursedField_singleBlock)
-            ? new Property[]{FACING, WATERLOGGED, GENERATED}
-            : new Property[]{HALF, FACING, WATERLOGGED, GENERATED};
+        var properties = (cursedField_shape.equals(WaystoneShape.NORMAL))
+            ? new Property[]{HALF, FACING, WATERLOGGED, GENERATED}
+            : new Property[]{FACING, WATERLOGGED, GENERATED};
 
         stateManager.add(properties);
     }
@@ -215,7 +217,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     @Override
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
         var bottomState = world.getBlockState(pos);
-        var config = FabricWaystones.CONFIG;
+        var config = CONFIG;
 
         // TODO: HAVE SUCH BE REALLY REALLY REALLY HARD TO BREAK AND PREVENT DROPPING
         if (config.unbreakableGeneratedWaystones() && state.get(GENERATED)) return 0;
@@ -253,8 +255,15 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        if (!state.contains(HALF)) return COLLISION_SHAPE_SINGLE;
-        return state.get(HALF) == DoubleBlockHalf.LOWER ? COLLISION_SHAPE_BOTTOM : COLLISION_SHAPE_TOP;
+        return switch (shape) {
+            case NORMAL -> state.get(HALF) == DoubleBlockHalf.LOWER ? COLLISION_SHAPE_BOTTOM : COLLISION_SHAPE_TOP;
+            case SMALL -> COLLISION_SHAPE_SINGLE;
+            case MINI -> VoxelShapes.union(
+                Block.createCuboidShape(1f, 0f, 1f, 15f, 1f, 15f),
+                Block.createCuboidShape(2f, 1f, 2f, 14f, 2f, 14f),
+                Block.createCuboidShape(3f, 2f, 3f, 13f, 3f, 13f)
+            );
+        };
     }
 
     @Override
@@ -284,7 +293,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient && !singleBlock && (player.isCreative() || !player.canHarvest(state))) {
+        if (!world.isClient && shape().equals(WaystoneShape.NORMAL) && (player.isCreative() || !player.canHarvest(state))) {
             TallBlantBlockAccessor.fWaystones$onBreakInCreative(world, pos, state, player);
         }
 
@@ -430,7 +439,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         var item = stack.getItem();
 
         if (stack.contains(WaystoneDataComponents.HASH_TARGETS)) return ActionResult.PASS;
-        if ((player.isSneaking() || !stack.contains(WaystoneDataComponents.HASH_TARGET)) && stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS)) return ActionResult.PASS;
+        if ((player.isSneaking() || !stack.contains(WaystoneDataComponents.HASH_TARGET)) && stack.isIn(LOCAL_VOID_ITEMS)) return ActionResult.PASS;
         if (item instanceof WaystoneDebuggerItem) return ActionResult.PASS;
 
         var blockEntity = WaystoneBlock.getEntity(world, pos, state);
@@ -511,7 +520,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         if (world.isClient) return ActionResult.SUCCESS;
 
         if (data instanceof NetworkedWaystoneData networkedData) {
-            if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(networkedData.ownerID())))) {
+            if (player.isSneaking() && (player.hasPermissionLevel(2) || (CONFIG.allowOwnersToRedeemPayments() && player.getUuid().equals(networkedData.ownerID())))) {
                 if (!blockEntity.getInventory().isEmpty()) {
                     blockEntity.spawnItemStackAbove(blockEntity.getInventory());
 
@@ -529,7 +538,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
                     if (!player.isCreative()) {
                         var discoverItem = Registries.ITEM.get(discoverItemId);
-                        int discoverAmount = FabricWaystones.CONFIG.requiredDiscoveryAmount();
+                        int discoverAmount = CONFIG.requiredDiscoveryAmount();
 
                         if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
                             player.sendMessage(
@@ -607,19 +616,18 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
         if (!(newState.getBlock() instanceof WaystoneBlock)) {
             var waystone = getEntity(world, pos, state);
+
             if (waystone != null) {
                 if (!world.isClient) {
                     var uuid = waystone.getUUID();
-                    if (uuid != null) {
-                        WaystoneDataStorage.getStorage(world).removePosition(uuid);
-                    }
+                    if (uuid != null) WaystoneDataStorage.getStorage(world).removePosition(uuid);
                 }
 
                 world.removeBlockEntity(waystone.getPos());
             }
 
-            world.setBlockState(newPos, newState);
-        } else {
+            if (newPos != null) world.setBlockState(newPos, newState);
+        } else if (newPos != null) {
             var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER && verticalPosition == DoubleBlockHalf.LOWER;
 
             var adjustedState = newState.with(WATERLOGGED, fluid);
@@ -630,6 +638,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
 
             world.setBlockState(newPos, adjustedState);
         }
+
         super.onStateReplaced(state, world, pos, newState, moved);
     }
 

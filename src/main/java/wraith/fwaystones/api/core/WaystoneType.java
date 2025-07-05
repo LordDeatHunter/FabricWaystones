@@ -63,14 +63,23 @@ public sealed interface WaystoneType permits WaystoneTypeImpl {
     }
 
     default String getTranslationKey() {
-        var id = getId();
-        return "waystone." + id.getNamespace() + "." + id.getPath() + ".name";
+        return createNameTranslationKey("normal");
     }
 
     default String getTranslationKeyForSmall() {
-        var id = getId();
-        return "waystone.small." + id.getNamespace() + "." + id.getPath() + ".name";
+        return createNameTranslationKey("small");
     }
+
+    default String getTranslationKeyForMini() {
+        return createNameTranslationKey("mini");
+    }
+
+    private String createNameTranslationKey(String prefixAddition) {
+        var id = getId();
+
+        return "waystone" + "." + prefixAddition + "." + id.getNamespace() + "." + id.getPath() + ".name";
+    }
+
 
     Identifier particleTexture();
 

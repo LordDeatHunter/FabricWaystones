@@ -18,8 +18,6 @@ import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -535,15 +533,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private static final double MAX_ADHD_DISTANCE = 12;
     private static final double MAX_FOCUS_DISTANCE = 4.5;
 
-    public Box getTeleportBox(BlockPos pos) {
-        var heightOffset = (isSingleBlock()) ? 8 : 21;
-
-        return new Box(pos)
-            .offset(0, heightOffset / 16f, 0)
-            .contract(3/16f,2 / 16f,3/16f)
-            .expand(0, 0, 0);
-    }
-
     public void tickServer(World world, BlockPos pos, BlockState state) {
         var controllerStack = this.controllerStack();
 
@@ -552,7 +541,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         boolean attemptTargetReset = true;
 
         if (controllerStack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEMS)) {
-            var teleportTargetingBox = getTeleportBox(this.pos);
+            var teleportTargetingBox = getTeleportBox();
 
             if (this.teleportTarget == null) {
                 var entities = world.getOtherEntities(null, teleportTargetingBox, EntityPredicates.VALID_ENTITY);
@@ -728,12 +717,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private void shootRuneAt(Entity target) {
         if (RANDOM.nextInt(10) != 0) return;
 
-        var basePos = this.getPos().toBottomCenterPos();
-        var watcherPos = basePos.add(0, getControllerHeight(), 0);
+        var watcherPos = this.getControllerPos();
         var targetPos = target.getPos();
         var distanceCheck = Double.compare(Math.abs(watcherPos.x - targetPos.x), Math.abs(watcherPos.z - targetPos.z));
         var start = targetPos.add(0, 1.25, 0);
-        var end = basePos
+        var end = this.getPos()
+            .toBottomCenterPos()
             .subtract(start)
             .add(
                 distanceCheck > 0 ? Double.compare(targetPos.x, watcherPos.x) * 0.4 : 0,
@@ -751,7 +740,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private void suckPortalParticleFrom(Entity target) {
         if (RANDOM.nextInt(30) != 0) return;
 
-        var watcherPos = this.getPos().toBottomCenterPos().add(0, getControllerHeight(), 0);
+        var watcherPos = this.getControllerPos();
         var bb = target.getBoundingBox();
         var bbMin = bb.getMinPos();
         var bbMax = bb.getMaxPos();
@@ -803,21 +792,47 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         return new Vec3d(Math.cos(rand), 0, Math.sin(rand));
     }
 
-    public boolean isSingleBlock() {
-        return ((WaystoneBlock) this.getCachedState().getBlock()).singleBlock();
+    //--
+
+    public WaystoneShape shape() {
+        return ((WaystoneBlock) this.getCachedState().getBlock()).shape();
     }
 
-    public double getControllerHeight() {
-        return (isSingleBlock() ? 16 : 29) / 16f;
+    public double getTopY() {
+        return switch (shape()) {
+            case NORMAL -> 23;
+            case SMALL -> 10;
+            case MINI -> 3;
+        };
+    }
+
+    public double getControllerY() {
+        return getTopY() + 6;
+    }
+
+    public Vec3d getTopPos() {
+        return this.pos.toBottomCenterPos().add(0, getTopY() / 16f, 0);
     }
 
     public Vec3d getControllerPos() {
-        return this.pos.toBottomCenterPos().add(0, getControllerHeight(), 0);
+        return this.pos.toBottomCenterPos().add(0, getControllerY() / 16f, 0);
     }
 
     public double getEmitterRunesHeight() {
-        return (isSingleBlock() ? 5 : 20) / 16f - 0.05f;
+        var value = getTopY() - 1;
+
+        return value / 16f - 0.05f;
     }
+
+    public Box getTeleportBox() {
+        var boxSize = 10/16f;
+        var boxPos = getTopPos()
+            .offset(Direction.UP, 5 / 16f);
+
+        return Box.of(boxPos, boxSize, boxSize, boxSize);
+    }
+
+    //--
 
     public boolean canAccess(PlayerEntity player) {
         return player.squaredDistanceTo(this.pos.toCenterPos()) <= 64.0D;

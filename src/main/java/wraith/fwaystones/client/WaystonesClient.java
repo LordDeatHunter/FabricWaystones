@@ -149,10 +149,13 @@ public class WaystonesClient implements ClientModInitializer {
             ctx.resolveModel().register(context -> {
                 var gsonBuilder = new GsonBuilder().setPrettyPrinting().create();
                 var runes = FabricWaystones.id("item/waystone_runes");
-                if (context.id().equals(FabricWaystones.id("item/waystone")) || context.id().equals(FabricWaystones.id("item/waystone_small")) ) {
+
+                var id = context.id();
+
+                if (id.equals(FabricWaystones.id("item/waystone")) || id.equals(FabricWaystones.id("item/waystone_small")) || id.equals(FabricWaystones.id("item/waystone_mini"))) {
                     var obj = DynamicModelUtils.createOverridenItemModel(
                         List.of(FabricWaystones.id("item/stone_waystone"), runes),
-                        WaystoneTypes.getTypeIds().stream().map(id -> id.withPath(s -> "item/" + s + "_waystone")),
+                        WaystoneTypes.getTypeIds().stream().map(typeId -> typeId.withPath(s -> "item/" + s + "_waystone")),
                         FabricWaystones.id("waystone_type")
                     );
 
@@ -161,7 +164,7 @@ public class WaystonesClient implements ClientModInitializer {
                     }
 
                     return JsonUnbakedModel.deserialize(obj.toString());
-                } else if (validItemModels.containsKey(context.id())) {
+                } else if (validItemModels.containsKey(id)) {
                     var typeId = validItemModels.get(context.id());
                     var type = WaystoneTypes.getType(typeId);
 
@@ -187,6 +190,9 @@ public class WaystonesClient implements ClientModInitializer {
             var smallModel = FabricWaystones.id("block/waystone_small");
             var smallMultiModel = FabricWaystones.id("block/multi_waystone_small");
 
+            var plateModel = FabricWaystones.id("block/waystone_plate");
+            var plateMultiModel = FabricWaystones.id("block/multi_waystone_plate");
+
             ctx.resolveModel().register(context -> {
                 UnbakedModel possibleModel;
 
@@ -194,6 +200,8 @@ public class WaystonesClient implements ClientModInitializer {
                     possibleModel = context.getOrLoadModel(bigModel);
                 } else if (context.id().equals(smallMultiModel)) {
                     possibleModel = context.getOrLoadModel(smallModel);
+                } else if (context.id().equals(plateMultiModel)) {
+                    possibleModel = context.getOrLoadModel(plateModel);
                 } else {
                     return null;
                 }
@@ -212,6 +220,14 @@ public class WaystonesClient implements ClientModInitializer {
             ctx.registerBlockStateResolver(WaystoneBlocks.WAYSTONE_SMALL, stateCtx -> {
                 for (var state : stateCtx.block().getStateManager().getStates()) {
                     var modelId = stateCtx.getOrLoadModel(smallMultiModel);
+
+                    stateCtx.setModel(state, modelId);
+                }
+            });
+
+            ctx.registerBlockStateResolver(WaystoneBlocks.WAYSTONE_MINI, stateCtx -> {
+                for (var state : stateCtx.block().getStateManager().getStates()) {
+                    var modelId = stateCtx.getOrLoadModel(plateMultiModel);
 
                     stateCtx.setModel(state, modelId);
                 }

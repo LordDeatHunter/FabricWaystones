@@ -72,9 +72,9 @@ public record WaystoneTeleportAction(@Nullable UUID uuid, TeleportSource source)
         return new TeleportTarget(
             server.getWorld(position.worldKey()),
             teleportPos,
-            new Vec3d(0, 0, 0),
+            entity.getVelocity(),
             yaw,
-            0,
+            entity.getPitch(),
             TeleportTarget.ADD_PORTAL_CHUNK_TICKET
         );
     }
