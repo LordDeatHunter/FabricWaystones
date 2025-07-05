@@ -794,16 +794,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     //--
 
-    public WaystoneShape shape() {
-        return ((WaystoneBlock) this.getCachedState().getBlock()).shape();
-    }
-
     public double getTopY() {
-        return switch (shape()) {
-            case NORMAL -> 23;
-            case SMALL -> 10;
-            case MINI -> 3;
-        };
+        return ((AbstractWaystoneBlock) this.getCachedState().getBlock()).topHeight;
     }
 
     public double getControllerY() {

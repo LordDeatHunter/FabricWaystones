@@ -8,7 +8,6 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.Util;
 import wraith.fwaystones.FabricWaystones;
@@ -42,12 +41,12 @@ public final class WaystoneItems {
                         entries.add(stack);
                     }
                     for (var typeId : WaystoneTypes.getTypeIds()) {
-                        var stack = WaystoneItems.WAYSTONE_SMALL.getDefaultStack();
+                        var stack = WaystoneItems.SMALL_WAYSTONE.getDefaultStack();
                         stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(typeId));
                         entries.add(stack);
                     }
                     for (var typeId : WaystoneTypes.getTypeIds()) {
-                        var stack = WaystoneItems.WAYSTONE_MINI.getDefaultStack();
+                        var stack = WaystoneItems.WAYPLATE.getDefaultStack();
                         stack.set(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(typeId));
                         entries.add(stack);
                     }
@@ -145,52 +144,19 @@ public final class WaystoneItems {
     public static final Item WAYSTONE = Registry.register(
         Registries.ITEM,
         FabricWaystones.id("waystone"),
-        new BlockItem(
-            WaystoneBlocks.WAYSTONE,
-            new Item.Settings()
-                .component(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(WaystoneTypes.STONE))
-        ) {
-            @Override
-            public String getTranslationKey(ItemStack stack) {
-                var data = stack.get(WaystoneDataComponents.WAYSTONE_TYPE);
-                if (data != null) return data.getType().getTranslationKey();
-                return "waystone.blank.name";
-            }
-        }
+        new WaystoneBlockItem(WaystoneBlocks.WAYSTONE, new Item.Settings())
     );
 
-    public static final Item WAYSTONE_SMALL = Registry.register(
+    public static final Item SMALL_WAYSTONE = Registry.register(
         Registries.ITEM,
-        FabricWaystones.id("waystone_small"),
-        new BlockItem(
-            WaystoneBlocks.WAYSTONE_SMALL,
-            new Item.Settings()
-                .component(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(WaystoneTypes.STONE))
-        ) {
-            @Override
-            public String getTranslationKey(ItemStack stack) {
-                var data = stack.get(WaystoneDataComponents.WAYSTONE_TYPE);
-                if (data != null) return data.getType().getTranslationKeyForSmall();
-                return "waystone.blank.name";
-            }
-        }
+        FabricWaystones.id("small_waystone"),
+        new WaystoneBlockItem(WaystoneBlocks.WAYSTONE_SMALL, new Item.Settings())
     );
 
-    public static final Item WAYSTONE_MINI = Registry.register(
+    public static final Item WAYPLATE = Registry.register(
         Registries.ITEM,
-        FabricWaystones.id("waystone_mini"),
-        new BlockItem(
-            WaystoneBlocks.WAYSTONE_MINI,
-            new Item.Settings()
-                .component(WaystoneDataComponents.WAYSTONE_TYPE, new WaystoneTyped(WaystoneTypes.STONE))
-        ) {
-            @Override
-            public String getTranslationKey(ItemStack stack) {
-                var data = stack.get(WaystoneDataComponents.WAYSTONE_TYPE);
-                if (data != null) return data.getType().getTranslationKeyForMini();
-                return "waystone.blank.name";
-            }
-        }
+        FabricWaystones.id("wayplate"),
+        new WaystoneBlockItem(WaystoneBlocks.WAYPLATE, new Item.Settings())
     );
 
     public static void init() {

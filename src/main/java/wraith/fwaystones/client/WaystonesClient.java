@@ -30,6 +30,7 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystoneEvents;
 import wraith.fwaystones.api.core.*;
+import wraith.fwaystones.block.AbstractWaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
 import wraith.fwaystones.client.models.*;
@@ -80,7 +81,7 @@ public class WaystonesClient implements ClientModInitializer {
         }
 
         ItemTooltipCallback.EVENT.register((stack, tooltipContext, tooltipType, lines) -> {
-            if (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof WaystoneBlock) {
+            if (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof AbstractWaystoneBlock) {
                 var cooldownAmount = FabricWaystones.CONFIG.teleportCooldowns.usedWaystone();
 
                 if (cooldownAmount > 0) {
@@ -152,7 +153,7 @@ public class WaystonesClient implements ClientModInitializer {
 
                 var id = context.id();
 
-                if (id.equals(FabricWaystones.id("item/waystone")) || id.equals(FabricWaystones.id("item/waystone_small")) || id.equals(FabricWaystones.id("item/waystone_mini"))) {
+                if (id.equals(FabricWaystones.id("item/waystone")) || id.equals(FabricWaystones.id("item/small_waystone")) || id.equals(FabricWaystones.id("item/wayplate"))) {
                     var obj = DynamicModelUtils.createOverridenItemModel(
                         List.of(FabricWaystones.id("item/stone_waystone"), runes),
                         WaystoneTypes.getTypeIds().stream().map(typeId -> typeId.withPath(s -> "item/" + s + "_waystone")),
@@ -184,14 +185,14 @@ public class WaystonesClient implements ClientModInitializer {
                 return null;
             });
 
-            var bigModel = FabricWaystones.id("block/waystone_big");
-            var bigMultiModel = FabricWaystones.id("block/multi_waystone_big");
+            var bigModel = FabricWaystones.id("block/waystone");
+            var bigMultiModel = FabricWaystones.id("block/multi_waystone");
 
-            var smallModel = FabricWaystones.id("block/waystone_small");
-            var smallMultiModel = FabricWaystones.id("block/multi_waystone_small");
+            var smallModel = FabricWaystones.id("block/small_waystone");
+            var smallMultiModel = FabricWaystones.id("block/multi_small_waystone");
 
-            var plateModel = FabricWaystones.id("block/waystone_plate");
-            var plateMultiModel = FabricWaystones.id("block/multi_waystone_plate");
+            var plateModel = FabricWaystones.id("block/wayplate");
+            var plateMultiModel = FabricWaystones.id("block/multi_wayplate");
 
             ctx.resolveModel().register(context -> {
                 UnbakedModel possibleModel;
@@ -206,7 +207,11 @@ public class WaystonesClient implements ClientModInitializer {
                     return null;
                 }
 
-                return new CustomDelegatingUnbakedModel<>(possibleModel, WaystoneBlock::getEntity, WaystoneBlockQuadEmission.INSTANCE);
+                return new CustomDelegatingUnbakedModel<>(
+                    possibleModel,
+                    (blockView, pos, state) -> AbstractWaystoneBlock.getWaystoneBlockEntity(blockView, pos),
+                    WaystoneBlockQuadEmission.INSTANCE
+                );
             });
 
             ctx.registerBlockStateResolver(WaystoneBlocks.WAYSTONE, stateCtx -> {
@@ -225,7 +230,7 @@ public class WaystonesClient implements ClientModInitializer {
                 }
             });
 
-            ctx.registerBlockStateResolver(WaystoneBlocks.WAYSTONE_MINI, stateCtx -> {
+            ctx.registerBlockStateResolver(WaystoneBlocks.WAYPLATE, stateCtx -> {
                 for (var state : stateCtx.block().getStateManager().getStates()) {
                     var modelId = stateCtx.getOrLoadModel(plateMultiModel);
 

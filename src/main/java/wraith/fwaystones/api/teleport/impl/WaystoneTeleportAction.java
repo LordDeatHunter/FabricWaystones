@@ -1,19 +1,18 @@
 package wraith.fwaystones.api.teleport.impl;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.teleport.TeleportAction;
 import wraith.fwaystones.api.teleport.TeleportSource;
+import wraith.fwaystones.block.AbstractWaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.item.components.TextUtils;
 
@@ -60,7 +59,7 @@ public record WaystoneTeleportAction(@Nullable UUID uuid, TeleportSource source)
         var position = storage.getPosition(uuid);
         var waystone = storage.getEntity(uuid);
 
-        var positionDir = waystone.getCachedState().get(WaystoneBlock.FACING);
+        var positionDir = waystone.getCachedState().get(AbstractWaystoneBlock.FACING);
 
         float yaw = (positionDir.getAxis().getType().equals(Direction.Type.HORIZONTAL))
             ? positionDir.getOpposite().asRotation()

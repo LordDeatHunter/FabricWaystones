@@ -62,25 +62,6 @@ public sealed interface WaystoneType permits WaystoneTypeImpl {
         return id.withPath(s -> "item/" + s + "_waystone");
     }
 
-    default String getTranslationKey() {
-        return createNameTranslationKey("normal");
-    }
-
-    default String getTranslationKeyForSmall() {
-        return createNameTranslationKey("small");
-    }
-
-    default String getTranslationKeyForMini() {
-        return createNameTranslationKey("mini");
-    }
-
-    private String createNameTranslationKey(String prefixAddition) {
-        var id = getId();
-
-        return "waystone" + "." + prefixAddition + "." + id.getNamespace() + "." + id.getPath() + ".name";
-    }
-
-
     Identifier particleTexture();
 
     default Identifier getIconLocation() {

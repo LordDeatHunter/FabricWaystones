@@ -1,6 +1,5 @@
 package wraith.fwaystones.item;
 
-import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -13,8 +12,8 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.block.AbstractWaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlock;
-import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.util.Utils;
 
@@ -37,7 +36,7 @@ public class WaystoneDebuggerItem extends Item {
         var world = context.getWorld();
         var pos = context.getBlockPos();
 
-        var waystone = WaystoneBlock.getEntity(world, pos);
+        var waystone = AbstractWaystoneBlock.getWaystoneBlockEntity(world, pos);
 
         if (waystone == null) return ActionResult.FAIL;
 

@@ -26,7 +26,6 @@ public final class WaystoneScreenHandlers {
     public static void init() {
         Registry.register(Registries.SCREEN_HANDLER, FabricWaystones.id("waystone"), WAYSTONE_SCREEN);
         Registry.register(Registries.SCREEN_HANDLER, FabricWaystones.id("portable_waystone"), PORTABLE_WAYSTONE_SCREEN);
-
         Registry.register(Registries.SCREEN_HANDLER, FabricWaystones.id("experimental_waystone"), EXPERIMENTAL_WAYSTONE_SCREEN);
     }
 }

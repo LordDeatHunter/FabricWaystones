@@ -13,7 +13,6 @@ import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -28,26 +27,22 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
-import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.core.*;
+import wraith.fwaystones.block.AbstractWaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
-import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.s2c.*;
 import wraith.fwaystones.client.screen.UniversalWaystoneScreenHandler;
-import wraith.fwaystones.particle.RuneParticleEffect;
-import wraith.fwaystones.registry.WaystoneParticles;
 import wraith.fwaystones.util.Utils;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static wraith.fwaystones.networking.WaystoneNetworkHandler.CHANNEL;
@@ -532,7 +527,7 @@ public class WaystoneDataStorage {
 
         for (ServerWorld world : SERVER.getWorlds()) {
             if (Utils.getDimensionName(world).equals(hash.worldName())) {
-                be = WaystoneBlock.getEntity(world, hash.blockPos());
+                be = AbstractWaystoneBlock.getWaystoneBlockEntity(world, hash.blockPos());
 
                 waystoneLookupCache.put(hash, new WeakReference<>(be));
 

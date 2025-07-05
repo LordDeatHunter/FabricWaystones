@@ -1,7 +1,5 @@
 package wraith.fwaystones.client;
 
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -14,16 +12,14 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockRenderView;
-import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.client.MossColorProvidersRegistry;
 import wraith.fwaystones.api.core.WaystoneTypes;
-import wraith.fwaystones.block.WaystoneBlock;
+import wraith.fwaystones.block.AbstractWaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.client.models.QuadEmission;
-import wraith.fwaystones.registry.WaystoneBlocks;
 
 import java.util.function.Supplier;
 
@@ -31,7 +27,7 @@ public class WaystoneBlockQuadEmission implements QuadEmission<WaystoneBlockEnti
 
     public static final BlockColorProvider COLOR_PROVIDER = (state, world, pos, tintIndex) -> {
         if (world != null && pos != null) {
-            var blockEntity = WaystoneBlock.getEntity(world, pos, state);
+            var blockEntity = AbstractWaystoneBlock.getWaystoneBlockEntity(world, pos);
 
             if (blockEntity != null) {
                 if (tintIndex == 1) {
@@ -60,7 +56,7 @@ public class WaystoneBlockQuadEmission implements QuadEmission<WaystoneBlockEnti
     public void emitBlockQuads(BlockRenderView blockView, BlockState state, BlockPos pos, WaystoneBlockEntity blockEntity, BakedModel model, Supplier<Random> random, RenderContext ctx) {
         var matrix = new Matrix4f();
 
-        var direction = state.get(WaystoneBlock.FACING);
+        var direction = state.get(AbstractWaystoneBlock.FACING);
 
         if (direction.getAxis().equals(Direction.Axis.Z)) {
             direction = direction.getOpposite();

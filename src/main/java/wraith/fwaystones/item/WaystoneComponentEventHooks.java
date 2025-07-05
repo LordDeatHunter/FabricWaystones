@@ -24,6 +24,7 @@ import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.ExtendedStackReference;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.block.AbstractWaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.item.components.WaystoneHashTarget;
@@ -161,7 +162,7 @@ public class WaystoneComponentEventHooks {
         UseBlockCallback.EVENT.register((user, world, hand, hitResult) -> {
             if (!user.isSpectator()) {
                 var pos = hitResult.getBlockPos();
-                var entity = WaystoneBlock.getEntity(world, pos);
+                var entity = AbstractWaystoneBlock.getWaystoneBlockEntity(world, pos);
                 var stack = user.getStackInHand(hand);
 
                 if (entity != null && stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS) && user.isSneaking()) {
