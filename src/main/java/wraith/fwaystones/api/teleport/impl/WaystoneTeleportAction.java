@@ -13,7 +13,6 @@ import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.teleport.TeleportAction;
 import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.block.AbstractWaystoneBlock;
-import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.item.components.TextUtils;
 
 import java.util.ArrayList;

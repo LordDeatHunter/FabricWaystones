@@ -4,9 +4,9 @@ import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.entity.player.PlayerEntity;
+import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.teleport.TeleportSource;
-import wraith.fwaystones.api.WaystoneDataStorage;
 
 import java.util.UUID;
 

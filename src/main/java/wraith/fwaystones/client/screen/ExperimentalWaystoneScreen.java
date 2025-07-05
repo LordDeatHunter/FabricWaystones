@@ -4,14 +4,12 @@ import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.component.TextBoxComponent;
 import io.wispforest.owo.ui.container.Containers;
-import io.wispforest.owo.ui.container.DraggableContainer;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.inject.GreedyInputComponent;
 import io.wispforest.owo.ui.util.NinePatchTexture;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
-import me.xdrop.fuzzywuzzy.model.BoundExtractedResult;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.player.PlayerInventory;
@@ -23,17 +21,15 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
-import wraith.fwaystones.api.WaystoneEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
-import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.client.screen.components.ComponentUtils;
 
-import static io.wispforest.owo.ui.container.Containers.*;
-import static io.wispforest.owo.ui.component.Components.*;
-
 import java.util.*;
+
+import static io.wispforest.owo.ui.container.Containers.verticalFlow;
+import static io.wispforest.owo.ui.container.Containers.verticalScroll;
 
 public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout, ExperimentalWaystoneScreenHandler> {
 

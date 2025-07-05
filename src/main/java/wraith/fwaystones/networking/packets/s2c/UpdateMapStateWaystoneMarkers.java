@@ -7,12 +7,9 @@ import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.MapRenderer;
 import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.map.MapState;
-import net.minecraft.network.NetworkThreadUtils;
-import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.pond.MapStateDuck;
 
 import java.util.List;

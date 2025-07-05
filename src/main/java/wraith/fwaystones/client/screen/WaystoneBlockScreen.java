@@ -12,13 +12,13 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.c2s.RenameWaystone;
 import wraith.fwaystones.networking.packets.c2s.RevokeWaystoneOwner;
 import wraith.fwaystones.util.Utils;
-import wraith.fwaystones.api.WaystoneDataStorage;
 
 public class WaystoneBlockScreen extends UniversalWaystoneScreen<WaystoneBlockScreenHandler> {
 

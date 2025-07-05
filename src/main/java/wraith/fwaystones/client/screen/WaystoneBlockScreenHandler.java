@@ -2,13 +2,13 @@ package wraith.fwaystones.client.screen;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.api.core.WaystoneAccess;
+import wraith.fwaystones.api.core.WaystonePosition;
+import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.c2s.ToggleGlobalWaystone;
-import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
-import wraith.fwaystones.api.WaystoneDataStorage;
-import wraith.fwaystones.api.core.WaystonePosition;
-import wraith.fwaystones.api.core.WaystoneAccess;
 
 import java.util.UUID;
 import java.util.function.Function;

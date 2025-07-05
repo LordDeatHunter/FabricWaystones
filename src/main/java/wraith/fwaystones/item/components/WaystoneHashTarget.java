@@ -12,13 +12,12 @@ import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.core.Named;
-import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.registry.WaystoneDataComponents;
-import wraith.fwaystones.api.WaystoneDataStorage;
-import wraith.fwaystones.api.core.WaystonePosition;
 
 import java.util.UUID;
 import java.util.function.Consumer;

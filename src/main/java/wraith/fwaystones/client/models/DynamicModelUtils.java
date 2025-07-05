@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
-import wraith.fwaystones.FabricWaystones;
 
 import java.util.LinkedHashMap;
 import java.util.List;

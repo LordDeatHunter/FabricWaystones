@@ -14,7 +14,6 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.structure.pool.StructurePool;
@@ -27,7 +26,8 @@ import net.minecraft.world.World;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.api.*;
+import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.teleport.TeleportAction;
 import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.integration.lithostitched.LithostitchedPlugin;
@@ -38,7 +38,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 public final class Utils {
 

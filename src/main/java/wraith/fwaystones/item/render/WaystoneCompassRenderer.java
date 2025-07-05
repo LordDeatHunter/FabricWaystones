@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.Named;
-import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.item.components.WaystoneDataHolder;

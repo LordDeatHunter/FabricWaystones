@@ -4,7 +4,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import io.wispforest.owo.ui.core.Color;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
@@ -39,7 +41,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
             if (camera.isReady()) {
                 var box = waystone.getTeleportBox().offset(Vec3d.of(waystone.getPos()).negate());
 
-                var color = Color.RED.interpolate(new Color(1f, 1f, 1f, 0.8f), 0.25f);
+                var color = Color.ofRgb(waystone.getColor());
 
                 WorldRenderer.drawBox(matrices, vertexConsumers.getBuffer(RenderLayer.getLines()), box, color.red(), color.green(), color.blue(), color.alpha());
             }

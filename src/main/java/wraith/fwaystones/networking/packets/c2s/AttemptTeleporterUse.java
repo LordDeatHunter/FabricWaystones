@@ -3,8 +3,8 @@ package wraith.fwaystones.networking.packets.c2s;
 import io.wispforest.endec.StructEndec;
 import net.minecraft.entity.player.PlayerEntity;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 
 public record AttemptTeleporterUse() {

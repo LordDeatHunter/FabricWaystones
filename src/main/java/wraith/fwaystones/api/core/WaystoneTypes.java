@@ -1,21 +1,20 @@
 package wraith.fwaystones.api.core;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 public class WaystoneTypes {
 

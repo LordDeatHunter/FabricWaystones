@@ -15,7 +15,7 @@ import net.minecraft.world.BlockRenderView;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.pond.BakedModelParticleEffectExtension;
 
-import java.util.*;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class CustomDelegatingBakedModel<E> implements BakedModel, BakedModelParticleEffectExtension {

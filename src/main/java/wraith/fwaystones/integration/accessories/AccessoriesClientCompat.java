@@ -4,8 +4,6 @@ import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.fabric.mixin.client.HumanoidArmorLayerMixin;
-import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;

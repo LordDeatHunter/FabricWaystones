@@ -3,8 +3,6 @@ package wraith.fwaystones.api;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.core.ExtendedStackReference;

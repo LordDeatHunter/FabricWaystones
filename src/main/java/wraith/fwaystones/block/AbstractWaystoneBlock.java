@@ -22,7 +22,9 @@ import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
-import net.minecraft.state.property.*;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.DirectionProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -50,7 +52,6 @@ import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.util.Utils;
 
-import static net.minecraft.state.property.Properties.WATERLOGGED;
 import static wraith.fwaystones.FabricWaystones.*;
 
 @SuppressWarnings("deprecation")
@@ -58,6 +59,7 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
     public final int topHeight;
 
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
+    public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
     public static final BooleanProperty GENERATED = BooleanProperty.of("generated");
 
     public AbstractWaystoneBlock(int topHeight, Settings settings) {

@@ -6,9 +6,8 @@ import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.Nullable;
-import wraith.fwaystones.api.core.DataChangeType;
-import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.api.core.DataChangeType;
 import wraith.fwaystones.api.core.WaystoneData;
 
 import java.util.UUID;

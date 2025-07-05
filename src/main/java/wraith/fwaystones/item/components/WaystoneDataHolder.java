@@ -7,9 +7,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
+import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.registry.WaystoneDataComponents;
-import wraith.fwaystones.api.core.NetworkedWaystoneData;
 
 import java.util.function.Consumer;
 

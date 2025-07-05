@@ -9,7 +9,6 @@ import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystoneEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.DataChangeType;
-import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.api.core.WaystonePosition;
 

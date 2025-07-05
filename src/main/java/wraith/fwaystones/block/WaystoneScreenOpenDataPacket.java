@@ -3,8 +3,8 @@ package wraith.fwaystones.block;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.entity.player.PlayerEntity;
-import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.api.core.WaystoneAccess;
+import wraith.fwaystones.api.core.WaystonePosition;
 
 public record WaystoneScreenOpenDataPacket(WaystonePosition position, boolean canUse) implements WaystoneAccess {
 

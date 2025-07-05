@@ -5,7 +5,6 @@ import dev.worldgen.lithostitched.worldgen.poolelement.legacy.LimitedPoolElement
 import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
-
 import wraith.fwaystones.FabricWaystones;
 
 import java.util.ArrayList;

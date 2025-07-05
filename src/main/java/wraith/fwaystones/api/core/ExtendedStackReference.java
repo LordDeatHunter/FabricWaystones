@@ -1,8 +1,6 @@
 package wraith.fwaystones.api.core;
 
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.inventory.StackReference;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import java.util.function.Consumer;

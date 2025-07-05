@@ -1,6 +1,5 @@
 package wraith.fwaystones.client.registry;
 
-import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;

@@ -7,10 +7,8 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.util.Utils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public final class NetworkedWaystoneData extends WaystoneData implements Ownable, Named {

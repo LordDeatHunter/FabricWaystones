@@ -21,13 +21,13 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.c2s.WaystoneGUISlotClick;
 import wraith.fwaystones.util.FWConfigModel;
 import wraith.fwaystones.util.Utils;
-import wraith.fwaystones.api.WaystoneDataStorage;
 
 import java.util.ArrayList;
 import java.util.List;

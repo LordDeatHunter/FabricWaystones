@@ -2,7 +2,6 @@ package wraith.fwaystones.client.screen;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.screen.ScreenHandlerType;
 import wraith.fwaystones.client.registry.WaystoneScreenHandlers;
 
 public class ExperimentalWaystoneScreenHandler extends UniversalWaystoneScreenHandler<Object> {

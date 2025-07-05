@@ -21,11 +21,11 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.SyncWaystonePlayerDataChange;
 import wraith.fwaystones.networking.packets.s2c.SyncWaystonePlayerData;
 import wraith.fwaystones.util.SearchType;
-import wraith.fwaystones.api.core.WaystonePosition;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

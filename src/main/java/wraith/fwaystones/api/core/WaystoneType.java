@@ -7,7 +7,6 @@ import io.wispforest.owo.serialization.CodecUtils;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
-
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryCodecs;
 import net.minecraft.registry.RegistryKeys;

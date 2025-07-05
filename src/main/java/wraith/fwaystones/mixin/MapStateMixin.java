@@ -10,7 +10,6 @@ import net.minecraft.item.map.MapState;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,7 +24,10 @@ import wraith.fwaystones.api.core.WaystonePosition;
 import wraith.fwaystones.networking.packets.s2c.UpdateMapStateWaystoneMarkers;
 import wraith.fwaystones.pond.MapStateDuck;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import static wraith.fwaystones.networking.WaystoneNetworkHandler.CHANNEL;
 

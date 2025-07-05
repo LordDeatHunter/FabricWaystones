@@ -14,7 +14,6 @@ import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.api.core.Named;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import xaero.common.minimap.waypoints.Waypoint;

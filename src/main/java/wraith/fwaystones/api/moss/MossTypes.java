@@ -12,7 +12,10 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 public class MossTypes {
 

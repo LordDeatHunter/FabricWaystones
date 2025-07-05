@@ -2,14 +2,12 @@ package wraith.fwaystones.networking.packets.s2c;
 
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
-import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import wraith.fwaystones.particle.RuneParticleEffect;
 

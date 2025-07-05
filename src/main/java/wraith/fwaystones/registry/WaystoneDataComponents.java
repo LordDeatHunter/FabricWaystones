@@ -1,6 +1,5 @@
 package wraith.fwaystones.registry;
 
-import io.wispforest.endec.Endec;
 import net.minecraft.component.ComponentType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;

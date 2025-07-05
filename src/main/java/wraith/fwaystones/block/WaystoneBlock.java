@@ -5,9 +5,11 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
@@ -23,11 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.mixin.TallBlantBlockAccessor;
 
-import static net.minecraft.state.property.Properties.WATERLOGGED;
-
 public class WaystoneBlock extends AbstractWaystoneBlock {
 
-    private static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
+    public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
 
     public static final VoxelShape BOTTOM_COLLISION_SHAPE = VoxelShapes.union(
         Block.createCuboidShape(2, 2, 2, 14, 5, 14),
@@ -56,8 +56,9 @@ public class WaystoneBlock extends AbstractWaystoneBlock {
     public WaystoneBlock(Settings settings) {
         super(23, settings);
         this.setDefaultState(
-            this.stateManager.getDefaultState()
-                .with(HALF, DoubleBlockHalf.LOWER));
+            this.getDefaultState()
+                .with(HALF, DoubleBlockHalf.LOWER)
+        );
     }
 
     @Override
@@ -72,7 +73,7 @@ public class WaystoneBlock extends AbstractWaystoneBlock {
 
     @Override
     public BlockPos getBasePos(BlockPos pos, BlockState state) {
-        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
+        if (state.contains(HALF) && state.get(HALF) == DoubleBlockHalf.UPPER) {
             return pos.down();
         } else {
             return pos;
@@ -88,6 +89,11 @@ public class WaystoneBlock extends AbstractWaystoneBlock {
             if (state != null) return state.with(HALF, DoubleBlockHalf.LOWER);
         }
         return null;
+    }
+
+    @Override
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+        world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER), Block.NOTIFY_ALL);
     }
 
     @Override

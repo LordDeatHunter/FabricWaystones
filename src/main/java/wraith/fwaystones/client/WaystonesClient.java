@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.ModelPredicateProvider;
 import net.minecraft.client.option.KeyBinding;
@@ -29,26 +30,29 @@ import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystoneEvents;
-import wraith.fwaystones.api.core.*;
+import wraith.fwaystones.api.WaystoneInteractionEvents;
+import wraith.fwaystones.api.core.DataChangeType;
+import wraith.fwaystones.api.core.WaystoneTypes;
 import wraith.fwaystones.block.AbstractWaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntityRenderer;
-import wraith.fwaystones.client.models.*;
+import wraith.fwaystones.client.models.CustomDelegatingUnbakedModel;
+import wraith.fwaystones.client.models.DynamicModelUtils;
+import wraith.fwaystones.client.registry.WaystoneModelProviders;
+import wraith.fwaystones.client.registry.WaystoneScreens;
 import wraith.fwaystones.integration.accessories.AccessoriesClientCompat;
-import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.item.components.WaystoneTyped;
-import wraith.fwaystones.mixin.client.ModelPredicateProviderRegistryAccessor;
 import wraith.fwaystones.item.render.WaystoneCompassRenderer;
+import wraith.fwaystones.mixin.client.ModelPredicateProviderRegistryAccessor;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
-import wraith.fwaystones.client.registry.WaystoneScreens;
 import wraith.fwaystones.networking.packets.c2s.AttemptTeleporterUse;
 import wraith.fwaystones.particle.RuneParticleEffect;
 import wraith.fwaystones.registry.*;
-import wraith.fwaystones.client.registry.WaystoneModelProviders;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class WaystonesClient implements ClientModInitializer {
@@ -94,8 +98,8 @@ public class WaystonesClient implements ClientModInitializer {
             Reflection.initialize(XaerosMinimapWaypointMaker.class);
         }
 
-        ColorProviderRegistry.BLOCK.register(WaystoneBlockQuadEmission.COLOR_PROVIDER, WaystoneBlocks.WAYSTONE, WaystoneBlocks.WAYSTONE_SMALL);
-        BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getCutoutMipped(), WaystoneBlocks.WAYSTONE, WaystoneBlocks.WAYSTONE_SMALL);
+        ColorProviderRegistry.BLOCK.register(WaystoneBlockQuadEmission.COLOR_PROVIDER, WaystoneBlocks.WAYSTONE, WaystoneBlocks.WAYSTONE_SMALL, WaystoneBlocks.WAYPLATE);
+        BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getCutoutMipped(), WaystoneBlocks.WAYSTONE, WaystoneBlocks.WAYSTONE_SMALL, WaystoneBlocks.WAYPLATE);
 
         ColorProviderRegistry.ITEM.register(
             (stack, tintIndex) -> {
@@ -153,7 +157,11 @@ public class WaystonesClient implements ClientModInitializer {
 
                 var id = context.id();
 
-                if (id.equals(FabricWaystones.id("item/waystone")) || id.equals(FabricWaystones.id("item/small_waystone")) || id.equals(FabricWaystones.id("item/wayplate"))) {
+                if (
+                    id.equals(FabricWaystones.id("item/waystone")) ||
+                    id.equals(FabricWaystones.id("item/small_waystone")) ||
+                    id.equals(FabricWaystones.id("item/wayplate"))
+                ) {
                     var obj = DynamicModelUtils.createOverridenItemModel(
                         List.of(FabricWaystones.id("item/stone_waystone"), runes),
                         WaystoneTypes.getTypeIds().stream().map(typeId -> typeId.withPath(s -> "item/" + s + "_waystone")),
@@ -185,8 +193,11 @@ public class WaystonesClient implements ClientModInitializer {
                 return null;
             });
 
-            var bigModel = FabricWaystones.id("block/waystone");
-            var bigMultiModel = FabricWaystones.id("block/multi_waystone");
+            var topModel = FabricWaystones.id("block/waystone_top");
+            var topMultiModel = FabricWaystones.id("block/multi_waystone_top");
+
+            var bottomModel = FabricWaystones.id("block/waystone_bottom");
+            var bottomMultiModel = FabricWaystones.id("block/multi_waystone_bottom");
 
             var smallModel = FabricWaystones.id("block/small_waystone");
             var smallMultiModel = FabricWaystones.id("block/multi_small_waystone");
@@ -197,8 +208,10 @@ public class WaystonesClient implements ClientModInitializer {
             ctx.resolveModel().register(context -> {
                 UnbakedModel possibleModel;
 
-                if (context.id().equals(bigMultiModel)) {
-                    possibleModel = context.getOrLoadModel(bigModel);
+                if (context.id().equals(topMultiModel)) {
+                    possibleModel = context.getOrLoadModel(topModel);
+                } else if (context.id().equals(bottomMultiModel)) {
+                    possibleModel = context.getOrLoadModel(bottomModel);
                 } else if (context.id().equals(smallMultiModel)) {
                     possibleModel = context.getOrLoadModel(smallModel);
                 } else if (context.id().equals(plateMultiModel)) {
@@ -216,7 +229,7 @@ public class WaystonesClient implements ClientModInitializer {
 
             ctx.registerBlockStateResolver(WaystoneBlocks.WAYSTONE, stateCtx -> {
                 for (var state : stateCtx.block().getStateManager().getStates()) {
-                    var modelId = stateCtx.getOrLoadModel(bigMultiModel);
+                    var modelId = stateCtx.getOrLoadModel(state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER ? topMultiModel : bottomMultiModel);
 
                     stateCtx.setModel(state, modelId);
                 }

@@ -1,11 +1,9 @@
 package wraith.fwaystones.networking;
 
 import io.wispforest.owo.network.OwoNetChannel;
-import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.GlobalPos;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.networking.packets.SyncWaystonePlayerDataChange;
 import wraith.fwaystones.networking.packets.c2s.*;

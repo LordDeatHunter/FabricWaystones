@@ -13,7 +13,6 @@ import net.minecraft.util.Hand;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.block.AbstractWaystoneBlock;
-import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.item.components.TextUtils;
 import wraith.fwaystones.util.Utils;
 

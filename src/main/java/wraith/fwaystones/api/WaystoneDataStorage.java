@@ -32,11 +32,10 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.core.*;
 import wraith.fwaystones.block.AbstractWaystoneBlock;
-import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
+import wraith.fwaystones.client.screen.UniversalWaystoneScreenHandler;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.networking.packets.s2c.*;
-import wraith.fwaystones.client.screen.UniversalWaystoneScreenHandler;
 import wraith.fwaystones.util.Utils;
 
 import java.io.IOException;

@@ -4,7 +4,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import wraith.fwaystones.client.screen.ExperimentalWaystoneScreen;
-import wraith.fwaystones.client.screen.ExperimentalWaystoneScreenHandler;
 import wraith.fwaystones.client.screen.PortableWaystoneScreen;
 import wraith.fwaystones.client.screen.WaystoneBlockScreen;
 
