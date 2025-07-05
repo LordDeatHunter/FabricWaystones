@@ -52,20 +52,26 @@ public record WaystoneTeleportAction(@Nullable UUID uuid, TeleportSource source)
     @Override
     public TeleportTarget createTarget(Entity entity) {
         var server = entity.getServer();
+        if (server == null) return null;
 
         var storage = WaystoneDataStorage.getStorage(entity);
 
         var position = storage.getPosition(uuid);
+        if (position == null) return null;
+
+        var world = server.getWorld(position.worldKey());
+        if (world == null) return null;
+
         var waystone = storage.getEntity(uuid);
+        if (waystone == null) return null;
 
-        var positionDir = waystone.getCachedState().get(AbstractWaystoneBlock.FACING);
+        var state = waystone.getCachedState();
+        if (!(state.getBlock() instanceof AbstractWaystoneBlock waystoneBlock)) return null;
 
-        float yaw = (positionDir.getAxis().getType().equals(Direction.Type.HORIZONTAL))
-            ? positionDir.getOpposite().asRotation()
-            : entity.getYaw();
+        var teleportPos = waystoneBlock.findTeleportPosition(entity, world, position.blockPos(), state.get(AbstractWaystoneBlock.FACING));
+        if (teleportPos == null) return null;
 
-        var teleportPos = position.blockPos().toBottomCenterPos()
-            .add(positionDir.getOffsetX(), 0, positionDir.getOffsetZ());
+        float yaw = waystoneBlock.getTeleportationYaw(teleportPos, position.blockPos(), state);
 
         return new TeleportTarget(
             server.getWorld(position.worldKey()),

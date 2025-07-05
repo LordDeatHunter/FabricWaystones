@@ -613,7 +613,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                         var offset = getRandomControllerOffset();
                         this.setFocusVector(this.focusVector != null ? this.focusVector.add(offset) : offset);
                         this.lookTime = 40 + RANDOM.nextInt(20);
-                    } else if (RANDOM.nextFloat() < 0.02) {
+                    } else if (RANDOM.nextFloat() < 0.002) {
                         var storage = WaystoneDataStorage.getStorage(world);
                         var allWaystones = storage.getAllPositions().stream()
                             .filter(thisPos -> !thisPos.equals(this.position()))
@@ -622,7 +622,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                         if (!allWaystones.isEmpty()) {
                             var choice = allWaystones.stream().toList().get(RANDOM.nextInt(allWaystones.size()));
                             this.setFocusVector(choice.blockPos().toBottomCenterPos().add(this.getControllerPos()).subtract(controller).normalize());
-                            this.lookTime = 40 + RANDOM.nextInt(20);
+                            this.lookTime = 200 + RANDOM.nextInt(200);
                         }
                     }
                 }
@@ -661,7 +661,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (this.getData() != null) this.suckARandomPortalParticle();
     }
 
-    public Quaternionf getRenderRotation(float tickDelta) {
+    public Quaternionf updateRenderRotation(float tickDelta) {
         if (this.lastControllerRotation == null && this.controllerRotation == null) return null;
         if (this.lastControllerRotation == null) this.lastControllerRotation = this.controllerRotation;
         if (Float.isNaN(this.lastControllerRotation.x)) this.lastControllerRotation.x = this.controllerRotation.x;

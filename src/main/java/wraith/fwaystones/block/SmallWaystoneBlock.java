@@ -4,9 +4,13 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
+
+import java.util.List;
 
 public class SmallWaystoneBlock extends AbstractWaystoneBlock {
 
@@ -32,6 +36,14 @@ public class SmallWaystoneBlock extends AbstractWaystoneBlock {
 
     public SmallWaystoneBlock(Settings settings) {
         super(10, settings);
+    }
+
+    @Override
+    public List<Vec3i> getPossibleTeleportOffsets(Direction direction) {
+        var returned = super.getPossibleTeleportOffsets(direction);
+        returned.addAll(super.getPossibleTeleportOffsets(direction).stream().map(Vec3i::down).toList());
+        returned.add(Vec3i.ZERO);
+        return returned;
     }
 
     @Override

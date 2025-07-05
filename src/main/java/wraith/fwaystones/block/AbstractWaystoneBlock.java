@@ -7,9 +7,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -31,13 +29,8 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
+import net.minecraft.util.math.*;
+import net.minecraft.world.*;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
@@ -51,6 +44,10 @@ import wraith.fwaystones.item.components.WaystoneHashTarget;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.util.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static wraith.fwaystones.FabricWaystones.*;
 
@@ -85,7 +82,6 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
         return BlockRenderType.MODEL;
     }
 
-    @Nullable
     @Override
     public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
         return super.createScreenHandlerFactory(state, world, getBasePos(pos, state));
@@ -93,6 +89,41 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
 
     public BlockPos getBasePos(BlockPos pos, BlockState state) {
         return pos;
+    }
+
+    @Nullable
+    public Vec3d findTeleportPosition(Entity entity, CollisionView world, BlockPos pos, Direction waystoneDirection) {
+        var valid = findTeleportPosition(entity, world, pos, waystoneDirection, true);
+        if (valid != null) return valid;
+        return findTeleportPosition(entity, world, pos, waystoneDirection, false);
+    }
+
+    @Nullable
+    public Vec3d findTeleportPosition(Entity entity, CollisionView world, BlockPos pos, Direction waystoneDirection, boolean ignoreInvalidPos) {
+        BlockPos.Mutable mutable = new BlockPos.Mutable();
+
+        for (Vec3i offset : getPossibleTeleportOffsets(waystoneDirection)) {
+            mutable.set(pos).move(offset);
+            var vec3d = Dismounting.findRespawnPos(entity.getType(), world, mutable, ignoreInvalidPos);
+            if (vec3d != null) return vec3d;
+        }
+
+        return null;
+    }
+
+    public List<Vec3i> getPossibleTeleportOffsets(Direction waystoneDirection) {
+        var locations = new ArrayList<Vec3i>();
+        for (int i = 0; i < 4; i++) {
+            locations.add(new Vec3i(waystoneDirection.getOffsetX(), 0, waystoneDirection.getOffsetZ()));
+            waystoneDirection = waystoneDirection.rotateYClockwise();
+        }
+        return locations;
+    }
+
+    public float getTeleportationYaw(Vec3d teleportPos, BlockPos waystonePos, BlockState state) {
+        var offset = teleportPos.subtract(Vec3d.ofCenter(waystonePos));
+        if (offset.x == 0 && offset.z == 0) return state.get(FACING).getOpposite().asRotation();
+        return (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(offset.x, offset.z)));
     }
 
     @Override

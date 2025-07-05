@@ -77,6 +77,8 @@ public class FabricWaystones implements ModInitializer {
     public static final SoundEvent WAYSTONE_DEATIVATE = registerSoundEvent(id("block.waystone.deactivate"));
     public static final SoundEvent WAYSTONE_DEACTIVATE2 = registerSoundEvent(id("block.waystone.deactivate2"));
 
+    public static final SoundEvent WAYSTONE_TELEPORT = registerSoundEvent(id("block.waystone.teleport"));
+
     public static final SoundEvent WAYSTONE_MOSS_APPLY = registerSoundEvent(id("block.waystone.moss_apply"));
     public static final SoundEvent WAYSTONE_SHEAR = registerSoundEvent(id("block.waystone.shear"));
     public static final SoundEvent WAYSTONE_CLEAN_SPONGE = registerSoundEvent(id("block.waystone.clean_sponge"));

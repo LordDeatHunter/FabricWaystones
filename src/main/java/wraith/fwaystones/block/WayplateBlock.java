@@ -4,11 +4,16 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 
-public class WayPlateBlock extends AbstractWaystoneBlock {
+import java.util.List;
+
+public class WayplateBlock extends AbstractWaystoneBlock {
 
     public static final VoxelShape COLLISION_SHAPE = VoxelShapes.union(
         Block.createCuboidShape(1, 0, 1, 15, 1, 15),
@@ -28,8 +33,18 @@ public class WayPlateBlock extends AbstractWaystoneBlock {
         Block.createCuboidShape(2, 2, 7, 3, 5, 9)
     );
 
-    public WayPlateBlock(Settings settings) {
+    public WayplateBlock(Settings settings) {
         super(3, settings);
+    }
+
+    @Override
+    public List<Vec3i> getPossibleTeleportOffsets(Direction direction) {
+        return List.of(Vec3i.ZERO);
+    }
+
+    @Override
+    public float getTeleportationYaw(Vec3d teleportPos, BlockPos waystonePos, BlockState state) {
+        return super.getTeleportationYaw(teleportPos, waystonePos, state) + 180.0F;
     }
 
     @Override

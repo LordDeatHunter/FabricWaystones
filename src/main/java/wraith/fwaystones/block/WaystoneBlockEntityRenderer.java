@@ -1,10 +1,7 @@
 package wraith.fwaystones.block;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.wispforest.owo.ui.core.Color;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
@@ -15,7 +12,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
 import wraith.fwaystones.FabricWaystones;
@@ -35,17 +31,17 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
         if (world != null) light = WorldRenderer.getLightmapCoordinates(waystone.getWorld(), waystone.getPos());
 
-        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-            var camera = MinecraftClient.getInstance().gameRenderer.getCamera();
-
-            if (camera.isReady()) {
-                var box = waystone.getTeleportBox().offset(Vec3d.of(waystone.getPos()).negate());
-
-                var color = Color.ofRgb(waystone.getColor());
-
-                WorldRenderer.drawBox(matrices, vertexConsumers.getBuffer(RenderLayer.getLines()), box, color.red(), color.green(), color.blue(), color.alpha());
-            }
-        }
+//        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+//            var camera = MinecraftClient.getInstance().gameRenderer.getCamera();
+//
+//            if (camera.isReady()) {
+//                var box = waystone.getTeleportBox().offset(Vec3d.of(waystone.getPos()).negate());
+//
+//                var color = Color.ofRgb(waystone.getColor());
+//
+//                WorldRenderer.drawBox(matrices, vertexConsumers.getBuffer(RenderLayer.getLines()), box, color.red(), color.green(), color.blue(), color.alpha());
+//            }
+//        }
 
         if (!stack.isEmpty()) {
             matrices.push();
@@ -60,7 +56,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
             matrices.translate(0.0F, 0.1F + MathHelper.sin(offset * 0.1F) * 0.01F, 0.0F);
 
             if (stack.isIn(FabricWaystones.WAYSTONE_DISPLAY_ALIVE)) {
-                var rotation = waystone.getRenderRotation(tickDelta);
+                var rotation = waystone.updateRenderRotation(tickDelta);
 
                 if (rotation != null) matrices.multiply(rotation);
             } else if (stack.isIn(FabricWaystones.WAYSTONE_DISPLAY_GYRO)) {

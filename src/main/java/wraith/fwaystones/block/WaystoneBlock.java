@@ -15,6 +15,7 @@ import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
@@ -24,6 +25,8 @@ import net.minecraft.world.WorldView;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.mixin.TallBlantBlockAccessor;
+
+import java.util.List;
 
 public class WaystoneBlock extends AbstractWaystoneBlock {
 
@@ -59,6 +62,15 @@ public class WaystoneBlock extends AbstractWaystoneBlock {
             this.getDefaultState()
                 .with(HALF, DoubleBlockHalf.LOWER)
         );
+    }
+
+    @Override
+    public List<Vec3i> getPossibleTeleportOffsets(Direction direction) {
+        var returned = super.getPossibleTeleportOffsets(direction);
+        returned.addAll(super.getPossibleTeleportOffsets(direction).stream().map(Vec3i::down).toList());
+        returned.addAll(super.getPossibleTeleportOffsets(direction).stream().map(Vec3i::up).toList());
+        returned.add(Vec3i.ZERO.up());
+        return returned;
     }
 
     @Override

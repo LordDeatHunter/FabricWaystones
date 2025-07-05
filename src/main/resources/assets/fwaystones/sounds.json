@@ -1,4 +1,11 @@
 {
+  "block.waystone.teleport": {
+    "sounds": [
+      "mob/endermen/portal",
+      "mob/endermen/portal2"
+    ],
+    "subtitle": "subtitles.block.fwaystones.waystone.teleport"
+  },
   "block.waystone.initialize": {
     "sounds": [
       "block/amethyst/step1",

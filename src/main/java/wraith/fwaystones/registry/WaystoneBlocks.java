@@ -7,14 +7,14 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.SmallWaystoneBlock;
-import wraith.fwaystones.block.WayPlateBlock;
+import wraith.fwaystones.block.WayplateBlock;
 import wraith.fwaystones.block.WaystoneBlock;
 
 public final class WaystoneBlocks {
 
     public static final Block WAYSTONE = register("waystone", new WaystoneBlock(AbstractBlock.Settings.create().requiresTool().strength(FabricWaystones.CONFIG.waystoneBlockHardness(), 3600000)));
     public static final Block WAYSTONE_SMALL = register("small_waystone", new SmallWaystoneBlock(AbstractBlock.Settings.copy(WAYSTONE)));
-    public static final Block WAYPLATE = register("wayplate", new WayPlateBlock(AbstractBlock.Settings.copy(WAYSTONE)));
+    public static final Block WAYPLATE = register("wayplate", new WayplateBlock(AbstractBlock.Settings.copy(WAYSTONE)));
 
     public static void init() {}
 

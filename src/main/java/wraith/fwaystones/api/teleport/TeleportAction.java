@@ -54,6 +54,7 @@ public interface TeleportAction {
         return true;
     }
 
+    @Nullable
     TeleportTarget createTarget(Entity entity);
 
     GlobalPos getPos(World world);

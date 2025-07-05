@@ -532,7 +532,7 @@
 
   "subtitles.block.fwaystones.waystone.deactivate": "Waystone deactivates",
 
-  "subtitles.block.fwaystones.waystone.teleport_player": "Waystone teleports player",
+  "subtitles.block.fwaystones.waystone.teleport": "Waystone teleports Entity",
 
   "subtitles.block.fwaystones.waystone.clean_sponge": "Waystone takes your sponge and cleans itself before returning it to you",
   "subtitles.block.fwaystones.waystone.clean_bucket": "Waystone takes your bucket and cleans itself before returning it to you",

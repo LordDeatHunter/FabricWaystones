@@ -213,6 +213,7 @@ public final class Utils {
         if (!Utils.canTeleport(entity, action, takeCost)) return false;
 
         var target = action.createTarget(entity);
+        if (target == null) return false;
 
         if (entity instanceof PlayerEntity player) {
             WaystonePlayerData.getData(player).teleportCooldown(action.getCooldown());
@@ -220,14 +221,14 @@ public final class Utils {
 
         var oldPos = entity.getBlockPos();
         if (!oldPos.isWithinDistance(target.pos(), 6) || !entity.getWorld().getRegistryKey().equals(target.world().getRegistryKey())) {
-            entity.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+            entity.getWorld().playSound(null, oldPos, FabricWaystones.WAYSTONE_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         }
 
         entity.teleportTo(target);
 
         var playerPos = entity.getBlockPos();
 
-        target.world().playSound(null, playerPos, SoundEvents.ENTITY_PLAYER_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        target.world().playSound(null, playerPos, FabricWaystones.WAYSTONE_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
 
         return true;
     }
