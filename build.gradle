@@ -1,5 +1,7 @@
+import org.gradle.api.artifacts.Dependency
+
 plugins {
-    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'fabric-loom' version '1.10-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -11,42 +13,160 @@ version = project.mod_version + "+mc" + project.minecraft_version
 group = project.maven_group
 
 repositories {
-    maven { url = "https://www.cursemaven.com" }
-    maven {
-        name = "JourneyMap (Public)"
-        url = "https://jm.gserv.me/repository/maven-public/"
-    }
-    maven {
-        name = "Modrinth"
-        url = "https://api.modrinth.com/maven"
-        content {
-            includeGroup "maven.modrinth"
-        }
-    }
+    maven { url "https://jm.gserv.me/repository/maven-public/" }
+    maven { url "https://api.modrinth.com/maven" }
     maven { url 'https://maven.wispforest.io' }
     maven { url 'https://jitpack.io' }
+    maven { url 'https://maven.su5ed.dev/releases' }
+    maven { url 'https://maven.fabricmc.net' }
+    maven { url 'https://maven.shedaniel.me/' }
+    maven {url "https://maven.nucleoid.xyz/" }
+    mavenCentral()
+    mavenLocal()
+    maven { url "https://maven.shedaniel.me" }
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:22.0.0'
+    implementation ("org.jetbrains:annotations:22.0.0")
 
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    minecraft ("com.mojang:minecraft:${project.minecraft_version}")
+    mappings ("net.fabricmc:yarn:${project.yarn_mappings}:v2")
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Required API
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modCompileOnly "curse.maven:repurposed-structures-fabric-${project.rs_project_id}:${project.rs_file_id}"
-
-    modApi group: 'info.journeymap', name: 'journeymap-api-fabric', version: project.journeymap_api_version, changing: true
-//    modRuntimeOnly "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id}"
-
     annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
-    include "io.wispforest:owo-sentinel:${project.owo_version}"
+    include ("io.wispforest:owo-sentinel:${project.owo_version}")
+
+    modImplementation include("me.xdrop:fuzzywuzzy:${project.fuzzywuzzy_version}")
+
+    // Compat Mods
+
+    modCompileOnly modRuntimeOnly("io.wispforest:accessories-fabric:${project.accessories_version}")
+
+    modCompileOnly ("maven.modrinth:repurposed-structures-fabric:${repurposed_structures_version}")
+
+    modCompileOnly modRuntimeOnly ("info.journeymap:journeymap-api-fabric:${project.journeymap_api_version}")
+
+    modRuntimeOnly ("mysticdrew:common-networking-fabric:${project.common_networking_version}")
+    modRuntimeOnly ("maven.modrinth:journeymap:${project.journeymap_version}")
+
+    modCompileOnly modRuntimeOnly("maven.modrinth:xaeros-minimap:${project.xaeros_minimap_version}")
+    modCompileOnly modRuntimeOnly("maven.modrinth:xaeros-world-map:${project.xaeros_map_version}")
+
+    modCompileOnly modRuntimeOnly("maven.modrinth:lithostitched:${project.lithostiched_version}")
+
+    modCompileOnly modRuntimeOnly("eu.pb4:placeholder-api:${project.placeholder_api_version}")
+
+    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
+    modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 }
 
 loom {
     accessWidenerPath = file("src/main/resources/fwaystones.accesswidener")
+    runs {
+        server {
+            server()
+            ideConfigGenerated true
+            vmArg "-XX:+AllowEnhancedClassRedefinition"
+        }
+        client {
+            client()
+            ideConfigGenerated true
+            vmArg "-XX:+AllowEnhancedClassRedefinition"
+        }
+        client_renderDoc {
+            client()
+            ideConfigGenerated true
+            name = "Minecraft Client - (RenderDoc)"
+            vmArg "-Dowo.renderdocPath=${System.getenv('renderDocPath')}"
+            vmArg "-XX:+AllowEnhancedClassRedefinition"
+        }
+        client_MixinDebug {
+            client()
+            ideConfigGenerated true
+            name = "Minecraft Client - (Mixin Hotswap)"
+            vmArg "-XX:+AllowEnhancedClassRedefinition"
+
+            // Required due to it kinda being throw out for some reason...
+            vmArg "-Dfabric.dli.config=${file(".gradle/loom-cache/launch.cfg").toString()}"
+            vmArg "-Dfabric.dli.env=client"
+            vmArg "-Dfabric.dli.main=net.fabricmc.loader.impl.launch.knot.KnotClient"
+            vmArg "-Dlog4j.configurationFile=${file(".gradle/loom-cache/log4j.xml").toString()}"
+            vmArg "-Dfabric.log.disableAnsi=false"
+            vmArg "-Dmixin.debug.export=true"
+
+            Object runConfig = it
+
+            project.afterEvaluate {
+                var results = project.configurations.compileClasspath.getIncoming().artifactView((config) -> {
+                    config.withVariantReselection()
+                    config.componentFilter((id) -> {
+                        if (id instanceof ModuleComponentIdentifier) {
+                            return (((ModuleComponentIdentifier) id).getModuleIdentifier().name == "sponge-mixin")
+                        }
+
+                        return false
+                    })
+                }).files.files.toList()
+
+                if (results.size() > 1) {
+                    System.out.println("Found one or more mixin dependencies on the compileClasspath, will just be picking the first so lets hope this works!")
+                } else {
+                    System.out.println("Found mixin dependencies on the compileClasspath!")
+
+                }
+
+                var file = results[0]
+
+                runConfig.vmArg "-javaagent:\"${(file.getPath())}\""
+            }
+        }
+        client_MixinDebug_Renderdoc {
+            client()
+            ideConfigGenerated true
+            name = "Minecraft Client - (Full Suite)"
+            vmArg "-XX:+AllowEnhancedClassRedefinition"
+
+            vmArg "-Dowo.renderdocPath=${System.getenv('renderDocPath')}"
+
+            // Required due to it kinda being throw out for some reason...
+            vmArg "-Dfabric.dli.config=${file(".gradle/loom-cache/launch.cfg").toString()}"
+            vmArg "-Dfabric.dli.env=client"
+            vmArg "-Dfabric.dli.main=net.fabricmc.loader.impl.launch.knot.KnotClient"
+            vmArg "-Dlog4j.configurationFile=${file(".gradle/loom-cache/log4j.xml").toString()}"
+            vmArg "-Dfabric.log.disableAnsi=false"
+            vmArg "-Dmixin.debug.export=true"
+
+            Object runConfig = it
+
+            project.afterEvaluate {
+                var results = project.configurations.compileClasspath.getIncoming().artifactView((config) -> {
+                    config.withVariantReselection()
+                    config.componentFilter((id) -> {
+                        if (id instanceof ModuleComponentIdentifier) {
+                            return (((ModuleComponentIdentifier) id).getModuleIdentifier().name == "sponge-mixin")
+                        }
+
+                        return false
+                    })
+                }).files.files.toList()
+
+                if (results.size() > 1) {
+                    System.out.println("Found one or more mixin dependencies on the compileClasspath, will just be picking the first so lets hope this works!")
+                } else {
+                    System.out.println("Found mixin dependencies on the compileClasspath!")
+
+                }
+
+                var file = results[0]
+
+                runConfig.vmArg "-javaagent:\"${(file.getPath())}\""
+            }
+        }
+    }
 }
 
 processResources {
