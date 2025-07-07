@@ -37,6 +37,8 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
     public static final Identifier HOVERED_TEXTURE = FabricWaystones.id("waystone_button/hovered");
     public static final Identifier DISABLED_TEXTURE = FabricWaystones.id("waystone_button/disabled");
 
+    public static final Identifier FAVORITE_ICON = FabricWaystones.id("textures/gui/favorite_icon.png");
+
     private final WaystoneDataStorage storage;
     private final WaystonePlayerData playerData;
 
@@ -56,17 +58,23 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
     }
 
     private List<UUID> getSortedWaystones(String searchText) {
-        var existingWaystones = playerData.discoveredWaystones().stream()
+        var sortedWaystones = playerData.discoveredWaystones().stream()
             .map(uuid -> storage.getData(uuid) instanceof NetworkedWaystoneData networkedData ? networkedData : null)
             .filter(Objects::nonNull)
             .sorted(Comparator.comparing(NetworkedWaystoneData::sortingName))
             .toList();
 
-        return (searchText.isBlank()
-            ? existingWaystones.stream().map(WaystoneData::uuid)
-            : FuzzySearch.extractSorted(searchText.toLowerCase(Locale.ROOT), existingWaystones, NetworkedWaystoneData::sortingName, 75).stream().map(result -> result.getReferent().uuid()))
-//            .sorted(Comparator.comparing(data -> storage.getPosition(data) == null))
-            .toList();
+        if (searchText.isBlank()) {
+            return sortedWaystones.stream()
+                .map(WaystoneData::uuid)
+                .sorted((o1, o2) -> Boolean.compare(playerData.isFavorited(o2), playerData.isFavorited(o1)))
+                .toList();
+        } else {
+            return FuzzySearch.extractSorted(searchText.toLowerCase(Locale.ROOT), sortedWaystones, NetworkedWaystoneData::sortingName, 75)
+                .stream()
+                .map(result -> result.getReferent().uuid())
+                .toList();
+        }
 
 //        return
 //            .sorted((uuid1, uuid2) -> {
@@ -92,7 +100,9 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
                 verticalFlow(Sizing.content(), Sizing.content())
                     .child(
                         Components.textBox(Sizing.fixed(120), "")
-                            .<TextBoxComponent>configure(textBox -> textBox.onChanged().subscribe(newText -> waystoneList.child(createWaystoneList(newText))))
+                            .<TextBoxComponent>configure(textBox -> textBox.onChanged()
+                                .subscribe(this::setWaystoneList))
+                            .id("search_box")
                     )
                     .child(waystoneList
                                .surface(Surface.panelWithInset(0))
@@ -106,6 +116,16 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
             .verticalAlignment(VerticalAlignment.CENTER);
     }
 
+    private void setWaystoneList() {
+        var textBox = this.component(TextBoxComponent.class, "search_box");
+
+        setWaystoneList(textBox != null ? textBox.getText() : "");
+    }
+
+    private void setWaystoneList(String searchText) {
+        waystoneList.child(createWaystoneList(searchText));
+    }
+
     private FlowLayout createWaystoneList(String searchText) {
         return Components.list(
             getSortedWaystones(searchText),
@@ -115,7 +135,7 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         );
     }
 
-    private FlowLayout createButtonLayout(UUID uuid) {
+    private Component createButtonLayout(UUID uuid) {
         // TODO: BETTER HANDLING FOR THIS
         if (!(storage.getData(uuid) instanceof NetworkedWaystoneData networkedData)) {
             throw new IllegalStateException("This should not happen and idk how it did");
@@ -123,7 +143,7 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         var data = storage.getData(uuid);
         var existsWithinTheWorld = storage.getPosition(uuid) != null;
 
-        return new FlowLayout(Sizing.expand(), Sizing.content(), FlowLayout.Algorithm.VERTICAL) {
+        return new FlowLayout(Sizing.expand(), Sizing.fixed(16), FlowLayout.Algorithm.HORIZONTAL) {
             @Override
             public boolean canFocus(FocusSource source) {
                 return true;
@@ -151,10 +171,10 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
                         case 1 -> HOVERED_TEXTURE;
                         default -> ACTIVE_TEXTURE;
                     };
-                    var color = Color.ofRgb(data.color());
-                    context.setShaderColor(color.red(), color.green(), color.blue(), 1.0F);
+                   /* var color = Color.ofRgb(data.color());
+                    context.setShaderColor(color.red(), color.green(), color.blue(), 1.0F);*/
                     NinePatchTexture.draw(texture, context, component.x(), component.y(), component.width(), component.height());
-                    context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                    /*context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);*/
                 });
 
                 if (existsWithinTheWorld) {
@@ -170,7 +190,49 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
 
                 waystoneButton.padding(Insets.of(3));
             })
-            .child(ComponentUtils.wrapNonInteractive(Components.label(networkedData.parsedName())));
+            .child(ComponentUtils.wrapNonInteractive(Components.label(networkedData.parsedName())))
+            .child(
+                Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                    .child(
+                        ComponentUtils.wrapNonInteractive(
+                                Containers.verticalFlow(Sizing.content(), Sizing.content())
+                                    .child(
+                                        Components.box(Sizing.fixed(8), Sizing.fixed(8))
+                                            .fill(true)
+                                            .color(Color.ofRgb(data.color()))
+                                    )
+                                    .padding(Insets.of(1))
+                                    .surface(Surface.outline(Color.BLACK.argb()))
+                        )
+                    )
+                    .child(
+                        Components.button(Text.empty(), btn -> {
+                            if (playerData.isFavorited(uuid)) {
+                                playerData.removeFavoriteWaystone(uuid);
+                            } else {
+                                playerData.addFavoriteWaystone(uuid);
+                            }
+
+                            setWaystoneList();
+                        }).renderer((context, button, delta) -> {
+                            context.drawTexture(
+                                FAVORITE_ICON,
+                                button.getX(), button.getY(), 0, playerData.isFavorited(uuid) ? 10 : 0, 10, 10, 10, 20
+                            );
+                        }).sizing(Sizing.fixed(10))
+                    )
+                    .child(
+                        Components.button(Text.empty(), btn -> {
+                            playerData.forgetWaystone(uuid);
+
+                            setWaystoneList();
+                        }).sizing(Sizing.fixed(10))
+                    )
+                    .gap(2)
+                    .positioning(Positioning.relative(100, 0))
+            )
+            .gap(2)
+            .verticalAlignment(VerticalAlignment.CENTER);
     }
 
     @Override

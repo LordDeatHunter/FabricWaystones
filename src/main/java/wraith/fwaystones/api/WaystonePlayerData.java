@@ -40,6 +40,7 @@ public class WaystonePlayerData {
 
 
     private static final WaystonePlayerDataKey<Set<UUID>> DISCOVERED_WAYSTONES_KEY = new WaystonePlayerDataKey<>("discovered_waystones_ids", collectionOf(BuiltInEndecs.UUID, ConcurrentHashMap::newKeySet), WaystonePlayerData::discoveredWaystones);
+    private static final WaystonePlayerDataKey<List<UUID>> FAVORITE_WAYSTONES_KEY = new WaystonePlayerDataKey<>("favorite_waystones_ids", collectionOf(BuiltInEndecs.UUID, ArrayList::new), WaystonePlayerData::favoriteWaystones);
     private static final WaystonePlayerDataKey<Boolean> VIEW_DISCOVERED_WAYSTONES_KEY = new WaystonePlayerDataKey<>("view_discovered_waystones", Endec.BOOLEAN, WaystonePlayerData::viewDiscoveredWaystones);
     private static final WaystonePlayerDataKey<Boolean> VIEW_GLOBAL_WAYSTONES_KEY = new WaystonePlayerDataKey<>("view_global_waystones", Endec.BOOLEAN, WaystonePlayerData::viewGlobalWaystones);
     private static final WaystonePlayerDataKey<Boolean> AUTOFOCUS_WAYSTONE_FIELDS_KEY = new WaystonePlayerDataKey<>("autofocus_waystone_fields", Endec.BOOLEAN, WaystonePlayerData::autofocusWaystoneFields);
@@ -56,14 +57,15 @@ public class WaystonePlayerData {
 
     public static final StructEndec<WaystonePlayerData> ENDEC = StructEndecBuilder.of(
             DISCOVERED_WAYSTONES_KEY.optionalFieldOf(ConcurrentHashMap::newKeySet),
+            FAVORITE_WAYSTONES_KEY.optionalFieldOf(ArrayList::new),
             VIEW_DISCOVERED_WAYSTONES_KEY.optionalFieldOf(true),
             VIEW_GLOBAL_WAYSTONES_KEY.optionalFieldOf(true),
             AUTOFOCUS_WAYSTONE_FIELDS_KEY.optionalFieldOf(true),
             WAYSTONE_SEARCH_TYPE_KEY.optionalFieldOf(SearchType.CONTAINS),
             TELEPORT_COOLDOWN_KEY.optionalFieldOf(0),
             LEGACY_POSITIONS,
-            (discoveredWaystones, viewDiscovered, viewGlobal, autofocusWaystoneFields,  searchType, cooldown, legacyPositions) -> {
-                return new WaystonePlayerData(discoveredWaystones, viewDiscovered, viewGlobal, autofocusWaystoneFields, searchType, cooldown).setLegacyPositions(legacyPositions);
+            (discoveredWaystones, favoriteWaystones, viewDiscovered, viewGlobal, autofocusWaystoneFields,  searchType, cooldown, legacyPositions) -> {
+                return new WaystonePlayerData(discoveredWaystones, favoriteWaystones, viewDiscovered, viewGlobal, autofocusWaystoneFields, searchType, cooldown).setLegacyPositions(legacyPositions);
             }
     );
 
@@ -76,6 +78,7 @@ public class WaystonePlayerData {
     private final Set<WaystonePosition> legacyDiscoveredWaystones = new HashSet<>();
 
     private final Set<UUID> discoveredWaystones;
+    private final List<UUID> favoriteWaystones;
 
 //    private final Map<WaystoneHash, OverrideData> discoveredWaystonesOverrides;
 //    private final Map<String, WaystoneHash> discoveredGroups;
@@ -89,11 +92,12 @@ public class WaystonePlayerData {
     private PlayerEntity player;
 
     WaystonePlayerData() {
-        this(ConcurrentHashMap.newKeySet(), true, true, true, SearchType.CONTAINS, 0);
+        this(ConcurrentHashMap.newKeySet(), new ArrayList<>(), true, true, true, SearchType.CONTAINS, 0);
     }
 
-    private WaystonePlayerData(Set<UUID> discoveredWaystones, boolean viewDiscoveredWaystones, boolean viewGlobalWaystones, boolean autofocusWaystoneFields, SearchType waystoneSearchType, int teleportCooldown) {
+    private WaystonePlayerData(Set<UUID> discoveredWaystones, List<UUID> favoriteWaystones, boolean viewDiscoveredWaystones, boolean viewGlobalWaystones, boolean autofocusWaystoneFields, SearchType waystoneSearchType, int teleportCooldown) {
         this.discoveredWaystones = discoveredWaystones;
+        this.favoriteWaystones = favoriteWaystones;
         this.viewDiscoveredWaystones = viewDiscoveredWaystones;
         this.viewGlobalWaystones = viewGlobalWaystones;
         this.autofocusWaystoneFields = autofocusWaystoneFields;
@@ -212,6 +216,9 @@ public class WaystonePlayerData {
                     }
                 }
             }
+        } else if (key.equals(FAVORITE_WAYSTONES_KEY)) {
+            this.favoriteWaystones.clear();
+            this.favoriteWaystones.addAll((List<UUID>) object);
         }
     }
 
@@ -296,8 +303,28 @@ public class WaystonePlayerData {
 
     //--
 
+    public void addFavoriteWaystone(UUID uuid) {
+        favoriteWaystones.add(uuid);
+        syncDataChange(FAVORITE_WAYSTONES_KEY);
+    }
+
+    public void removeFavoriteWaystone(UUID uuid) {
+        favoriteWaystones.remove(uuid);
+        syncDataChange(FAVORITE_WAYSTONES_KEY);
+    }
+
+    //--
+
     public Set<UUID> discoveredWaystones() {
         return Collections.unmodifiableSet(discoveredWaystones);
+    }
+
+    public List<UUID> favoriteWaystones() {
+        return Collections.unmodifiableList(favoriteWaystones);
+    }
+
+    public boolean isFavorited(UUID uuid) {
+        return favoriteWaystones.contains(uuid);
     }
 
     public List<Text> sortedPositionedDiscoveredWaystones() {
