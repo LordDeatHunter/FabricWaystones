@@ -10,6 +10,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SmallWaystoneBlock extends AbstractWaystoneBlock {
@@ -38,10 +39,11 @@ public class SmallWaystoneBlock extends AbstractWaystoneBlock {
         super(10, settings);
     }
 
-    @Override
-    public List<Vec3i> getPossibleTeleportOffsets(Direction direction) {
-        var returned = super.getPossibleTeleportOffsets(direction);
-        returned.addAll(super.getPossibleTeleportOffsets(direction).stream().map(Vec3i::down).toList());
+    public List<Vec3i> getTeleportOffsets(Direction direction) {
+        var baseOffsets = getHorizontalTeleportOffsets(direction);
+
+        var returned = new ArrayList<>(baseOffsets);
+        returned.addAll(baseOffsets.stream().map(Vec3i::down).toList());
         returned.add(Vec3i.ZERO);
         return returned;
     }

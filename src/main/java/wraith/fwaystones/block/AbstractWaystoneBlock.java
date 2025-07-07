@@ -18,6 +18,7 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
@@ -36,6 +37,7 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
+import wraith.fwaystones.api.core.Ownable;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
@@ -51,16 +53,16 @@ import java.util.List;
 import static wraith.fwaystones.FabricWaystones.*;
 
 @SuppressWarnings("deprecation")
-public class AbstractWaystoneBlock extends BlockWithEntity implements Waterloggable {
-    public final int topHeight;
+public abstract class AbstractWaystoneBlock extends BlockWithEntity implements Waterloggable {
+    private final int height;
 
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
     public static final BooleanProperty GENERATED = BooleanProperty.of("generated");
 
-    public AbstractWaystoneBlock(int topHeight, Settings settings) {
+    public AbstractWaystoneBlock(int height, Settings settings) {
         super(settings);
-        this.topHeight = topHeight;
+        this.height = height;
         this.setDefaultState(
             this.getDefaultState()
                 .with(FACING, Direction.NORTH)
@@ -70,6 +72,44 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
 
         WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY.addSupportedBlock(this);
     }
+
+    //--
+
+    public BlockPos getBasePos(BlockPos pos, BlockState state) {
+        return pos;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public double getControllerY() {
+        return getHeight() + 6;
+    }
+
+    public Vec3d getTopPos(BlockPos basePos) {
+        return basePos.toBottomCenterPos().add(0, getHeight() / 16f, 0);
+    }
+
+    public Vec3d getControllerPos(BlockPos basePos) {
+        return basePos.toBottomCenterPos().add(0, getControllerY() / 16f, 0);
+    }
+
+    public double getEmitterRunesHeight() {
+        var value = getHeight() - 1;
+
+        return value / 16f - 0.05f;
+    }
+
+    public Box getTeleportBox(BlockPos basePos) {
+        var boxSize = 10 / 16f;
+        var boxPos = getTopPos(basePos)
+            .offset(Direction.UP, 5 / 16f);
+
+        return Box.of(boxPos, boxSize, boxSize, boxSize);
+    }
+
+    //--
 
     @Override
     public MapCodec<AbstractWaystoneBlock> getCodec() {
@@ -86,8 +126,8 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
         return super.createScreenHandlerFactory(state, world, getBasePos(pos, state));
     }
 
-    public BlockPos getBasePos(BlockPos pos, BlockState state) {
-        return pos;
+    public void scheduleBlockRerender(World world, BlockPos pos) {
+        world.scheduleBlockRerenderIfNeeded(pos, Blocks.AIR.getDefaultState(), world.getBlockState(pos));
     }
 
     @Nullable
@@ -101,7 +141,7 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
     public Vec3d findTeleportPosition(Entity entity, CollisionView world, BlockPos pos, Direction waystoneDirection, boolean ignoreInvalidPos) {
         BlockPos.Mutable mutable = new BlockPos.Mutable();
 
-        for (Vec3i offset : getPossibleTeleportOffsets(waystoneDirection)) {
+        for (Vec3i offset : getTeleportOffsets(waystoneDirection)) {
             mutable.set(pos).move(offset);
             var vec3d = Dismounting.findRespawnPos(entity.getType(), world, mutable, ignoreInvalidPos);
             if (vec3d != null) return vec3d;
@@ -110,7 +150,9 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
         return null;
     }
 
-    public List<Vec3i> getPossibleTeleportOffsets(Direction waystoneDirection) {
+    public abstract List<Vec3i> getTeleportOffsets(Direction waystoneDirection);
+
+    public static List<Vec3i> getHorizontalTeleportOffsets(Direction waystoneDirection) {
         var locations = new ArrayList<Vec3i>();
         for (int i = 0; i < 4; i++) {
             locations.add(new Vec3i(waystoneDirection.getOffsetX(), 0, waystoneDirection.getOffsetZ()));
@@ -127,8 +169,9 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
 
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        if (getBasePos(pos, state) != pos) return null;
-        return new WaystoneBlockEntity(pos, state);
+        return getBasePos(pos, state) == pos
+                ? new WaystoneBlockEntity(pos, state)
+                : null;
     }
 
     @Nullable
@@ -158,7 +201,7 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
     @Override
     public void onEntityLand(BlockView world, Entity entity) {
         if (!entity.bypassesLandingEffects()) {
-            var waystone = this.getEntity(world, entity.getLandingPos());
+            var waystone = getEntity(world, entity.getLandingPos());
 
             if (waystone != null && waystone.controllerStack().isIn(ConventionalItemTags.STORAGE_BLOCKS_SLIME)) {
                 this.bounce(entity);
@@ -223,17 +266,18 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
     }
 
     @Nullable
-    public static WaystoneBlockEntity getWaystoneBlockEntity(BlockView world, BlockPos pos) {
+    public static WaystoneBlockEntity getEntity(BlockView world, BlockPos pos) {
         var state = world.getBlockState(pos);
-        if (!(state.getBlock() instanceof AbstractWaystoneBlock waystoneBlock)) return null;
-        return waystoneBlock.getEntity(world, pos);
-    }
 
-    @Nullable
-    public WaystoneBlockEntity getEntity(BlockView world, BlockPos pos) {
-        var base = getBasePos(pos, world.getBlockState(pos));
-        if (!world.getBlockState(base).isOf(this)) return null;
-        return world.getBlockEntity(base, WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY).orElse(null);
+        if (state.getBlock() instanceof AbstractWaystoneBlock waystoneBlock) {
+            var basePos = waystoneBlock.getBasePos(pos, state);
+
+            if (world.getBlockState(basePos).isOf(waystoneBlock)) {
+                return world.getBlockEntity(basePos, WaystoneBlockEntities.WAYSTONE_BLOCK_ENTITY).orElse(null);
+            }
+        }
+
+        return null;
     }
 
     private void bounce(Entity entity) {
@@ -260,7 +304,7 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
         if ((player.isSneaking() || !stack.contains(WaystoneDataComponents.HASH_TARGET)) && stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS)) return ActionResult.PASS;
         if (item instanceof WaystoneDebuggerItem) return ActionResult.PASS;
 
-        var blockEntity = this.getEntity(world, pos);
+        var blockEntity = getEntity(world, pos);
         if (blockEntity == null) return ActionResult.FAIL;
 
         var result = ActionResult.PASS;
@@ -288,6 +332,7 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
             var target = WaystoneHashTarget.get(blockEntity.controllerStack(), world);
 
             if (target != null) {
+                // TODO: HANDLE RETURN STACK? MUST BE THOUGHT ABOUT
                 var returnStack = WaystoneComponentEventHooks.attemptTeleport(target, world, player, blockEntity.controllerStack());
 
                 return ActionResult.SUCCESS;
@@ -297,7 +342,7 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
         if (item instanceof DyeItem dyeItem) {
             var color = dyeItem.getColor().getSignColor();
             if (data.color() != color) {
-                if (world.isClient) {
+                if (!world.isClient) {
                     ItemOps.decrementPlayerHandItem(player, hand);
 
                     storage.recolorWaystone(data.uuid(), color);
@@ -313,22 +358,24 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
             var type = blockEntity.getWaystoneType();
 
             if (blockEntity.getColor() != type.defaultRuneColor()) {
-                if (world.isClient) {
+                if (!world.isClient) {
                     storage.recolorWaystone(data.uuid(), type.defaultRuneColor());
+
+                    SoundEvent actionSound = WAYSTONE_CLEAN_SPONGE;
 
                     if (stack.isIn(WAYSTONE_BUCKET_CLEANERS)) {
                         if (world.getRandom().nextInt(100) == 69) {
-                            world.playSound(null, pos, WAYSTONE_CLEAN_BUCKET_STEAL, SoundCategory.BLOCKS, 1.0F, 1.0F);
-
                             player.sendEquipmentBreakStatus(item, hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
 
                             ItemOps.decrementPlayerHandItem(player, hand);
+
+                            actionSound = WAYSTONE_CLEAN_BUCKET_STEAL;
                         } else {
-                            world.playSound(null, pos, WAYSTONE_CLEAN_BUCKET, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                            actionSound = WAYSTONE_CLEAN_BUCKET;
                         }
-                    } else {
-                        world.playSound(null, pos, WAYSTONE_CLEAN_SPONGE, SoundCategory.BLOCKS, 1.0F, 1.0F);
                     }
+
+                    world.playSound(null, pos, actionSound, SoundCategory.BLOCKS, 1.0F, 1.0F);
                 }
 
                 return ActionResult.SUCCESS;
@@ -410,34 +457,27 @@ public class AbstractWaystoneBlock extends BlockWithEntity implements Waterlogga
 
     @Override
     public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
-        var bottomState = world.getBlockState(pos);
         var config = FabricWaystones.CONFIG;
 
         // TODO: HAVE SUCH BE REALLY REALLY REALLY HARD TO BREAK AND PREVENT DROPPING
         if (config.unbreakableGeneratedWaystones() && state.get(GENERATED)) return 0;
 
-        if (bottomState.isOf(this)) {
-            BlockPos entityPos = getBasePos(pos, bottomState);
-            if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone) {
-                if (!player.hasPermissionLevel(4)) {
-                    switch (config.breakingWaystonePermission()) {
-                        case OWNER -> {
-                            var data = waystone.getData();
-                            if (data instanceof NetworkedWaystoneData networkedData) {
-                                var owner = networkedData.ownerID();
-                                if (owner != null && !player.getUuid().equals(owner)) return 0;
-                            }
-                        }
-                        case OP -> {
-                            if (!player.hasPermissionLevel(2)) return 0;
-                        }
-                        case NONE -> {
-                            return 0;
-                        }
-                    }
+        var waystone = getEntity(world, pos);
+
+        if (waystone != null && !player.hasPermissionLevel(4)) {
+            switch (config.breakingWaystonePermission()) {
+                case OWNER -> {
+                    if (waystone.getData() instanceof Ownable data && data.isOwner(player)) return 0;
+                }
+                case OP -> {
+                    if (!player.hasPermissionLevel(2)) return 0;
+                }
+                case NONE -> {
+                    return 0;
                 }
             }
         }
+
         return super.calcBlockBreakingDelta(state, player, world, pos);
     }
 }

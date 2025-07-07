@@ -35,7 +35,7 @@ public class WaystoneDebuggerItem extends Item {
         var world = context.getWorld();
         var pos = context.getBlockPos();
 
-        var waystone = AbstractWaystoneBlock.getWaystoneBlockEntity(world, pos);
+        var waystone = AbstractWaystoneBlock.getEntity(world, pos);
 
         if (waystone == null) return ActionResult.FAIL;
 

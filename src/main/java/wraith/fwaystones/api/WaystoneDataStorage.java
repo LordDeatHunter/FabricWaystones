@@ -36,6 +36,7 @@ import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.client.screen.UniversalWaystoneScreenHandler;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.networking.packets.s2c.*;
+import wraith.fwaystones.registry.WaystoneBlocks;
 import wraith.fwaystones.util.Utils;
 
 import java.io.IOException;
@@ -266,7 +267,7 @@ public class WaystoneDataStorage {
             var position = new WaystonePosition(dimension, pos);
             var uuid = getUniqueUUID();
 
-            var data = new NetworkedWaystoneData(uuid, WaystoneTypes.STONE_TYPE, color, name, globals.contains(hash), null, null);
+            var data = new NetworkedWaystoneData(uuid, WaystoneBlocks.DEFAULT_ENTRY, WaystoneTypes.STONE_TYPE, color, name, globals.contains(hash), null, null);
 
             positionToUUID.put(position, uuid);
             uuidToPosition.put(uuid, position);
@@ -394,7 +395,7 @@ public class WaystoneDataStorage {
             data = seedData;
         }
 
-        data.type(waystoneType);
+        data.type(waystoneType, (AbstractWaystoneBlock) blockEntity.getCachedState().getBlock());
 
         if (data == null) return null;
 
@@ -526,7 +527,7 @@ public class WaystoneDataStorage {
 
         for (ServerWorld world : SERVER.getWorlds()) {
             if (Utils.getDimensionName(world).equals(hash.worldName())) {
-                be = AbstractWaystoneBlock.getWaystoneBlockEntity(world, hash.blockPos());
+                be = AbstractWaystoneBlock.getEntity(world, hash.blockPos());
 
                 waystoneLookupCache.put(hash, new WeakReference<>(be));
 

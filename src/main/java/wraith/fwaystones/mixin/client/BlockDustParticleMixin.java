@@ -19,8 +19,12 @@ public abstract class BlockDustParticleMixin {
     @WrapOperation(method = "<init>(Lnet/minecraft/client/world/ClientWorld;DDDDDDLnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/BlockModels;getModelParticleSprite(Lnet/minecraft/block/BlockState;)Lnet/minecraft/client/texture/Sprite;"))
     private Sprite fwaystones$adjustParticle(BlockModels instance, BlockState state, Operation<Sprite> original, @Local(argsOnly = true) ClientWorld world, @Local(argsOnly = true)BlockPos pos){
-        return (instance.getModel(state) instanceof BakedModelParticleEffectExtension effectExtension)
-                ? effectExtension.getParticleSprite(world, pos, state)
-                : original.call(instance, state);
+        if ((instance.getModel(state) instanceof BakedModelParticleEffectExtension effectExtension)) {
+            var sprite = effectExtension.getParticleSpriteFromWorld(world, pos, state);
+
+            if (sprite != null) return sprite;
+        }
+
+        return original.call(instance, state);
     }
 }

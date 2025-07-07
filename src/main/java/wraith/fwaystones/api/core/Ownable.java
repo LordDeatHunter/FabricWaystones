@@ -11,4 +11,10 @@ public interface Ownable {
     String ownerName();
 
     void owner(@Nullable PlayerEntity player);
+
+    default boolean isOwner(PlayerEntity player) {
+        var owner = this.ownerID();
+
+        return (owner != null && !player.getUuid().equals(owner));
+    }
 }

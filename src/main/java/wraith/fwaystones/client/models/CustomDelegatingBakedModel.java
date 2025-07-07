@@ -79,7 +79,7 @@ public class CustomDelegatingBakedModel<E> implements BakedModel, BakedModelPart
     }
 
     @Override
-    public Sprite getParticleSprite(BlockRenderView world, BlockPos pos, BlockState state) {
+    public Sprite getParticleSpriteFromWorld(BlockRenderView world, BlockPos pos, BlockState state) {
         var e = this.extraDataGetter.getData(world, pos, state);
 
         if (e != null){

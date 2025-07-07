@@ -4,3 +4,4 @@ accessible    method    net/minecraft/structure/pool/StructurePoolBasedGenerator
 accessible method net/minecraft/client/particle/ConnectionParticle <init> (Lnet/minecraft/client/world/ClientWorld;DDDDDDZLnet/minecraft/client/particle/Particle$DynamicAlpha;)V
 accessible field net/minecraft/client/particle/BillboardParticle scale F
 accessible class net/minecraft/client/render/MapRenderer$MapTexture
+accessible class net/minecraft/client/particle/ParticleManager$SimpleSpriteProvider

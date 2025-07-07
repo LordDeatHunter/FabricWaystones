@@ -161,7 +161,7 @@ public class WaystoneComponentEventHooks {
         UseBlockCallback.EVENT.register((user, world, hand, hitResult) -> {
             if (!user.isSpectator()) {
                 var pos = hitResult.getBlockPos();
-                var entity = AbstractWaystoneBlock.getWaystoneBlockEntity(world, pos);
+                var entity = AbstractWaystoneBlock.getEntity(world, pos);
                 var stack = user.getStackInHand(hand);
 
                 if (entity != null && stack.isIn(FabricWaystones.LOCAL_VOID_ITEMS) && user.isSneaking()) {

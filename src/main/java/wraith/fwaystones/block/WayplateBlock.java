@@ -37,8 +37,7 @@ public class WayplateBlock extends AbstractWaystoneBlock {
         super(3, settings);
     }
 
-    @Override
-    public List<Vec3i> getPossibleTeleportOffsets(Direction direction) {
+    public List<Vec3i> getTeleportOffsets(Direction direction) {
         return List.of(Vec3i.ZERO);
     }
 

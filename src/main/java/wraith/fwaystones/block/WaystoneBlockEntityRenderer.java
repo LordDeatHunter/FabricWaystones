@@ -46,7 +46,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
         if (!stack.isEmpty()) {
             matrices.push();
-            matrices.translate(0.5, waystone.getControllerY() / 16f, 0.5f);
+            matrices.translate(0.5, waystone.getBlock().getControllerY() / 16f, 0.5f);
 
             var offset = waystone.ticks() + tickDelta + waystone.hashCode() % 1000;
 
@@ -81,7 +81,6 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
             matrices.pop();
         }
-
     }
 
     private void renderSky(WaystoneBlockEntity waystone, MinecraftClient client, MatrixStack matrices, VertexConsumerProvider vertexConsumers, World world, float tickDelta) {

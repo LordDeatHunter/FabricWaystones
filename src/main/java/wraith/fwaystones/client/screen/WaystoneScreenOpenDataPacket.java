@@ -1,4 +1,4 @@
-package wraith.fwaystones.block;
+package wraith.fwaystones.client.screen;
 
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;

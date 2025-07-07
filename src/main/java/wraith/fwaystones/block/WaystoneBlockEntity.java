@@ -60,6 +60,7 @@ import wraith.fwaystones.api.moss.MossTypes;
 import wraith.fwaystones.api.teleport.TeleportAction;
 import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.client.screen.ExperimentalWaystoneScreenHandler;
+import wraith.fwaystones.client.screen.WaystoneScreenOpenDataPacket;
 import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.item.components.WaystoneHashTarget;
@@ -453,8 +454,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         // Attempts to force an update of the states for re-rendering
         if (this.world != null && this.world.isClient) {
-            world.scheduleBlockRerenderIfNeeded(pos.up(), Blocks.AIR.getDefaultState(), world.getBlockState(pos.up()));
-            world.scheduleBlockRerenderIfNeeded(pos, Blocks.AIR.getDefaultState(), world.getBlockState(pos));
+            ((AbstractWaystoneBlock) this.getCachedState().getBlock()).scheduleBlockRerender(world, pos);
         }
     }
 
@@ -551,7 +551,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         boolean attemptTargetReset = true;
 
         if (controllerStack.isIn(FabricWaystones.DIRECTED_TELEPORT_ITEMS)) {
-            var teleportTargetingBox = getTeleportBox();
+            var teleportTargetingBox = this.getBlock().getTeleportBox(this.pos);
 
             if (this.teleportTarget == null) {
                 var entities = world.getOtherEntities(null, teleportTargetingBox, EntityPredicates.VALID_ENTITY);
@@ -666,6 +666,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (this.getData() != null) this.suckARandomPortalParticle();
     }
 
+    @Nullable
     public Quaternionf updateRenderRotation(float tickDelta) {
         if (this.lastControllerRotation == null && this.controllerRotation == null) return null;
         if (this.lastControllerRotation == null) this.lastControllerRotation = this.controllerRotation;
@@ -757,7 +758,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             .subtract(start)
             .add(
                 distanceCheck > 0 ? Double.compare(targetPos.x, watcherPos.x) * 0.4 : 0,
-                getEmitterRunesHeight(),
+                this.getBlock().getEmitterRunesHeight(),
                 distanceCheck < 0 ? Double.compare(targetPos.z, watcherPos.z) * 0.4 : 0
             );
         //noinspection DataFlowIssue
@@ -825,34 +826,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     //--
 
-    public double getTopY() {
-        return ((AbstractWaystoneBlock) this.getCachedState().getBlock()).topHeight;
-    }
-
-    public double getControllerY() {
-        return getTopY() + 6;
-    }
-
-    public Vec3d getTopPos() {
-        return this.pos.toBottomCenterPos().add(0, getTopY() / 16f, 0);
+    public AbstractWaystoneBlock getBlock() {
+        return ((AbstractWaystoneBlock) this.getCachedState().getBlock());
     }
 
     public Vec3d getControllerPos() {
-        return this.pos.toBottomCenterPos().add(0, getControllerY() / 16f, 0);
-    }
-
-    public double getEmitterRunesHeight() {
-        var value = getTopY() - 1;
-
-        return value / 16f - 0.05f;
-    }
-
-    public Box getTeleportBox() {
-        var boxSize = 10 / 16f;
-        var boxPos = getTopPos()
-            .offset(Direction.UP, 5 / 16f);
-
-        return Box.of(boxPos, boxSize, boxSize, boxSize);
+        return this.getBlock().getControllerPos(pos);
     }
 
     //--

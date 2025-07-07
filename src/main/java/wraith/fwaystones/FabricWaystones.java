@@ -121,7 +121,7 @@ public class FabricWaystones implements ModInitializer {
 
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
             if (!(world.getBlockState(pos).getBlock() instanceof AbstractWaystoneBlock waystoneBlock)) return ActionResult.PASS;
-            var blockEntity = waystoneBlock.getEntity(world, pos);
+            var blockEntity = AbstractWaystoneBlock.getEntity(world, pos);
 
             if (blockEntity != null) {
                 if (!blockEntity.controllerStack().isEmpty()) {

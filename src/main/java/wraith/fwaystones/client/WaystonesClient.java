@@ -122,9 +122,9 @@ public class WaystonesClient implements ClientModInitializer {
                 if (world == null) return;
                 var storage = WaystoneDataStorage.getStorage(world);
                 var pos = storage.getPosition(uuid);
+                var data = storage.getData(uuid);
                 if (pos != null) {
-                    reloadPos(world, pos.blockPos());
-                    reloadPos(world, pos.blockPos().up());
+                    data.waystoneBlock().value().scheduleBlockRerender(world, pos.blockPos());
                 }
             }
         });
@@ -222,7 +222,7 @@ public class WaystonesClient implements ClientModInitializer {
 
                 return new CustomDelegatingUnbakedModel<>(
                     possibleModel,
-                    (blockView, pos, state) -> AbstractWaystoneBlock.getWaystoneBlockEntity(blockView, pos),
+                    (blockView, pos, state) -> AbstractWaystoneBlock.getEntity(blockView, pos),
                     WaystoneBlockQuadEmission.INSTANCE
                 );
             });

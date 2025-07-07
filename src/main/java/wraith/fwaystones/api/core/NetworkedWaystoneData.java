@@ -5,8 +5,10 @@ import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.entry.RegistryEntry;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import wraith.fwaystones.block.AbstractWaystoneBlock;
 import wraith.fwaystones.util.Utils;
 
 import java.util.UUID;
@@ -15,6 +17,7 @@ public final class NetworkedWaystoneData extends WaystoneData implements Ownable
 
     public static final StructEndec<NetworkedWaystoneData> ENDEC = StructEndecBuilder.of(
             BuiltInEndecs.UUID.fieldOf("uuid", WaystoneData::uuid),
+            BLOCK_ENDEC.fieldOf("block", WaystoneData::waystoneBlock),
             WaystoneTypes.ENDEC.fieldOf("type", WaystoneData::type),
             Endec.INT.fieldOf("color", WaystoneData::color),
             Endec.STRING.fieldOf("name", NetworkedWaystoneData::name),
@@ -34,8 +37,8 @@ public final class NetworkedWaystoneData extends WaystoneData implements Ownable
         this(uuid, Utils.generateWaystoneName(name), false);
     }
 
-    public NetworkedWaystoneData(UUID uuid, WaystoneType type, int color, String name, boolean global, UUID owner, String ownerName) {
-        super(uuid, type, color);
+    public NetworkedWaystoneData(UUID uuid, RegistryEntry<AbstractWaystoneBlock> waystoneBlock, WaystoneType type, int color, String name, boolean global, UUID owner, String ownerName) {
+        super(uuid, waystoneBlock, type, color);
 
         this.name = name;
         this.global = global;
@@ -128,6 +131,6 @@ public final class NetworkedWaystoneData extends WaystoneData implements Ownable
     }
 
     public NetworkedWaystoneData cloneWithUUID(UUID uuid) {
-        return new NetworkedWaystoneData(uuid, type, color, name, global, owner, ownerName);
+        return new NetworkedWaystoneData(uuid, waystoneBlock, type, color, name, global, owner, ownerName);
     }
 }

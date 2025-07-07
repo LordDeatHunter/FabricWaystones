@@ -35,7 +35,9 @@
     "client.MapRendererMixin",
     "client.ModelPredicateProviderRegistryAccessor",
     "client.SpriteAtlasHolderAccessor",
-    "xaeros.WaypointWorldRendererMixin"
+    "xaeros.WaypointWorldRendererMixin",
+    "fabric.ForwardingBakedModelMixin",
+    "client.BakedModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

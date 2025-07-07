@@ -8,7 +8,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
 import net.minecraft.screen.ScreenHandlerType;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.block.WaystoneScreenOpenDataPacket;
+import wraith.fwaystones.client.screen.WaystoneScreenOpenDataPacket;
 import wraith.fwaystones.client.screen.ExperimentalWaystoneScreenHandler;
 import wraith.fwaystones.client.screen.PortableWaystoneScreenHandler;
 import wraith.fwaystones.client.screen.WaystoneBlockScreenHandler;

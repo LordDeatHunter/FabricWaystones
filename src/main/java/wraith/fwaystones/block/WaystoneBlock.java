@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.mixin.TallBlantBlockAccessor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class WaystoneBlock extends AbstractWaystoneBlock {
@@ -64,11 +65,12 @@ public class WaystoneBlock extends AbstractWaystoneBlock {
         );
     }
 
-    @Override
-    public List<Vec3i> getPossibleTeleportOffsets(Direction direction) {
-        var returned = super.getPossibleTeleportOffsets(direction);
-        returned.addAll(super.getPossibleTeleportOffsets(direction).stream().map(Vec3i::down).toList());
-        returned.addAll(super.getPossibleTeleportOffsets(direction).stream().map(Vec3i::up).toList());
+    public List<Vec3i> getTeleportOffsets(Direction direction) {
+        var baseOffsets = getHorizontalTeleportOffsets(direction);
+
+        var returned = new ArrayList<>(baseOffsets);
+        returned.addAll(baseOffsets.stream().map(Vec3i::down).toList());
+        returned.addAll(baseOffsets.stream().map(Vec3i::up).toList());
         returned.add(Vec3i.ZERO.up());
         return returned;
     }
@@ -85,11 +87,13 @@ public class WaystoneBlock extends AbstractWaystoneBlock {
 
     @Override
     public BlockPos getBasePos(BlockPos pos, BlockState state) {
-        if (state.contains(HALF) && state.get(HALF) == DoubleBlockHalf.UPPER) {
-            return pos.down();
-        } else {
-            return pos;
-        }
+        return state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
+    }
+
+    @Override
+    public void scheduleBlockRerender(World world, BlockPos pos) {
+        world.scheduleBlockRerenderIfNeeded(pos.up(), Blocks.AIR.getDefaultState(), world.getBlockState(pos.up()));
+        super.scheduleBlockRerender(world, pos);
     }
 
     @Override
@@ -142,42 +146,36 @@ public class WaystoneBlock extends AbstractWaystoneBlock {
         BlockPos newPos;
         DoubleBlockHalf verticalPosition;
 
-        if (!state.isOf(this)) {
-            super.onStateReplaced(state, world, pos, newState, moved);
-            return;
-        }
+        if (state.isOf(this)) {
+            if (state.get(HALF) == DoubleBlockHalf.UPPER) {
+                newPos = pos.down();
+                verticalPosition = DoubleBlockHalf.LOWER;
+            } else {
+                newPos = pos.up();
+                verticalPosition = DoubleBlockHalf.UPPER;
+            }
 
-        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-            newPos = pos.down();
-            verticalPosition = DoubleBlockHalf.LOWER;
-        } else {
-            newPos = pos.up();
-            verticalPosition = DoubleBlockHalf.UPPER;
-        }
+            if (!(newState.isOf(this))) {
+                var waystone = getEntity(world, pos);
 
-        if (!(newState.isOf(this))) {
-            var waystone = getEntity(world, pos);
+                if (waystone != null) {
+                    if (!world.isClient) {
+                        var uuid = waystone.getUUID();
+                        if (uuid != null) WaystoneDataStorage.getStorage(world).removePosition(uuid);
+                    }
 
-            if (waystone != null) {
-                if (!world.isClient) {
-                    var uuid = waystone.getUUID();
-                    if (uuid != null) WaystoneDataStorage.getStorage(world).removePosition(uuid);
+                    world.removeBlockEntity(waystone.getPos());
                 }
 
-                world.removeBlockEntity(waystone.getPos());
+                if (newPos != null) world.setBlockState(newPos, newState);
+            } else if (newPos != null) {
+                var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER && verticalPosition == DoubleBlockHalf.LOWER;
+
+                var adjustedState = newState.with(WATERLOGGED, fluid)
+                        .with(HALF, verticalPosition);
+
+                world.setBlockState(newPos, adjustedState);
             }
-
-            if (newPos != null) world.setBlockState(newPos, newState);
-        } else if (newPos != null) {
-            var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER && verticalPosition == DoubleBlockHalf.LOWER;
-
-            var adjustedState = newState.with(WATERLOGGED, fluid);
-
-            if (verticalPosition != null) {
-                adjustedState = adjustedState.with(HALF, verticalPosition);
-            }
-
-            world.setBlockState(newPos, adjustedState);
         }
 
         super.onStateReplaced(state, world, pos, newState, moved);
