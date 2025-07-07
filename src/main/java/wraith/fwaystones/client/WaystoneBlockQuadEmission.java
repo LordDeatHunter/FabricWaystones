@@ -27,7 +27,7 @@ public class WaystoneBlockQuadEmission implements QuadEmission<WaystoneBlockEnti
 
     public static final BlockColorProvider COLOR_PROVIDER = (state, world, pos, tintIndex) -> {
         if (world != null && pos != null) {
-            var blockEntity = AbstractWaystoneBlock.getWaystoneBlockEntity(world, pos);
+            var blockEntity = AbstractWaystoneBlock.getEntity(world, pos);
 
             if (blockEntity != null) {
                 if (tintIndex == 1) {
