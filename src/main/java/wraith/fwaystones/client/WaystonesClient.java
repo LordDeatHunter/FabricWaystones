@@ -48,7 +48,8 @@ import wraith.fwaystones.item.render.WaystoneCompassRenderer;
 import wraith.fwaystones.mixin.client.ModelPredicateProviderRegistryAccessor;
 import wraith.fwaystones.networking.WaystoneNetworkHandler;
 import wraith.fwaystones.networking.packets.c2s.AttemptTeleporterUse;
-import wraith.fwaystones.particle.RuneParticleEffect;
+import wraith.fwaystones.particle.HelicalPortalParticle;
+import wraith.fwaystones.particle.effect.RuneParticleEffect;
 import wraith.fwaystones.registry.*;
 
 import java.util.LinkedHashMap;
@@ -130,6 +131,7 @@ public class WaystonesClient implements ClientModInitializer {
         });
 
         ParticleFactoryRegistry.getInstance().register(WaystoneParticles.RUNE, RuneParticleEffect.Factory::new);
+        ParticleFactoryRegistry.getInstance().register(WaystoneParticles.HELIX, HelicalPortalParticle.Factory::new);
 
         register(FabricWaystones.id("waystone_type"), (stack, world, entity, seed) -> {
             var types = WaystoneTypes.getTypeIds();

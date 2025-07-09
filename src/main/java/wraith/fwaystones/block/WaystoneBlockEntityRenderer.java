@@ -75,7 +75,7 @@ public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<Waystone
 
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180));
 
-            matrices.translate(0, -0.125, 0);
+            matrices.translate(0, -0.25, 0);
 
             MinecraftClient.getInstance().getItemRenderer().renderItem(stack, ModelTransformationMode.GROUND, light, overlay, matrices, vertexConsumers, waystone.getWorld(), waystone.getPos().hashCode());
 

@@ -30,6 +30,7 @@ import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -65,10 +66,11 @@ import wraith.fwaystones.item.WaystoneComponentEventHooks;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
 import wraith.fwaystones.item.components.WaystoneHashTarget;
 import wraith.fwaystones.item.components.WaystoneTyped;
-import wraith.fwaystones.particle.RuneParticleEffect;
+import wraith.fwaystones.particle.effect.RuneParticleEffect;
 import wraith.fwaystones.registry.WaystoneBlockEntities;
 import wraith.fwaystones.registry.WaystoneDataComponents;
 import wraith.fwaystones.registry.WaystoneItems;
+import wraith.fwaystones.registry.WaystoneParticles;
 import wraith.fwaystones.util.Utils;
 
 import java.util.List;
@@ -645,6 +647,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
         if (!this.isActive()) return;
 
+        if (controllerStack.contains(WaystoneDataComponents.HASH_TARGET)) {
+            this.shootHelixAtWaystone(controllerStack.get(WaystoneDataComponents.HASH_TARGET).uuid());
+        }
+
         var controller = this.getControllerPos();
 
         var closestPlayer = world.getClosestPlayer(
@@ -765,6 +771,31 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         this.world.addParticle(
             new RuneParticleEffect(getColor()),
             start.x, start.y, start.z,
+            end.x, end.y, end.z
+        );
+    }
+
+    private void shootHelixAtWaystone(UUID target) {
+//        if (RANDOM.nextInt(10) != 0) return;
+        var storage = getWaystoneStorage();
+
+        var targetPosition = storage.getPosition(target);
+        if (targetPosition == null || targetPosition.worldKey() != getWorld().getRegistryKey()) return;
+
+        var watcherPos = this.getControllerPos();
+        var targetPos = storage.getData(target).waystoneBlock().value().getControllerPos(targetPosition.blockPos());
+
+        var targetEnd = targetPos.subtract(watcherPos);
+        var normalizedEnd = targetEnd.normalize().multiply(4 + RANDOM.nextFloat());
+
+        var end = targetEnd.length() < normalizedEnd.length()
+            ? targetEnd
+            : normalizedEnd;
+
+        //noinspection DataFlowIssue
+        this.world.addParticle(
+            WaystoneParticles.HELIX,
+            watcherPos.x, watcherPos.y, watcherPos.z,
             end.x, end.y, end.z
         );
     }

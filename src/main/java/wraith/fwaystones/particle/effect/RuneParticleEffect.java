@@ -1,4 +1,4 @@
-package wraith.fwaystones.particle;
+package wraith.fwaystones.particle.effect;
 
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;

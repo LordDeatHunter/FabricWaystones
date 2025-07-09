@@ -9,7 +9,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.GlobalPos;
-import wraith.fwaystones.particle.RuneParticleEffect;
+import wraith.fwaystones.particle.effect.RuneParticleEffect;
 
 public record SpawnWaystoneActivationParticles(GlobalPos pos, int color) {
     public static final StructEndec<SpawnWaystoneActivationParticles> ENDEC = StructEndecBuilder.of(
