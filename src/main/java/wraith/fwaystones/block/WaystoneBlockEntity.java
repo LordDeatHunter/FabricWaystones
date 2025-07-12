@@ -159,13 +159,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (currentStack.getItem().equals(WaystoneItems.ABYSS_WATCHER)) {
             var storage = getWaystoneStorage();
 
-            var data = storage.getData(this.position());
-
-            if (data != null) {
-                currentStack.set(WaystoneDataComponents.DATA_HOLDER, new WaystoneDataHolder(data));
+            if (storage.hasData(this.position())) {
+                currentStack.set(WaystoneDataComponents.DATA_HOLDER, storage.removePositionAndExport(this));
             }
-
-            storage.removePositionAndData(this);
         }
 
         this.markDirty();

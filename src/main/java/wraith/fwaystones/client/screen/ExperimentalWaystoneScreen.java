@@ -1,14 +1,13 @@
 package wraith.fwaystones.client.screen;
 
+import io.wispforest.owo.ui.base.BaseComponent;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
-import io.wispforest.owo.ui.component.Components;
-import io.wispforest.owo.ui.component.TextBoxComponent;
+import io.wispforest.owo.ui.component.*;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.inject.GreedyInputComponent;
-import io.wispforest.owo.ui.util.NinePatchTexture;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -16,7 +15,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.apache.commons.lang3.mutable.MutableInt;
+import net.minecraft.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
@@ -24,10 +23,17 @@ import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
+import wraith.fwaystones.client.screen.components.BetterDropdownComponent;
 import wraith.fwaystones.client.screen.components.ComponentUtils;
+import wraith.fwaystones.client.screen.components.Interactable;
+import wraith.fwaystones.client.screen.components.RenderBuilder;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
+import static wraith.fwaystones.client.screen.components.ComponentUtils.*;
+import static io.wispforest.owo.ui.component.Components.*;
 import static io.wispforest.owo.ui.container.Containers.verticalFlow;
 import static io.wispforest.owo.ui.container.Containers.verticalScroll;
 
@@ -67,6 +73,7 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         if (searchText.isBlank()) {
             return sortedWaystones.stream()
                 .map(WaystoneData::uuid)
+                .sorted((uuid1, uuid2) -> Boolean.compare(storage.hasPosition(uuid2), storage.hasPosition(uuid1)))
                 .sorted((o1, o2) -> Boolean.compare(playerData.isFavorited(o2), playerData.isFavorited(o1)))
                 .toList();
         } else {
@@ -75,42 +82,35 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
                 .map(result -> result.getReferent().uuid())
                 .toList();
         }
-
-//        return
-//            .sorted((uuid1, uuid2) -> {
-//                var firstExists = storage.getPosition(uuid1) != null;
-//                var secondExits = storage.getPosition(uuid2) != null;
-//
-//                if (firstExists && secondExits) return 0;
-//                if (firstExists) return 1;
-//                return -1;
-//            })
-//            .subList();
     }
 
     @Override
     protected void build(FlowLayout rootComponent) {
+        var columnWidth = 140;
         // TODO: ADD EVENT HOOKS FOR EITHER DATA CHANGES OR DISCOVERY OR WAYSTONE REPOSITINONED
         waystoneList = verticalScroll(
-            Sizing.fixed(120), Sizing.fixed(120),
+            Sizing.fixed(columnWidth), Sizing.fixed(columnWidth),
             createWaystoneList("")
         );
 
         rootComponent.child(
                 verticalFlow(Sizing.content(), Sizing.content())
                     .child(
-                        Components.textBox(Sizing.fixed(120), "")
+                        textBox(Sizing.fixed(columnWidth), "")
                             .<TextBoxComponent>configure(textBox -> textBox.onChanged()
                                 .subscribe(this::setWaystoneList))
                             .id("search_box")
+                            .margins(Insets.of(-1))
                     )
                     .child(waystoneList
                                .surface(Surface.panelWithInset(0))
                                .padding(Insets.of(1))
                                .allowOverflow(false))
+                    .gap(3)
                     .allowOverflow(true)
                     .surface(Surface.PANEL)
-                    .padding(Insets.of(7)))
+                    .padding(Insets.of(7))
+            )
             .surface(Surface.VANILLA_TRANSLUCENT)
             .horizontalAlignment(HorizontalAlignment.CENTER)
             .verticalAlignment(VerticalAlignment.CENTER);
@@ -127,13 +127,16 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
     }
 
     private FlowLayout createWaystoneList(String searchText) {
-        return Components.list(
+        return list(
             getSortedWaystones(searchText),
             flowLayout -> {},
             this::createButtonLayout,
             true
         );
     }
+
+    private boolean selectingUUIDs = false;
+    private final Set<UUID> selectedUUIDs = new HashSet<>();
 
     private Component createButtonLayout(UUID uuid) {
         // TODO: BETTER HANDLING FOR THIS
@@ -143,95 +146,202 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         var data = storage.getData(uuid);
         var existsWithinTheWorld = storage.getPosition(uuid) != null;
 
-        return new FlowLayout(Sizing.expand(), Sizing.fixed(16), FlowLayout.Algorithm.HORIZONTAL) {
+        // TODO: MAYBE CONVERT TO DROP DOWN?
+        var buttonLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                .<FlowLayout>configure(component -> {
+                    component
+                        .gap(2)
+                        .positioning(Positioning.relative(100, 50))
+                        .verticalAlignment(VerticalAlignment.CENTER)
+                        .padding(Insets.of(2))
+                        .id("button_layout");
+                });
+
+        if (!data.isDefaultColor()) {
+            buttonLayout
+                .child(
+                    wrapNonInteractive(
+                        Containers.verticalFlow(Sizing.content(), Sizing.content())
+                            .child(
+                                box(Sizing.fixed(8), Sizing.fixed(8))
+                                    .fill(true)
+                                    .color(Color.ofRgb(data.color()))
+                            )
+                            .padding(Insets.of(1))
+                            .surface(Surface.outline(Color.BLACK.interpolate(Color.WHITE, 0.2f).argb()))
+                    )
+                );
+        }
+
+        Supplier<Component> favoriteIconBuilder = () -> {
+            return texture(FAVORITE_ICON, 0, 10, 10, 10, 10, 20)
+                .id("favorite_icon");
+        };
+
+        // TODO: ADD CONFIRM OVERLAY OF ACTION TO FORGET
+        Supplier<Component> forgetButtonBuilder = () -> {
+            return button(Text.empty(), btn -> {
+                playerData.forgetWaystone(uuid);
+
+                setWaystoneList();
+            }).<ButtonComponent>configure(component -> {
+                component
+                    .renderer(
+                        RenderBuilder.button()
+                            .texture(FabricWaystones.id("textures/gui/garbage_buttons.png"), 11, 39, Interactable.from(component))
+                    )
+                    .sizing(Sizing.fixed(11), Sizing.fixed(13))
+                    .margins(Insets.bottom(1))
+                    .tooltip(Text.literal("Forget Waystone"))
+                    .id("forget_button");
+            });
+        };
+
+        if (playerData.isFavorited(uuid)) {
+            buttonLayout.child(0, favoriteIconBuilder.get());
+        }
+
+        return new FlowLayout(Sizing.expand(), Sizing.fixed(20), FlowLayout.Algorithm.HORIZONTAL) {
             @Override
             public boolean canFocus(FocusSource source) {
                 return true;
             }
-        }.configure((FlowLayout waystoneButton) -> {
-                final var buttonState = new MutableInt(existsWithinTheWorld ? 0 : -1);
 
-                if (existsWithinTheWorld) {
-                    waystoneButton.mouseEnter().subscribe(() -> {
-                        var state = buttonState.getValue();
+            @Override
+            protected void updateHoveredState(int mouseX, int mouseY, boolean nowHovered) {
+                super.updateHoveredState(mouseX, mouseY, nowHovered);
 
-                        if (state != -1) buttonState.setValue(1);
-                    });
-
-                    waystoneButton.mouseLeave().subscribe(() -> {
-                        var state = buttonState.getValue();
-
-                        if (state != -1) buttonState.setValue(0);
-                    });
+                if (nowHovered && !this.hovered) {
+                    this.hovered = true;
+                    this.mouseEnterEvents.sink().onMouseEnter();
                 }
+            }
+        }.configure((FlowLayout waystoneButton) -> {
+            final var buttonState = new Interactable.Mutable(existsWithinTheWorld) {
+                @Override
+                public InteractionType interact() {
+                    var cords = getMouseCords();
 
-                waystoneButton.surface((context, component) -> {
-                    var texture = switch (buttonState.getValue()) {
-                        case -1 -> DISABLED_TEXTURE;
-                        case 1 -> HOVERED_TEXTURE;
-                        default -> ACTIVE_TEXTURE;
-                    };
-                   /* var color = Color.ofRgb(data.color());
-                    context.setShaderColor(color.red(), color.green(), color.blue(), 1.0F);*/
-                    NinePatchTexture.draw(texture, context, component.x(), component.y(), component.width(), component.height());
-                    /*context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);*/
+                    var hoveringTarget = waystoneButton.childAt(cords.x(), cords.y());
+
+                    var interactionType = super.interact();
+
+                    if (selectingUUIDs) {
+                        if (selectedUUIDs.contains(uuid)) {
+                            interactionType = InteractionType.HOVERED;
+                        } else {
+                            interactionType = (interactionType != InteractionType.HOVERED ? interactionType : InteractionType.ENABLED);
+                        }
+
+                        return interactionType;
+                    }
+
+                    if (hoveringTarget != null) {
+                        if (waystoneButton.children().contains(hoveringTarget)) {
+                            interactionType = InteractionType.ENABLED;
+                        } else if(hoveringTarget.parent() instanceof ParentComponent parentHover && waystoneButton.children().contains(parentHover)) {
+                            interactionType = InteractionType.ENABLED;
+                        }
+                    }
+
+                    return interactionType;
+                }
+            };
+
+            if (existsWithinTheWorld) {
+                waystoneButton.mouseEnter().subscribe(() -> {
+                    buttonState.interact(true);
                 });
 
-                if (existsWithinTheWorld) {
-                    waystoneButton.mouseUp().subscribe((mouseX, mouseY, button) -> {
-                        if (button != 0) return false;
+                waystoneButton.mouseLeave().subscribe(() -> {
+                    buttonState.interact(false);
+                });
+
+                waystoneButton.mouseUp().subscribe((mouseX, mouseY, button) -> {
+                    if (!buttonState.interact().equals(Interactable.InteractionType.HOVERED)) return false;
+
+                    if (button == 0) {
                         MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 
                         this.handler.attemptTeleport(uuid);
 
                         return true;
-                    });
-                }
+                    } else if (button == 1) {
+                        var cords = getMouseCords();
 
-                waystoneButton.padding(Insets.of(3));
-            })
-            .child(ComponentUtils.wrapNonInteractive(Components.label(networkedData.parsedName())))
+                        ExperimentalWaystoneScreen.this.uiAdapter.rootComponent.child(
+                            new BetterDropdownComponent(Sizing.fixed(100))
+                                .onDismount(reason -> {
+                                    selectingUUIDs = false;
+                                    selectedUUIDs.clear();
+                                })
+                                .layout(layout -> {
+                                    layout
+                                        .child(texture(FAVORITE_ICON, 0, 10, 10, 10, 10, 20).margins(Insets.right(1)))
+                                        .child(label(playerData.isFavorited(uuid) ? Text.of("Unfavorite") : Text.of("Favorite")).id("favorite_action_label"))
+                                        .gap(2)
+                                        .verticalAlignment(VerticalAlignment.CENTER)
+                                        .verticalSizing(Sizing.fixed(13));
+                                }, comp -> {
+                                    if (playerData.isFavorited(uuid)) {
+                                        playerData.removeFavoriteWaystone(uuid);
+
+                                        removeIfPresent(buttonLayout, "favorite_icon");
+                                    } else {
+                                        playerData.addFavoriteWaystone(uuid);
+
+                                        addIfMissing(buttonLayout, "favorite_icon", favoriteIconBuilder);
+                                    }
+
+                                    var label = comp.childById(LabelComponent.class, "favorite_action_label");
+
+                                    label.text(playerData.isFavorited(uuid) ? Text.of("Unfavorite") : Text.of("Favorite"));
+
+                                    setWaystoneList();
+                                })
+                                .layout(layout -> {
+                                    layout
+                                        .child(texture(FabricWaystones.id("textures/gui/garbage_buttons.png"), 0, 0, 11, 13, 11, 39))
+                                        .child(label(Text.of("Forget")).margins(Insets.top(1)))
+                                        .gap(2)
+                                        .verticalAlignment(VerticalAlignment.CENTER);
+                                }, comp -> {
+                                    playerData.forgetWaystone(uuid);
+
+                                    setWaystoneList();
+
+                                    comp.remove();
+                                })
+                                .closeWhenNotHovered(true)
+                                .positioning(Positioning.absolute(cords.x() - 4, cords.y() - 4))
+                                .zIndex(500)
+                                .id("configure_waystone_dropdown")
+                        );
+
+                        selectingUUIDs = true;
+                        selectedUUIDs.add(uuid);
+
+                        return true;
+                    }
+
+                    return false;
+                });
+            }
+
+            waystoneButton.surface(
+                RenderBuilder.surface()
+                    .ninePatched(ACTIVE_TEXTURE, HOVERED_TEXTURE, DISABLED_TEXTURE, buttonState)
+            );
+        })
             .child(
-                Containers.horizontalFlow(Sizing.content(), Sizing.content())
-                    .child(
-                        ComponentUtils.wrapNonInteractive(
-                                Containers.verticalFlow(Sizing.content(), Sizing.content())
-                                    .child(
-                                        Components.box(Sizing.fixed(8), Sizing.fixed(8))
-                                            .fill(true)
-                                            .color(Color.ofRgb(data.color()))
-                                    )
-                                    .padding(Insets.of(1))
-                                    .surface(Surface.outline(Color.BLACK.argb()))
-                        )
-                    )
-                    .child(
-                        Components.button(Text.empty(), btn -> {
-                            if (playerData.isFavorited(uuid)) {
-                                playerData.removeFavoriteWaystone(uuid);
-                            } else {
-                                playerData.addFavoriteWaystone(uuid);
-                            }
-
-                            setWaystoneList();
-                        }).renderer((context, button, delta) -> {
-                            context.drawTexture(
-                                FAVORITE_ICON,
-                                button.getX(), button.getY(), 0, playerData.isFavorited(uuid) ? 10 : 0, 10, 10, 10, 20
-                            );
-                        }).sizing(Sizing.fixed(10))
-                    )
-                    .child(
-                        Components.button(Text.empty(), btn -> {
-                            playerData.forgetWaystone(uuid);
-
-                            setWaystoneList();
-                        }).sizing(Sizing.fixed(10))
-                    )
-                    .gap(2)
-                    .positioning(Positioning.relative(100, 0))
+                wrapNonInteractive(
+                    label(networkedData.parsedName())
+                        .margins(Insets.left(2))
+                )
             )
+            .child(buttonLayout)
             .gap(2)
+            .padding(Insets.of(2))
             .verticalAlignment(VerticalAlignment.CENTER);
     }
 
@@ -247,5 +357,34 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         }
 
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    private static void addIfMissing(FlowLayout layout, SequencedMap<String, Supplier<Component>> map) {
+        int i = 0;
+
+        for (var entry : map.entrySet()) {
+            if (layout.childById(Component.class, entry.getKey()) == null) {
+                layout.child(i, entry.getValue().get());
+            }
+            i++;
+        }
+    }
+
+    private static void addIfMissing(FlowLayout layout, String id, Supplier<Component> componentSupplier) {
+        if (layout.childById(Component.class, id) == null) {
+            layout.child(0, componentSupplier.get());
+        }
+    }
+
+    private static void removeIfPresent(FlowLayout layout, String id) {
+        removeIfPresent(layout, id, () -> true);
+    }
+
+    private static void removeIfPresent(FlowLayout layout, String id, Supplier<Boolean> extraCheck) {
+        var button = layout.childById(Component.class, id);
+
+        if (button != null && extraCheck.get()) {
+            layout.removeChild(button);
+        }
     }
 }

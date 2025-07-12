@@ -149,7 +149,7 @@ public class WaystoneComponentEventHooks {
                         user.sendMessage(text, false);
                     }
 
-                    result = TypedActionResult.success(stack, false);;
+                    result = TypedActionResult.success(stack, false);
                 }
 
                 if (result != null) return result;
@@ -220,7 +220,7 @@ public class WaystoneComponentEventHooks {
 
         user.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, inv, player) -> new PortableWaystoneScreenHandler(i, inv), title));
 
-        return TypedActionResult.consume(stack);
+        return TypedActionResult.success(stack);
     }
 
     public static TypedActionResult<ItemStack> useLocalVoid(World world, PlayerEntity user, ItemStack stack) {

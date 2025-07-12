@@ -96,6 +96,10 @@ public class WaystoneData {
         this.color = value;
     }
 
+    public boolean isDefaultColor() {
+        return this.color == type.defaultRuneColor();
+    }
+
     public WaystoneData cloneWithUUID(UUID uuid) {
         return new WaystoneData(uuid, waystoneBlock, type, color);
     }
