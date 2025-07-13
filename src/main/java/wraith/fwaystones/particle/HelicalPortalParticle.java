@@ -13,7 +13,6 @@ public class HelicalPortalParticle extends SpriteBillboardParticle {
 	private final double startY;
 	private final double startZ;
 
-	private final Vec3d rotationAxis;
 	private final float rotationOffset = (float)(Math.random() * Math.PI * 2.0);
 
 	protected HelicalPortalParticle(ClientWorld clientWorld, double d, double e, double f, double g, double h, double i) {
@@ -33,7 +32,7 @@ public class HelicalPortalParticle extends SpriteBillboardParticle {
 		this.green = j * 0.3F;
 		this.blue = j;
 		this.maxAge = (int)(Math.random() * 10.0) + 40;
-		this.rotationAxis = new Vec3d(g, h, i).subtract(d, e, f).normalize();
+		offsetToHelix();
 	}
 
 	@Override
@@ -77,20 +76,28 @@ public class HelicalPortalParticle extends SpriteBillboardParticle {
 		if (this.age++ >= this.maxAge) {
 			this.markDead();
 		} else {
-			Vec3d rotatedPosition = getRotatedPosition();
-			this.x = rotatedPosition.x;
-			this.y = rotatedPosition.y;
-			this.z = rotatedPosition.z;
+			float f = (float)this.age / this.maxAge;
+			this.x = this.startX + this.velocityX * f;
+			this.y = this.startY + this.velocityY * f;
+			this.z = this.startZ + this.velocityZ * f;
+			this.offsetToHelix();
 		}
 	}
 
-	private Vec3d getRotatedPosition() {
-		var angle = this.rotationOffset + (this.age / (float)this.maxAge) * Math.PI * 2.0F;
-		double radius = 0.1 * (this.maxAge - this.age) / this.maxAge;
-		double x = this.startX + radius * (Math.cos(angle) * this.rotationAxis.getX() - Math.sin(angle) * this.rotationAxis.getY());
-		double y = this.startY + radius * (Math.sin(angle) * this.rotationAxis.getX() + Math.cos(angle) * this.rotationAxis.getY());
-		double z = this.startZ + radius * (Math.cos(angle) * this.rotationAxis.getZ() - Math.sin(angle) * this.rotationAxis.getY());
-		return new Vec3d(x, y, z).add(this.rotationAxis.multiply(radius));
+	private void offsetToHelix() {
+		float progress = (float)this.age / this.maxAge;
+		float helixRadius = 0.2F;
+		float helixTurns = 0.5F;
+		float angle = helixTurns * 2.0F * (float)Math.PI * progress + rotationOffset;
+
+		var dir = new Vec3d(velocityX, velocityY, velocityZ).normalize();
+		var up = Math.abs(dir.y) < 0.99 ? new Vec3d(0, 1, 0) : new Vec3d(1, 0, 0);
+		var right = dir.crossProduct(up).normalize();
+		var forward = dir.crossProduct(right).normalize();
+
+		this.x += helixRadius * Math.cos(angle) * right.x + helixRadius * Math.sin(angle) * forward.x;
+		this.y += helixRadius * Math.cos(angle) * right.y + helixRadius * Math.sin(angle) * forward.y;
+		this.z += helixRadius * Math.cos(angle) * right.z + helixRadius * Math.sin(angle) * forward.z;
 	}
 
 	@Environment(EnvType.CLIENT)

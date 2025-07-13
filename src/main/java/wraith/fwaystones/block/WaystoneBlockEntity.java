@@ -552,7 +552,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             var teleportTargetingBox = this.getBlock().getTeleportBox(this.pos);
 
             if (this.teleportTarget == null) {
-                var entities = world.getOtherEntities(null, teleportTargetingBox, EntityPredicates.VALID_ENTITY);
+                var entities = world.getOtherEntities(null, teleportTargetingBox, EntityPredicates.EXCEPT_SPECTATOR);
 
                 if (!entities.isEmpty()) {
                     var entity = entities.getFirst().getRootVehicle();
