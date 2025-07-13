@@ -29,7 +29,6 @@
   ],
   "client": [
     "client.BlockDustParticleMixin",
-    "client.DrawContextAccessor",
     "client.EntityRenderDispatcherMixin",
     "client.ItemRendererMixin",
     "client.MapRendererMixin",

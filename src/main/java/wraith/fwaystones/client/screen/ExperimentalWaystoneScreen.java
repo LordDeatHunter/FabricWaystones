@@ -1,6 +1,5 @@
 package wraith.fwaystones.client.screen;
 
-import io.wispforest.owo.ui.base.BaseComponent;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.*;
 import io.wispforest.owo.ui.container.Containers;
@@ -8,6 +7,7 @@ import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.inject.GreedyInputComponent;
+import io.wispforest.owo.ui.util.ScissorStack;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -15,7 +15,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
@@ -24,18 +23,15 @@ import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
 import wraith.fwaystones.client.screen.components.BetterDropdownComponent;
-import wraith.fwaystones.client.screen.components.ComponentUtils;
 import wraith.fwaystones.client.screen.components.Interactable;
 import wraith.fwaystones.client.screen.components.RenderBuilder;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static io.wispforest.owo.ui.container.Containers.*;
 import static wraith.fwaystones.client.screen.components.ComponentUtils.*;
 import static io.wispforest.owo.ui.component.Components.*;
-import static io.wispforest.owo.ui.container.Containers.verticalFlow;
-import static io.wispforest.owo.ui.container.Containers.verticalScroll;
 
 public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout, ExperimentalWaystoneScreenHandler> {
 
@@ -89,31 +85,136 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         var columnWidth = 140;
         // TODO: ADD EVENT HOOKS FOR EITHER DATA CHANGES OR DISCOVERY OR WAYSTONE REPOSITINONED
         waystoneList = verticalScroll(
-            Sizing.fixed(columnWidth), Sizing.fixed(columnWidth),
+            Sizing.fixed(columnWidth), Sizing.fixed(columnWidth + 20),
             createWaystoneList("")
         );
 
         rootComponent.child(
-                verticalFlow(Sizing.content(), Sizing.content())
+                horizontalFlow(Sizing.content(), Sizing.content())
                     .child(
-                        textBox(Sizing.fixed(columnWidth), "")
-                            .<TextBoxComponent>configure(textBox -> textBox.onChanged()
-                                .subscribe(this::setWaystoneList))
-                            .id("search_box")
-                            .margins(Insets.of(-1))
+                        verticalFlow(Sizing.content(), Sizing.content())
+                            .id("left_panel_holder")
                     )
-                    .child(waystoneList
-                               .surface(Surface.panelWithInset(0))
-                               .padding(Insets.of(1))
-                               .allowOverflow(false))
-                    .gap(3)
-                    .allowOverflow(true)
-                    .surface(Surface.PANEL)
-                    .padding(Insets.of(7))
+                    .child(
+                        verticalFlow(Sizing.content(), Sizing.content())
+                            .child(
+                                textBox(Sizing.fixed(columnWidth), "")
+                                    .<TextBoxComponent>configure(textBox -> textBox.onChanged()
+                                        .subscribe(this::setWaystoneList))
+                                    .id("search_box")
+                                    .margins(Insets.of(-1))
+                            )
+                            .child(waystoneList
+                                .surface(Surface.panelWithInset(0))
+                                .padding(Insets.of(1))
+                                .allowOverflow(false))
+                            .gap(4)
+                            .allowOverflow(false)
+                            .padding(Insets.of(7))
+                            .id("primary_panel_holder")
+                    )
+                    .child(
+                        verticalFlow(Sizing.content(), Sizing.content())
+                            .allowOverflow(true)
+                            .zIndex(200)
+                            .id("right_panel_holder")
+                    ).surface((context, component) -> {
+                        var primaryLayout = component.childById(FlowLayout.class, "primary_panel_holder");
+                        var rightLayout = component.childById(FlowLayout.class, "right_panel_holder").childById(FlowLayout.class, "settings_panel");
+
+                        if (rightLayout == null){
+                            Surface.PANEL.draw(context, primaryLayout);
+
+                            return;
+                        }
+
+                        ScissorStack.push(rightLayout.x() + 3, rightLayout.y(), rightLayout.width(), rightLayout.height(), context.getMatrices());
+                        Surface.PANEL.draw(context, rightLayout);
+                        ScissorStack.pop();
+
+                        context.draw();
+                        ScissorStack.push(primaryLayout.x(), primaryLayout.y(), primaryLayout.width() - 3, primaryLayout.height(), context.getMatrices());
+                        context.draw();
+                        Surface.PANEL.draw(context, primaryLayout);
+                        ScissorStack.pop();
+
+                        ScissorStack.push(primaryLayout.x(), primaryLayout.y(), primaryLayout.width(), rightLayout.y() - primaryLayout.y() + 1, context.getMatrices());
+                        context.draw();
+                        Surface.PANEL.draw(context, primaryLayout);
+                        ScissorStack.pop();
+
+                        ScissorStack.push(primaryLayout.x(), rightLayout.y() + rightLayout.height() - 1, primaryLayout.width(), primaryLayout.y() + primaryLayout.height() - (rightLayout.y() + rightLayout.height()), context.getMatrices());
+                        context.draw();
+                        Surface.PANEL.draw(context, primaryLayout);
+                        ScissorStack.pop();
+                    })
             )
             .surface(Surface.VANILLA_TRANSLUCENT)
             .horizontalAlignment(HorizontalAlignment.CENTER)
             .verticalAlignment(VerticalAlignment.CENTER);
+    }
+
+    private void setupSettingsWindow(UUID uuid) {
+        var rightPanelHolder = component(FlowLayout.class, "right_panel_holder");
+
+        rightPanelHolder.clearChildren();
+
+        if(!openSettingsUUID.equals(uuid) && !uuid.equals(WaystoneData.EMPTY_UUID)) {
+            rightPanelHolder.child(createSettingsComponent(uuid));
+        } else {
+            uuid = WaystoneData.EMPTY_UUID;
+        }
+
+        openSettingsUUID = uuid;
+
+        var leftPanelHolder = component(FlowLayout.class, "left_panel_holder");
+
+        leftPanelHolder.padding(Insets.left(getLeftPadding()));
+    }
+
+    private UUID openSettingsUUID = WaystoneData.EMPTY_UUID;
+
+    private Component createSettingsComponent(UUID uuid) {
+        var data = storage.getData(uuid);
+
+        return verticalFlow(Sizing.content(), Sizing.content())
+            .child(
+                verticalFlow(Sizing.fixed(120), Sizing.fixed(120))
+                    .child(
+                        verticalScroll(Sizing.expand(), Sizing.expand(),
+                            verticalFlow(Sizing.content(), Sizing.content())
+                                .child(
+                                    horizontalFlow(Sizing.content(), Sizing.content())
+                                        .child(label(Text.of("ID:")))
+                                        .child(label(Text.of(uuid.toString())))
+                                )
+                                .<FlowLayout>configure(layout -> {
+                                    if (data instanceof NetworkedWaystoneData networkedWaystoneData) {
+                                        layout.child(
+                                            horizontalFlow(Sizing.content(), Sizing.content())
+                                                .child(label(Text.of("Name:")))
+                                                .child(label(networkedWaystoneData.parsedName()))
+                                        );
+                                    }
+                                })
+                                .child()
+                                .gap(3)
+                            )
+                            .surface(Surface.PANEL_INSET)
+                            .padding(Insets.of(3))
+                    )
+                    .padding(Insets.of(7, 7, 5, 7))
+                    .id("settings_panel")
+            )
+            .padding(Insets.of(24, 0, -8, 0));
+    }
+
+    private int getLeftPadding() {
+        if (openSettingsUUID != WaystoneData.EMPTY_UUID) {
+            return 120 - 8;
+        }
+
+        return 0;
     }
 
     private void setWaystoneList() {
@@ -173,35 +274,22 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
                 );
         }
 
+        buttonLayout.child(
+            Components.button(Text.empty(), btn -> setupSettingsWindow(uuid))
+                .renderer(ButtonComponent.Renderer.texture(FabricWaystones.id("textures/gui/settings_icon.png"), 0, 0, 12, 12))
+                .sizing(Sizing.fixed(12))
+        );
+
         Supplier<Component> favoriteIconBuilder = () -> {
             return texture(FAVORITE_ICON, 0, 10, 10, 10, 10, 20)
                 .id("favorite_icon");
-        };
-
-        // TODO: ADD CONFIRM OVERLAY OF ACTION TO FORGET
-        Supplier<Component> forgetButtonBuilder = () -> {
-            return button(Text.empty(), btn -> {
-                playerData.forgetWaystone(uuid);
-
-                setWaystoneList();
-            }).<ButtonComponent>configure(component -> {
-                component
-                    .renderer(
-                        RenderBuilder.button()
-                            .texture(FabricWaystones.id("textures/gui/garbage_buttons.png"), 11, 39, Interactable.from(component))
-                    )
-                    .sizing(Sizing.fixed(11), Sizing.fixed(13))
-                    .margins(Insets.bottom(1))
-                    .tooltip(Text.literal("Forget Waystone"))
-                    .id("forget_button");
-            });
         };
 
         if (playerData.isFavorited(uuid)) {
             buttonLayout.child(0, favoriteIconBuilder.get());
         }
 
-        return new FlowLayout(Sizing.expand(), Sizing.fixed(20), FlowLayout.Algorithm.HORIZONTAL) {
+        return new FlowLayout(Sizing.expand(), Sizing.fixed(16), FlowLayout.Algorithm.HORIZONTAL) {
             @Override
             public boolean canFocus(FocusSource source) {
                 return true;
@@ -238,9 +326,9 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
 
                     if (hoveringTarget != null) {
                         if (waystoneButton.children().contains(hoveringTarget)) {
-                            interactionType = InteractionType.ENABLED;
+                            interactionType = (interactionType != InteractionType.HOVERED ? interactionType : InteractionType.ENABLED);
                         } else if(hoveringTarget.parent() instanceof ParentComponent parentHover && waystoneButton.children().contains(parentHover)) {
-                            interactionType = InteractionType.ENABLED;
+                            interactionType = (interactionType != InteractionType.HOVERED ? interactionType : InteractionType.ENABLED);
                         }
                     }
 
@@ -306,6 +394,7 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
                                         .gap(2)
                                         .verticalAlignment(VerticalAlignment.CENTER);
                                 }, comp -> {
+                                    // TODO: ADD CONFIRM OVERLAY OF ACTION TO FORGET
                                     playerData.forgetWaystone(uuid);
 
                                     setWaystoneList();
@@ -359,32 +448,4 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    private static void addIfMissing(FlowLayout layout, SequencedMap<String, Supplier<Component>> map) {
-        int i = 0;
-
-        for (var entry : map.entrySet()) {
-            if (layout.childById(Component.class, entry.getKey()) == null) {
-                layout.child(i, entry.getValue().get());
-            }
-            i++;
-        }
-    }
-
-    private static void addIfMissing(FlowLayout layout, String id, Supplier<Component> componentSupplier) {
-        if (layout.childById(Component.class, id) == null) {
-            layout.child(0, componentSupplier.get());
-        }
-    }
-
-    private static void removeIfPresent(FlowLayout layout, String id) {
-        removeIfPresent(layout, id, () -> true);
-    }
-
-    private static void removeIfPresent(FlowLayout layout, String id, Supplier<Boolean> extraCheck) {
-        var button = layout.childById(Component.class, id);
-
-        if (button != null && extraCheck.get()) {
-            layout.removeChild(button);
-        }
-    }
 }

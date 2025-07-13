@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.integration.xaeros.XaerosMinimapWaypointMaker;
-import wraith.fwaystones.mixin.client.DrawContextAccessor;
 import xaero.common.minimap.render.MinimapRendererHelper;
 import xaero.common.minimap.waypoints.Waypoint;
 import xaero.common.misc.Misc;
@@ -115,18 +115,23 @@ public abstract class WaypointWorldRendererMixin {
         var data = XaerosMinimapWaypointMaker.INSTANCE.getWaystoneData(w);
 
         if (data != null) {
-            var ctx = DrawContextAccessor.createContext(MinecraftClient.getInstance(), matrixStack, bufferSource);
+            var ctx = new DrawContext(MinecraftClient.getInstance(), bufferSource);
 
-            matrixStack.push();
+            var oldEntry = matrixStack.peek();
+            var entry = ctx.getMatrices().peek();
 
-            matrixStack.scale(0.65f, 0.65f, 0.65f);
+            entry.getPositionMatrix().set(oldEntry.getPositionMatrix());
+            entry.getNormalMatrix().set(oldEntry.getNormalMatrix());
+
+            ctx.push()
+                .scale(0.65f, 0.65f, 0.65f);
 
             ctx.drawTexture(
                     data.type().getIconLocation(),
                     -9, -16, 0, 0, 16, 16, 16, 16
             );
 
-            matrixStack.pop();
+            ctx.pop();
         } else {
             original.call(w, highlit, matrixStack, fontRenderer, bufferSource);
         }
