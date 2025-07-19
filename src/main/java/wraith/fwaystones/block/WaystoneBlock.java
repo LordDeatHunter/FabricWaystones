@@ -1,349 +1,144 @@
 package wraith.fwaystones.block;
 
-import com.mojang.serialization.MapCodec;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
 import org.jetbrains.annotations.Nullable;
-import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.access.PlayerEntityMixinAccess;
-import wraith.fwaystones.item.LocalVoidItem;
-import wraith.fwaystones.item.WaystoneDebuggerItem;
-import wraith.fwaystones.item.WaystoneScrollItem;
-import wraith.fwaystones.registry.BlockEntityRegistry;
-import wraith.fwaystones.util.Utils;
+import wraith.fwaystones.api.WaystoneDataStorage;
+import wraith.fwaystones.mixin.TallBlantBlockAccessor;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
-@SuppressWarnings("deprecation")
-public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
+public class WaystoneBlock extends AbstractWaystoneBlock {
 
-    public static final BooleanProperty ACTIVE = BooleanProperty.of("active");
-    public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
-    public static final BooleanProperty GENERATED = BooleanProperty.of("generated");
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
-    public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
-    public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
-    public static final MapCodec<WaystoneBlock> CODEC = createCodec(WaystoneBlock::new);
-    protected static final VoxelShape VOXEL_SHAPE_TOP;
-    protected static final VoxelShape VOXEL_SHAPE_BOTTOM;
 
-    static {
-        // TOP
-        VoxelShape vs1_1 = Block.createCuboidShape(1f, 0f, 1f, 15f, 2f, 15f);
-        VoxelShape vs2_1 = Block.createCuboidShape(2f, 2f, 2f, 14f, 5f, 14f);
-        VoxelShape vs3_1 = Block.createCuboidShape(3f, 5f, 3f, 13f, 16f, 13f);
-        // BOTTOM
-        VoxelShape vs1_2 = Block.createCuboidShape(3f, 0f, 3f, 13f, 1f, 13f);
-        VoxelShape vs2_2 = Block.createCuboidShape(2f, 1f, 2f, 14f, 5f, 14f);
-        VoxelShape vs3_2 = Block.createCuboidShape(3f, 5f, 3f, 13f, 7f, 13f);
-        VoxelShape vs4_2 = Block.createCuboidShape(7f, 5f, 1f, 9f, 8f, 3f);
-        VoxelShape vs5_2 = Block.createCuboidShape(7f, 7f, 3f, 9f, 10f, 4f);
-        VoxelShape vs6_2 = Block.createCuboidShape(1f, 5f, 7f, 3f, 8f, 9f);
-        VoxelShape vs7_2 = Block.createCuboidShape(3f, 7f, 7f, 4f, 10f, 9f);
-        VoxelShape vs8_2 = Block.createCuboidShape(7f, 5f, 13f, 9f, 8f, 15f);
-        VoxelShape vs9_2 = Block.createCuboidShape(7f, 7f, 12f, 9f, 10f, 13f);
-        VoxelShape vs10_2 = Block.createCuboidShape(13f, 5f, 7f, 15f, 8f, 9f);
-        VoxelShape vs11_2 = Block.createCuboidShape(12f, 7f, 7f, 13f, 10f, 9f);
+    public static final VoxelShape BOTTOM_COLLISION_SHAPE = VoxelShapes.union(
+        Block.createCuboidShape(2, 2, 2, 14, 5, 14),
+        Block.createCuboidShape(1, 0, 1, 15, 2, 15),
+        Block.createCuboidShape(3, 5, 3, 13, 16, 13)
+    );
 
-        VOXEL_SHAPE_TOP = VoxelShapes.union(vs1_2, vs2_2, vs3_2, vs4_2, vs5_2, vs6_2, vs7_2, vs8_2, vs9_2, vs10_2, vs11_2).simplify();
-        VOXEL_SHAPE_BOTTOM = VoxelShapes.union(vs1_1, vs2_1, vs3_1).simplify();
+    public static final VoxelShape TOP_COLLISION_SHAPE = VoxelShapes.union(
+        Block.createCuboidShape(2, 1, 2, 14, 5, 14),
+        Block.createCuboidShape(3, 0, 3, 13, 1, 13),
+        Block.createCuboidShape(3, 5, 3, 13, 7, 13)
+    );
+
+    public static final VoxelShape TOP_OUTLINE_SHAPE = VoxelShapes.union(
+        TOP_COLLISION_SHAPE,
+        Block.createCuboidShape(7, 7, 12, 9, 10, 13),
+        Block.createCuboidShape(7, 7, 3, 9, 10, 4),
+        Block.createCuboidShape(7, 5, 13, 9, 8, 15),
+        Block.createCuboidShape(7, 5, 1, 9, 8, 3),
+        Block.createCuboidShape(13, 5, 7, 15, 8, 9),
+        Block.createCuboidShape(1, 5, 7, 3, 8, 9),
+        Block.createCuboidShape(12, 7, 7, 13, 10, 9),
+        Block.createCuboidShape(3, 7, 7, 4, 10, 9)
+    );
+
+    public WaystoneBlock(Settings settings) {
+        super(23, settings);
+        this.setDefaultState(
+            this.getDefaultState()
+                .with(HALF, DoubleBlockHalf.LOWER)
+        );
     }
 
-    public WaystoneBlock(AbstractBlock.Settings settings) {
-        super(settings);
-        setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, false).with(ACTIVE, false).with(GENERATED, false));
-    }
+    public List<Vec3i> getTeleportOffsets(Direction direction) {
+        var baseOffsets = getHorizontalTeleportOffsets(direction);
 
-    @Nullable
-    public static WaystoneBlockEntity getEntity(World world, BlockPos pos) {
-        BlockState state = world.getBlockState(pos);
-        if (!(state.getBlock() instanceof WaystoneBlock)) {
-            return null;
-        }
-        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-            pos = pos.down();
-        }
-        return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
-    }
-
-    public MapCodec<WaystoneBlock> getCodec() {
-        return CODEC;
+        var returned = new ArrayList<>(baseOffsets);
+        returned.addAll(baseOffsets.stream().map(Vec3i::down).toList());
+        returned.addAll(baseOffsets.stream().map(Vec3i::up).toList());
+        returned.add(Vec3i.ZERO.up());
+        return returned;
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return state.get(HALF) == DoubleBlockHalf.UPPER ? null : new WaystoneBlockEntity(pos, state);
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return validateTicker(type, BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, WaystoneBlockEntity::ticker);
+    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return state.get(HALF) == DoubleBlockHalf.UPPER ? TOP_OUTLINE_SHAPE : BOTTOM_COLLISION_SHAPE;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
-        stateManager.add(HALF, FACING, MOSSY, WATERLOGGED, ACTIVE, GENERATED);
+    protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return state.get(HALF) == DoubleBlockHalf.UPPER ? TOP_COLLISION_SHAPE : BOTTOM_COLLISION_SHAPE;
     }
 
     @Override
-    public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
-        var bottomState = world.getBlockState(pos);
-        if (FabricWaystones.CONFIG.worldgen.unbreakable_generated_waystones() && state.get(GENERATED)) {
-            return 0;
-        }
-        if (bottomState.getBlock() instanceof WaystoneBlock) {
-            BlockPos entityPos = bottomState.get(WaystoneBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
-            switch (FabricWaystones.CONFIG.permission_level_for_breaking_waystones()) {
-                case OWNER -> {
-                    if (world.getBlockEntity(entityPos) instanceof WaystoneBlockEntity waystone && waystone.getOwner() != null && !player.getUuid().equals(waystone.getOwner())) {
-                        return 0;
-                    }
-                }
-                case OP -> {
-                    if (!player.hasPermissionLevel(2)) {
-                        return 0;
-                    }
-                }
-                case NONE -> {
-                    return 0;
-                }
-            }
-        }
-        return super.calcBlockBreakingDelta(state, player, world, pos);
+    public BlockPos getBasePos(BlockPos pos, BlockState state) {
+        return state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
     }
 
-    @Nullable
+    @Override
+    public void scheduleBlockRerender(World world, BlockPos pos) {
+        world.scheduleBlockRerenderIfNeeded(pos.up(), Blocks.AIR.getDefaultState(), world.getBlockState(pos.up()));
+        super.scheduleBlockRerender(world, pos);
+    }
+
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
-        BlockPos blockPos = ctx.getBlockPos();
-
-        var nbt = ctx.getStack().get(DataComponentTypes.BLOCK_ENTITY_DATA);
-        boolean hasOwner = nbt != null && nbt.contains("waystone_owner");
+        var pos = ctx.getBlockPos();
         var world = ctx.getWorld();
-        var fluidState = world.getFluidState(blockPos);
-
-        if (blockPos.getY() < world.getTopY() - 1 && world.getBlockState(blockPos.up()).canReplace(ctx)) {
-            return this.getDefaultState()
-                .with(FACING, ctx.getHorizontalPlayerFacing().getOpposite())
-                .with(HALF, DoubleBlockHalf.LOWER)
-                .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
-                .with(ACTIVE, hasOwner)
-                .with(GENERATED, false);
-        } else {
-            return null;
+        if (pos.getY() < world.getTopY() - 1 && world.getBlockState(pos.up()).canReplace(ctx)) {
+            var state = super.getPlacementState(ctx);
+            if (state != null) return state.with(HALF, DoubleBlockHalf.LOWER);
         }
+        return null;
     }
 
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext context) {
-        return state.get(HALF) == DoubleBlockHalf.LOWER ? VOXEL_SHAPE_BOTTOM : VOXEL_SHAPE_TOP;
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+        world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER), Block.NOTIFY_ALL);
     }
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        BlockPos topPos;
-        BlockPos botPos;
-        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-            topPos = pos;
-            botPos = pos.down();
-        } else {
-            topPos = pos.up();
-            botPos = pos;
+        if (!world.isClient && (player.isCreative() || !player.canHarvest(state))) {
+            TallBlantBlockAccessor.fWaystones$onBreakInCreative(world, pos, state, player);
         }
-
-        if (world.getBlockEntity(botPos) instanceof WaystoneBlockEntity waystone && !player.isCreative() && player.canHarvest(world.getBlockState(botPos)) && world instanceof ServerWorld) {
-            if (!world.isClient) {
-                ItemStack itemStack = new ItemStack(state.getBlock().asItem());
-                var compoundTag = new NbtCompound();
-                waystone.writeNbt(compoundTag, waystone.getWorld().getRegistryManager());
-                if (FabricWaystones.CONFIG.store_waystone_data_on_sneak_break() && player.isSneaking() && !compoundTag.isEmpty()) {
-                    itemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(compoundTag));
-                }
-                ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, itemStack);
-                if (waystone.getCachedState().get(MOSSY)) {
-                    ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
-                }
-            } else {
-                waystone.generateLoot(player);
-            }
-
-            FabricWaystones.WAYSTONE_STORAGE.removeWaystone(waystone);
-        }
-
-        world.removeBlock(topPos, false);
-        world.removeBlock(botPos, false);
-        world.updateNeighbors(topPos, Blocks.AIR);
-
         return super.onBreak(world, pos, state, player);
     }
 
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-        if (state.get(HALF) == DoubleBlockHalf.UPPER) {
-            super.onPlaced(world, pos, state, placer, itemStack);
-            return;
-        }
-        var fluidState = world.getFluidState(pos.up());
-        world.setBlockState(pos.up(), state.with(HALF, DoubleBlockHalf.UPPER).with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
-        BlockEntity entity = world.getBlockEntity(pos);
-        if (placer instanceof ServerPlayerEntity && entity instanceof WaystoneBlockEntity waystone) {
-            FabricWaystones.WAYSTONE_STORAGE.tryAddWaystone(waystone);
-        }
+    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+        super.appendProperties(builder);
+        builder.add(HALF);
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
-    }
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+        var half = state.get(HALF);
 
-
-    //    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-    @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (world.isClient) {
-            return ActionResult.success(true);
-        }
-        BlockPos openPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
-        BlockState topState = world.getBlockState(openPos.up());
-        BlockState bottomState = world.getBlockState(openPos);
-        Hand hand = player.getActiveHand();
-        Item heldItem = player.getStackInHand(hand).getItem();
-        if (heldItem == Items.VINE) {
-            if (!topState.get(MOSSY)) {
-                world.setBlockState(openPos.up(), topState.with(MOSSY, true));
-                world.setBlockState(openPos, bottomState.with(MOSSY, true));
-                if (!player.isCreative()) {
-                    player.getStackInHand(hand).decrement(1);
-                }
-            }
-            return ActionResult.PASS;
-        }
-
-        if (heldItem == Items.SHEARS) {
-            if (topState.get(MOSSY)) {
-                world.setBlockState(openPos.up(), topState.with(MOSSY, false));
-                world.setBlockState(openPos, bottomState.with(MOSSY, false));
-                var dropPos = openPos.up(2);
-                ItemScatterer.spawn(world, dropPos.getX() + 0.5F, dropPos.getY() + 0.5F, dropPos.getZ() + 0.5F, new ItemStack(Items.VINE));
-            }
-            return ActionResult.PASS;
-        }
-        if (heldItem instanceof WaystoneScrollItem || heldItem instanceof LocalVoidItem || heldItem instanceof WaystoneDebuggerItem) {
-            return ActionResult.PASS;
-        }
-
-        WaystoneBlockEntity blockEntity = (WaystoneBlockEntity) world.getBlockEntity(openPos);
-        if (blockEntity == null) {
-            return ActionResult.FAIL;
-        }
-
-        if (player.isSneaking() && (player.hasPermissionLevel(2) || (FabricWaystones.CONFIG.can_owners_redeem_payments() && player.getUuid().equals(blockEntity.getOwner())))) {
-            if (blockEntity.hasStorage()) {
-                ItemScatterer.spawn(world, openPos.up(2), blockEntity.getInventory());
-                blockEntity.setInventory(DefaultedList.ofSize(0, ItemStack.EMPTY));
-            }
-            return ActionResult.success(false);
-        }
-//        if (!FabricWaystones.CONFIG.discover_waystone_on_map_use() && FabricLoader.getInstance().isModLoaded("pinlib") && PinlibPlugin.tryUseOnMarkableBlock(player.getStackInHand(hand), world, openPos))
-//            return ActionResult.SUCCESS;
-
-        FabricWaystones.WAYSTONE_STORAGE.tryAddWaystone(blockEntity);
-        PlayerEntityMixinAccess playerAccess = (PlayerEntityMixinAccess) player;
-        Set<String> discovered = playerAccess.fabricWaystones$getDiscoveredWaystones();
-        if (!discovered.contains(blockEntity.getHash())) {
-            if (!blockEntity.isGlobal()) {
-                Identifier discoverItemId = Utils.getDiscoverItem();
-                if (!player.isCreative()) {
-                    Item discoverItem = Registries.ITEM.get(discoverItemId);
-                    int discoverAmount = FabricWaystones.CONFIG.take_amount_from_discover_item();
-                    if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
-                        player.sendMessage(Text.translatable(
-                            "fwaystones.missing_discover_item",
-                            discoverAmount,
-                            Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                style.withColor(TextColor.parse(Text.translatable("fwaystones.missing_discover_item.arg_color").getString()).getOrThrow())
-                            )
-                        ), false);
-                        return ActionResult.FAIL;
-                    } else if (discoverItem != Items.AIR) {
-                        Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
-                        player.sendMessage(Text.translatable(
-                            "fwaystones.discover_item_paid",
-                            discoverAmount,
-                            Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_item_paid.arg_color").getString()).getOrThrow())
-                            )
-                        ), false);
-                    }
-                }
-                player.sendMessage(Text.translatable(
-                    "fwaystones.discover_waystone",
-                    Text.literal(blockEntity.getWaystoneName()).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_waystone.arg_color").getString()).getOrThrow())
-                    )
-                ), false);
-            }
-            playerAccess.fabricWaystones$discoverWaystone(blockEntity);
-        }
-        if (blockEntity.getOwner() == null) {
-            blockEntity.setOwner(player);
+        if (direction.getAxis() != Direction.Axis.Y || half == DoubleBlockHalf.LOWER != (direction == Direction.UP)) {
+            return half == DoubleBlockHalf.LOWER && direction == Direction.DOWN && !state.canPlaceAt(world, pos)
+                ? Blocks.AIR.getDefaultState()
+                : super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
         } else {
-            blockEntity.updateActiveState();
+            return neighborState.isOf(this) && neighborState.get(HALF) != half
+                ? neighborState.with(HALF, half)
+                : Blocks.AIR.getDefaultState();
         }
-
-        NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
-
-        if (screenHandlerFactory != null) {
-            player.openHandledScreen(screenHandlerFactory);
-        }
-
-        blockEntity.markDirty();
-        return ActionResult.success(false);
-    }
-
-    @Nullable
-    @Override
-    public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
-        return super.createScreenHandlerFactory(state, world, state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos);
     }
 
     @Override
@@ -351,46 +146,52 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
         BlockPos newPos;
         DoubleBlockHalf verticalPosition;
 
-        if (state.getBlock() != this) {
-            super.onStateReplaced(state, world, pos, newState, moved);
-            return;
+        if (state.isOf(this)) {
+            if (state.get(HALF) == DoubleBlockHalf.UPPER) {
+                newPos = pos.down();
+                verticalPosition = DoubleBlockHalf.LOWER;
+            } else {
+                newPos = pos.up();
+                verticalPosition = DoubleBlockHalf.UPPER;
+            }
+
+            if (!(newState.isOf(this))) {
+                var waystone = getEntity(world, pos);
+
+                if (waystone != null) {
+                    if (!world.isClient) {
+                        var uuid = waystone.getUUID();
+                        if (uuid != null) WaystoneDataStorage.getStorage(world).removePosition(uuid);
+                    }
+
+                    world.removeBlockEntity(waystone.getPos());
+                }
+
+                if (newPos != null) world.setBlockState(newPos, newState);
+            } else if (newPos != null) {
+                var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER && verticalPosition == DoubleBlockHalf.LOWER;
+
+                var adjustedState = newState.with(WATERLOGGED, fluid)
+                        .with(HALF, verticalPosition);
+
+                world.setBlockState(newPos, adjustedState);
+            }
         }
 
-        if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
-            newPos = pos.down();
-            verticalPosition = DoubleBlockHalf.LOWER;
-        } else {
-            newPos = pos.up();
-            verticalPosition = DoubleBlockHalf.UPPER;
-        }
-
-        if (!(newState.getBlock() instanceof WaystoneBlock)) {
-            BlockPos testPos = pos;
-            if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
-                testPos = pos.down();
-            }
-            BlockEntity entity = world.getBlockEntity(testPos);
-            if (!world.isClient && entity instanceof WaystoneBlockEntity waystone) {
-                FabricWaystones.WAYSTONE_STORAGE.removeWaystone(waystone);
-            }
-            world.removeBlockEntity(testPos);
-            world.setBlockState(newPos, newState);
-        } else {
-            var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER && verticalPosition == DoubleBlockHalf.LOWER;
-            world.setBlockState(newPos, newState.with(WaystoneBlock.HALF, verticalPosition).with(WATERLOGGED, fluid));
-        }
         super.onStateReplaced(state, world, pos, newState, moved);
     }
 
-    public FluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
+    @Override
+    protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
+        return !state.contains(HALF)
+               || state.get(HALF) == DoubleBlockHalf.LOWER
+               || isCorrectOtherHalf(state, world.getBlockState(pos.down()));
     }
 
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-        if (state.get(WATERLOGGED)) {
-            world.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
-        }
-        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+    protected boolean isCorrectOtherHalf(BlockState state, BlockState other) {
+        return state.isOf(this) && other.isOf(this) &&
+               state.get(HALF).getOtherHalf().equals(other.get(HALF)) &&
+               state.get(FACING).equals(other.get(FACING)) &&
+               state.get(GENERATED).equals(other.get(GENERATED));
     }
-
 }

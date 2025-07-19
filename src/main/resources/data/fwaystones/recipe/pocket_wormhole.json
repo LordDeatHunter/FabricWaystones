@@ -1,19 +1,22 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " # ",
-    "PSP",
-    " P "
+    "BAB",
+    "CSC",
+    "BAB"
   ],
   "key": {
-    "P": {
+    "B": {
       "item": "minecraft:blaze_powder"
     },
     "S": {
       "item": "minecraft:nether_star"
     },
-    "#": {
+    "A": {
       "item": "fwaystones:abyss_watcher"
+    },
+    "C": {
+      "item": "minecraft:chorus_fruit"
     }
   },
   "result": {
