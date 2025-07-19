@@ -35,6 +35,10 @@ import wraith.fwaystones.block.AbstractWaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.client.screen.UniversalWaystoneScreenHandler;
 import wraith.fwaystones.item.components.WaystoneDataHolder;
+import wraith.fwaystones.networking.WaystoneNetworkHandler;
+import wraith.fwaystones.networking.packets.c2s.RenameWaystone;
+import wraith.fwaystones.networking.packets.c2s.RevokeWaystoneOwner;
+import wraith.fwaystones.networking.packets.c2s.ToggleGlobalWaystone;
 import wraith.fwaystones.networking.packets.s2c.*;
 import wraith.fwaystones.registry.WaystoneBlocks;
 import wraith.fwaystones.util.Utils;
@@ -326,6 +330,20 @@ public class WaystoneDataStorage {
         return uuidToData.get(uuid);
     }
 
+    @Nullable
+    public <T extends WaystoneData> T getDataIfType(UUID uuid, Class<T> dataType) {
+        var data = uuidToData.get(uuid);
+        return (dataType.isInstance(data)) ? (T) data : null;
+    }
+
+    public <T extends WaystoneData> T getDataIfTypeOrThrow(UUID uuid, Class<T> dataType) {
+        var data = uuidToData.get(uuid);
+
+        if (dataType.isInstance(data)) return (T) data;
+
+        throw new IllegalStateException("Unable to get the required data for the given UUID as it is not the correct type: " + dataType.toString());
+    }
+
     public UUID getUUID(WaystonePosition position) {
         return positionToUUID.get(position);
     }
@@ -612,6 +630,12 @@ public class WaystoneDataStorage {
 
         if (!(data instanceof NetworkedWaystoneData networkedData)) return;
 
+        if (isClient) {
+            sendPacket(new RenameWaystone(uuid, name));
+
+            return;
+        }
+
         networkedData.name(name);
         syncDataChange(uuid, DataChangeType.NAME);
 
@@ -624,6 +648,8 @@ public class WaystoneDataStorage {
         var data = getData(uuid);
 
         if (data == null) return;
+
+        if (isClient) return;
 
         data.color(color);
         syncDataChange(uuid, DataChangeType.COLOR);
@@ -638,6 +664,12 @@ public class WaystoneDataStorage {
 
         if (!(data instanceof NetworkedWaystoneData networkedData)) return;
 
+        if (isClient) {
+            sendPacket(new ToggleGlobalWaystone(uuid));
+
+            return;
+        }
+
         networkedData.global(!networkedData.global());
         syncDataChange(uuid, DataChangeType.GLOBAL);
 
@@ -650,6 +682,16 @@ public class WaystoneDataStorage {
         var data = getData(uuid);
 
         if (!(data instanceof NetworkedWaystoneData networkedData)) return false;
+
+        if (isClient) {
+            if (owner == null) {
+                sendPacket(new RevokeWaystoneOwner(uuid));
+
+                return true;
+            }
+
+            return false;
+        }
 
         var prevOwner = networkedData.ownerID();
 
@@ -684,5 +726,18 @@ public class WaystoneDataStorage {
         }
 
         return changeOccured;
+    }
+
+    private <R extends Record> boolean attemptPacket(R record) {
+        if (!this.isClient) return false;
+
+        sendPacket(record);
+
+        return true;
+    }
+
+    @Environment(EnvType.CLIENT)
+    private <R extends Record> void sendPacket(R record) {
+        CHANNEL.clientHandle().send(record);
     }
 }

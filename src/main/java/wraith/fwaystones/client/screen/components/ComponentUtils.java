@@ -9,7 +9,8 @@ import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 
-import java.util.SequencedMap;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class ComponentUtils {
@@ -39,6 +40,14 @@ public class ComponentUtils {
         return new Vector2i(screenX, screenY);
     }
 
+    public static DefinedOrderParent createDefinedHolder(Sizing horizontalSizing, Sizing verticalSizing, boolean isVertical, Consumer<DefinedOrderParent.DefinedBuilder> builderFunc) {
+        return new DefinedOrderParent(horizontalSizing, verticalSizing, isVertical, builderFunc);
+    }
+
+    private static void addIfMissing(Supplier<FlowLayout> layout, SequencedMap<String, Supplier<Component>> map) {
+        addIfMissing(layout.get(), map);
+    }
+
     private static void addIfMissing(FlowLayout layout, SequencedMap<String, Supplier<Component>> map) {
         int i = 0;
 
@@ -50,14 +59,26 @@ public class ComponentUtils {
         }
     }
 
+    public static void addIfMissing(Supplier<FlowLayout> layout, String id, Supplier<Component> componentSupplier) {
+        addIfMissing(layout.get(), id, componentSupplier);
+    }
+
     public static void addIfMissing(FlowLayout layout, String id, Supplier<Component> componentSupplier) {
         if (layout.childById(Component.class, id) == null) {
             layout.child(0, componentSupplier.get());
         }
     }
 
+    public static void removeIfPresent(Supplier<FlowLayout> layout, String id) {
+        removeIfPresent(layout.get(), id);
+    }
+
     public static void removeIfPresent(FlowLayout layout, String id) {
         removeIfPresent(layout, id, () -> true);
+    }
+
+    private static void removeIfPresent(Supplier<FlowLayout> layout, String id, Supplier<Boolean> extraCheck) {
+        removeIfPresent(layout.get(), id, extraCheck);
     }
 
     private static void removeIfPresent(FlowLayout layout, String id, Supplier<Boolean> extraCheck) {

@@ -90,6 +90,10 @@ public class FabricWaystones implements ModInitializer {
         return Identifier.of(MOD_ID, path);
     }
 
+    public static Identifier gui(String path) {
+        return id("textures/gui/" + path + ".png");
+    }
+
     @Override
     public void onInitialize() {
         LOGGER.info("Wraith Waystones is initializing.");

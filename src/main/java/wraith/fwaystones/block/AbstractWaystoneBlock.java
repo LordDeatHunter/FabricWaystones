@@ -464,20 +464,8 @@ public abstract class AbstractWaystoneBlock extends BlockWithEntity implements W
 
         var waystone = getEntity(world, pos);
 
-        if (waystone != null && !player.hasPermissionLevel(4)) {
-            switch (config.breakingWaystonePermission()) {
-                case OWNER -> {
-                    if (waystone.getData() instanceof Ownable data && data.isOwner(player)) return 0;
-                }
-                case OP -> {
-                    if (!player.hasPermissionLevel(2)) return 0;
-                }
-                case NONE -> {
-                    return 0;
-                }
-            }
-        }
-
-        return super.calcBlockBreakingDelta(state, player, world, pos);
+        return Utils.hasPermission(player, waystone.getUUID(), config::breakingWaystonePermission)
+            ? super.calcBlockBreakingDelta(state, player, world, pos)
+            : 0;
     }
 }

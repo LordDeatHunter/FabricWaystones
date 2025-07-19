@@ -26,8 +26,10 @@ import net.minecraft.world.World;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.api.WaystoneDataStorage;
 import wraith.fwaystones.api.WaystoneInteractionEvents;
 import wraith.fwaystones.api.WaystonePlayerData;
+import wraith.fwaystones.api.core.Ownable;
 import wraith.fwaystones.api.teleport.TeleportAction;
 import wraith.fwaystones.api.teleport.TeleportSource;
 import wraith.fwaystones.integration.lithostitched.LithostitchedPlugin;
@@ -37,11 +39,10 @@ import wraith.fwaystones.registry.WaystoneDataComponents;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.Permissions;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.function.Supplier;
 
 public final class Utils {
 
@@ -419,5 +420,20 @@ public final class Utils {
     public static Text formatWaystoneName(String name) {
         if (name.isEmpty()) return Text.empty();
         return TagParser.QUICK_TEXT_WITH_STF_SAFE.parseText(name, ParserContext.of());
+    }
+
+    public static boolean hasPermission(PlayerEntity player, UUID uuid, Supplier<FWConfigModel.PermissionLevel> permissionLevelSupplier) {
+        var waystone = WaystoneDataStorage.getStorage(player).getData(uuid);
+
+        if (waystone == null || player.hasPermissionLevel(4)) return true;
+
+        var level = permissionLevelSupplier.get();
+
+        return switch (level) {
+            case OWNER -> !(waystone instanceof Ownable data) || data.isOwner(player);
+            case OP -> player.hasPermissionLevel(2);
+            case NONE -> false;
+            case ANYONE -> true;
+        };
     }
 }
