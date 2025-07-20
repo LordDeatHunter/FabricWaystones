@@ -15,7 +15,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import wraith.fwaystones.FabricWaystones;
@@ -25,12 +24,11 @@ import wraith.fwaystones.api.WaystonePlayerData;
 import wraith.fwaystones.api.core.DataChangeType;
 import wraith.fwaystones.api.core.NetworkedWaystoneData;
 import wraith.fwaystones.api.core.WaystoneData;
-import wraith.fwaystones.client.screen.components.BetterDropdownComponent;
-import wraith.fwaystones.client.screen.components.DefinedOrderParent;
-import wraith.fwaystones.client.screen.components.Interactable;
-import wraith.fwaystones.client.screen.components.RenderBuilder;
+import wraith.fwaystones.client.screen.components.*;
 
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static io.wispforest.owo.ui.container.Containers.*;
@@ -46,6 +44,7 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
     private final WaystonePlayerData playerData;
 
     private final int columnWidth = 140;
+    private final int rightPanelWidth = 140;
 
     private final ScrollContainer<FlowLayout> waystoneList = verticalScroll(
         Sizing.fixed(columnWidth), Sizing.fixed(columnWidth + 20),
@@ -224,7 +223,7 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
 
         return verticalFlow(Sizing.content(), Sizing.content())
             .child(
-                verticalFlow(Sizing.fixed(120), Sizing.fixed(120))
+                verticalFlow(Sizing.fixed(rightPanelWidth), Sizing.fixed(140))
                     .child(
                         verticalScroll(Sizing.expand(), Sizing.expand(),
                             verticalFlow(Sizing.content(), Sizing.content())
@@ -232,6 +231,7 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
                                     horizontalFlow(Sizing.content(), Sizing.content())
                                         .child(label(Text.of("ID:")))
                                         .child(label(Text.of(uuid.toString())))
+                                        .gap(3)
                                 )
                                 .<FlowLayout>configure(layout -> {
                                     if (data instanceof NetworkedWaystoneData networkedWaystoneData) {
@@ -241,17 +241,46 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
                                             horizontalFlow(Sizing.content(), Sizing.content())
                                                 .child(label(Text.of("Name:")))
                                                 .child(label(networkedWaystoneData.parsedName()))
+                                                .gap(3)
                                         ).child(
                                             horizontalFlow(Sizing.content(), Sizing.content())
-                                                .child(textBox)
+                                                .child(textBox.verticalSizing(Sizing.fixed(17)).margins(Insets.of(-1)))
                                                 .child(button(Text.of("[]"), btn -> {
                                                     storage.renameWaystone(uuid, textBox.getText());
-                                                }))
+                                                }).verticalSizing(Sizing.fixed(17)))
+                                                .gap(3)
                                         );
                                     }
                                 })
                                 .child(
-                                    button(Text.of("Global"), btn -> storage.toggleGlobal(data.uuid()))
+                                    horizontalFlow(Sizing.content(), Sizing.content())
+                                        .child(label(Text.of("Visibility:")))
+                                        .child(
+                                            button(storage.isGlobal(uuid) ? Text.of("Global") : Text.of("Local"), btn -> {
+                                                var state = storage.isGlobal(uuid);
+
+                                                btn.setMessage(!state ? Text.of("Global") : Text.of("Local"));
+
+                                                storage.toggleGlobal(uuid);
+                                            }).verticalSizing(Sizing.fixed(17))
+                                                .horizontalSizing(Sizing.fixed(40))
+                                        ).gap(3)
+                                        .verticalAlignment(VerticalAlignment.CENTER)
+                                )
+                                .child(
+                                    horizontalFlow(Sizing.content(), Sizing.content())
+                                        .child(label(Text.of("Favorited:")))
+                                        .child(
+                                            button(playerData.isFavorited(uuid) ? Text.of("Yes") : Text.of("No"), btn -> {
+                                                var state = playerData.toggleFavorite(uuid);
+
+                                                btn.setMessage(state ? Text.of("Yes") : Text.of("No"));
+
+                                                getWaystonesIconLayout(uuid).attemptToUpdateComponents();
+                                            }).verticalSizing(Sizing.fixed(17))
+                                                .horizontalSizing(Sizing.fixed(30))
+                                        ).gap(3)
+                                        .verticalAlignment(VerticalAlignment.CENTER)
                                 )
                                 .gap(3)
                             )
@@ -266,7 +295,7 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
 
     private int getLeftPadding() {
         if (openSettingsUUID != WaystoneData.EMPTY_UUID) {
-            return 120 - 8;
+            return rightPanelWidth - 8;
         }
 
         return 0;
@@ -308,12 +337,13 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         );
     }
 
-    private Component favoriteIconBuilder() {
-        return texture(FAVORITE_ICON, 0, 10, 10, 10, 10, 20);
+    private static AdjustableTextureComponent createIcon(Identifier texture){
+        return createIcon(texture, true);
     }
 
-    private Component globalIconBuilder() {
-        return texture(GLOBAL_ICON, 0, 10, 10, 10, 10, 10);
+    private static AdjustableTextureComponent createIcon(Identifier texture, boolean active){
+        return AdjustableTextureComponent.of(texture, 10, 10, 10, 20)
+            .setV(active ? 10 : 0);
     }
 
     private ParentComponent createButtonLayout(UUID uuid) {
@@ -328,15 +358,15 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
         return this.waystoneEntries.get(uuid);
     }
 
-    private DefinedOrderParent getWaystonesIconLayout(UUID uuid){
+    private DefinedOrderParentComponent getWaystonesIconLayout(UUID uuid){
         return getWaystoneComponent(uuid)
-            .childById(DefinedOrderParent.class, "button_layout");
+            .childById(DefinedOrderParentComponent.class, "button_layout");
     }
 
     private void addOverlay(UUID uuid) {
         var cords = getMouseCords();
 
-        Supplier<DefinedOrderParent> iconLayoutAccess = () -> getWaystonesIconLayout(uuid);
+        Supplier<DefinedOrderParentComponent> iconLayoutAccess = () -> getWaystonesIconLayout(uuid);
 
         this.uiAdapter.rootComponent.child(
             new BetterDropdownComponent(Sizing.fixed(100))
@@ -346,43 +376,43 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
                 })
                 .layout(layout -> {
                     layout
-                        .child(favoriteIconBuilder().margins(Insets.right(1)))
+                        .child(createIcon(FAVORITE_ICON, !playerData.isFavorited(uuid)).margins(Insets.right(1)).id("favorite_icon"))
                         .child(label(playerData.isFavorited(uuid) ? Text.of("Unfavorite") : Text.of("Favorite")).id("favorite_action_label"))
                         .gap(2)
                         .verticalAlignment(VerticalAlignment.CENTER)
                         .verticalSizing(Sizing.fixed(13));
                 }, comp -> {
-                    var state = playerData.isFavorited(uuid);
+                    var state = playerData.toggleFavorite(uuid);
 
-                    if(state) {
-                        playerData.removeFavoriteWaystone(uuid);
-                    } else {
-                        playerData.addFavoriteWaystone(uuid);
-                    }
+                    iconLayoutAccess.get().attemptToUpdateComponents();
 
-                    iconLayoutAccess.get().updateComponents();
+                    comp.childById(LabelComponent.class, "favorite_action_label")
+                        .text(state ? Text.of("Unfavorite") : Text.of("Favorite"));
 
-                    var label = comp.childById(LabelComponent.class, "favorite_action_label");
-
-                    label.text(state ? Text.of("Unfavorite") : Text.of("Favorite"));
+                    comp.childById(AdjustableTextureComponent.class, "favorite_icon")
+                        .setV(state ? 0 : 10);
 
                     setWaystoneList();
                 })
                 .layout(layout -> {
                     layout
-                        .child(globalIconBuilder().margins(Insets.right(1)))
-                        .child(label(playerData.isFavorited(uuid) ? Text.of("Set Global") : Text.of("Set Local")).id("global_action_label"))
+                        .child(createIcon(GLOBAL_ICON, !storage.isGlobal(uuid)).margins(Insets.right(1)).id("global_icon"))
+                        .child(label(storage.isGlobal(uuid) ? Text.of("Set Local") : Text.of("Set Global")).id("global_action_label"))
                         .gap(2)
                         .verticalAlignment(VerticalAlignment.CENTER)
                         .verticalSizing(Sizing.fixed(13));
                 }, comp -> {
-                    iconLayoutAccess.get().updateComponentsWithOverrides(Map.of("global_icon", true));
+                    var state = !storage.isGlobal(uuid);
+
+                    iconLayoutAccess.get().updateComponentsWithOverrides(Map.of("global_icon", state));
 
                     storage.toggleGlobal(uuid);
 
-                    var label = comp.childById(LabelComponent.class, "global_action_label");
+                    comp.childById(LabelComponent.class, "global_action_label")
+                        .text(state ? Text.of("Set Local") : Text.of("Set Global"));
 
-                    label.text(storage.isGlobal(uuid) ? Text.of("Set Global") : Text.of("Set Local"));
+                    comp.childById(AdjustableTextureComponent.class, "global_icon")
+                        .setV(state ? 0 : 10);
                 })
                 .layout(layout -> {
                     layout
@@ -493,18 +523,17 @@ public class ExperimentalWaystoneScreen extends BaseOwoHandledScreen<FlowLayout,
                     )
                 )
                 .child(
-                    createDefinedHolder(Sizing.content(), Sizing.content(), false, definedBuilder -> {
-                        definedBuilder.add(
-                                Components.button(Text.empty(), btn -> setupSettingsWindow(uuid))
-                                    .renderer(ButtonComponent.Renderer.texture(FabricWaystones.gui("settings_icon"), 0, 0, 12, 12))
-                                    .sizing(Sizing.fixed(12))
-                            )
-                            .add("color_icon", () -> colorIconBuilder(uuid), () -> !data.isDefaultColor())
-                            .add("global_icon", ExperimentalWaystoneScreen.this::globalIconBuilder, () -> storage.isGlobal(uuid))
-                            .add("favorite_icon", ExperimentalWaystoneScreen.this::favoriteIconBuilder, () -> playerData.isFavorited(uuid));
-                    }).<DefinedOrderParent>configure(component -> {
-                            component.child()
-                                .gap(2)
+                    createDefinedHolder(Sizing.content(), Sizing.content(), false)
+                        .addStatic(
+                            Components.button(Text.empty(), btn -> setupSettingsWindow(uuid))
+                                .renderer(ButtonComponent.Renderer.texture(FabricWaystones.gui("settings_icon"), 0, 0, 12, 12))
+                                .sizing(Sizing.fixed(12))
+                        )
+                        .addConditional("color_icon", () -> colorIconBuilder(uuid), () -> !data.isDefaultColor())
+                        .addConditional("global_icon", () -> createIcon(GLOBAL_ICON), () -> storage.isGlobal(uuid))
+                        .addConditional("favorite_icon", () -> createIcon(FAVORITE_ICON), () -> playerData.isFavorited(uuid))
+                        .configureBaseLayout(layout -> {
+                            layout.gap(2)
                                 .verticalAlignment(VerticalAlignment.CENTER)
                                 .padding(Insets.of(2));
                         })

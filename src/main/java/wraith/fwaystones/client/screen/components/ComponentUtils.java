@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class ComponentUtils {
@@ -40,8 +39,8 @@ public class ComponentUtils {
         return new Vector2i(screenX, screenY);
     }
 
-    public static DefinedOrderParent createDefinedHolder(Sizing horizontalSizing, Sizing verticalSizing, boolean isVertical, Consumer<DefinedOrderParent.DefinedBuilder> builderFunc) {
-        return new DefinedOrderParent(horizontalSizing, verticalSizing, isVertical, builderFunc);
+    public static DefinedOrderParentComponent createDefinedHolder(Sizing horizontalSizing, Sizing verticalSizing, boolean isVertical) {
+        return new DefinedOrderParentComponent(horizontalSizing, verticalSizing, isVertical);
     }
 
     private static void addIfMissing(Supplier<FlowLayout> layout, SequencedMap<String, Supplier<Component>> map) {

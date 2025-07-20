@@ -36,7 +36,8 @@
     "client.SpriteAtlasHolderAccessor",
     "xaeros.WaypointWorldRendererMixin",
     "fabric.ForwardingBakedModelMixin",
-    "client.BakedModelMixin"
+    "client.BakedModelMixin",
+    "owo.TextureComponentAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

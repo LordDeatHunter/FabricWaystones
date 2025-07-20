@@ -303,6 +303,16 @@ public class WaystonePlayerData {
 
     //--
 
+    public boolean toggleFavorite(UUID uuid) {
+        if (isFavorited(uuid)) {
+            removeFavoriteWaystone(uuid);
+        } else {
+            addFavoriteWaystone(uuid);
+        }
+
+        return isFavorited(uuid);
+    }
+
     public void addFavoriteWaystone(UUID uuid) {
         favoriteWaystones.add(uuid);
         syncDataChange(FAVORITE_WAYSTONES_KEY);
