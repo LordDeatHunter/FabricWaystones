@@ -374,15 +374,18 @@ public class WaystoneStorage {
                 return null;
             }
             if (this.entity == null) {
-                for (ServerWorld world : server.getWorlds()) {
-                    if (Utils.getDimensionName(world).equals(dimension)) {
-                        WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, pos);
-                        if (entity != null) {
-                            tryAddWaystone(entity); // should allow this instance to be GCed
-                            this.entity = entity;
-                            this.world = world;
-                        }
-                        break;
+                // Use TeleportationOptimizer's cached dimension lookup to avoid iterating all worlds
+                ServerWorld targetWorld = TeleportationOptimizer.getInstance().getWorldByDimension(
+                    dimension,
+                    server.getOverworld() // fallback world
+                );
+
+                if (targetWorld != null && Utils.getDimensionName(targetWorld).equals(dimension)) {
+                    WaystoneBlockEntity entity = WaystoneBlock.getEntity(targetWorld, pos);
+                    if (entity != null) {
+                        tryAddWaystone(entity); // should allow this instance to be GCed
+                        this.entity = entity;
+                        this.world = targetWorld;
                     }
                 }
             }

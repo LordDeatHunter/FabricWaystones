@@ -3,6 +3,7 @@ package wraith.fwaystones.util;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
@@ -31,11 +32,19 @@ public class WaystonesEventManager {
             }
             FabricWaystones.WAYSTONE_STORAGE.saveWaystones(false);
             FabricWaystones.WAYSTONE_STORAGE = null;
+
+            // Shutdown teleportation optimizer
+            TeleportationOptimizer.getInstance().shutdown();
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> FabricWaystones.WAYSTONE_STORAGE.sendToPlayer(handler.player));
         ServerLifecycleEvents.SERVER_STARTING.register(WaystonesWorldgen::registerVanillaVillageWorldgen);
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> FabricWaystones.CONFIG.load());
+
+        // Register server tick event to process queued teleportations
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            TeleportationOptimizer.getInstance().tick();
+        });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).fabricWaystones$syncData());
 

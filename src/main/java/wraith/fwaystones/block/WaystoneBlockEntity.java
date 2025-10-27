@@ -368,7 +368,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             new Vec3d(0, 0, 0),
             fYaw,
             0,
-            TeleportTarget.ADD_PORTAL_CHUNK_TICKET
+            false // Chunk loading handled by TeleportationOptimizer
         );
         if (source == null) {
             return false;
@@ -417,14 +417,25 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole();
         });
         var oldPos = player.getBlockPos();
-        player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
-        player.detach();
-        player.teleportTo(target);
-        BlockPos playerPos = player.getBlockPos();
+        var oldWorld = player.getWorld();
 
-        if (!oldPos.isWithinDistance(playerPos, 6) || !player.getWorld().getRegistryKey().equals(world.getRegistryKey())) {
-            world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
-        }
+        // Play departure sound immediately
+        player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+
+        // Use TeleportationOptimizer for async chunk loading and queued teleport
+        TeleportationOptimizer.getInstance().queueTeleport(player, world, target, () -> {
+            // This callback runs after successful teleport
+            BlockPos playerPos = player.getBlockPos();
+
+            // Play arrival sound if teleported far or to different dimension
+            if (!oldPos.isWithinDistance(playerPos, 6) || !oldWorld.getRegistryKey().equals(world.getRegistryKey())) {
+                // Schedule sound slightly delayed to avoid sync spike
+                player.getServer().execute(() -> {
+                    world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+                });
+            }
+        });
+
         return true;
     }
 
