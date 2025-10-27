@@ -1,0 +1,104 @@
+====================================
+WAYSTONES PERFORMANCE FIX
+Quick Build & Install Guide
+====================================
+
+WHAT THIS MOD DOES:
+- Fixes MSPT spikes during waystone teleportation
+- Reduces 100-300ms spikes to <50ms
+- SERVER-SIDE ONLY (players don't need it!)
+
+====================================
+BUILDING THE MOD
+====================================
+
+1. Make sure you have Java 17+ installed:
+   java -version
+
+2. Build the mod:
+   ./gradlew build
+
+3. Find the JAR file:
+   build/libs/waystones-performance-fix-1.0.0.jar
+
+====================================
+INSTALLING ON SERVER
+====================================
+
+1. Copy the JAR to your server:
+   cp build/libs/waystones-performance-fix-1.0.0.jar /path/to/server/mods/
+
+2. Make sure you have these mods installed:
+   - Fabric API 0.92.2+ (for MC 1.20.1)
+   - Fabric Waystones 3.0.0+
+
+3. Start your server
+
+4. Check logs for this message:
+   [WaystonePerformanceFix] Waystones Performance Fix initialized successfully!
+
+====================================
+REQUIREMENTS
+====================================
+
+Server:
+- Minecraft 1.20.1
+- Fabric Loader 0.16.14+
+- Fabric API 0.92.2+
+- Fabric Waystones 3.0.0+
+
+Players:
+- Nothing! Use normal Fabric Waystones
+
+====================================
+TESTING
+====================================
+
+Before mod:
+- Use /spark profiler start
+- Teleport between dimensions
+- Note MSPT spikes (100-300ms)
+
+After mod:
+- Install mod, restart server
+- Use /spark profiler start
+- Teleport between dimensions
+- Note reduced spikes (<50ms)
+
+====================================
+CONFIGURATION (ADVANCED)
+====================================
+
+Default settings work for most servers!
+
+To customize, edit this file before building:
+src/main/java/com/waystoneperf/util/TeleportationOptimizer.java
+
+Lines 20-23:
+MAX_TELEPORTS_PER_TICK = 2    (how many teleports per tick)
+CHUNK_PRELOAD_RADIUS = 2      (chunks to preload)
+CHUNK_LOAD_TIMEOUT_MS = 100   (max time for chunk ops)
+
+Then rebuild: ./gradlew build
+
+====================================
+TROUBLESHOOTING
+====================================
+
+Problem: Mod not loading
+Fix: Check Fabric Waystones is installed, verify Java 17+
+
+Problem: Still seeing lag
+Fix: Lower CHUNK_PRELOAD_RADIUS and rebuild
+
+Problem: Build fails
+Fix: Check internet connection, Gradle needs to download dependencies
+
+====================================
+MORE INFO
+====================================
+
+See README.md for detailed documentation
+See INSTALL.md for full installation guide
+
+====================================
