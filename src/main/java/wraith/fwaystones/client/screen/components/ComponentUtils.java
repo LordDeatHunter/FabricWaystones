@@ -1,16 +1,18 @@
 package wraith.fwaystones.client.screen.components;
 
+import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.WrappingParentComponent;
-import io.wispforest.owo.ui.core.Component;
-import io.wispforest.owo.ui.core.OwoUIDrawContext;
-import io.wispforest.owo.ui.core.Sizing;
+import io.wispforest.owo.ui.core.*;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 
 import java.util.*;
 import java.util.function.Supplier;
+
+import static io.wispforest.owo.ui.component.Components.box;
 
 public class ComponentUtils {
     public static Component wrapNonInteractive(Component component) {
@@ -86,5 +88,27 @@ public class ComponentUtils {
         if (button != null && extraCheck.get()) {
             layout.removeChild(button);
         }
+    }
+
+    public static AdjustableTextureComponent createIcon(Identifier texture){
+        return createIcon(texture, true);
+    }
+
+    public static AdjustableTextureComponent createIcon(Identifier texture, boolean active){
+        return AdjustableTextureComponent.of(texture, 10, 10, 10, 20)
+            .setV(active ? 10 : 0);
+    }
+
+    public static Component createColoredIcon(int color) {
+        return wrapNonInteractive(
+            Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .child(
+                    box(Sizing.fixed(8), Sizing.fixed(8))
+                        .fill(true)
+                        .color(Color.ofRgb(color))
+                )
+                .padding(Insets.of(1))
+                .surface(Surface.outline(Color.BLACK.interpolate(Color.WHITE, 0.2f).argb()))
+        );
     }
 }

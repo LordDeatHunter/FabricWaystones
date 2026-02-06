@@ -38,7 +38,6 @@ public class WaystonePlayerData {
     private static final StructField<WaystonePlayerData, Set<WaystonePosition>> LEGACY_POSITIONS =
             optionalFieldOf(WaystonePosition.DEPRECATED_ENDEC.setOf(), "discovered_waystones", data -> Set.of(), Set::of);
 
-
     private static final WaystonePlayerDataKey<Set<UUID>> DISCOVERED_WAYSTONES_KEY = new WaystonePlayerDataKey<>("discovered_waystones_ids", collectionOf(BuiltInEndecs.UUID, ConcurrentHashMap::newKeySet), WaystonePlayerData::discoveredWaystones);
     private static final WaystonePlayerDataKey<List<UUID>> FAVORITE_WAYSTONES_KEY = new WaystonePlayerDataKey<>("favorite_waystones_ids", collectionOf(BuiltInEndecs.UUID, ArrayList::new), WaystonePlayerData::favoriteWaystones);
     private static final WaystonePlayerDataKey<Boolean> VIEW_DISCOVERED_WAYSTONES_KEY = new WaystonePlayerDataKey<>("view_discovered_waystones", Endec.BOOLEAN, WaystonePlayerData::viewDiscoveredWaystones);
