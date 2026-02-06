@@ -1,0 +1,110 @@
+{
+  "block.waystone.teleport": {
+    "sounds": [
+      "mob/endermen/portal",
+      "mob/endermen/portal2"
+    ],
+    "subtitle": "subtitles.block.fwaystones.waystone.teleport"
+  },
+  "block.waystone.initialize": {
+    "sounds": [
+      "block/amethyst/step1",
+      "block/amethyst/step2",
+      "block/amethyst/step3",
+      "block/amethyst/step4",
+      "block/amethyst/step5",
+      "block/amethyst/step6",
+      "block/amethyst/step7",
+      "block/amethyst/step8",
+      "block/amethyst/step9",
+      "block/amethyst/step10",
+      "block/amethyst/step11",
+      "block/amethyst/step12"
+    ]
+  },
+  "block.waystone.activate": {
+    "sounds": [
+      "block/beacon/power1",
+      "block/beacon/power2",
+      "block/beacon/power3"
+    ],
+    "subtitle": "subtitles.block.fwaystones.waystone.activate"
+  },
+  "block.waystone.deactivate": {
+    "sounds": [
+      {
+        "name": "entity/endereye/dead1",
+        "volume": 1.3
+      },
+      {
+        "name": "entity/endereye/dead2",
+        "volume": 1.3
+      }
+    ],
+    "subtitle": "subtitles.block.fwaystones.waystone.deactivate"
+  },
+  "block.waystone.deactivate2": {
+    "sounds": [
+      {
+        "name": "block/amethyst_cluster/break1",
+        "pitch": 0.8,
+        "volume": 0.8
+      },
+      {
+        "name": "block/amethyst_cluster/break2",
+        "pitch": 0.8,
+        "volume": 0.8
+      },
+      {
+        "name": "block/amethyst_cluster/break3",
+        "pitch": 0.8,
+        "volume": 0.8
+      },
+      {
+        "name": "block/amethyst_cluster/break4",
+        "pitch": 0.8,
+        "volume": 0.8
+      }
+    ]
+  },
+  "block.waystone.shear": {
+    "sounds": [
+      "mob/sheep/shear"
+    ],
+    "subtitle": "subtitles.item.shears.shear"
+  },
+  "block.waystone.clean_sponge": {
+    "sounds": [
+      "block/sponge/wet_sponge/break1",
+      "block/sponge/wet_sponge/break2",
+      "block/sponge/wet_sponge/break3",
+      "block/sponge/wet_sponge/break4"
+    ],
+    "subtitle": "subtitles.block.fwaystones.waystone.clean_sponge"
+  },
+  "block.waystone.clean_bucket": {
+    "sounds": [
+      {"name": "block/cauldron/dye1", "volume": 0.9},
+      {"name": "block/cauldron/dye2", "volume": 0.9},
+      {"name": "block/cauldron/dye3", "volume": 0.9}
+    ],
+    "subtitle": "subtitles.block.fwaystones.waystone.clean_bucket"
+  },
+  "block.waystone.clean_bucket_steal": {
+    "sounds": [
+      {"name": "block/cauldron/dye1", "volume": 0.9},
+      {"name": "block/cauldron/dye2", "volume": 0.9},
+      {"name": "block/cauldron/dye3", "volume": 0.9}
+    ],
+    "subtitle": "subtitles.block.fwaystones.waystone.clean_bucket_steal"
+  },
+  "block.waystone.moss_apply": {
+    "sounds": [
+      {"name": "block/vine/break1", "volume": 0.9},
+      {"name": "block/vine/break2", "volume": 0.9},
+      {"name": "block/vine/break3", "volume": 0.9},
+      {"name": "block/vine/break4", "volume": 0.9}
+    ],
+    "subtitle": "subtitles.block.generic.place"
+  }
+}

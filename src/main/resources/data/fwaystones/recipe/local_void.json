@@ -1,16 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " P ",
-    "PSP",
-    " P "
+    "GOG",
+    "OEO",
+    "GOG"
   ],
   "key": {
-    "P": {
-      "item": "minecraft:blaze_powder"
+    "O": {
+      "item": "minecraft:obsidian"
     },
-    "S": {
-      "item": "fwaystones:abyss_watcher"
+    "E": {
+      "item": "minecraft:ender_pearl"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
     }
   },
   "result": {

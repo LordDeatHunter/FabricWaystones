@@ -1,0 +1,15 @@
+{
+  "texture": "fwaystones:textures/gui/waystone_buttons.png",
+  "texture_width": 9,
+  "texture_height": 27,
+  "v": 18,
+  "repeat": true,
+  "corner_patch_size": {
+    "width": 3,
+    "height": 3
+  },
+  "center_patch_size": {
+    "width": 3,
+    "height": 3
+  }
+}
