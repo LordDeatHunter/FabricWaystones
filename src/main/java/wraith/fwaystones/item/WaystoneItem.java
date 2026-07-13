@@ -3,13 +3,14 @@ package wraith.fwaystones.item;
 import net.minecraft.block.Block;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import java.util.List;
+import java.util.function.Consumer;
 
 public class WaystoneItem extends BlockItem {
 
@@ -18,22 +19,22 @@ public class WaystoneItem extends BlockItem {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        super.appendTooltip(stack, context, tooltip, type);
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        super.appendTooltip(stack, context, displayComponent, tooltip, type);
         NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (component == null) {
             return;
         }
         NbtCompound tag = component.getNbt();
-        String name = tag.getString("waystone_name");
-        boolean global = tag.getBoolean("waystone_is_global");
-        tooltip.add(Text.translatable(
+        String name = tag.getString("waystone_name", "");
+        boolean global = tag.getBoolean("waystone_is_global", false);
+        tooltip.accept(Text.translatable(
             "fwaystones.waystone_tooltip.name",
             Text.literal(name).styled(style ->
                 style.withColor(TextColor.parse(Text.translatable("fwaystones.waystone_tooltip.name.arg_color").getString()).getOrThrow())
             )
         ));
-        tooltip.add(Text.translatable("fwaystones.waystone_tooltip.global").append(" ")
+        tooltip.accept(Text.translatable("fwaystones.waystone_tooltip.global").append(" ")
             .append(Text.translatable("fwaystones.waystone_tooltip.global_" + (global ? "on" : "off"))));
     }
 

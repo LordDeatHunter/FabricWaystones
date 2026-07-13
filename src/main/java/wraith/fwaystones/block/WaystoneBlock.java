@@ -346,14 +346,16 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
     }
 
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+    public void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
         BlockPos newPos;
         DoubleBlockHalf verticalPosition;
 
         if (state.getBlock() != this) {
-            super.onStateReplaced(state, world, pos, newState, moved);
+            super.onStateReplaced(state, world, pos, moved);
             return;
         }
+
+        BlockState newState = world.getBlockState(pos);
 
         if (state.get(WaystoneBlock.HALF) == DoubleBlockHalf.UPPER) {
             newPos = pos.down();
@@ -369,7 +371,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
                 testPos = pos.down();
             }
             BlockEntity entity = world.getBlockEntity(testPos);
-            if (!world.isClient && entity instanceof WaystoneBlockEntity waystone) {
+            if (entity instanceof WaystoneBlockEntity waystone) {
                 FabricWaystones.WAYSTONE_STORAGE.removeWaystone(waystone);
             }
             world.removeBlockEntity(testPos);
@@ -378,7 +380,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable {
             var fluid = world.getFluidState(newPos).getFluid() == Fluids.WATER && verticalPosition == DoubleBlockHalf.LOWER;
             world.setBlockState(newPos, newState.with(WaystoneBlock.HALF, verticalPosition).with(WATERLOGGED, fluid));
         }
-        super.onStateReplaced(state, world, pos, newState, moved);
+        super.onStateReplaced(state, world, pos, moved);
     }
 
     public FluidState getFluidState(BlockState state) {

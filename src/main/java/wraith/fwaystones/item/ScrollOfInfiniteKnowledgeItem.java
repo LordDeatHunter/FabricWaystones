@@ -1,5 +1,6 @@
 package wraith.fwaystones.item;
 
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -12,7 +13,7 @@ import net.minecraft.world.World;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import java.util.HashSet;
-import java.util.List;
+import java.util.function.Consumer;
 
 public class ScrollOfInfiniteKnowledgeItem extends Item {
 
@@ -70,15 +71,15 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        super.appendTooltip(stack, context, tooltip, type);
-        tooltip.add(Text.translatable("fwaystones.scroll.infinite"));
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        super.appendTooltip(stack, context, displayComponent, tooltip, type);
+        tooltip.accept(Text.translatable("fwaystones.scroll.infinite"));
         int count = -1;
         if (FabricWaystones.WAYSTONE_STORAGE != null) {
             count = FabricWaystones.WAYSTONE_STORAGE.getCount();
         }
         if (count != -1) {
-            tooltip.add(Text.translatable(
+            tooltip.accept(Text.translatable(
                 "fwaystones.scroll.infinite_tooltip",
                 Text.literal(String.valueOf(count)).styled(style ->
                     style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.infinite_tooltip.arg_color").getString()).getOrThrow())

@@ -5,6 +5,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Uuids;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.block.WaystoneDataPacket;
@@ -41,15 +42,11 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
         this.isClient = playerInventory.player.getWorld().isClient;
         NbtCompound tag = buf.readNbt();
         if (tag != null) {
-            this.hash = tag.getString("waystone_hash");
-            this.name = tag.getString("waystone_name");
-            if (tag.contains("waystone_owner")) {
-                this.owner = tag.getUuid("waystone_owner");
-            }
-            if (tag.contains("waystone_owner_name")) {
-                this.ownerName = tag.getString("waystone_owner_name");
-            }
-            this.isGlobal = tag.getBoolean("waystone_is_global");
+            this.hash = tag.getString("waystone_hash", "");
+            this.name = tag.getString("waystone_name", "");
+            this.owner = tag.get("waystone_owner", Uuids.INT_STREAM_CODEC).orElse(null);
+            tag.getString("waystone_owner_name").ifPresent(ownerName -> this.ownerName = ownerName);
+            this.isGlobal = tag.getBoolean("waystone_is_global", false);
         }
         updateWaystones(player);
     }

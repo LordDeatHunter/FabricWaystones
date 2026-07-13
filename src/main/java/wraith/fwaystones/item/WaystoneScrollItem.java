@@ -1,5 +1,6 @@
 package wraith.fwaystones.item;
 
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -16,6 +17,7 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.registry.DataComponentRegistry;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class WaystoneScrollItem extends Item {
 
@@ -103,13 +105,13 @@ public class WaystoneScrollItem extends Item {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        super.appendTooltip(stack, context, tooltip, type);
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        super.appendTooltip(stack, context, displayComponent, tooltip, type);
         List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
         if (waystones == null || waystones.isEmpty()) {
             return;
         }
-        tooltip.add(Text.translatable(
+        tooltip.accept(Text.translatable(
             "fwaystones.scroll.tooltip",
             Text.literal(String.valueOf(waystones.size())).styled(style ->
                 style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.tooltip.arg_color").getString()).getOrThrow())

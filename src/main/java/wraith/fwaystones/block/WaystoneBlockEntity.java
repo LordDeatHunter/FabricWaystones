@@ -11,7 +11,6 @@ import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryWrapper;
@@ -23,6 +22,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Uuids;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -138,20 +138,12 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     @Override
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         super.readNbt(nbt, lookup);
-        if (nbt.contains("waystone_name")) {
-            this.name = nbt.getString("waystone_name");
-        }
-        if (nbt.contains("waystone_is_global")) {
-            this.isGlobal = nbt.getBoolean("waystone_is_global");
-        }
-        if (nbt.contains("waystone_owner")) {
-            this.owner = nbt.getUuid("waystone_owner");
-        }
-        if (nbt.contains("waystone_owner_name")) {
-            this.ownerName = nbt.getString("waystone_owner_name");
-        }
-        this.color = nbt.contains("color", NbtElement.INT_TYPE) ? nbt.getInt("color") : null;
-        this.inventory = DefaultedList.ofSize(nbt.getInt("inventory_size"), ItemStack.EMPTY);
+        nbt.getString("waystone_name").ifPresent(name -> this.name = name);
+        nbt.getBoolean("waystone_is_global").ifPresent(global -> this.isGlobal = global);
+        nbt.get("waystone_owner", Uuids.INT_STREAM_CODEC).ifPresent(owner -> this.owner = owner);
+        nbt.getString("waystone_owner_name").ifPresent(ownerName -> this.ownerName = ownerName);
+        this.color = nbt.getInt("color").orElse(null);
+        this.inventory = DefaultedList.ofSize(nbt.getInt("inventory_size", 0), ItemStack.EMPTY);
         Inventories.readNbt(nbt, inventory, lookup);
     }
 
@@ -164,7 +156,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private void createTag(NbtCompound tag) {
         tag.putString("waystone_name", this.name);
         if (this.owner != null) {
-            tag.putUuid("waystone_owner", this.owner);
+            tag.put("waystone_owner", Uuids.INT_STREAM_CODEC, this.owner);
         }
         if (this.ownerName != null) {
             tag.putString("waystone_owner_name", this.ownerName);
@@ -258,11 +250,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         int rd = r.nextInt(10);
         if (rd > 5) {
             if (p == ParticleTypes.ENCHANT) {
-                this.world.addParticle(p, playerPos.x, playerPos.y + 1.5D, playerPos.z,
+                this.world.addParticleClient(p, playerPos.x, playerPos.y + 1.5D, playerPos.z,
                     (getPos().getX() + 0.5D - playerPos.x), (y - 1.25D - playerPos.y),
                     (getPos().getZ() + 0.5D - playerPos.z));
             } else {
-                this.world.addParticle(p, this.getPos().getX() + 0.5D, y + 0.8D,
+                this.world.addParticleClient(p, this.getPos().getX() + 0.5D, y + 0.8D,
                     this.getPos().getZ() + 0.5D,
                     (playerPos.x - getPos().getX()) - r.nextDouble(),
                     (playerPos.y - getPos().getY() - 0.5D) - r.nextDouble() * 0.5D,
@@ -270,7 +262,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             }
         }
         if (rd > 8) {
-            this.world.addParticle(p, y + 0.5D, this.getPos().getY() + 0.8D,
+            this.world.addParticleClient(p, y + 0.5D, this.getPos().getY() + 0.8D,
                 this.getPos().getZ() + 0.5D,
                 r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D, r.nextDouble() * k);
         }

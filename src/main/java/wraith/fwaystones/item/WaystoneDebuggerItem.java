@@ -1,6 +1,7 @@
 package wraith.fwaystones.item;
 
 import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -16,7 +17,7 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.util.Utils;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class WaystoneDebuggerItem extends Item {
 
@@ -76,9 +77,9 @@ public class WaystoneDebuggerItem extends Item {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        super.appendTooltip(stack, context, tooltip, type);
-        tooltip.add(Text.translatable("fwaystones.debug.debugger_tooltip" + TOOLTIP_MESSAGE));
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        super.appendTooltip(stack, context, displayComponent, tooltip, type);
+        tooltip.accept(Text.translatable("fwaystones.debug.debugger_tooltip" + TOOLTIP_MESSAGE));
     }
 
 }

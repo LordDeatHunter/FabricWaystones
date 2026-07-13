@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.tag.DamageTypeTags;
@@ -236,7 +235,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         if (!tag.contains(FabricWaystones.MOD_ID)) {
             return;
         }
-        tag = tag.getCompound(FabricWaystones.MOD_ID);
+        tag = tag.getCompoundOrEmpty(FabricWaystones.MOD_ID);
         if (tag.contains("discovered_waystones")) {
             var oldDiscovered = new HashSet<>(discoveredWaystones);
             discoveredWaystones.clear();
@@ -244,9 +243,9 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             if (FabricWaystones.WAYSTONE_STORAGE != null) {
                 hashes = FabricWaystones.WAYSTONE_STORAGE.getAllHashes();
             }
-            tag.getList("discovered_waystones", NbtElement.STRING_TYPE)
+            tag.getListOrEmpty("discovered_waystones")
                 .stream()
-                .map(NbtElement::asString)
+                .flatMap(element -> element.asString().stream())
                 .filter(hashes::contains)
                 .forEach(hash -> {
                     discoveredWaystones.add(hash);
@@ -255,23 +254,16 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
                     }
                 });
         }
-        if (tag.contains("view_global_waystones")) {
-            this.viewGlobalWaystones = tag.getBoolean("view_global_waystones");
-        }
-        if (tag.contains("view_discovered_waystones")) {
-            this.viewDiscoveredWaystones = tag.getBoolean("view_discovered_waystones");
-        }
-        if (tag.contains("autofocus_waystone_fields")) {
-            this.autofocusWaystoneFields = tag.getBoolean("autofocus_waystone_fields");
-        }
-        if (tag.contains("teleportCooldown")) {
-            this.teleportCooldown = tag.getInt("teleportCooldown");
-        }
+        tag.getBoolean("view_global_waystones").ifPresent(value -> this.viewGlobalWaystones = value);
+        tag.getBoolean("view_discovered_waystones").ifPresent(value -> this.viewDiscoveredWaystones = value);
+        tag.getBoolean("autofocus_waystone_fields").ifPresent(value -> this.autofocusWaystoneFields = value);
+        tag.getInt("teleportCooldown").ifPresent(value -> this.teleportCooldown = value);
         if (tag.contains("waystone_search_type")) {
+            String searchType = tag.getString("waystone_search_type", "");
             try {
-                this.waystoneSearchType = SearchType.valueOf(tag.getString("waystone_search_type"));
+                this.waystoneSearchType = SearchType.valueOf(searchType);
             } catch (IllegalArgumentException e) {
-                FabricWaystones.LOGGER.warn("Received invalid waystone search type: " + tag.getString("waystone_search_type"));
+                FabricWaystones.LOGGER.warn("Received invalid waystone search type: " + searchType);
             }
         }
     }

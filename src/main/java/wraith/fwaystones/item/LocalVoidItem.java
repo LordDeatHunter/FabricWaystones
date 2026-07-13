@@ -1,5 +1,6 @@
 package wraith.fwaystones.item;
 
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -15,7 +16,7 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.registry.DataComponentRegistry;
 import wraith.fwaystones.util.TeleportSources;
-import java.util.List;
+import java.util.function.Consumer;
 
 public class LocalVoidItem extends Item {
 
@@ -67,17 +68,17 @@ public class LocalVoidItem extends Item {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        super.appendTooltip(stack, context, tooltip, type);
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
+        super.appendTooltip(stack, context, displayComponent, tooltip, type);
         String name = null;
 
         var hash = stack.get(DataComponentRegistry.BOUND_WAYSTONE);
         if (hash != null) name = FabricWaystones.WAYSTONE_STORAGE.getName(hash);
         if (name == null) {
-            tooltip.add(Text.translatable("fwaystones." + translationName + ".empty_tooltip"));
+            tooltip.accept(Text.translatable("fwaystones." + translationName + ".empty_tooltip"));
             return;
         }
-        tooltip.add(Text.translatable(
+        tooltip.accept(Text.translatable(
             "fwaystones." + translationName + ".tooltip",
             Text.literal(name).styled(style ->
                 style.withColor(TextColor.parse(Text.translatable("fwaystones." + translationName + ".tooltip.arg_color").getString()).getOrThrow())

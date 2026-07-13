@@ -268,17 +268,8 @@ public final class Utils {
 
     public static boolean containsItem(PlayerInventory inventory, Item item, int maxAmount) {
         int amount = 0;
-        for (ItemStack stack : inventory.main) {
-            if (stack.getItem().equals(item)) {
-                amount += stack.getCount();
-            }
-        }
-        for (ItemStack stack : inventory.offHand) {
-            if (stack.getItem().equals(item)) {
-                amount += stack.getCount();
-            }
-        }
-        for (ItemStack stack : inventory.armor) {
+        for (int i = 0; i < inventory.size(); ++i) {
+            ItemStack stack = inventory.getStack(i);
             if (stack.getItem().equals(item)) {
                 amount += stack.getCount();
             }
@@ -287,27 +278,8 @@ public final class Utils {
     }
 
     public static void removeItem(PlayerInventory inventory, Item item, int totalAmount) {
-        for (ItemStack stack : inventory.main) {
-            if (stack.getItem().equals(item)) {
-                int amount = stack.getCount();
-                stack.decrement(totalAmount);
-                totalAmount -= amount;
-            }
-            if (totalAmount <= 0) {
-                return;
-            }
-        }
-        for (ItemStack stack : inventory.offHand) {
-            if (stack.getItem().equals(item)) {
-                int amount = stack.getCount();
-                stack.decrement(totalAmount);
-                totalAmount -= amount;
-            }
-            if (totalAmount <= 0) {
-                return;
-            }
-        }
-        for (ItemStack stack : inventory.armor) {
+        for (int i = 0; i < inventory.size(); ++i) {
+            ItemStack stack = inventory.getStack(i);
             if (stack.getItem().equals(item)) {
                 int amount = stack.getCount();
                 stack.decrement(totalAmount);
