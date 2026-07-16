@@ -1,46 +1,46 @@
 package wraith.fwaystones.block;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
 import wraith.fwaystones.FabricWaystones;
 import java.util.UUID;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-public record WaystoneDataPacket(String hash, String name, UUID owner, boolean isGlobal, boolean canUse, boolean isClient, String ownerName) implements CustomPayload {
-    public static final Id<WaystoneDataPacket> PACKET_ID = new Id<>(Identifier.of(FabricWaystones.MOD_ID, "waystone_packet"));
-    public static final PacketCodec<RegistryByteBuf, WaystoneDataPacket> PACKET_CODEC = PacketCodec.of(WaystoneDataPacket::write, WaystoneDataPacket::new);
+public record WaystoneDataPacket(String hash, String name, UUID owner, boolean isGlobal, boolean canUse, boolean isClient, String ownerName) implements CustomPacketPayload {
+    public static final Type<WaystoneDataPacket> PACKET_ID = new Type<>(ResourceLocation.fromNamespaceAndPath(FabricWaystones.MOD_ID, "waystone_packet"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, WaystoneDataPacket> PACKET_CODEC = StreamCodec.ofMember(WaystoneDataPacket::write, WaystoneDataPacket::new);
 
-    public WaystoneDataPacket(RegistryByteBuf buf) {
-        this(buf.readString(32767), buf.readString(32767), buf.readUuid(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readString(32767));
+    public WaystoneDataPacket(RegistryFriendlyByteBuf buf) {
+        this(buf.readUtf(32767), buf.readUtf(32767), buf.readUUID(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readUtf(32767));
     }
 
     public WaystoneDataPacket(UUID owner, String hash, String name, boolean isGlobal, boolean canUse, boolean isClient, String ownerName) {
         this(hash, name, owner, isGlobal, canUse, isClient, ownerName);
     }
 
-    public void write(RegistryByteBuf buf) {
-        buf.writeString(hash);
-        buf.writeString(name);
-        buf.writeUuid(owner);
+    public void write(RegistryFriendlyByteBuf buf) {
+        buf.writeUtf(hash);
+        buf.writeUtf(name);
+        buf.writeUUID(owner);
         buf.writeBoolean(isGlobal);
         buf.writeBoolean(canUse);
         buf.writeBoolean(isClient);
-        buf.writeString(ownerName);
+        buf.writeUtf(ownerName);
     }
 
-    public static void write2(RegistryByteBuf buf, WaystoneDataPacket packet) {
-        buf.writeString(packet.hash);
-        buf.writeString(packet.name);
-        buf.writeUuid(packet.owner);
+    public static void write2(RegistryFriendlyByteBuf buf, WaystoneDataPacket packet) {
+        buf.writeUtf(packet.hash);
+        buf.writeUtf(packet.name);
+        buf.writeUUID(packet.owner);
         buf.writeBoolean(packet.isGlobal);
         buf.writeBoolean(packet.canUse);
         buf.writeBoolean(packet.isClient);
-        buf.writeString(packet.ownerName);
+        buf.writeUtf(packet.ownerName);
     }
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return null;
     }
 }

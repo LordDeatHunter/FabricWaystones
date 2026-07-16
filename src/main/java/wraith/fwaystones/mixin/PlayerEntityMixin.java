@@ -3,14 +3,16 @@ package wraith.fwaystones.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
-import net.minecraft.registry.tag.DamageTypeTags;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,7 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mixin(PlayerEntity.class)
+@Mixin(Player.class)
 public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Unique
@@ -46,8 +48,8 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     private int teleportCooldown = 0;
 
     @Unique
-    private PlayerEntity _this() {
-        return (PlayerEntity) (Object) this;
+    private Player _this() {
+        return (Player) (Object) this;
     }
 
     @Inject(method = "tick", at = @At("RETURN"))
@@ -58,10 +60,10 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         teleportCooldown = Math.max(0, teleportCooldown - 1);
     }
 
-    @WrapOperation(method = "applyDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;isInvulnerableTo(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;)Z"))
-    public boolean applyDamage(PlayerEntity instance, ServerWorld world, DamageSource source, Operation<Boolean> original) {
+    @WrapOperation(method = "actuallyHurt", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;isInvulnerableTo(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;)Z"))
+    public boolean applyDamage(Player instance, ServerLevel world, DamageSource source, Operation<Boolean> original) {
         if (!original.call(instance, world, source)) {
-            if (!source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            if (!source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
                 fabricWaystones$setTeleportCooldown(FabricWaystones.CONFIG.teleportation_cooldown.cooldown_ticks_when_hurt());
             }
         }
@@ -123,7 +125,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
                 return;
             }
             var server = player.getServer();
-            if ((server != null && !server.isDedicated()) || player.getUuid().equals(waystone.getOwner())) {
+            if ((server != null && !server.isDedicatedServer()) || player.getUUID().equals(waystone.getOwner())) {
                 waystone.setOwner(null);
             }
         }
@@ -136,10 +138,10 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
 
     @Override
     public void fabricWaystones$syncData() {
-        if (!(_this() instanceof ServerPlayerEntity serverPlayerEntity)) {
+        if (!(_this() instanceof ServerPlayer serverPlayerEntity)) {
             return;
         }
-        ServerPlayNetworking.send(serverPlayerEntity, new SyncPlayerPacket(fabricWaystones$toTagW(new NbtCompound())));
+        ServerPlayNetworking.send(serverPlayerEntity, new SyncPlayerPacket(fabricWaystones$toTagW(new CompoundTag())));
     }
 
     @Override
@@ -192,17 +194,18 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
 
-    @Inject(method = "writeCustomDataToNbt", at = @At("RETURN"))
-    public void writeCustomDataToNbt(NbtCompound tag, CallbackInfo ci) {
-        fabricWaystones$toTagW(tag);
+    @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))
+    public void writeCustomDataToNbt(ValueOutput output, CallbackInfo ci) {
+        CompoundTag tag = fabricWaystones$toTagW(new CompoundTag());
+        output.store(FabricWaystones.MOD_ID, CompoundTag.CODEC, tag.getCompoundOrEmpty(FabricWaystones.MOD_ID));
     }
 
     @Override
-    public NbtCompound fabricWaystones$toTagW(NbtCompound tag) {
-        NbtCompound customTag = new NbtCompound();
-        NbtList waystones = new NbtList();
+    public CompoundTag fabricWaystones$toTagW(CompoundTag tag) {
+        CompoundTag customTag = new CompoundTag();
+        ListTag waystones = new ListTag();
         for (String waystone : discoveredWaystones) {
-            waystones.add(NbtString.of(waystone));
+            waystones.add(StringTag.valueOf(waystone));
         }
         customTag.put("discovered_waystones", waystones);
         customTag.putBoolean("view_discovered_waystones", this.viewDiscoveredWaystones);
@@ -216,7 +219,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
     }
 
     @Override
-    public void fabricWaystones$learnWaystones(PlayerEntity player) {
+    public void fabricWaystones$learnWaystones(Player player) {
         discoveredWaystones.clear();
         int oldCount = fabricWaystones$getDiscoveredCount();
         ((PlayerEntityMixinAccess) player).fabricWaystones$getDiscoveredWaystones().forEach(hash -> fabricWaystones$discoverWaystone(hash, false));
@@ -225,13 +228,17 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         }
     }
 
-    @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
-    public void readCustomDataFromNbt(NbtCompound tag, CallbackInfo ci) {
-        fabricWaystones$fromTagW(tag);
+    @Inject(method = "readAdditionalSaveData", at = @At("RETURN"))
+    public void readCustomDataFromNbt(ValueInput input, CallbackInfo ci) {
+        input.read(FabricWaystones.MOD_ID, CompoundTag.CODEC).ifPresent(custom -> {
+            CompoundTag wrapper = new CompoundTag();
+            wrapper.put(FabricWaystones.MOD_ID, custom);
+            fabricWaystones$fromTagW(wrapper);
+        });
     }
 
     @Override
-    public void fabricWaystones$fromTagW(NbtCompound tag) {
+    public void fabricWaystones$fromTagW(CompoundTag tag) {
         if (!tag.contains(FabricWaystones.MOD_ID)) {
             return;
         }
@@ -259,7 +266,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
         tag.getBoolean("autofocus_waystone_fields").ifPresent(value -> this.autofocusWaystoneFields = value);
         tag.getInt("teleportCooldown").ifPresent(value -> this.teleportCooldown = value);
         if (tag.contains("waystone_search_type")) {
-            String searchType = tag.getString("waystone_search_type", "");
+            String searchType = tag.getStringOr("waystone_search_type", "");
             try {
                 this.waystoneSearchType = SearchType.valueOf(searchType);
             } catch (IllegalArgumentException e) {

@@ -2,20 +2,20 @@ package wraith.fwaystones.util;
 
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.structure.pool.StructurePool;
-import net.minecraft.structure.pool.StructurePoolElement;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.integration.lithostitched.LithostitchedPlugin;
@@ -51,8 +51,8 @@ public final class Utils {
         return random.nextInt((max - min) + 1) + min;
     }
 
-    public static Identifier ID(String id) {
-        return Identifier.of(FabricWaystones.MOD_ID, id);
+    public static ResourceLocation ID(String id) {
+        return ResourceLocation.fromNamespaceAndPath(FabricWaystones.MOD_ID, id);
     }
 
     public static String generateWaystoneName(String id) {
@@ -77,10 +77,10 @@ public final class Utils {
         return sb.toString();
     }
 
-    public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
-        var pool = server.getRegistryManager()
-            .getOrThrow(RegistryKeys.TEMPLATE_POOL)
-            .get(village);
+    public static void addToStructurePool(MinecraftServer server, ResourceLocation village, ResourceLocation waystone, int weight) {
+        var pool = server.registryAccess()
+            .lookupOrThrow(Registries.TEMPLATE_POOL)
+            .getValue(village);
 
         if (pool == null) {
             FabricWaystones.LOGGER.error("Cannot add to " + village + " as it cannot be found!");
@@ -93,7 +93,7 @@ public final class Utils {
                 addPieceToPool(piece, ((StructurePoolAccessor) pool), weight);
             }
         } else {
-            var piece = StructurePoolElement.ofSingle(waystone.toString()).apply(StructurePool.Projection.RIGID);
+            var piece = StructurePoolElement.single(waystone.toString()).apply(StructureTemplatePool.Projection.RIGID);
             addPieceToPool(piece, ((StructurePoolAccessor) pool), weight);
         }
     }
@@ -110,7 +110,7 @@ public final class Utils {
     }
 
     //Values from https://minecraft.gamepedia.com/Experience
-    public static long determineLevelXP(final PlayerEntity player) {
+    public static long determineLevelXP(final Player player) {
         int level = player.experienceLevel;
         long total = player.totalExperience;
         if (level <= 16) {
@@ -123,7 +123,7 @@ public final class Utils {
         return total;
     }
 
-    public static int getCost(Vec3d startPos, Vec3d endPos, String startDim, String endDim) {
+    public static int getCost(Vec3 startPos, Vec3 endPos, String startDim, String endDim) {
         var config = FabricWaystones.CONFIG.teleportation_cost;
         if (config.cost_type().equals(FWConfigModel.CostType.NONE)) {
             return 0;
@@ -153,51 +153,51 @@ public final class Utils {
         });
     }
 
-    public static boolean canTeleport(PlayerEntity player, String hash, TeleportSources source, boolean takeCost) {
+    public static boolean canTeleport(Player player, String hash, TeleportSources source, boolean takeCost) {
         FWConfigModel.CostType cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
-            player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
+            player.displayClientMessage(Component.translatable("fwaystones.no_teleport.invalid_waystone"), true);
             return false;
         }
-        var sourceDim = getDimensionName(player.getWorld());
+        var sourceDim = getDimensionName(player.level());
         var destDim = waystone.getWorldName();
         if (source == TeleportSources.VOID_TOTEM) {
             return true;
         }
         if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
             if (isDimensionBlacklisted(sourceDim, true)) {
-                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
+                player.displayClientMessage(Component.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
                 return false;
             }
             if (isDimensionBlacklisted(destDim, false)) {
-                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
+                player.displayClientMessage(Component.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
                 return false;
             }
         }
         if (source == TeleportSources.LOCAL_VOID && FabricWaystones.CONFIG.free_local_void_teleport()) {
             return true;
         }
-        int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), sourceDim, destDim);
+        int amount = getCost(player.position(), Vec3.atCenterOf(waystone.way_getPos()), sourceDim, destDim);
         if (player.isCreative() || player.isSpectator()) {
             return true;
         }
         switch (cost) {
             case HEALTH -> {
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.health"), true);
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.health"), true);
                     return false;
                 }
                 if (takeCost) {
-                    player.damage((ServerWorld) player.getWorld(), player.getWorld().getDamageSources().magic(), amount);
+                    player.hurtServer((ServerLevel) player.level(), player.level().damageSources().magic(), amount);
                 }
                 return true;
             }
             case HUNGER -> {
-                var hungerManager = player.getHungerManager();
+                var hungerManager = player.getFoodData();
                 var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
                 if (hungerAndExhaustion <= 10 || hungerAndExhaustion + ((ExhaustionAccessor) hungerManager).getExhaustion() / 4F <= amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.hunger"), true);
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.hunger"), true);
                     return false;
                 }
                 if (takeCost) {
@@ -208,35 +208,35 @@ public final class Utils {
             case EXPERIENCE -> {
                 long total = determineLevelXP(player);
                 if (total < amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.xp"), true);
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.xp"), true);
                     return false;
                 }
                 if (takeCost) {
-                    player.addExperience(-amount);
+                    player.giveExperiencePoints(-amount);
                 }
                 return true;
             }
             case LEVEL -> {
                 if (player.experienceLevel < amount) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.level"), true);
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.level"), true);
                     return false;
                 }
                 if (takeCost) {
-                    player.addExperienceLevels(-amount);
+                    player.giveExperienceLevels(-amount);
                 }
                 return true;
             }
             case ITEM -> {
-                Identifier itemId = getTeleportCostItem();
-                Item item = Registries.ITEM.get(itemId);
+                ResourceLocation itemId = getTeleportCostItem();
+                Item item = BuiltInRegistries.ITEM.getValue(itemId);
                 if (!containsItem(player.getInventory(), item, amount)) {
-                    player.sendMessage(Text.translatable("fwaystones.no_teleport.item"), true);
+                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.item"), true);
                     return false;
                 }
                 if (takeCost) {
                     removeItem(player.getInventory(), item, amount);
 
-                    if (player.getWorld().isClient || FabricWaystones.WAYSTONE_STORAGE == null) {
+                    if (player.level().isClientSide || FabricWaystones.WAYSTONE_STORAGE == null) {
                         return true;
                     }
                     var waystoneBE = waystone.getEntity();
@@ -247,7 +247,7 @@ public final class Utils {
                     boolean found = false;
                     for (ItemStack stack : oldInventory) {
                         if (stack.getItem() == item) {
-                            stack.increment(amount);
+                            stack.grow(amount);
                             found = true;
                             break;
                         }
@@ -266,10 +266,10 @@ public final class Utils {
 
     }
 
-    public static boolean containsItem(PlayerInventory inventory, Item item, int maxAmount) {
+    public static boolean containsItem(Inventory inventory, Item item, int maxAmount) {
         int amount = 0;
-        for (int i = 0; i < inventory.size(); ++i) {
-            ItemStack stack = inventory.getStack(i);
+        for (int i = 0; i < inventory.getContainerSize(); ++i) {
+            ItemStack stack = inventory.getItem(i);
             if (stack.getItem().equals(item)) {
                 amount += stack.getCount();
             }
@@ -277,12 +277,12 @@ public final class Utils {
         return amount >= maxAmount;
     }
 
-    public static void removeItem(PlayerInventory inventory, Item item, int totalAmount) {
-        for (int i = 0; i < inventory.size(); ++i) {
-            ItemStack stack = inventory.getStack(i);
+    public static void removeItem(Inventory inventory, Item item, int totalAmount) {
+        for (int i = 0; i < inventory.getContainerSize(); ++i) {
+            ItemStack stack = inventory.getItem(i);
             if (stack.getItem().equals(item)) {
                 int amount = stack.getCount();
-                stack.decrement(totalAmount);
+                stack.shrink(totalAmount);
                 totalAmount -= amount;
             }
             if (totalAmount <= 0) {
@@ -300,8 +300,8 @@ public final class Utils {
         return "";
     }
 
-    public static String getDimensionName(World world) {
-        return world.getRegistryKey().getValue().toString();
+    public static String getDimensionName(Level world) {
+        return world.dimension().location().toString();
     }
 
     public static int getRandomColor() {
@@ -309,22 +309,22 @@ public final class Utils {
     }
 
     @Nullable
-    public static Identifier getTeleportCostItem() {
+    public static ResourceLocation getTeleportCostItem() {
         if (FabricWaystones.CONFIG.teleportation_cost.cost_type() == FWConfigModel.CostType.ITEM) {
             String[] item = FabricWaystones.CONFIG.teleportation_cost.cost_item().split(":");
-            return (item.length == 2) ? Identifier.of(item[0], item[1]) : Identifier.of(item[0]);
+            return (item.length == 2) ? ResourceLocation.fromNamespaceAndPath(item[0], item[1]) : ResourceLocation.parse(item[0]);
         }
         return null;
     }
 
     @Nullable
-    public static Identifier getDiscoverItem() {
+    public static ResourceLocation getDiscoverItem() {
         var discoverStr = FabricWaystones.CONFIG.discover_with_item();
         if (discoverStr.equals("none")) {
             return null;
         }
         String[] item = discoverStr.split(":");
-        return (item.length == 2) ? Identifier.of(item[0], item[1]) : Identifier.of(item[0]);
+        return (item.length == 2) ? ResourceLocation.fromNamespaceAndPath(item[0], item[1]) : ResourceLocation.parse(item[0]);
     }
 
     public static boolean isSubSequence(String mainString, String searchString) {

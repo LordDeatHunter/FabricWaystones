@@ -66,7 +66,7 @@ public final class WaystonePacketHandler {
             if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(hash)) {
                 return;
             }
-            if ((context.player().getUuid().equals(owner) || context.player().hasPermissionLevel(2))) {
+            if ((context.player().getUUID().equals(owner) || context.player().hasPermissions(2))) {
                 FabricWaystones.WAYSTONE_STORAGE.setOwner(hash, null);
             }
         });
@@ -78,9 +78,9 @@ public final class WaystonePacketHandler {
                 return;
             }
             if (FabricWaystones.WAYSTONE_STORAGE.containsHash(payload.waystone()) &&
-                    ((context.player().getUuid().equals(payload.owner()) &&
+                    ((context.player().getUUID().equals(payload.owner()) &&
                             payload.owner().equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(payload.waystone()).getOwner())) ||
-                            context.player().hasPermissionLevel(2))) {
+                            context.player().hasPermissions(2))) {
                 FabricWaystones.WAYSTONE_STORAGE.renameWaystone(payload.waystone(), payload.name());
             }
         });
@@ -88,8 +88,8 @@ public final class WaystonePacketHandler {
 
     public static void handleWaystoneGUISlotClickPacket(WaystoneGUISlotClickPacket payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
-            if (context.player().currentScreenHandler.syncId == payload.syncId()) {
-                context.player().currentScreenHandler.onButtonClick(context.player(), payload.clickedSlot());
+            if (context.player().containerMenu.containerId == payload.syncId()) {
+                context.player().containerMenu.clickMenuButton(context.player(), payload.clickedSlot());
             }
         });
     }
@@ -109,9 +109,9 @@ public final class WaystonePacketHandler {
             }
 
             var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(payload.waystone());
-            if (waystone.getWorld() != null && !(waystone.getWorld().getBlockState(waystone.getPos()).getBlock() instanceof WaystoneBlock)) {
+            if (waystone.getLevel() != null && !(waystone.getLevel().getBlockState(waystone.getBlockPos()).getBlock() instanceof WaystoneBlock)) {
                 FabricWaystones.WAYSTONE_STORAGE.removeWaystone(payload.waystone());
-                waystone.getWorld().removeBlockEntity(waystone.getPos());
+                waystone.getLevel().removeBlockEntity(waystone.getBlockPos());
             } else {
                 waystone.teleportPlayer(context.player(), true, payload.getSource());
             }
@@ -129,12 +129,12 @@ public final class WaystonePacketHandler {
                 case NONE:
                     return;
                 case OP:
-                    if (!context.player().hasPermissionLevel(2)) {
+                    if (!context.player().hasPermissions(2)) {
                         return;
                     }
                     break;
                 case OWNER:
-                    if (!context.player().getUuid().equals(payload.owner()) || !payload.owner().equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(payload.waystone()).getOwner())) {
+                    if (!context.player().getUUID().equals(payload.owner()) || !payload.owner().equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(payload.waystone()).getOwner())) {
                         return;
                     }
                     break;

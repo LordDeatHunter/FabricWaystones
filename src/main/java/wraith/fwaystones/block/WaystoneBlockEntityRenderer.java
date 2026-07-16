@@ -1,42 +1,42 @@
 package wraith.fwaystones.block;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import wraith.fwaystones.registry.ItemRegistry;
 
 public class WaystoneBlockEntityRenderer implements BlockEntityRenderer<WaystoneBlockEntity> {
 
-    public WaystoneBlockEntityRenderer(BlockEntityRendererFactory.Context ctx) {
+    public WaystoneBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
     }
 
     @Override
-    public void render(WaystoneBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, Vec3d cameraPos) {
+    public void render(WaystoneBlockEntity entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, Vec3 cameraPos) {
         ItemStack stack = new ItemStack(ItemRegistry.get("abyss_watcher"));
 
-        matrices.push();
+        matrices.pushPose();
         matrices.scale(0.5f, 0.5f, 0.5f);
         matrices.translate(1f, 3.5f, 1f);
 
-        matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees(entity.lookingRotR));
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90));
+        matrices.mulPose(Axis.YN.rotationDegrees(entity.lookingRotR));
+        matrices.mulPose(Axis.YP.rotationDegrees(90));
         //matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(entity.lookingRotH));
-        if (entity.getCachedState().get(WaystoneBlock.ACTIVE)) {
-            int lightAbove = WorldRenderer.getLightmapCoordinates(entity.getWorld(), entity.getPos().up());
-            MinecraftClient.getInstance().getItemRenderer().renderItem(
+        if (entity.getBlockState().getValue(WaystoneBlock.ACTIVE)) {
+            int lightAbove = LevelRenderer.getLightColor(entity.getLevel(), entity.getBlockPos().above());
+            Minecraft.getInstance().getItemRenderer().renderStatic(
                     stack, ItemDisplayContext.FIXED, lightAbove, overlay,
-                    matrices, vertexConsumers, entity.getWorld(), (int) entity.getPos().asLong()
+                    matrices, vertexConsumers, entity.getLevel(), (int) entity.getBlockPos().asLong()
             );
         }
 
-        matrices.pop();
+        matrices.popPose();
     }
 
 }

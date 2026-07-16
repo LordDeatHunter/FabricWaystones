@@ -5,9 +5,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ItemStack;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.packets.WaystonePacketHandler;
@@ -68,12 +68,12 @@ public class WaystonesClient implements ClientModInitializer {
         var client = context.client();
         client.execute(() -> {
             if (client.player != null) {
-                client.particleManager.addEmitter(client.player, ParticleTypes.TOTEM_OF_UNDYING, 30);
-                context.player().getWorld().playSoundClient(client.player.getX(), client.player.getY(), client.player.getZ(), SoundEvents.ITEM_TOTEM_USE, client.player.getSoundCategory(), 1.0F, 1.0F, false);
-                for (int i = 0; i < client.player.getInventory().size(); ++i) {
-                    ItemStack playerStack = client.player.getInventory().getStack(i);
+                client.particleEngine.createTrackingEmitter(client.player, ParticleTypes.TOTEM_OF_UNDYING, 30);
+                context.player().level().playLocalSound(client.player.getX(), client.player.getY(), client.player.getZ(), SoundEvents.TOTEM_USE, client.player.getSoundSource(), 1.0F, 1.0F, false);
+                for (int i = 0; i < client.player.getInventory().getContainerSize(); ++i) {
+                    ItemStack playerStack = client.player.getInventory().getItem(i);
                     if (playerStack.getItem() == ItemRegistry.get("void_totem")) {
-                        client.gameRenderer.showFloatingItem(playerStack);
+                        client.gameRenderer.displayItemActivation(playerStack);
                         break;
                     }
                 }
@@ -101,8 +101,8 @@ public class WaystonesClient implements ClientModInitializer {
             }
             ((PlayerEntityMixinAccess) client.player).fabricWaystones$forgetWaystones(toForget);
 
-            if (client.player.currentScreenHandler instanceof UniversalWaystoneScreenHandler) {
-                ((UniversalWaystoneScreenHandler) client.player.currentScreenHandler).updateWaystones(client.player);
+            if (client.player.containerMenu instanceof UniversalWaystoneScreenHandler) {
+                ((UniversalWaystoneScreenHandler) client.player.containerMenu).updateWaystones(client.player);
             }
         });
     }

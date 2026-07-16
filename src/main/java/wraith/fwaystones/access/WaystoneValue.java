@@ -1,6 +1,6 @@
 package wraith.fwaystones.access;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 
 public interface WaystoneValue {

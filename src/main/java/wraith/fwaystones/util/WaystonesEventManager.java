@@ -4,10 +4,10 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 
@@ -25,7 +25,7 @@ public class WaystonesEventManager {
 
         ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
             if (FabricWaystones.WAYSTONE_STORAGE == null) {
-                if (server.isDedicated())
+                if (server.isDedicatedServer())
                     FabricWaystones.LOGGER.error("The Waystone storage is null. This is likely caused by a crash.");
                 return;
             }
@@ -39,43 +39,43 @@ public class WaystonesEventManager {
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> ((PlayerEntityMixinAccess) newPlayer).fabricWaystones$syncData());
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal(FabricWaystones.MOD_ID)
-            .then(CommandManager.literal("delete")
-                .requires(source -> source.hasPermissionLevel(1))
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(Commands.literal(FabricWaystones.MOD_ID)
+            .then(Commands.literal("delete")
+                .requires(source -> source.hasPermission(1))
                 .executes(context -> {
-                    ServerPlayerEntity player = context.getSource().getPlayer();
+                    ServerPlayer player = context.getSource().getPlayer();
                     if (player == null || FabricWaystones.WAYSTONE_STORAGE == null) {
                         return 1;
                     }
-                    var dimension = Utils.getDimensionName(player.getWorld());
+                    var dimension = Utils.getDimensionName(player.level());
                     FabricWaystones.WAYSTONE_STORAGE.removeWorldWaystones(dimension);
-                    player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3Removed all waystones from " + dimension + "!"), false);
+                    player.displayClientMessage(Component.literal("§6[§eFabric Waystones§6] §3Removed all waystones from " + dimension + "!"), false);
                     return 1;
                 })
             )
-            .then(CommandManager.literal("forget_all")
+            .then(Commands.literal("forget_all")
                 .executes(context -> {
-                    ServerPlayerEntity player = context.getSource().getPlayer();
+                    ServerPlayer player = context.getSource().getPlayer();
                     if (player == null) {
                         return 1;
                     }
                     ((PlayerEntityMixinAccess) player).fabricWaystones$forgetAllWaystones();
-                    player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten!"), false);
+                    player.displayClientMessage(Component.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten!"), false);
                     return 1;
                 })
-                .then(CommandManager.argument("player", EntityArgumentType.player())
-                    .requires(source -> source.hasPermissionLevel(1))
+                .then(Commands.argument("player", EntityArgument.player())
+                    .requires(source -> source.hasPermission(1))
                     .executes(context -> {
-                        ServerPlayerEntity player = context.getSource().getPlayer();
+                        ServerPlayer player = context.getSource().getPlayer();
                         if (player == null) {
                             return 1;
                         }
-                        ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "player");
+                        ServerPlayer target = EntityArgument.getPlayer(context, "player");
                         if (target == null) {
                             return 1;
                         }
                         ((PlayerEntityMixinAccess) target).fabricWaystones$forgetAllWaystones();
-                        player.sendMessage(Text.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
+                        player.displayClientMessage(Component.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
                         return 1;
                     })
                 )

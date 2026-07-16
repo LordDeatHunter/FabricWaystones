@@ -1,15 +1,15 @@
 package wraith.fwaystones.screen;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
-import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket;
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerAccess;
@@ -26,17 +26,17 @@ import wraith.fwaystones.util.Utils;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
+public abstract class UniversalWaystoneScreenHandler extends AbstractContainerMenu {
 
-    protected final PlayerEntity player;
+    protected final Player player;
     protected ArrayList<String> sortedWaystones = new ArrayList<>();
     protected ArrayList<String> filteredWaystones = new ArrayList<>();
     protected String filter = "";
-    protected ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type;
+    protected MenuType<? extends UniversalWaystoneScreenHandler> type;
 
     protected UniversalWaystoneScreenHandler(
-        ScreenHandlerType<? extends UniversalWaystoneScreenHandler> type, int syncId,
-        PlayerEntity player) {
+        MenuType<? extends UniversalWaystoneScreenHandler> type, int syncId,
+        Player player) {
         super(type, syncId);
         this.player = player;
         this.type = type;
@@ -52,8 +52,8 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         }
     }
 
-    public void updateWaystones(PlayerEntity player) {
-        if (!player.getWorld().isClient) {
+    public void updateWaystones(Player player) {
+        if (!player.level().isClientSide) {
             return;
         }
         this.sortedWaystones = new ArrayList<>();
@@ -74,8 +74,8 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public boolean onButtonClick(PlayerEntity player, int id) {
-        if (!player.getWorld().isClient) {
+    public boolean clickMenuButton(Player player, int id) {
+        if (!player.level().isClientSide) {
             return false;
         }
 
@@ -106,13 +106,13 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         return true;
     }
 
-    private static @NotNull TeleportSources getTeleportSource(PlayerEntity player) {
+    private static @NotNull TeleportSources getTeleportSource(Player player) {
         TeleportSources source;
-        if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.WAYSTONE_SCREEN)) {
+        if (player.containerMenu.getType().equals(CustomScreenHandlerRegistry.WAYSTONE_SCREEN)) {
             source = TeleportSources.WAYSTONE;
-        } else if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.POCKET_WORMHOLE_SCREEN)) {
+        } else if (player.containerMenu.getType().equals(CustomScreenHandlerRegistry.POCKET_WORMHOLE_SCREEN)) {
             source = TeleportSources.POCKET_WORMHOLE;
-        } else if (player.currentScreenHandler.getType().equals(CustomScreenHandlerRegistry.ABYSS_WATCHER_SCREEN)) {
+        } else if (player.containerMenu.getType().equals(CustomScreenHandlerRegistry.ABYSS_WATCHER_SCREEN)) {
             source = TeleportSources.ABYSS_WATCHER;
         } else {
             source = TeleportSources.LOCAL_VOID;
@@ -124,28 +124,28 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         if (player == null) {
             return;
         }
-        if (player.getWorld().isClient) {
+        if (player.level().isClientSide) {
             closeOnClient();
         } else {
             ((ServerPlayerEntityAccessor) player).getNetworkHandler()
-                .sendPacket(new CloseScreenS2CPacket(this.syncId));
-            player.currentScreenHandler.onClosed(player);
-            player.currentScreenHandler = player.playerScreenHandler;
+                .send(new ClientboundContainerClosePacket(this.containerId));
+            player.containerMenu.removed(player);
+            player.containerMenu = player.inventoryMenu;
         }
     }
 
     protected void closeOnClient() {
         ((ClientPlayerEntityAccessor) player).getNetworkHandler()
-            .sendPacket(new CloseHandledScreenC2SPacket(this.syncId));
-        setCursorStack(ItemStack.EMPTY);
-        player.currentScreenHandler = player.playerScreenHandler;
-        MinecraftClient.getInstance().setScreen(null);
+            .send(new ServerboundContainerClosePacket(this.containerId));
+        setCarried(ItemStack.EMPTY);
+        player.containerMenu = player.inventoryMenu;
+        Minecraft.getInstance().setScreen(null);
     }
 
     public abstract void onForget(String waystone);
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 
@@ -174,7 +174,7 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
 
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int index) {
+    public ItemStack quickMoveStack(Player player, int index) {
         return ItemStack.EMPTY;
     }
 
@@ -186,8 +186,8 @@ public abstract class UniversalWaystoneScreenHandler extends ScreenHandler {
         filterWaystones();
     }
 
-    public Text getSearchTypeTooltip() {
-        return Text.translatable("fwaystones.gui." + (((PlayerEntityMixinAccess) player).fabricWaystones$getSearchType().name().toLowerCase()));
+    public Component getSearchTypeTooltip() {
+        return Component.translatable("fwaystones.gui." + (((PlayerEntityMixinAccess) player).fabricWaystones$getSearchType().name().toLowerCase()));
     }
 
 }

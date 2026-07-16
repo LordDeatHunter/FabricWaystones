@@ -1,14 +1,14 @@
 package wraith.fwaystones.screen;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.Hand;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import wraith.fwaystones.item.PocketWormholeItem;
 import wraith.fwaystones.registry.CustomScreenHandlerRegistry;
 
 public class PocketWormholeScreenHandler extends UniversalWaystoneScreenHandler {
 
-    public PocketWormholeScreenHandler(int syncId, PlayerInventory inventory) {
+    public PocketWormholeScreenHandler(int syncId, Inventory inventory) {
         super(CustomScreenHandlerRegistry.POCKET_WORMHOLE_SCREEN, syncId, inventory.player);
         updateWaystones(player);
     }
@@ -17,9 +17,9 @@ public class PocketWormholeScreenHandler extends UniversalWaystoneScreenHandler 
     public void onForget(String waystone) {}
 
     @Override
-    public boolean canUse(PlayerEntity player) {
-        for (var hand : Hand.values()) {
-            if (player.getStackInHand(hand).getItem() instanceof PocketWormholeItem) {
+    public boolean stillValid(Player player) {
+        for (var hand : InteractionHand.values()) {
+            if (player.getItemInHand(hand).getItem() instanceof PocketWormholeItem) {
                 return true;
             }
         }

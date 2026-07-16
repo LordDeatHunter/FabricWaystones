@@ -1,19 +1,19 @@
 package wraith.fwaystones.packets.client;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import wraith.fwaystones.FabricWaystones;
 
-public record VoidRevivePacket() implements CustomPayload{
-    public static final Id PACKET_ID = new Id<>(Identifier.of(FabricWaystones.MOD_ID, "void_totem_revive"));
+public record VoidRevivePacket() implements CustomPacketPayload{
+    public static final Type PACKET_ID = new Type<>(ResourceLocation.fromNamespaceAndPath(FabricWaystones.MOD_ID, "void_totem_revive"));
     private static final VoidRevivePacket INSTANCE = new VoidRevivePacket();
     public static final Codec<VoidRevivePacket> CODEC = Codec.unit(VoidRevivePacket.INSTANCE);
-    public static final PacketCodec PACKET_CODEC = PacketCodecs.registryCodec(CODEC);
+    public static final StreamCodec PACKET_CODEC = ByteBufCodecs.fromCodecWithRegistries(CODEC);
 
-    public Id getId() {
+    public Type type() {
         return PACKET_ID;
     }
 }

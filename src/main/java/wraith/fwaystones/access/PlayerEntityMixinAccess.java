@@ -1,13 +1,13 @@
 package wraith.fwaystones.access;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.util.SearchType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
 
 public interface PlayerEntityMixinAccess extends PlayerAccess {
 
@@ -31,11 +31,11 @@ public interface PlayerEntityMixinAccess extends PlayerAccess {
 
     ArrayList<String> fabricWaystones$getWaystonesSorted();
 
-    void fabricWaystones$learnWaystones(PlayerEntity player);
+    void fabricWaystones$learnWaystones(Player player);
 
-    void fabricWaystones$fromTagW(NbtCompound tag);
+    void fabricWaystones$fromTagW(CompoundTag tag);
 
-    NbtCompound fabricWaystones$toTagW(NbtCompound tag);
+    CompoundTag fabricWaystones$toTagW(CompoundTag tag);
 
     boolean fabricWaystones$shouldViewGlobalWaystones();
 

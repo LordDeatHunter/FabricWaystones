@@ -2,14 +2,13 @@ package wraith.fwaystones.integration.lithostitched;
 
 import dev.worldgen.lithostitched.worldgen.poolelement.legacy.GuaranteedPoolElement;
 import dev.worldgen.lithostitched.worldgen.poolelement.legacy.LimitedPoolElement;
-import net.minecraft.structure.pool.StructurePool;
-import net.minecraft.structure.pool.StructurePoolElement;
-
 import wraith.fwaystones.FabricWaystones;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 
 /**
  * If Lithostitched is present, use its guaranteed/limited pool element system given it bypasses the vanilla system.
@@ -27,7 +26,7 @@ public class LithostitchedPlugin {
 
         if (config.min_per_village() > 0) {
             elements.add(new GuaranteedPoolElement(
-                StructurePoolElement.ofSingle(name).apply(StructurePool.Projection.RIGID),
+                StructurePoolElement.single(name).apply(StructureTemplatePool.Projection.RIGID),
                 Optional.empty(),
                 config.min_per_village()
             ));
@@ -35,7 +34,7 @@ public class LithostitchedPlugin {
 
         if (config.max_per_village() - config.min_per_village() > 0) {
             elements.add(new LimitedPoolElement(
-                StructurePoolElement.ofSingle(name).apply(StructurePool.Projection.RIGID),
+                StructurePoolElement.single(name).apply(StructureTemplatePool.Projection.RIGID),
                 Optional.empty(),
                 config.max_per_village() - config.min_per_village()
             ));

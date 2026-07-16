@@ -2,7 +2,7 @@ package wraith.fwaystones.integration.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -40,6 +40,6 @@ public class WaystoneEvents {
     @FunctionalInterface
     public interface ForgetAllWaystones {
 
-        void onForgetAll(PlayerEntity player);
+        void onForgetAll(Player player);
     }
 }

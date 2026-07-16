@@ -1,17 +1,5 @@
 package wraith.fwaystones.mixin;
 
-import net.minecraft.registry.Registry;
-import net.minecraft.structure.PoolStructurePiece;
-import net.minecraft.structure.StructureLiquidSettings;
-import net.minecraft.structure.StructureTemplateManager;
-import net.minecraft.structure.pool.StructurePool;
-import net.minecraft.structure.pool.StructurePoolBasedGenerator;
-import net.minecraft.structure.pool.alias.StructurePoolAliasLookup;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.HeightLimitView;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.noise.NoiseConfig;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,19 +11,31 @@ import wraith.fwaystones.access.StructurePoolBasedGenerator_StructurePoolGenerat
 import wraith.fwaystones.util.Utils;
 
 import java.util.List;
+import net.minecraft.core.Registry;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelHeightAccessor;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
+import net.minecraft.world.level.levelgen.structure.pools.JigsawPlacement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.pools.alias.PoolAliasLookup;
+import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-@Mixin(StructurePoolBasedGenerator.class)
+@Mixin(JigsawPlacement.class)
 public class StructurePoolBasedGeneratorMixin {
 
-    @Inject(method = "generate(Lnet/minecraft/world/gen/noise/NoiseConfig;IZLnet/minecraft/world/gen/chunk/ChunkGenerator;Lnet/minecraft/structure/StructureTemplateManager;Lnet/minecraft/world/HeightLimitView;Lnet/minecraft/util/math/random/Random;Lnet/minecraft/registry/Registry;Lnet/minecraft/structure/PoolStructurePiece;Ljava/util/List;Lnet/minecraft/util/shape/VoxelShape;Lnet/minecraft/structure/pool/alias/StructurePoolAliasLookup;Lnet/minecraft/structure/StructureLiquidSettings;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/structure/pool/StructurePoolBasedGenerator$StructurePoolGenerator;generatePiece(Lnet/minecraft/structure/PoolStructurePiece;Lorg/apache/commons/lang3/mutable/MutableObject;IZLnet/minecraft/world/HeightLimitView;Lnet/minecraft/world/gen/noise/NoiseConfig;Lnet/minecraft/structure/pool/alias/StructurePoolAliasLookup;Lnet/minecraft/structure/StructureLiquidSettings;)V"),
+    @Inject(method = "addPieces(Lnet/minecraft/world/level/levelgen/RandomState;IZLnet/minecraft/world/level/chunk/ChunkGenerator;Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplateManager;Lnet/minecraft/world/level/LevelHeightAccessor;Lnet/minecraft/util/RandomSource;Lnet/minecraft/core/Registry;Lnet/minecraft/world/level/levelgen/structure/PoolElementStructurePiece;Ljava/util/List;Lnet/minecraft/world/phys/shapes/VoxelShape;Lnet/minecraft/world/level/levelgen/structure/pools/alias/PoolAliasLookup;Lnet/minecraft/world/level/levelgen/structure/templatesystem/LiquidSettings;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/structure/pools/JigsawPlacement$Placer;tryPlacingChildren(Lnet/minecraft/world/level/levelgen/structure/PoolElementStructurePiece;Lorg/apache/commons/lang3/mutable/MutableObject;IZLnet/minecraft/world/level/LevelHeightAccessor;Lnet/minecraft/world/level/levelgen/RandomState;Lnet/minecraft/world/level/levelgen/structure/pools/alias/PoolAliasLookup;Lnet/minecraft/world/level/levelgen/structure/templatesystem/LiquidSettings;)V"),
             locals = LocalCapture.CAPTURE_FAILSOFT)
-    private static void preGenerate2(NoiseConfig noiseConfig, int maxSize, boolean modifyBoundingBox, ChunkGenerator chunkGenerator, StructureTemplateManager structureTemplateManager, HeightLimitView heightLimitView, Random random, Registry<StructurePool> structurePoolRegistry, PoolStructurePiece firstPiece, List<PoolStructurePiece> pieces, VoxelShape pieceShape, StructurePoolAliasLookup aliasLookup, StructureLiquidSettings liquidSettings, CallbackInfo ci, StructurePoolBasedGenerator.StructurePoolGenerator structurePoolGenerator) {
+    private static void preGenerate2(RandomState noiseConfig, int maxSize, boolean modifyBoundingBox, ChunkGenerator chunkGenerator, StructureTemplateManager structureTemplateManager, LevelHeightAccessor heightLimitView, RandomSource random, Registry<StructureTemplatePool> structurePoolRegistry, PoolElementStructurePiece firstPiece, List<PoolElementStructurePiece> pieces, VoxelShape pieceShape, PoolAliasLookup aliasLookup, LiquidSettings liquidSettings, CallbackInfo ci, JigsawPlacement.Placer structurePoolGenerator) {
         onInit(structurePoolGenerator);
     }
 
     @Unique
-    private static void onInit(StructurePoolBasedGenerator.StructurePoolGenerator structurePoolGenerator) {
+    private static void onInit(JigsawPlacement.Placer structurePoolGenerator) {
         var config = FabricWaystones.CONFIG.worldgen;
         int maxWaystoneCount = Utils.getRandomIntInRange(config.min_per_village(), config.max_per_village());
         ((StructurePoolBasedGenerator_StructurePoolGeneratorAccess) (Object) structurePoolGenerator).fabricWaystones$setMaxWaystoneCount(maxWaystoneCount);

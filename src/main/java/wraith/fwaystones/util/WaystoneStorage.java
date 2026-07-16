@@ -1,23 +1,26 @@
 package wraith.fwaystones.util;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateType;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
@@ -35,17 +38,17 @@ public class WaystoneStorage {
 
     public static final String ID = "fw_waystones";
     public final ConcurrentHashMap<String, WaystoneValue> WAYSTONES = new ConcurrentHashMap<>();
-    private final PersistentState state;
+    private final SavedData state;
     private final MinecraftServer server;
-    private final PersistentStateType<State> type = new PersistentStateType<>(
+    private final SavedDataType<State> type = new SavedDataType<>(
         ID,
         State::new,
-        NbtCompound.CODEC.xmap(
+        CompoundTag.CODEC.xmap(
             nbt -> {
                 fromTag(nbt);
                 return new State();
             },
-            state -> toTag(new NbtCompound())
+            state -> toTag(new CompoundTag())
         ),
         DataFixTypes.LEVEL
     );
@@ -58,15 +61,15 @@ public class WaystoneStorage {
         }
         this.server = server;
 
-        state = this.server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().getOrCreate(type);
+        state = this.server.getLevel(ServerLevel.OVERWORLD).getDataStorage().computeIfAbsent(type);
 
         loadWaystones();
     }
 
-    private final class State extends PersistentState {
+    private final class State extends SavedData {
     }
 
-    public void fromTag(NbtCompound tag) {
+    public void fromTag(CompoundTag tag) {
         if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return;
         }
@@ -80,14 +83,14 @@ public class WaystoneStorage {
         var waystones = tag.getListOrEmpty(FabricWaystones.MOD_ID);
 
         for (int i = 0; i < waystones.size(); ++i) {
-            NbtCompound waystoneTag = waystones.getCompoundOrEmpty(i);
+            CompoundTag waystoneTag = waystones.getCompoundOrEmpty(i);
             if (!waystoneTag.contains("hash") || !waystoneTag.contains("name")
                 || !waystoneTag.contains("dimension") || !waystoneTag.contains("position")) {
                 continue;
             }
-            String name = waystoneTag.getString("name", "");
-            String dimension = waystoneTag.getString("dimension", "");
-            String nbtHash = waystoneTag.getString("hash", "");
+            String name = waystoneTag.getStringOr("name", "");
+            String dimension = waystoneTag.getStringOr("dimension", "");
+            String nbtHash = waystoneTag.getStringOr("hash", "");
 
             int[] coordinates = waystoneTag.getIntArray("position").orElse(null);
             if (coordinates == null || coordinates.length < 3) {
@@ -107,18 +110,18 @@ public class WaystoneStorage {
         }
     }
 
-    public NbtCompound toTag(NbtCompound tag) {
+    public CompoundTag toTag(CompoundTag tag) {
         if (tag == null) {
-            tag = new NbtCompound();
+            tag = new CompoundTag();
         }
-        NbtList waystones = new NbtList();
+        ListTag waystones = new ListTag();
         for (Map.Entry<String, WaystoneValue> waystone : WAYSTONES.entrySet()) {
             String hash = waystone.getKey();
             WaystoneValue entity = waystone.getValue();
             if (!entity.getHash().equals(hash)) {
                 continue;
             }
-            NbtCompound waystoneTag = new NbtCompound();
+            CompoundTag waystoneTag = new CompoundTag();
             waystoneTag.putString("hash", hash);
             waystoneTag.putString("name", entity.getWaystoneName());
             waystoneTag.putInt("color", entity.getColor());
@@ -129,10 +132,10 @@ public class WaystoneStorage {
             waystones.add(waystoneTag);
         }
         tag.put(FabricWaystones.MOD_ID, waystones);
-        NbtList globals = new NbtList();
+        ListTag globals = new ListTag();
         var globalWaystones = getGlobals();
         for (String globalWaystone : globalWaystones) {
-            globals.add(NbtString.of(globalWaystone));
+            globals.add(StringTag.valueOf(globalWaystone));
         }
         tag.put("global_waystones", globals);
         return tag;
@@ -155,16 +158,17 @@ public class WaystoneStorage {
             tryAddWaystone(waystone);
             return;
         }
-        NbtComponent tag = itemStack.get(DataComponentTypes.CUSTOM_DATA);
+        CustomData tag = itemStack.get(DataComponents.CUSTOM_DATA);
         if (tag != null) {
-            NbtCompound nbt = tag.getNbt();
+            CompoundTag nbt = tag.getUnsafe();
             if (nbt != null) {
                 nbt.getString("waystone_name").ifPresent(waystone::setName);
                 nbt.getBoolean("waystone_is_global").ifPresent(waystone::setGlobal);
                 nbt.getInt("waystone_color").ifPresent(waystone::setColor);
                 if (nbt.contains("Items")) {
-                    DefaultedList<ItemStack> inventory = waystone.getInventory();
-                    Inventories.readNbt(nbt, inventory, waystone.getWorld().getRegistryManager());
+                    NonNullList<ItemStack> inventory = waystone.getInventory();
+                    ValueInput input = TagValueInput.create(ProblemReporter.DISCARDING, waystone.getLevel().registryAccess(), nbt);
+                    ContainerHelper.loadAllItems(input, inventory);
                     waystone.setInventory(inventory);
                 }
             }
@@ -190,13 +194,13 @@ public class WaystoneStorage {
         if (server == null) {
             return;
         }
-        ServerWorld world = server.getWorld(ServerWorld.OVERWORLD);
+        ServerLevel world = server.getLevel(ServerLevel.OVERWORLD);
 
-        state.markDirty();
+        state.setDirty();
         if (sync) {
             sendToAllPlayers();
         }
-        world.getPersistentStateManager().save();
+        world.getDataStorage().saveAndJoin();
     }
 
     public void loadWaystones() {
@@ -204,19 +208,19 @@ public class WaystoneStorage {
             return;
         }
         // Loading happens through the codec in getOrCreate; just persist the initial state.
-        server.getWorld(ServerWorld.OVERWORLD).getPersistentStateManager().save();
+        server.getLevel(ServerLevel.OVERWORLD).getDataStorage().saveAndJoin();
     }
 
     public void sendToAllPlayers() {
         if (server == null) {
             return;
         }
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             sendToPlayer(player);
         }
     }
 
-    public void sendToPlayer(ServerPlayerEntity player) {
+    public void sendToPlayer(ServerPlayer player) {
         WaystonePacket packet = new WaystonePacket(toTag(null));
         ServerPlayNetworking.send(player, packet);
     }
@@ -247,7 +251,7 @@ public class WaystoneStorage {
         if (server == null) {
             return;
         }
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             ((PlayerEntityMixinAccess) player).fabricWaystones$forgetWaystone(hash);
         }
     }
@@ -313,7 +317,7 @@ public class WaystoneStorage {
         sendToAllPlayers();
     }
 
-    public void setOwner(String hash, PlayerEntity owner) {
+    public void setOwner(String hash, Player owner) {
         if (WAYSTONES.containsKey(hash)) {
             WAYSTONES.get(hash).getEntity().setOwner(owner);
         }
@@ -345,7 +349,7 @@ public class WaystoneStorage {
         final boolean isGlobal;
         int color;
         WaystoneBlockEntity entity;
-        World world;
+        Level world;
 
         Lazy(String name, BlockPos pos, String hash, String dimension, int color, boolean global) {
             this.name = name;
@@ -362,7 +366,7 @@ public class WaystoneStorage {
                 return null;
             }
             if (this.entity == null) {
-                for (ServerWorld world : server.getWorlds()) {
+                for (ServerLevel world : server.getAllLevels()) {
                     if (Utils.getDimensionName(world).equals(dimension)) {
                         WaystoneBlockEntity entity = WaystoneBlock.getEntity(world, pos);
                         if (entity != null) {

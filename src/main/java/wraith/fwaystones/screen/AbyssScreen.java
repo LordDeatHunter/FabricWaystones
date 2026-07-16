@@ -1,32 +1,31 @@
 package wraith.fwaystones.screen;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import wraith.fwaystones.util.Utils;
 
 public class AbyssScreen extends UniversalWaystoneScreen {
 
-    private static final Identifier TEXTURE = Utils.ID("textures/gui/abyss.png");
+    private static final ResourceLocation TEXTURE = Utils.ID("textures/gui/abyss.png");
 
-    public AbyssScreen(ScreenHandler handler, PlayerInventory inventory, Text title) {
+    public AbyssScreen(AbstractContainerMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
         texture = TEXTURE;
     }
 
 
     @Override
-    protected void renderCostText(DrawContext context, int x, int y, MutableText text) {
-        renderCostText(context, x, y, text, 0x7E3483);
+    protected void renderCostText(GuiGraphics context, int x, int y, MutableComponent text) {
+        renderCostText(context, x, y, text, 0xFF7E3483);
     }
 
     @Override
-    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
-        context.drawText(textRenderer, this.title, this.titleX, this.titleY, 0x7E3483, false);
+    protected void renderLabels(GuiGraphics context, int mouseX, int mouseY) {
+        context.drawString(font, this.title, this.titleLabelX, this.titleLabelY, 0xFF7E3483, false);
     }
 
 }

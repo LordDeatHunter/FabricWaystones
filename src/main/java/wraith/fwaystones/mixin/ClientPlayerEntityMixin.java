@@ -1,7 +1,7 @@
 package wraith.fwaystones.mixin;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.player.LocalPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.ClientPlayerEntityMixinAccess;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 
-@Mixin(ClientPlayerEntity.class)
+@Mixin(LocalPlayer.class)
 public class ClientPlayerEntityMixin implements ClientPlayerEntityMixinAccess {
 
     @Override

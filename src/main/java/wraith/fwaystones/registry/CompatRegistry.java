@@ -1,12 +1,12 @@
 package wraith.fwaystones.registry;
 
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.util.Utils;
 
 import java.util.function.Supplier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 
 public final class CompatRegistry {
 
@@ -14,9 +14,9 @@ public final class CompatRegistry {
 
     @SuppressWarnings("unchecked")
     public static void init() {
-        Registries.REGISTRIES.getEntry(Identifier.of("repurposed_structures", "json_conditions"))
-            .ifPresent(registry -> Registry.register(
-                (Registry<Supplier<Boolean>>) registry,
+        BuiltInRegistries.REGISTRY.get(ResourceLocation.fromNamespaceAndPath("repurposed_structures", "json_conditions"))
+            .ifPresent(holder -> Registry.register(
+                (Registry<Supplier<Boolean>>) holder.value(),
                 Utils.ID("config"),
                 FabricWaystones.CONFIG.worldgen::generate_in_villages
             ));

@@ -1,10 +1,10 @@
 package wraith.fwaystones.screen;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class Button {
 
-    protected Text tooltip = null;
+    protected Component tooltip = null;
     private int x;
     private int y;
     private int u;
@@ -83,6 +83,6 @@ public class Button {
 
     public boolean hasToolTip() {return this.tooltip != null;}
 
-    public Text tooltip() {return this.tooltip;}
+    public Component tooltip() {return this.tooltip;}
 
 }

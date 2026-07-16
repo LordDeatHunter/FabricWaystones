@@ -1,8 +1,7 @@
 package wraith.fwaystones.access;
 
-import net.minecraft.structure.StructurePiece;
-
 import java.util.List;
+import net.minecraft.world.level.levelgen.structure.StructurePiece;
 
 public interface StructurePiecesListAccess {
 

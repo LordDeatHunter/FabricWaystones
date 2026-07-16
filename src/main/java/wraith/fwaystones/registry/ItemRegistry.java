@@ -2,16 +2,16 @@ package wraith.fwaystones.registry;
 
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import wraith.fwaystones.item.*;
 
 import java.util.HashMap;
@@ -19,17 +19,17 @@ import java.util.HashMap;
 public final class ItemRegistry {
 
     private static final HashMap<String, Item> ITEMS = new HashMap<>();
-    public static final RegistryKey<ItemGroup> WAYSTONE_GROUP_KEY = RegistryKey.of(Registries.ITEM_GROUP.getKey(), Identifier.of("fwaystones", "waystones"));
-    public static final ItemGroup WAYSTONE_GROUP = FabricItemGroup.builder()
+    public static final ResourceKey<CreativeModeTab> WAYSTONE_GROUP_KEY = ResourceKey.create(BuiltInRegistries.CREATIVE_MODE_TAB.key(), ResourceLocation.fromNamespaceAndPath("fwaystones", "waystones"));
+    public static final CreativeModeTab WAYSTONE_GROUP = FabricItemGroup.builder()
             .icon(() -> new ItemStack(BlockRegistry.WAYSTONE))
-            .displayName(Text.translatable("itemGroup.fwaystones.fwaystones"))
+            .title(Component.translatable("itemGroup.fwaystones.fwaystones"))
             .build();
 
     private ItemRegistry() {}
 
-    private static void registerItem(Item item, RegistryKey<Item> registryKey) {
-        Item registeredItem = Registry.register(Registries.ITEM, registryKey.getValue(), item);
-        ITEMS.put(registryKey.getValue().getPath(), registeredItem);
+    private static void registerItem(Item item, ResourceKey<Item> registryKey) {
+        Item registeredItem = Registry.register(BuiltInRegistries.ITEM, registryKey.location(), item);
+        ITEMS.put(registryKey.location().getPath(), registeredItem);
     }
 
     public static void init() {
@@ -38,28 +38,28 @@ public final class ItemRegistry {
         }
 
         // Block Items
-        registerItem(new WaystoneItem(BlockRegistry.WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "waystone"))).useBlockPrefixedTranslationKey()), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "waystone")));
-        registerItem(new WaystoneItem(BlockRegistry.DESERT_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "desert_waystone"))).useBlockPrefixedTranslationKey()), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "desert_waystone")));
-        registerItem(new WaystoneItem(BlockRegistry.RED_DESERT_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "red_desert_waystone"))).useBlockPrefixedTranslationKey()), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "red_desert_waystone")));
-        registerItem(new WaystoneItem(BlockRegistry.STONE_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "stone_brick_waystone"))).useBlockPrefixedTranslationKey()), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "stone_brick_waystone")));
-        registerItem(new WaystoneItem(BlockRegistry.NETHER_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "nether_brick_waystone"))).useBlockPrefixedTranslationKey()), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "nether_brick_waystone")));
-        registerItem(new WaystoneItem(BlockRegistry.RED_NETHER_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "red_nether_brick_waystone"))).useBlockPrefixedTranslationKey()), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "red_nether_brick_waystone")));
-        registerItem(new WaystoneItem(BlockRegistry.ENDSTONE_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "end_stone_brick_waystone"))).useBlockPrefixedTranslationKey()), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "end_stone_brick_waystone")));
-        registerItem(new WaystoneItem(BlockRegistry.DEEPSLATE_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "deepslate_brick_waystone"))).useBlockPrefixedTranslationKey()), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "deepslate_brick_waystone")));
-        registerItem(new WaystoneItem(BlockRegistry.BLACKSTONE_BRICK_WAYSTONE, new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "blackstone_brick_waystone"))).useBlockPrefixedTranslationKey()), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "blackstone_brick_waystone")));
+        registerItem(new WaystoneItem(BlockRegistry.WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "waystone"))).useBlockDescriptionPrefix()), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "waystone")));
+        registerItem(new WaystoneItem(BlockRegistry.DESERT_WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "desert_waystone"))).useBlockDescriptionPrefix()), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "desert_waystone")));
+        registerItem(new WaystoneItem(BlockRegistry.RED_DESERT_WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "red_desert_waystone"))).useBlockDescriptionPrefix()), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "red_desert_waystone")));
+        registerItem(new WaystoneItem(BlockRegistry.STONE_BRICK_WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "stone_brick_waystone"))).useBlockDescriptionPrefix()), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "stone_brick_waystone")));
+        registerItem(new WaystoneItem(BlockRegistry.NETHER_BRICK_WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "nether_brick_waystone"))).useBlockDescriptionPrefix()), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "nether_brick_waystone")));
+        registerItem(new WaystoneItem(BlockRegistry.RED_NETHER_BRICK_WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "red_nether_brick_waystone"))).useBlockDescriptionPrefix()), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "red_nether_brick_waystone")));
+        registerItem(new WaystoneItem(BlockRegistry.ENDSTONE_BRICK_WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "end_stone_brick_waystone"))).useBlockDescriptionPrefix()), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "end_stone_brick_waystone")));
+        registerItem(new WaystoneItem(BlockRegistry.DEEPSLATE_BRICK_WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "deepslate_brick_waystone"))).useBlockDescriptionPrefix()), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "deepslate_brick_waystone")));
+        registerItem(new WaystoneItem(BlockRegistry.BLACKSTONE_BRICK_WAYSTONE, new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "blackstone_brick_waystone"))).useBlockDescriptionPrefix()), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "blackstone_brick_waystone")));
 
         // Items
-        registerItem(new PocketWormholeItem(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "pocket_wormhole"))).maxCount(1).fireproof().translationKey("item.fwaystones.pocket_wormhole")), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "pocket_wormhole")));
-        registerItem(new AbyssWatcherItem(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "abyss_watcher"))).maxCount(4).fireproof().translationKey("item.fwaystones.abyss_watcher")), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "abyss_watcher")));
-        registerItem(new WaystoneScrollItem(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "waystone_scroll"))).maxCount(1).translationKey("item.fwaystones.empty_scroll")), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "waystone_scroll")));
-        registerItem(new LocalVoidItem(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "local_void"))).maxCount(1).translationKey("item.fwaystones.local_void")), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "local_void")));
-        registerItem(new VoidTotem(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "void_totem"))).maxCount(1).translationKey("item.fwaystones.void_totem")), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "void_totem")));
-        registerItem(new ScrollOfInfiniteKnowledgeItem(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "scroll_of_infinite_knowledge"))).maxCount(1).fireproof().translationKey("item.fwaystones.scroll_of_infinite_knowledge")), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "scroll_of_infinite_knowledge")));
-        registerItem(new WaystoneDebuggerItem(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "waystone_debugger"))).maxCount(1).fireproof().translationKey("item.fwaystones.waystone_debugger")), RegistryKey.of(RegistryKeys.ITEM, Identifier.of("fwaystones", "waystone_debugger")));
+        registerItem(new PocketWormholeItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "pocket_wormhole"))).stacksTo(1).fireResistant().overrideDescription("item.fwaystones.pocket_wormhole")), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "pocket_wormhole")));
+        registerItem(new AbyssWatcherItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "abyss_watcher"))).stacksTo(4).fireResistant().overrideDescription("item.fwaystones.abyss_watcher")), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "abyss_watcher")));
+        registerItem(new WaystoneScrollItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "waystone_scroll"))).stacksTo(1).overrideDescription("item.fwaystones.empty_scroll")), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "waystone_scroll")));
+        registerItem(new LocalVoidItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "local_void"))).stacksTo(1).overrideDescription("item.fwaystones.local_void")), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "local_void")));
+        registerItem(new VoidTotem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "void_totem"))).stacksTo(1).overrideDescription("item.fwaystones.void_totem")), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "void_totem")));
+        registerItem(new ScrollOfInfiniteKnowledgeItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "scroll_of_infinite_knowledge"))).stacksTo(1).fireResistant().overrideDescription("item.fwaystones.scroll_of_infinite_knowledge")), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "scroll_of_infinite_knowledge")));
+        registerItem(new WaystoneDebuggerItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "waystone_debugger"))).stacksTo(1).fireResistant().overrideDescription("item.fwaystones.waystone_debugger")), ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("fwaystones", "waystone_debugger")));
 
-        Registry.register(Registries.ITEM_GROUP, WAYSTONE_GROUP_KEY, WAYSTONE_GROUP);
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, WAYSTONE_GROUP_KEY, WAYSTONE_GROUP);
         ItemGroupEvents.modifyEntriesEvent(WAYSTONE_GROUP_KEY)
-                .register((group) -> group.addAll(ITEMS.values().stream().map(ItemStack::new).toList()));
+                .register((group) -> group.acceptAll(ITEMS.values().stream().map(ItemStack::new).toList()));
     }
 
     public static Item get(String id) {

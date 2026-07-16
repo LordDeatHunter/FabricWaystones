@@ -1,16 +1,5 @@
 package wraith.fwaystones.item;
 
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
@@ -18,25 +7,36 @@ import wraith.fwaystones.registry.DataComponentRegistry;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 
 public class WaystoneScrollItem extends Item {
 
-    public WaystoneScrollItem(Settings settings) {
+    public WaystoneScrollItem(Properties settings) {
         super(settings);
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        ItemStack stack = user.getStackInHand(hand);
-        if (world.isClient) {
-            return ActionResult.SUCCESS;
+    public InteractionResult use(Level world, Player user, InteractionHand hand) {
+        ItemStack stack = user.getItemInHand(hand);
+        if (world.isClientSide) {
+            return InteractionResult.SUCCESS;
         }
         if (FabricWaystones.WAYSTONE_STORAGE == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
         List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
         if (waystones == null || waystones.isEmpty()) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
         int learned = 0;
         HashSet<String> toLearn = new HashSet<>();
@@ -50,43 +50,43 @@ public class WaystoneScrollItem extends Item {
                 ++learned;
             }
         }
-        Text text;
+        Component text;
         if (learned > 0) {
             if (learned > 1) {
-                text = Text.translatable(
+                text = Component.translatable(
                     "fwaystones.learned.multiple",
-                    Text.literal(String.valueOf(learned)).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.multiple.arg_color").getString()).getOrThrow())
+                    Component.literal(String.valueOf(learned)).withStyle(style ->
+                        style.withColor(TextColor.parseColor(Component.translatable("fwaystones.learned.multiple.arg_color").getString()).getOrThrow())
                     )
                 );
             } else {
-                text = Text.translatable("fwaystones.learned.single");
+                text = Component.translatable("fwaystones.learned.single");
             }
             ((PlayerEntityMixinAccess) user).fabricWaystones$discoverWaystones(toLearn);
             if (!user.isCreative()) {
-                stack.decrement(1);
+                stack.shrink(1);
             }
         } else {
-            text = Text.translatable("fwaystones.learned.none");
+            text = Component.translatable("fwaystones.learned.none");
             stack.set(DataComponentRegistry.WAYSTONES, null);
         }
-        user.sendMessage(text, false);
+        user.displayClientMessage(text, false);
 
         if (stack.isEmpty()) {
             stack = ItemStack.EMPTY;
         }
-        return ActionResult.SUCCESS.withNewHandStack(stack);
+        return InteractionResult.SUCCESS.heldItemTransformedTo(stack);
     }
 
     @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
-        if (context.getWorld().getBlockState(context.getBlockPos()).getBlock() instanceof WaystoneBlock && context.getPlayer() != null) {
+    public InteractionResult useOn(UseOnContext context) {
+        if (context.getLevel().getBlockState(context.getClickedPos()).getBlock() instanceof WaystoneBlock && context.getPlayer() != null) {
             var discovered = ((PlayerEntityMixinAccess) context.getPlayer()).fabricWaystones$getDiscoveredWaystones();
 
-            ItemStack stack = context.getStack();
+            ItemStack stack = context.getItemInHand();
 
             if (discovered.isEmpty()) {
-                return ActionResult.FAIL;
+                return InteractionResult.FAIL;
             }
             List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
             if (waystones == null) {
@@ -99,29 +99,29 @@ public class WaystoneScrollItem extends Item {
             }
             stack.set(DataComponentRegistry.WAYSTONES, waystones);
 
-            return ActionResult.SUCCESS.withNewHandStack(stack);
+            return InteractionResult.SUCCESS.heldItemTransformedTo(stack);
         }
-        return super.useOnBlock(context);
+        return super.useOn(context);
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> tooltip, TooltipType type) {
-        super.appendTooltip(stack, context, displayComponent, tooltip, type);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay displayComponent, Consumer<Component> tooltip, TooltipFlag type) {
+        super.appendHoverText(stack, context, displayComponent, tooltip, type);
         List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
         if (waystones == null || waystones.isEmpty()) {
             return;
         }
-        tooltip.accept(Text.translatable(
+        tooltip.accept(Component.translatable(
             "fwaystones.scroll.tooltip",
-            Text.literal(String.valueOf(waystones.size())).styled(style ->
-                style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.tooltip.arg_color").getString()).getOrThrow())
+            Component.literal(String.valueOf(waystones.size())).withStyle(style ->
+                style.withColor(TextColor.parseColor(Component.translatable("fwaystones.scroll.tooltip.arg_color").getString()).getOrThrow())
             )
         ));
     }
 
     @Override
-    public Text getName(ItemStack stack) {
+    public Component getName(ItemStack stack) {
         List<String> waystones = stack.get(DataComponentRegistry.WAYSTONES);
-        return waystones == null || waystones.isEmpty() ? Text.translatable("item.fwaystones.empty_scroll") : Text.translatable("item.fwaystones.waystone_scroll");
+        return waystones == null || waystones.isEmpty() ? Component.translatable("item.fwaystones.empty_scroll") : Component.translatable("item.fwaystones.waystone_scroll");
     }
 }
