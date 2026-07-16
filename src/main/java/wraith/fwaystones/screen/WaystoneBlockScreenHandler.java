@@ -32,14 +32,14 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
         this.owner = waystoneEntity.getOwner();
         this.isGlobal = waystoneEntity.isGlobal();
         this.canUse = waystoneEntity::canAccess;
-        this.isClient = player.level().isClientSide;
+        this.isClient = player.level().isClientSide();
         this.ownerName = waystoneEntity.getOwnerName();
         updateWaystones(player);
     }
 
     public WaystoneBlockScreenHandler(int syncId, Inventory playerInventory, FriendlyByteBuf buf) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, playerInventory.player);
-        this.isClient = playerInventory.player.level().isClientSide;
+        this.isClient = playerInventory.player.level().isClientSide();
         CompoundTag tag = buf.readNbt();
         if (tag != null) {
             this.hash = tag.getStringOr("waystone_hash", "");
@@ -53,7 +53,7 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
 
     public WaystoneBlockScreenHandler(int syncId, Inventory playerInventory, WaystoneDataPacket waystoneDataPacket) {
         super(CustomScreenHandlerRegistry.WAYSTONE_SCREEN, syncId, playerInventory.player);
-        this.isClient = playerInventory.player.level().isClientSide;
+        this.isClient = playerInventory.player.level().isClientSide();
         this.hash = waystoneDataPacket.hash();
         this.name = waystoneDataPacket.name();
         this.owner = waystoneDataPacket.owner();
@@ -73,7 +73,7 @@ public class WaystoneBlockScreenHandler extends UniversalWaystoneScreenHandler {
     @Override
     public void updateWaystones(Player player) {
         super.updateWaystones(player);
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
             return;
         }
         if (!FabricWaystones.WAYSTONE_STORAGE.containsHash(this.hash)) {

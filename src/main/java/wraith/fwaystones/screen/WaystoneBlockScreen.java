@@ -4,6 +4,9 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.nbt.CompoundTag;
@@ -266,12 +269,12 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
         this.nameField = new EditBox(this.font, this.leftPos + 28, this.topPos + imageHeight - 30, 93, 10, Component.literal("")) {
             @Override
-            public boolean mouseClicked(double mouseX, double mouseY, int button) {
-                boolean bl = mouseX >= (double) this.getX() && mouseX < (double) (this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double) (this.getY() + this.height);
-                if (bl && button == 1) {
+            public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
+                boolean bl = event.x() >= (double) this.getX() && event.x() < (double) (this.getX() + this.width) && event.y() >= (double) this.getY() && event.y() < (double) (this.getY() + this.height);
+                if (bl && event.button() == 1) {
                     this.setValue("");
                 }
-                return super.mouseClicked(mouseX, mouseY, button);
+                return super.mouseClicked(event, doubled);
             }
 
             @Override
@@ -347,41 +350,41 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public boolean charTyped(char chr, int keyCode) {
+    public boolean charTyped(CharacterEvent event) {
         if (page == Page.WAYSTONES) {
-            return super.charTyped(chr, keyCode);
+            return super.charTyped(event);
         } else {
             if (this.ignoreTypedCharacter) {
                 return false;
             } else {
-                return this.nameField.isVisible() && this.nameField.charTyped(chr, keyCode);
+                return this.nameField.isVisible() && this.nameField.charTyped(event);
             }
         }
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
         if (page == Page.WAYSTONES) {
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         } else {
             this.ignoreTypedCharacter = false;
-            if (InputConstants.getKey(keyCode, scanCode).getNumericKeyValue().isPresent() && this.checkHotbarKeyPressed(keyCode, scanCode)) {
+            if (InputConstants.getKey(event).getNumericKeyValue().isPresent() && this.checkHotbarKeyPressed(event)) {
                 this.ignoreTypedCharacter = true;
                 return true;
             } else {
-                if (this.nameField.isVisible() && this.nameField.keyPressed(keyCode, scanCode, modifiers)) {
+                if (this.nameField.isVisible() && this.nameField.keyPressed(event)) {
                     return true;
                 } else {
-                    return this.nameField.isVisible() && this.nameField.isFocused() && this.nameField.isVisible() && keyCode != 256 || super.keyPressed(keyCode, scanCode, modifiers);
+                    return this.nameField.isVisible() && this.nameField.isFocused() && this.nameField.isVisible() && event.key() != InputConstants.KEY_ESCAPE || super.keyPressed(event);
                 }
             }
         }
     }
 
     @Override
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+    public boolean keyReleased(KeyEvent event) {
         this.ignoreTypedCharacter = false;
-        return super.keyReleased(keyCode, scanCode, modifiers);
+        return super.keyReleased(event);
     }
 
     @Override
@@ -449,13 +452,13 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (page == Page.WAYSTONES && configPage.isVisible() && configPage.isInBounds((int) mouseX - this.leftPos, (int) mouseY - this.topPos)) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
+        if (page == Page.WAYSTONES && configPage.isVisible() && configPage.isInBounds((int) event.x() - this.leftPos, (int) event.y() - this.topPos)) {
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             configPage.onClick();
-            return super.superMouseClicked(mouseX, mouseY, button);
+            return super.superMouseClicked(event, doubled);
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubled);
     }
 
     @Override
@@ -464,11 +467,11 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+    public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
         if (page == Page.WAYSTONES) {
-            return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+            return super.mouseDragged(event, deltaX, deltaY);
         } else {
-            return super.superMouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+            return super.superMouseDragged(event, deltaX, deltaY);
         }
     }
 

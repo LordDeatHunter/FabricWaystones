@@ -160,7 +160,7 @@ public class WaystoneStorage {
         }
         CustomData tag = itemStack.get(DataComponents.CUSTOM_DATA);
         if (tag != null) {
-            CompoundTag nbt = tag.getUnsafe();
+            CompoundTag nbt = tag.copyTag();
             if (nbt != null) {
                 nbt.getString("waystone_name").ifPresent(waystone::setName);
                 nbt.getBoolean("waystone_is_global").ifPresent(waystone::setGlobal);

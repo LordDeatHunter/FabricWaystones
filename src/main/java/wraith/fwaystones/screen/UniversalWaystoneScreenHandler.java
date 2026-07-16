@@ -53,7 +53,7 @@ public abstract class UniversalWaystoneScreenHandler extends AbstractContainerMe
     }
 
     public void updateWaystones(Player player) {
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
             return;
         }
         this.sortedWaystones = new ArrayList<>();
@@ -75,7 +75,7 @@ public abstract class UniversalWaystoneScreenHandler extends AbstractContainerMe
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
             return false;
         }
 
@@ -124,7 +124,7 @@ public abstract class UniversalWaystoneScreenHandler extends AbstractContainerMe
         if (player == null) {
             return;
         }
-        if (player.level().isClientSide) {
+        if (player.level().isClientSide()) {
             closeOnClient();
         } else {
             ((ServerPlayerEntityAccessor) player).getNetworkHandler()

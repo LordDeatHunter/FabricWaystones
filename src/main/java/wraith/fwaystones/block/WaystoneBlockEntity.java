@@ -77,7 +77,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
     }
 
     public void updateActiveState() {
-        if (level != null && !level.isClientSide && level.getBlockState(worldPosition).getValue(WaystoneBlock.ACTIVE) == (owner == null)) {
+        if (level != null && !level.isClientSide() && level.getBlockState(worldPosition).getValue(WaystoneBlock.ACTIVE) == (owner == null)) {
             level.setBlockAndUpdate(worldPosition, level.getBlockState(worldPosition).setValue(WaystoneBlock.ACTIVE, this.ownerName != null));
             level.setBlockAndUpdate(worldPosition.above(), level.getBlockState(worldPosition.above()).setValue(WaystoneBlock.ACTIVE, this.ownerName != null));
         }
@@ -351,7 +351,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         final float fX = x;
         final float fZ = z;
         final float fYaw = yaw;
-        if (playerEntity.getServer() == null) {
+        if (playerEntity.level().getServer() == null) {
             return false;
         }
         TeleportTransition target = new TeleportTransition(
@@ -524,7 +524,7 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
 
     @Override
     public WaystoneDataPacket getScreenOpeningData(ServerPlayer player) {
-        return new WaystoneDataPacket(this.hash, this.name, this.owner, this.isGlobal, this.canAccess(player), player.level().isClientSide, this.ownerName);
+        return new WaystoneDataPacket(this.hash, this.name, this.owner, this.isGlobal, this.canAccess(player), player.level().isClientSide(), this.ownerName);
     }
 
 }

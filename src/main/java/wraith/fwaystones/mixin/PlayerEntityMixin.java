@@ -124,7 +124,7 @@ public class PlayerEntityMixin implements PlayerEntityMixinAccess {
             if (waystone.isGlobal()) {
                 return;
             }
-            var server = player.getServer();
+            var server = player.level().getServer();
             if ((server != null && !server.isDedicatedServer()) || player.getUUID().equals(waystone.getOwner())) {
                 waystone.setOwner(null);
             }

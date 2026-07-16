@@ -25,7 +25,7 @@ public class WaystoneItem extends BlockItem {
         if (component == null) {
             return;
         }
-        CompoundTag tag = component.getUnsafe();
+        CompoundTag tag = component.copyTag();
         String name = tag.getStringOr("waystone_name", "");
         boolean global = tag.getBooleanOr("waystone_is_global", false);
         tooltip.accept(Component.translatable(

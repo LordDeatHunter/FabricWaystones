@@ -5,6 +5,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -132,12 +135,12 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
 
         this.searchField = new EditBox(font, this.leftPos + 37, this.topPos + 27, 93, 10, Component.literal("")) {
             @Override
-            public boolean mouseClicked(double mouseX, double mouseY, int button) {
-                boolean bl = mouseX >= (double) this.getX() && mouseX < (double) (this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double) (this.getY() + this.height);
-                if (bl && button == 1) {
+            public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
+                boolean bl = event.x() >= (double) this.getX() && event.x() < (double) (this.getX() + this.width) && event.y() >= (double) this.getY() && event.y() < (double) (this.getY() + this.height);
+                if (bl && event.button() == 1) {
                     this.setValue("");
                 }
-                return super.mouseClicked(mouseX, mouseY, button);
+                return super.mouseClicked(event, doubled);
             }
         };
         this.searchField.setMaxLength(16);
@@ -222,25 +225,25 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
     }
 
     @Override
-    public boolean charTyped(char chr, int keyCode) {
+    public boolean charTyped(CharacterEvent event) {
         if (this.ignoreTypedCharacter) {
             return false;
         } else {
-            return this.searchField.charTyped(chr, keyCode);
+            return this.searchField.charTyped(event);
         }
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
         this.ignoreTypedCharacter = false;
-        if (InputConstants.getKey(keyCode, scanCode).getNumericKeyValue().isPresent() && this.checkHotbarKeyPressed(keyCode, scanCode)) {
+        if (InputConstants.getKey(event).getNumericKeyValue().isPresent() && this.checkHotbarKeyPressed(event)) {
             this.ignoreTypedCharacter = true;
             return true;
         } else {
-            if (this.searchField.keyPressed(keyCode, scanCode, modifiers)) {
+            if (this.searchField.keyPressed(event)) {
                 return true;
             } else {
-                return this.searchField.isFocused() && this.searchField.isVisible() && keyCode != 256 || super.keyPressed(keyCode, scanCode, modifiers);
+                return this.searchField.isFocused() && this.searchField.isVisible() && event.key() != InputConstants.KEY_ESCAPE || super.keyPressed(event);
             }
         }
     }
@@ -356,7 +359,7 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
             List<Component> tooltipContents = new ArrayList<>();
             var cost = Utils.getCost(Vec3.atCenterOf(waystoneData.way_getPos()), minecraft.player.position(), startDim, endDim);
             tooltipContents.add(Component.translatable("fwaystones.gui.cost_tooltip", cost == 0 ? Component.translatable("fwaystones.cost.free").getString() : cost));
-            if (hasShiftDown()) {
+            if (minecraft.hasShiftDown()) {
                 tooltipContents.add(Component.translatable("fwaystones.gui.dimension_tooltip", waystoneData.getWorldName()));
             }
             context.setComponentTooltipForNextFrame(font, tooltipContents, mouseX, mouseY);
@@ -377,24 +380,24 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
         this.mousePressed = true;
-        if (button != 0) {
-            return super.mouseClicked(mouseX, mouseY, button);
+        if (event.button() != 0) {
+            return super.mouseClicked(event, doubled);
         }
         this.mouseClicked = false;
-        if (this.hasWaystones() && canClickWaystones() && tryClick(mouseX, mouseY)) {
+        if (this.hasWaystones() && canClickWaystones() && tryClick(event.x(), event.y())) {
             return true;
         }
         for (Button guiButton : buttons) {
-            if (!guiButton.isVisible() || !guiButton.isInBounds((int) mouseX - this.leftPos, (int) mouseY - this.topPos)) {
+            if (!guiButton.isVisible() || !guiButton.isInBounds((int) event.x() - this.leftPos, (int) event.y() - this.topPos)) {
                 continue;
             }
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             guiButton.onClick();
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubled);
     }
 
     protected boolean canClickWaystones() {
@@ -457,16 +460,16 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+    public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
         if (this.mouseClicked && this.shouldScroll()) {
             int i = this.topPos + 40;
             int j = i + 90;
-            this.scrollAmount = ((float) mouseY - (float) i - 7.5F) / ((float) (j - i) - 15.0F);
+            this.scrollAmount = ((float) event.y() - (float) i - 7.5F) / ((float) (j - i) - 15.0F);
             this.scrollAmount = Mth.clamp(this.scrollAmount, 0.0F, 1.0F);
             this.scrollOffset = (int) ((double) (this.scrollAmount * (float) this.getMaxScroll()) + 0.5D);
             return true;
         } else {
-            return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+            return super.mouseDragged(event, deltaX, deltaY);
         }
     }
 
@@ -494,8 +497,8 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
-    protected boolean superMouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    protected boolean superMouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+        return super.mouseDragged(event, deltaX, deltaY);
     }
 
     protected void superResize(Minecraft client, int width, int height) {
@@ -507,14 +510,14 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         this.mouseClicked = false;
         this.mousePressed = false;
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
-    protected boolean superMouseClicked(double mouseX, double mouseY, int button) {
-        return super.mouseClicked(mouseX, mouseY, button);
+    protected boolean superMouseClicked(MouseButtonEvent event, boolean doubled) {
+        return super.mouseClicked(event, doubled);
     }
 
 }

@@ -166,7 +166,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
         BlockPos blockPos = ctx.getClickedPos();
 
         var nbt = ctx.getItemInHand().get(DataComponents.CUSTOM_DATA);
-        boolean hasOwner = nbt != null && nbt.contains("waystone_owner");
+        boolean hasOwner = nbt != null && nbt.copyTag().contains("waystone_owner");
         var world = ctx.getLevel();
         var fluidState = world.getFluidState(blockPos);
 
@@ -200,7 +200,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
         }
 
         if (world.getBlockEntity(botPos) instanceof WaystoneBlockEntity waystone && !player.isCreative() && player.hasCorrectToolForDrops(world.getBlockState(botPos)) && world instanceof ServerLevel) {
-            if (!world.isClientSide) {
+            if (!world.isClientSide()) {
                 ItemStack itemStack = new ItemStack(state.getBlock().asItem());
                 var output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, world.registryAccess());
                 waystone.saveAdditional(output);
@@ -249,7 +249,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
     //    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
-        if (world.isClientSide) {
+        if (world.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
         BlockPos openPos = state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos;

@@ -24,7 +24,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
     @Override
     public InteractionResult use(Level world, Player user, InteractionHand hand) {
         ItemStack stack = user.getItemInHand(hand);
-        if (world.isClientSide) {
+        if (world.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
         if (FabricWaystones.WAYSTONE_STORAGE == null) {

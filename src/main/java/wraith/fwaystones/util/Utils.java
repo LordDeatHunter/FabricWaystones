@@ -236,7 +236,7 @@ public final class Utils {
                 if (takeCost) {
                     removeItem(player.getInventory(), item, amount);
 
-                    if (player.level().isClientSide || FabricWaystones.WAYSTONE_STORAGE == null) {
+                    if (player.level().isClientSide() || FabricWaystones.WAYSTONE_STORAGE == null) {
                         return true;
                     }
                     var waystoneBE = waystone.getEntity();
