@@ -6,7 +6,10 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +22,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +33,9 @@ import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.integration.event.WaystoneEvents;
 import wraith.fwaystones.packets.client.WaystonePacket;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +48,7 @@ public class WaystoneStorage {
     private final SavedData state;
     private final MinecraftServer server;
     private final SavedDataType<State> type = new SavedDataType<>(
-        ID,
+        Identifier.fromNamespaceAndPath(FabricWaystones.MOD_ID, ID),
         State::new,
         CompoundTag.CODEC.xmap(
             nbt -> {
@@ -63,7 +70,32 @@ public class WaystoneStorage {
 
         state = this.server.getLevel(ServerLevel.OVERWORLD).getDataStorage().computeIfAbsent(type);
 
+        if (WAYSTONES.isEmpty()) {
+            tryLoadLegacyData();
+        }
+
         loadWaystones();
+    }
+
+    /**
+     * Pre-26.1 saved data lived at data/fw_waystones.dat; the Identifier-based id
+     * now resolves to data/fwaystones/fw_waystones.dat. Import the old file once.
+     */
+    private void tryLoadLegacyData() {
+        Path legacyFile = server.getWorldPath(new LevelResource("data")).resolve(ID + ".dat");
+        if (!Files.exists(legacyFile)) {
+            return;
+        }
+        try {
+            CompoundTag root = NbtIo.readCompressed(legacyFile, NbtAccounter.unlimitedHeap());
+            root.getCompound("data").ifPresent(this::fromTag);
+            if (!WAYSTONES.isEmpty()) {
+                FabricWaystones.LOGGER.info("Migrated " + WAYSTONES.size() + " waystones from legacy data file " + legacyFile);
+                state.setDirty();
+            }
+        } catch (IOException e) {
+            FabricWaystones.LOGGER.error("Failed to read legacy waystone data from " + legacyFile, e);
+        }
     }
 
     private final class State extends SavedData {

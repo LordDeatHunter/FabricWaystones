@@ -1,6 +1,6 @@
 package wraith.fwaystones.block;
 
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -45,7 +45,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer,
-    ExtendedScreenHandlerFactory<WaystoneDataPacket>, WaystoneValue {
+    ExtendedMenuProvider<WaystoneDataPacket>, WaystoneValue {
 
     public float lookingRotR = 0;
     private String name = "";
@@ -388,13 +388,13 @@ public class WaystoneBlockEntity extends RandomizableContainerBlockEntity implem
         var cooldown = playerAccess.fabricWaystones$getTeleportCooldown();
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
-            player.displayClientMessage(Component.translatable(
+            player.sendSystemMessage(Component.translatable(
                 "fwaystones.no_teleport_message.cooldown",
                 Component.literal(cooldownSeconds).withStyle(style ->
                     style.withColor(TextColor.parseColor(Component.translatable(
                         "fwaystones.no_teleport_message.cooldown.arg_color").getString()).getOrThrow())
                 )
-            ), false);
+            ));
             return false;
         }
         if (!Utils.canTeleport(player, hash, source, takeCost)) {

@@ -1,5 +1,5 @@
 plugins {
-    id 'net.fabricmc.fabric-loom-remap' version '1.17-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -34,16 +34,15 @@ dependencies {
     implementation 'org.jetbrains:annotations:22.0.0'
 
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modCompileOnly "com.telepathicgrunt:RepurposedStructures:${project.repurposed_structures_version}-fabric"
-    modApi "info.journeymap:journeymap-api-fabric:$project.journeymap_api_version"
-    modImplementation "maven.modrinth:lithostitched:1.7.2-fabric-21.11"
+    compileOnly("com.telepathicgrunt:RepurposedStructures:${project.repurposed_structures_version}-fabric") { transitive = false }
+    api("info.journeymap:journeymap-api-fabric:$project.journeymap_api_version") { transitive = false }
+    implementation("maven.modrinth:lithostitched:1.7.13-fabric-26.1") { transitive = false }
 
-    annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
+    annotationProcessor implementation("io.wispforest:owo-lib:${project.owo_version}")
     include "io.wispforest:owo-sentinel:${project.owo_version}"
 }
 
@@ -61,13 +60,16 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = "UTF-8"
-    it.options.release = 21
+    it.options.release = 25
 }
 
 java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {

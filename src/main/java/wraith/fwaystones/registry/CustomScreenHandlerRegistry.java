@@ -1,6 +1,6 @@
 package wraith.fwaystones.registry;
 
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.flag.FeatureFlags;
@@ -22,7 +22,7 @@ public final class CustomScreenHandlerRegistry {
     public static void registerScreenHandlers() {
         WAYSTONE_SCREEN = Registry.register(BuiltInRegistries.MENU,
                 Utils.ID("waystone"),
-                new ExtendedScreenHandlerType<>(WaystoneBlockScreenHandler::new, WaystoneDataPacket.PACKET_CODEC));
+                new ExtendedMenuType<>(WaystoneBlockScreenHandler::new, WaystoneDataPacket.PACKET_CODEC));
 
         POCKET_WORMHOLE_SCREEN = Registry.register(BuiltInRegistries.MENU,
                 Utils.ID("pocket_wormhole"),

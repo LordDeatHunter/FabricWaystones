@@ -21,23 +21,23 @@ public final class WaystonePacketHandler {
     }
 
     public static void registerPackets() {
-        PayloadTypeRegistry.playC2S().register(RemoveWaystoneOwnerPacket.PACKET_ID, RemoveWaystoneOwnerPacket.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(WaystoneGUISlotClickPacket.PACKET_ID, WaystoneGUISlotClickPacket.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(ForgetWaystonePacket.PACKET_ID, ForgetWaystonePacket.CODEC);
-        PayloadTypeRegistry.playC2S().register(RenameWaystonePacket.PACKET_ID, RenameWaystonePacket.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(RequestPlayerSyncPacket.PACKET_ID, RequestPlayerSyncPacket.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(ToggleGlobalWaystonePacket.PACKET_ID, ToggleGlobalWaystonePacket.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(TeleportToWaystonePacket.PACKET_ID, TeleportToWaystonePacket.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(SyncPlayerFromClientPacket.PACKET_ID, SyncPlayerFromClientPacket.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(RemoveWaystoneOwnerPacket.PACKET_ID, RemoveWaystoneOwnerPacket.PACKET_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(WaystoneGUISlotClickPacket.PACKET_ID, WaystoneGUISlotClickPacket.PACKET_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ForgetWaystonePacket.PACKET_ID, ForgetWaystonePacket.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(RenameWaystonePacket.PACKET_ID, RenameWaystonePacket.PACKET_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(RequestPlayerSyncPacket.PACKET_ID, RequestPlayerSyncPacket.PACKET_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ToggleGlobalWaystonePacket.PACKET_ID, ToggleGlobalWaystonePacket.PACKET_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(TeleportToWaystonePacket.PACKET_ID, TeleportToWaystonePacket.PACKET_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(SyncPlayerFromClientPacket.PACKET_ID, SyncPlayerFromClientPacket.CODEC);
 
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER)
             registerClientPackets();
     }
 
     public static void registerClientPackets() {
-        PayloadTypeRegistry.playS2C().register(SyncPlayerPacket.PACKET_ID, SyncPlayerPacket.CODEC);
-        PayloadTypeRegistry.playS2C().register(VoidRevivePacket.PACKET_ID, VoidRevivePacket.PACKET_CODEC);
-        PayloadTypeRegistry.playS2C().register(WaystonePacket.PACKET_ID, WaystonePacket.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(SyncPlayerPacket.PACKET_ID, SyncPlayerPacket.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(VoidRevivePacket.PACKET_ID, VoidRevivePacket.PACKET_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(WaystonePacket.PACKET_ID, WaystonePacket.CODEC);
     }
     public static void registerPacketHandlers() {
         ServerPlayNetworking.registerGlobalReceiver(ForgetWaystonePacket.PACKET_ID, WaystonePacketHandler::handleForgetWaystonePacket);

@@ -2,7 +2,7 @@ package wraith.fwaystones.screen;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.CharacterEvent;
@@ -20,7 +20,7 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -48,10 +48,8 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
     private EditBox searchField;
 
     public UniversalWaystoneScreen(AbstractContainerMenu handler, Inventory inventory, Component title) {
-        super(handler, inventory, title);
+        super(handler, inventory, title, 177, 176);
         this.inventory = inventory;
-        this.imageWidth = 177;
-        this.imageHeight = 176;
         buttons.add(new Button(140, 25, 13, 13, 225, 0) {
             @Override
             public void onClick() {
@@ -177,7 +175,8 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractBackground(context, mouseX, mouseY, delta);
         int color = ARGB.colorFromFloat(1.0F, 1.0F, 1.0F, 1.0F);
         context.blit(RenderPipelines.GUI_TEXTURED, texture, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256, color);
         int k = (int) (75.0F * this.scrollAmount);
@@ -191,12 +190,12 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         this.renderWaystoneNames(context, this.leftPos + 36, this.topPos + 40, n);
         this.renderWaystoneTooltips(context, mouseX, mouseY, this.leftPos + 36, this.topPos + 39, n);
         this.renderWaystoneAmount(context, this.leftPos + 10, this.topPos + 160);
-        this.searchField.render(context, mouseX, mouseY, delta);
+        this.searchField.extractWidgetRenderState(context, mouseX, mouseY, delta);
         this.renderForgetTooltips(context, mouseX, mouseY, this.leftPos + 24, this.topPos + 45);
         this.renderButtonTooltips(context, mouseX, mouseY);
     }
 
-    protected void renderButtonTooltips(GuiGraphics context, int mouseX, int mouseY) {
+    protected void renderButtonTooltips(GuiGraphicsExtractor context, int mouseX, int mouseY) {
         for (Button button : buttons) {
             if (!button.isVisible() || !button.hasToolTip() || !button.isInBounds(mouseX - this.leftPos, mouseY - this.topPos)) {
                 continue;
@@ -206,11 +205,11 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         }
     }
 
-    private void renderWaystoneAmount(GuiGraphics context, int x, int y) {
-        context.drawString(font, Component.translatable("fwaystones.gui.displayed_waystones", this.getDiscoveredCount()), x, y, 0xFF161616, false);
+    private void renderWaystoneAmount(GuiGraphicsExtractor context, int x, int y) {
+        context.text(font, Component.translatable("fwaystones.gui.displayed_waystones", this.getDiscoveredCount()), x, y, 0xFF161616, false);
     }
 
-    protected void renderButtons(GuiGraphics context, int mouseX, int mouseY) {
+    protected void renderButtons(GuiGraphicsExtractor context, int mouseX, int mouseY) {
         for (Button button : buttons) {
             if (!button.isVisible()) {
                 continue;
@@ -248,13 +247,11 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         }
     }
 
-    @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        this.renderTooltip(context, mouseX, mouseY);
+    protected void superExtractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractBackground(context, mouseX, mouseY, delta);
     }
 
-    protected void renderCostItem(GuiGraphics context, int x, int y) {
+    protected void renderCostItem(GuiGraphicsExtractor context, int x, int y) {
         var config = FabricWaystones.CONFIG.teleportation_cost;
         MutableComponent text;
         switch (config.cost_type()) {
@@ -271,13 +268,14 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
                 text = Component.translatable("fwaystones.cost.xp");
             }
             case LEVEL -> {
-                context.renderItem(new ItemStack(Items.EXPERIENCE_BOTTLE), x - 4, y);
+                context.item(new ItemStack(Items.EXPERIENCE_BOTTLE), x - 4, y);
                 text = Component.translatable("fwaystones.cost.level");
             }
             case ITEM -> {
                 var item = BuiltInRegistries.ITEM.getValue(Utils.getTeleportCostItem());
-                context.renderItem(new ItemStack(item), x - 4, y);
-                text = (MutableComponent) item.getName();
+                var stack = new ItemStack(item);
+                context.item(stack, x - 4, y);
+                text = (MutableComponent) item.getName(stack);
             }
             default -> {
                 context.blit(RenderPipelines.GUI_TEXTURED, texture, x, y + 4, 186, 24, 9, 9, 256, 256);
@@ -288,24 +286,24 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         renderCostText(context, x, y, text);
     }
 
-    protected void renderCostText(GuiGraphics context, int x, int y, MutableComponent text) {
+    protected void renderCostText(GuiGraphicsExtractor context, int x, int y, MutableComponent text) {
         renderCostText(context, x, y, text, 0xFF161616);
     }
 
-    protected void renderCostText(GuiGraphics context, int x, int y, MutableComponent text, int color) {
+    protected void renderCostText(GuiGraphicsExtractor context, int x, int y, MutableComponent text, int color) {
         if (!FabricWaystones.CONFIG.teleportation_cost.cost_type().equals(FWConfigModel.CostType.NONE)) {
             text = text.append(Component.literal(": " + FabricWaystones.CONFIG.teleportation_cost.base_cost()));
         }
-        context.drawString(font, text, x + 16, y + 5, color, false);
+        context.text(font, text, x + 16, y + 5, color, false);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics context, int mouseX, int mouseY) {
-        context.drawString(font, this.title, this.titleLabelX, this.titleLabelY, 0xFF404040, false);
+    protected void extractLabels(GuiGraphicsExtractor context, int mouseX, int mouseY) {
+        context.text(font, this.title, this.titleLabelX, this.titleLabelY, 0xFF404040, false);
     }
 
 
-    protected void renderForgetButtons(GuiGraphics context, int mouseX, int mouseY, int x, int y) {
+    protected void renderForgetButtons(GuiGraphicsExtractor context, int mouseX, int mouseY, int x, int y) {
         int n = getDiscoveredCount();
         for (int i = 0; i < 5; ++i) {
             int r = y + i * 18;
@@ -319,7 +317,7 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         }
     }
 
-    protected void renderForgetTooltips(GuiGraphics context, int mouseX, int mouseY, int x, int y) {
+    protected void renderForgetTooltips(GuiGraphicsExtractor context, int mouseX, int mouseY, int x, int y) {
         int n = getDiscoveredCount();
         for (int i = 0; i < n; ++i) {
             int r = y + i * 18;
@@ -330,7 +328,7 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         }
     }
 
-    protected void renderWaystoneBackground(GuiGraphics context, int mouseX, int mouseY, int x, int y, int m) {
+    protected void renderWaystoneBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, int x, int y, int m) {
         for (int n = this.scrollOffset; n < m && n < getDiscoveredCount(); ++n) {
             int o = n - this.scrollOffset;
             int r = y + o * 18 + 2;
@@ -342,7 +340,7 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         }
     }
 
-    protected void renderWaystoneTooltips(GuiGraphics context, int mouseX, int mouseY, int x, int y, int m) {
+    protected void renderWaystoneTooltips(GuiGraphicsExtractor context, int mouseX, int mouseY, int x, int y, int m) {
         ArrayList<String> waystones = getDiscoveredWaystones();
         for (int n = this.scrollOffset; n < m && n < getDiscoveredCount(); ++n) {
             int o = n - this.scrollOffset;
@@ -366,7 +364,7 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         }
     }
 
-    protected void renderWaystoneNames(GuiGraphics context, int x, int y, int m) {
+    protected void renderWaystoneNames(GuiGraphicsExtractor context, int x, int y, int m) {
         if (FabricWaystones.WAYSTONE_STORAGE == null)
             return;
         ArrayList<String> waystones = getDiscoveredWaystones();
@@ -375,7 +373,7 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
             int r = y + o * 18 + 2;
 
             String name = FabricWaystones.WAYSTONE_STORAGE.getName(waystones.get(n));
-            context.drawString(font, name, x + 5, r - 1 + 5, 0xFF161616, false);
+            context.text(font, name, x + 5, r - 1 + 5, 0xFF161616, false);
         }
     }
 
@@ -505,7 +503,7 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         super.resize(width, height);
     }
 
-    protected void superOnMouseClick(Slot slot, int invSlot, int clickData, ClickType actionType) {
+    protected void superOnMouseClick(Slot slot, int invSlot, int clickData, ContainerInput actionType) {
         super.slotClicked(slot, invSlot, clickData, actionType);
     }
 

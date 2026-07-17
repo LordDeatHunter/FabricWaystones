@@ -50,7 +50,7 @@ public class WaystonesEventManager {
                     }
                     var dimension = Utils.getDimensionName(player.level());
                     FabricWaystones.WAYSTONE_STORAGE.removeWorldWaystones(dimension);
-                    player.displayClientMessage(Component.literal("§6[§eFabric Waystones§6] §3Removed all waystones from " + dimension + "!"), false);
+                    player.sendSystemMessage(Component.literal("§6[§eFabric Waystones§6] §3Removed all waystones from " + dimension + "!"));
                     return 1;
                 })
             )
@@ -61,7 +61,7 @@ public class WaystonesEventManager {
                         return 1;
                     }
                     ((PlayerEntityMixinAccess) player).fabricWaystones$forgetAllWaystones();
-                    player.displayClientMessage(Component.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten!"), false);
+                    player.sendSystemMessage(Component.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten!"));
                     return 1;
                 })
                 .then(Commands.argument("player", EntityArgument.player())
@@ -76,7 +76,7 @@ public class WaystonesEventManager {
                             return 1;
                         }
                         ((PlayerEntityMixinAccess) target).fabricWaystones$forgetAllWaystones();
-                        player.displayClientMessage(Component.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten for " + target.getName() + "!"), false);
+                        player.sendSystemMessage(Component.literal("§6[§eFabric Waystones§6] §3All waystones have been forgotten for " + target.getName() + "!"));
                         return 1;
                     })
                 )

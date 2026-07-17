@@ -1,7 +1,7 @@
 package wraith.fwaystones.registry;
 
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -20,7 +20,7 @@ public final class ItemRegistry {
 
     private static final HashMap<String, Item> ITEMS = new HashMap<>();
     public static final ResourceKey<CreativeModeTab> WAYSTONE_GROUP_KEY = ResourceKey.create(BuiltInRegistries.CREATIVE_MODE_TAB.key(), Identifier.fromNamespaceAndPath("fwaystones", "waystones"));
-    public static final CreativeModeTab WAYSTONE_GROUP = FabricItemGroup.builder()
+    public static final CreativeModeTab WAYSTONE_GROUP = FabricCreativeModeTab.builder()
             .icon(() -> new ItemStack(BlockRegistry.WAYSTONE))
             .title(Component.translatable("itemGroup.fwaystones.fwaystones"))
             .build();
@@ -58,8 +58,8 @@ public final class ItemRegistry {
         registerItem(new WaystoneDebuggerItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("fwaystones", "waystone_debugger"))).stacksTo(1).fireResistant().overrideDescription("item.fwaystones.waystone_debugger")), ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("fwaystones", "waystone_debugger")));
 
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, WAYSTONE_GROUP_KEY, WAYSTONE_GROUP);
-        ItemGroupEvents.modifyEntriesEvent(WAYSTONE_GROUP_KEY)
-                .register((group) -> group.acceptAll(ITEMS.values().stream().map(ItemStack::new).toList()));
+        CreativeModeTabEvents.modifyOutputEvent(WAYSTONE_GROUP_KEY)
+                .register((output) -> output.acceptAll(ITEMS.values().stream().map(ItemStack::new).toList()));
     }
 
     public static Item get(String id) {

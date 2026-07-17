@@ -70,7 +70,7 @@ public class WaystoneScrollItem extends Item {
             text = Component.translatable("fwaystones.learned.none");
             stack.set(DataComponentRegistry.WAYSTONES, null);
         }
-        user.displayClientMessage(text, false);
+        user.sendSystemMessage(text);
 
         if (stack.isEmpty()) {
             stack = ItemStack.EMPTY;

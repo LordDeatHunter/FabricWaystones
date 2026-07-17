@@ -3,7 +3,7 @@ package wraith.fwaystones.screen;
 import net.minecraft.server.permissions.Permissions;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -17,7 +17,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
@@ -333,12 +333,6 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        this.renderTooltip(context, mouseX, mouseY);
-    }
-
-    @Override
     public void resize(int width, int height) {
         if (page == Page.WAYSTONES) {
             super.resize(width, height);
@@ -389,10 +383,11 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         if (page == Page.WAYSTONES) {
-            super.renderBg(context, delta, mouseX, mouseY);
+            super.extractBackground(context, mouseX, mouseY, delta);
         } else {
+            superExtractBackground(context, mouseX, mouseY, delta);
             int color = ARGB.colorFromFloat(1.0F, 1.0F, 1.0F, 1.0F);
             context.blit(RenderPipelines.GUI_TEXTURED, CONFIG_TEXTURE, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256, color);
             if (canEdit()) {
@@ -404,16 +399,16 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
             if (owner == null || "".equals(owner)) {
                 owner = Component.translatable("fwaystones.config.no_owner").getString();
             }
-            context.drawString(font, Component.translatable("fwaystones.config.owner", owner), this.leftPos + 10, this.topPos + 10, 0xFF161616, false);
+            context.text(font, Component.translatable("fwaystones.config.owner", owner), this.leftPos + 10, this.topPos + 10, 0xFF161616, false);
             if (this.nameField.isVisible()) {
-                this.nameField.render(context, mouseX, mouseY, delta);
+                this.nameField.extractWidgetRenderState(context, mouseX, mouseY, delta);
             }
             renderButtonTooltips(context, mouseX, mouseY);
         }
     }
 
     @Override
-    protected void renderWaystoneBackground(GuiGraphics context, int mouseX, int mouseY, int x, int y, int m) {
+    protected void renderWaystoneBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, int x, int y, int m) {
         for (int n = this.scrollOffset; n < m && n < getDiscoveredCount(); ++n) {
             int o = n - this.scrollOffset;
             int r = y + o * 18 + 2;
@@ -431,20 +426,20 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
         }
     }
 
-    private void renderButtonText(GuiGraphics context) {
-        context.drawString(font, Component.translatable("fwaystones.config.view_discovered"), this.leftPos + 25, this.topPos + 29, 0xFF161616, false);
-        context.drawString(font, Component.translatable("fwaystones.config.view_global"), this.leftPos + 25, this.topPos + 45, 0xFF161616, false);
+    private void renderButtonText(GuiGraphicsExtractor context) {
+        context.text(font, Component.translatable("fwaystones.config.view_discovered"), this.leftPos + 25, this.topPos + 29, 0xFF161616, false);
+        context.text(font, Component.translatable("fwaystones.config.view_global"), this.leftPos + 25, this.topPos + 45, 0xFF161616, false);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics context, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor context, int mouseX, int mouseY) {
         if (page == Page.WAYSTONES) {
-            context.drawString(font, ((WaystoneBlockScreenHandler) menu).getName(), this.titleLabelX, this.titleLabelY, 0xFF404040, false);
+            context.text(font, ((WaystoneBlockScreenHandler) menu).getName(), this.titleLabelX, this.titleLabelY, 0xFF404040, false);
         }
     }
 
     @Override
-    protected void slotClicked(Slot slot, int invSlot, int clickData, ClickType actionType) {
+    protected void slotClicked(Slot slot, int invSlot, int clickData, ContainerInput actionType) {
         if (page == Page.WAYSTONES) {
             super.slotClicked(slot, invSlot, clickData, actionType);
         } else {

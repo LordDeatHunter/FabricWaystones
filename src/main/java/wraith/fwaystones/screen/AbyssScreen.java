@@ -1,6 +1,6 @@
 package wraith.fwaystones.screen;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
@@ -19,13 +19,13 @@ public class AbyssScreen extends UniversalWaystoneScreen {
 
 
     @Override
-    protected void renderCostText(GuiGraphics context, int x, int y, MutableComponent text) {
+    protected void renderCostText(GuiGraphicsExtractor context, int x, int y, MutableComponent text) {
         renderCostText(context, x, y, text, 0xFF7E3483);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics context, int mouseX, int mouseY) {
-        context.drawString(font, this.title, this.titleLabelX, this.titleLabelY, 0xFF7E3483, false);
+    protected void extractLabels(GuiGraphicsExtractor context, int mouseX, int mouseY) {
+        context.text(font, this.title, this.titleLabelX, this.titleLabelY, 0xFF7E3483, false);
     }
 
 }

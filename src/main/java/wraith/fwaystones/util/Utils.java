@@ -157,7 +157,7 @@ public final class Utils {
         FWConfigModel.CostType cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
-            player.displayClientMessage(Component.translatable("fwaystones.no_teleport.invalid_waystone"), true);
+            player.sendOverlayMessage(Component.translatable("fwaystones.no_teleport.invalid_waystone"));
             return false;
         }
         var sourceDim = getDimensionName(player.level());
@@ -167,11 +167,11 @@ public final class Utils {
         }
         if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
             if (isDimensionBlacklisted(sourceDim, true)) {
-                player.displayClientMessage(Component.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
+                player.sendOverlayMessage(Component.translatable("fwaystones.no_teleport.blacklisted_dimension_source"));
                 return false;
             }
             if (isDimensionBlacklisted(destDim, false)) {
-                player.displayClientMessage(Component.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
+                player.sendOverlayMessage(Component.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"));
                 return false;
             }
         }
@@ -185,7 +185,7 @@ public final class Utils {
         switch (cost) {
             case HEALTH -> {
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
-                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.health"), true);
+                    player.sendOverlayMessage(Component.translatable("fwaystones.no_teleport.health"));
                     return false;
                 }
                 if (takeCost) {
@@ -197,7 +197,7 @@ public final class Utils {
                 var hungerManager = player.getFoodData();
                 var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
                 if (hungerAndExhaustion <= 10 || hungerAndExhaustion + ((ExhaustionAccessor) hungerManager).getExhaustion() / 4F <= amount) {
-                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.hunger"), true);
+                    player.sendOverlayMessage(Component.translatable("fwaystones.no_teleport.hunger"));
                     return false;
                 }
                 if (takeCost) {
@@ -208,7 +208,7 @@ public final class Utils {
             case EXPERIENCE -> {
                 long total = determineLevelXP(player);
                 if (total < amount) {
-                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.xp"), true);
+                    player.sendOverlayMessage(Component.translatable("fwaystones.no_teleport.xp"));
                     return false;
                 }
                 if (takeCost) {
@@ -218,7 +218,7 @@ public final class Utils {
             }
             case LEVEL -> {
                 if (player.experienceLevel < amount) {
-                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.level"), true);
+                    player.sendOverlayMessage(Component.translatable("fwaystones.no_teleport.level"));
                     return false;
                 }
                 if (takeCost) {
@@ -230,7 +230,7 @@ public final class Utils {
                 Identifier itemId = getTeleportCostItem();
                 Item item = BuiltInRegistries.ITEM.getValue(itemId);
                 if (!containsItem(player.getInventory(), item, amount)) {
-                    player.displayClientMessage(Component.translatable("fwaystones.no_teleport.item"), true);
+                    player.sendOverlayMessage(Component.translatable("fwaystones.no_teleport.item"));
                     return false;
                 }
                 if (takeCost) {

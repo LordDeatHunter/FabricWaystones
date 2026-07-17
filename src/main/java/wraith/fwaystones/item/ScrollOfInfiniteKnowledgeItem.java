@@ -61,7 +61,7 @@ public class ScrollOfInfiniteKnowledgeItem extends Item {
         } else {
             text = Component.translatable("fwaystones.learned.infinite.none");
         }
-        user.displayClientMessage(text, false);
+        user.sendSystemMessage(text);
 
         if (stack.isEmpty()) {
             user.setItemInHand(hand, ItemStack.EMPTY);

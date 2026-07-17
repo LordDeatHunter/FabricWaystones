@@ -307,31 +307,31 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
                     Item discoverItem = BuiltInRegistries.ITEM.getValue(discoverItemId);
                     int discoverAmount = FabricWaystones.CONFIG.take_amount_from_discover_item();
                     if (!Utils.containsItem(player.getInventory(), discoverItem, discoverAmount)) {
-                        player.displayClientMessage(Component.translatable(
+                        player.sendSystemMessage(Component.translatable(
                             "fwaystones.missing_discover_item",
                             discoverAmount,
                             Component.translatable(discoverItem.getDescriptionId()).withStyle(style ->
                                 style.withColor(TextColor.parseColor(Component.translatable("fwaystones.missing_discover_item.arg_color").getString()).getOrThrow())
                             )
-                        ), false);
+                        ));
                         return InteractionResult.FAIL;
                     } else if (discoverItem != Items.AIR) {
                         Utils.removeItem(player.getInventory(), discoverItem, discoverAmount);
-                        player.displayClientMessage(Component.translatable(
+                        player.sendSystemMessage(Component.translatable(
                             "fwaystones.discover_item_paid",
                             discoverAmount,
                             Component.translatable(discoverItem.getDescriptionId()).withStyle(style ->
                                 style.withColor(TextColor.parseColor(Component.translatable("fwaystones.discover_item_paid.arg_color").getString()).getOrThrow())
                             )
-                        ), false);
+                        ));
                     }
                 }
-                player.displayClientMessage(Component.translatable(
+                player.sendSystemMessage(Component.translatable(
                     "fwaystones.discover_waystone",
                     Component.literal(blockEntity.getWaystoneName()).withStyle(style ->
                         style.withColor(TextColor.parseColor(Component.translatable("fwaystones.discover_waystone.arg_color").getString()).getOrThrow())
                     )
-                ), false);
+                ));
             }
             playerAccess.fabricWaystones$discoverWaystone(blockEntity);
         }

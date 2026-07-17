@@ -55,7 +55,7 @@ public class WaystoneDebuggerItem extends Item {
         } else {
             message.append("\n§6[§eNO-OWNER§6]");
         }
-        player.displayClientMessage(message, false);
+        player.sendSystemMessage(message);
 
         return super.useOn(context);
     }
@@ -71,7 +71,7 @@ public class WaystoneDebuggerItem extends Item {
         message.append("§6[§eNAME§6]§e=§3" + player.getName().getString());
         message.append("\n§6[§eKNOWN-WAYSTONES§6]§e=§3" + playerAccess.fabricWaystones$getDiscoveredCount());
         message.append("\n§6[§eCOOLDOWN§6]§e=§3" + playerAccess.fabricWaystones$getTeleportCooldown());
-        user.displayClientMessage(message, false);
+        user.sendSystemMessage(message);
 
         return super.interactLivingEntity(stack, user, entity, hand);
     }
