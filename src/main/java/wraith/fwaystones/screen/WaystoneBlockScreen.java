@@ -1,5 +1,6 @@
 package wraith.fwaystones.screen;
 
+import net.minecraft.server.permissions.Permissions;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -11,7 +12,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
@@ -29,8 +30,8 @@ import java.util.UUID;
 
 public class WaystoneBlockScreen extends UniversalWaystoneScreen {
 
-    private static final ResourceLocation TEXTURE = Utils.ID("textures/gui/waystone.png");
-    private static final ResourceLocation CONFIG_TEXTURE = Utils.ID("textures/gui/waystone_config.png");
+    private static final Identifier TEXTURE = Utils.ID("textures/gui/waystone.png");
+    private static final Identifier CONFIG_TEXTURE = Utils.ID("textures/gui/waystone_config.png");
     public Page page = Page.WAYSTONES;
     private EditBox nameField;
     private final Button configPage = new Button(154, 5, 18, 18, 207, 0) {
@@ -317,7 +318,7 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     private boolean canEdit() {
-        return ((WaystoneBlockScreenHandler) menu).isOwner(inventory.player) || inventory.player.hasPermissions(2);
+        return ((WaystoneBlockScreenHandler) menu).isOwner(inventory.player) || inventory.player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
     }
 
     @Override
@@ -338,15 +339,15 @@ public class WaystoneBlockScreen extends UniversalWaystoneScreen {
     }
 
     @Override
-    public void resize(Minecraft client, int width, int height) {
+    public void resize(int width, int height) {
         if (page == Page.WAYSTONES) {
-            super.resize(client, width, height);
+            super.resize(width, height);
         } else {
             String string = this.nameField.getValue();
-            this.init(client, width, height);
+            this.init(width, height);
             this.nameField.setValue(string);
         }
-        super.superResize(client, width, height);
+        super.superResize(width, height);
     }
 
     @Override

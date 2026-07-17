@@ -41,7 +41,7 @@ dependencies {
 
     modCompileOnly "com.telepathicgrunt:RepurposedStructures:${project.repurposed_structures_version}-fabric"
     modApi "info.journeymap:journeymap-api-fabric:$project.journeymap_api_version"
-    modImplementation "maven.modrinth:lithostitched:1.5.2+patched-fabric-1.21.9"
+    modImplementation "maven.modrinth:lithostitched:1.7.2-fabric-21.11"
 
     annotationProcessor modImplementation("io.wispforest:owo-lib:${project.owo_version}")
     include "io.wispforest:owo-sentinel:${project.owo_version}"

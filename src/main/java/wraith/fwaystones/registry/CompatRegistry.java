@@ -6,7 +6,7 @@ import wraith.fwaystones.util.Utils;
 import java.util.function.Supplier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class CompatRegistry {
 
@@ -14,7 +14,7 @@ public final class CompatRegistry {
 
     @SuppressWarnings("unchecked")
     public static void init() {
-        BuiltInRegistries.REGISTRY.get(ResourceLocation.fromNamespaceAndPath("repurposed_structures", "json_conditions"))
+        BuiltInRegistries.REGISTRY.get(Identifier.fromNamespaceAndPath("repurposed_structures", "json_conditions"))
             .ifPresent(holder -> Registry.register(
                 (Registry<Supplier<Boolean>>) holder.value(),
                 Utils.ID("config"),

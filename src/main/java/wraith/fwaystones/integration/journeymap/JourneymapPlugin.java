@@ -11,7 +11,7 @@ import journeymap.api.v2.client.option.OptionCategory;
 import journeymap.api.v2.common.event.ClientEventRegistry;
 import journeymap.api.v2.common.event.FullscreenEventRegistry;
 import journeymap.api.v2.common.waypoint.WaypointFactory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.integration.event.WaystoneEvents;
@@ -86,7 +86,7 @@ public class JourneymapPlugin implements IClientPlugin {
             .addThemeToggleButton(
                 "fwaystones.integration.journeymap.theme.on",
                 "fwaystones.integration.journeymap.theme.off",
-                ResourceLocation.fromNamespaceAndPath(FabricWaystones.MOD_ID, "fabric_waystones_icon.png"),
+                Identifier.fromNamespaceAndPath(FabricWaystones.MOD_ID, "fabric_waystones_icon.png"),
                 displayWaypoints.get(),
                 b -> {
                     b.toggle();
@@ -166,7 +166,7 @@ public class JourneymapPlugin implements IClientPlugin {
             false
         );
 
-        waypoint.setIconResourceLoctaion(ResourceLocation.fromNamespaceAndPath(FabricWaystones.MOD_ID, "images/fabric_waystones_icon.png"));
+        waypoint.setIconResourceLoctaion(Identifier.fromNamespaceAndPath(FabricWaystones.MOD_ID, "images/fabric_waystones_icon.png"));
 
         waypointHashes.put(hash, waypoint.getGuid());
 

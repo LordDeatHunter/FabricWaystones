@@ -9,28 +9,28 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 
 public final class BlockRegistry {
 
-    public static final Block BLACKSTONE_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("fwaystones", "blackstone_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block DEEPSLATE_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("fwaystones", "deepslate_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block DESERT_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("fwaystones", "desert_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block ENDSTONE_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("fwaystones", "end_stone_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block NETHER_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("fwaystones", "nether_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block RED_DESERT_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("fwaystones", "red_desert_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block RED_NETHER_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("fwaystones", "red_nether_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block STONE_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("fwaystones", "stone_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
-    public static final Block WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("fwaystones", "waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block BLACKSTONE_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("fwaystones", "blackstone_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block DEEPSLATE_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("fwaystones", "deepslate_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block DESERT_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("fwaystones", "desert_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block ENDSTONE_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("fwaystones", "end_stone_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block NETHER_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("fwaystones", "nether_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block RED_DESERT_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("fwaystones", "red_desert_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block RED_NETHER_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("fwaystones", "red_nether_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block STONE_BRICK_WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("fwaystones", "stone_brick_waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
+    public static final Block WAYSTONE = new WaystoneBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("fwaystones", "waystone"))).mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(FabricWaystones.CONFIG.waystone_block_hardness(), 3600000));
     public static final HashMap<String, Block> WAYSTONE_BLOCKS = new HashMap<>();
-    private static ResourceLocation miningLevelTag;
+    private static Identifier miningLevelTag;
 
     public static void registerBlocks() {
         var miningLevel = FabricWaystones.CONFIG.waystone_block_required_mining_level();
-        miningLevelTag = ResourceLocation.parse(switch (miningLevel) {
+        miningLevelTag = Identifier.parse(switch (miningLevel) {
             case 1 -> "minecraft:needs_stone_tool";
             case 2 -> "minecraft:needs_iron_tool";
             case 3 -> "minecraft:needs_diamond_tool";

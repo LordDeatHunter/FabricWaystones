@@ -6,7 +6,7 @@ import java.util.function.UnaryOperator;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class DataComponentRegistry {
 
@@ -16,11 +16,11 @@ public final class DataComponentRegistry {
     private DataComponentRegistry() {}
 
     public static void init() {
-        WAYSTONES = register(ResourceLocation.fromNamespaceAndPath("fwaystones", "waystones"), (builder) -> builder.persistent(Codec.list(Codec.STRING)));
-        BOUND_WAYSTONE = register(ResourceLocation.fromNamespaceAndPath("fwaystones", "bound_waystone"), (builder) -> builder.persistent(Codec.STRING));
+        WAYSTONES = register(Identifier.fromNamespaceAndPath("fwaystones", "waystones"), (builder) -> builder.persistent(Codec.list(Codec.STRING)));
+        BOUND_WAYSTONE = register(Identifier.fromNamespaceAndPath("fwaystones", "bound_waystone"), (builder) -> builder.persistent(Codec.STRING));
     }
 
-    private static <T> DataComponentType<T> register(ResourceLocation id, UnaryOperator<DataComponentType.Builder<T>> builderOperator) {
+    private static <T> DataComponentType<T> register(Identifier id, UnaryOperator<DataComponentType.Builder<T>> builderOperator) {
         return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, id, (builderOperator.apply(DataComponentType.builder())).build());
     }
 }

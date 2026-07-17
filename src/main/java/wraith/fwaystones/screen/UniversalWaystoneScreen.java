@@ -14,7 +14,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
@@ -39,7 +39,7 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
 
     protected final Inventory inventory;
     protected final ArrayList<Button> buttons = new ArrayList<>();
-    protected ResourceLocation texture;
+    protected Identifier texture;
     protected float scrollAmount;
     protected boolean mouseClicked;
     protected int scrollOffset;
@@ -169,11 +169,11 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
     }
 
     @Override
-    public void resize(Minecraft client, int width, int height) {
+    public void resize(int width, int height) {
         String string = this.searchField.getValue();
-        this.init(client, width, height);
+        this.init(width, height);
         this.searchField.setValue(string);
-        super.resize(client, width, height);
+        super.resize(width, height);
     }
 
     @Override
@@ -501,8 +501,8 @@ public class UniversalWaystoneScreen extends AbstractContainerScreen<AbstractCon
         return super.mouseDragged(event, deltaX, deltaY);
     }
 
-    protected void superResize(Minecraft client, int width, int height) {
-        super.resize(client, width, height);
+    protected void superResize(int width, int height) {
+        super.resize(width, height);
     }
 
     protected void superOnMouseClick(Slot slot, int invSlot, int clickData, ClickType actionType) {

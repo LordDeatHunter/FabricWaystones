@@ -1,5 +1,6 @@
 package wraith.fwaystones.block;
 
+import net.minecraft.server.permissions.Permissions;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -9,7 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
@@ -148,7 +149,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
                     }
                 }
                 case OP -> {
-                    if (!player.hasPermissions(2)) {
+                    if (!player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)) {
                         return 0;
                     }
                 }
@@ -286,7 +287,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
             return InteractionResult.FAIL;
         }
 
-        if (player.isShiftKeyDown() && (player.hasPermissions(2) || (FabricWaystones.CONFIG.can_owners_redeem_payments() && player.getUUID().equals(blockEntity.getOwner())))) {
+        if (player.isShiftKeyDown() && (player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER) || (FabricWaystones.CONFIG.can_owners_redeem_payments() && player.getUUID().equals(blockEntity.getOwner())))) {
             if (blockEntity.hasStorage()) {
                 Containers.dropContents(world, openPos.above(2), blockEntity.getInventory());
                 blockEntity.setInventory(NonNullList.withSize(0, ItemStack.EMPTY));
@@ -301,7 +302,7 @@ public class WaystoneBlock extends BaseEntityBlock implements SimpleWaterloggedB
         Set<String> discovered = playerAccess.fabricWaystones$getDiscoveredWaystones();
         if (!discovered.contains(blockEntity.getHash())) {
             if (!blockEntity.isGlobal()) {
-                ResourceLocation discoverItemId = Utils.getDiscoverItem();
+                Identifier discoverItemId = Utils.getDiscoverItem();
                 if (!player.isCreative()) {
                     Item discoverItem = BuiltInRegistries.ITEM.getValue(discoverItemId);
                     int discoverAmount = FabricWaystones.CONFIG.take_amount_from_discover_item();

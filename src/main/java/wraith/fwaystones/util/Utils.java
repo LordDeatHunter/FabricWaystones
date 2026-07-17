@@ -5,7 +5,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
@@ -51,8 +51,8 @@ public final class Utils {
         return random.nextInt((max - min) + 1) + min;
     }
 
-    public static ResourceLocation ID(String id) {
-        return ResourceLocation.fromNamespaceAndPath(FabricWaystones.MOD_ID, id);
+    public static Identifier ID(String id) {
+        return Identifier.fromNamespaceAndPath(FabricWaystones.MOD_ID, id);
     }
 
     public static String generateWaystoneName(String id) {
@@ -77,7 +77,7 @@ public final class Utils {
         return sb.toString();
     }
 
-    public static void addToStructurePool(MinecraftServer server, ResourceLocation village, ResourceLocation waystone, int weight) {
+    public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
         var pool = server.registryAccess()
             .lookupOrThrow(Registries.TEMPLATE_POOL)
             .getValue(village);
@@ -227,7 +227,7 @@ public final class Utils {
                 return true;
             }
             case ITEM -> {
-                ResourceLocation itemId = getTeleportCostItem();
+                Identifier itemId = getTeleportCostItem();
                 Item item = BuiltInRegistries.ITEM.getValue(itemId);
                 if (!containsItem(player.getInventory(), item, amount)) {
                     player.displayClientMessage(Component.translatable("fwaystones.no_teleport.item"), true);
@@ -301,7 +301,7 @@ public final class Utils {
     }
 
     public static String getDimensionName(Level world) {
-        return world.dimension().location().toString();
+        return world.dimension().identifier().toString();
     }
 
     public static int getRandomColor() {
@@ -309,22 +309,22 @@ public final class Utils {
     }
 
     @Nullable
-    public static ResourceLocation getTeleportCostItem() {
+    public static Identifier getTeleportCostItem() {
         if (FabricWaystones.CONFIG.teleportation_cost.cost_type() == FWConfigModel.CostType.ITEM) {
             String[] item = FabricWaystones.CONFIG.teleportation_cost.cost_item().split(":");
-            return (item.length == 2) ? ResourceLocation.fromNamespaceAndPath(item[0], item[1]) : ResourceLocation.parse(item[0]);
+            return (item.length == 2) ? Identifier.fromNamespaceAndPath(item[0], item[1]) : Identifier.parse(item[0]);
         }
         return null;
     }
 
     @Nullable
-    public static ResourceLocation getDiscoverItem() {
+    public static Identifier getDiscoverItem() {
         var discoverStr = FabricWaystones.CONFIG.discover_with_item();
         if (discoverStr.equals("none")) {
             return null;
         }
         String[] item = discoverStr.split(":");
-        return (item.length == 2) ? ResourceLocation.fromNamespaceAndPath(item[0], item[1]) : ResourceLocation.parse(item[0]);
+        return (item.length == 2) ? Identifier.fromNamespaceAndPath(item[0], item[1]) : Identifier.parse(item[0]);
     }
 
     public static boolean isSubSequence(String mainString, String searchString) {

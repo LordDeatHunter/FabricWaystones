@@ -1,5 +1,6 @@
 package wraith.fwaystones.util;
 
+import net.minecraft.server.permissions.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -41,7 +42,7 @@ public class WaystonesEventManager {
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(Commands.literal(FabricWaystones.MOD_ID)
             .then(Commands.literal("delete")
-                .requires(source -> source.hasPermission(1))
+                .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
                 .executes(context -> {
                     ServerPlayer player = context.getSource().getPlayer();
                     if (player == null || FabricWaystones.WAYSTONE_STORAGE == null) {
@@ -64,7 +65,7 @@ public class WaystonesEventManager {
                     return 1;
                 })
                 .then(Commands.argument("player", EntityArgument.player())
-                    .requires(source -> source.hasPermission(1))
+                    .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
                     .executes(context -> {
                         ServerPlayer player = context.getSource().getPlayer();
                         if (player == null) {

@@ -1,5 +1,6 @@
 package wraith.fwaystones.packets;
 
+import net.minecraft.server.permissions.Permissions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -66,7 +67,7 @@ public final class WaystonePacketHandler {
             if (FabricWaystones.WAYSTONE_STORAGE.removeIfInvalid(hash)) {
                 return;
             }
-            if ((context.player().getUUID().equals(owner) || context.player().hasPermissions(2))) {
+            if ((context.player().getUUID().equals(owner) || context.player().permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))) {
                 FabricWaystones.WAYSTONE_STORAGE.setOwner(hash, null);
             }
         });
@@ -80,7 +81,7 @@ public final class WaystonePacketHandler {
             if (FabricWaystones.WAYSTONE_STORAGE.containsHash(payload.waystone()) &&
                     ((context.player().getUUID().equals(payload.owner()) &&
                             payload.owner().equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(payload.waystone()).getOwner())) ||
-                            context.player().hasPermissions(2))) {
+                            context.player().permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))) {
                 FabricWaystones.WAYSTONE_STORAGE.renameWaystone(payload.waystone(), payload.name());
             }
         });
@@ -129,7 +130,7 @@ public final class WaystonePacketHandler {
                 case NONE:
                     return;
                 case OP:
-                    if (!context.player().hasPermissions(2)) {
+                    if (!context.player().permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)) {
                         return;
                     }
                     break;

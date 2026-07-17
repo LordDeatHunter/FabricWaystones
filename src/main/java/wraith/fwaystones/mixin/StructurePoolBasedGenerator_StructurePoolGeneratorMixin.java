@@ -14,7 +14,7 @@ import wraith.fwaystones.access.StructurePoolBasedGenerator_StructurePoolGenerat
 import wraith.fwaystones.util.WaystonesWorldgen;
 import java.util.List;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
@@ -42,7 +42,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             && ((SinglePoolElementAccessor) singlePoolElement)
             .getLocation()
             .left()
-            .orElse(ResourceLocation.parse("empty"))
+            .orElse(Identifier.parse("empty"))
             .getNamespace()
             .equals(FabricWaystones.MOD_ID);
     }
@@ -68,7 +68,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
     ) {
         if (!FabricWaystones.CONFIG.worldgen.generate_in_villages() ||
             maxWaystoneCount < 0 ||
-            !WaystonesWorldgen.VANILLA_VILLAGES.containsKey(registryKey.location())) {
+            !WaystonesWorldgen.VANILLA_VILLAGES.containsKey(registryKey.identifier())) {
             return;
         }
         long villageWaystoneCount = pieces.stream()
@@ -77,7 +77,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
                 && ((SinglePoolElementAccessor) singlePoolElement)
                 .getLocation()
                 .left()
-                .orElse(ResourceLocation.parse("empty"))
+                .orElse(Identifier.parse("empty"))
                 .getNamespace()
                 .equals(FabricWaystones.MOD_ID)
             )

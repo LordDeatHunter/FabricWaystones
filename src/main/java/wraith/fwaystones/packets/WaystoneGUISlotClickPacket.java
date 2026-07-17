@@ -6,12 +6,12 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import wraith.fwaystones.FabricWaystones;
 
 
 public record WaystoneGUISlotClickPacket(int syncId, int clickedSlot) implements CustomPacketPayload {
-    public static final Type PACKET_ID = new Type<>(ResourceLocation.fromNamespaceAndPath(FabricWaystones.MOD_ID, "waystone_gui_slot_click"));
+    public static final Type PACKET_ID = new Type<>(Identifier.fromNamespaceAndPath(FabricWaystones.MOD_ID, "waystone_gui_slot_click"));
     public static final Codec<WaystoneGUISlotClickPacket> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.fieldOf("syncId").forGetter(WaystoneGUISlotClickPacket::syncId),
             Codec.INT.fieldOf("clickedSlot").forGetter(WaystoneGUISlotClickPacket::clickedSlot)

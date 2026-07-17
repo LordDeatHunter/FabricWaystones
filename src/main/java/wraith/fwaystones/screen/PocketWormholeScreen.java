@@ -3,7 +3,7 @@ package wraith.fwaystones.screen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import wraith.fwaystones.util.Utils;
@@ -11,7 +11,7 @@ import wraith.fwaystones.util.Utils;
 
 public class PocketWormholeScreen extends UniversalWaystoneScreen {
 
-    private static final ResourceLocation TEXTURE = Utils.ID("textures/gui/pocket_wormhole.png");
+    private static final Identifier TEXTURE = Utils.ID("textures/gui/pocket_wormhole.png");
 
     public PocketWormholeScreen(AbstractContainerMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
